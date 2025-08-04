@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ChevronDown, Trophy, BarChart3 } from "lucide-react";
-import rukawaBanner from "@/assets/rukawa-banner.png";
+import heroBackground from "@/assets/hero-background.jpg";
 
 const HeroSection = () => {
   const scrollToSection = (sectionId: string) => {
@@ -10,13 +9,10 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Theme Toggle */}
-      <ThemeToggle />
-      
       {/* Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80"
-        style={{ backgroundImage: `url(${rukawaBanner})` }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroBackground})` }}
       />
       <div className="absolute inset-0 gradient-hero" />
       
