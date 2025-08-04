@@ -1,10 +1,20 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Trophy, BarChart3 } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
+import PDFViewer from "./PDFViewer";
 
 const HeroSection = () => {
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [pdfTitle, setPdfTitle] = useState("");
+  
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const openPDFViewer = (title: string) => {
+    setPdfTitle(title);
+    setPdfViewerOpen(true);
   };
 
   return (
@@ -38,7 +48,7 @@ const HeroSection = () => {
             <Button 
               variant="hero" 
               size="xl"
-              onClick={() => scrollToSection('about')}
+              onClick={() => openPDFViewer("Portfolio & Analysis Samples")}
               className="group"
             >
               View My Work
@@ -61,8 +71,8 @@ const HeroSection = () => {
             <div className="text-muted-foreground">Years Experience</div>
           </div>
           <div className="text-center animate-slide-in-up" style={{ animationDelay: '0.4s' }}>
-            <div className="text-3xl font-bold text-clash-gold mb-2">3</div>
-            <div className="text-muted-foreground">Teams Coached</div>
+            <div className="text-3xl font-bold text-clash-gold mb-2">Top 9-12</div>
+            <div className="text-muted-foreground">CRL Monthly Finals</div>
           </div>
           <div className="text-center animate-slide-in-up" style={{ animationDelay: '0.6s' }}>
             <div className="text-3xl font-bold text-clash-gold mb-2">Top 6</div>
@@ -75,6 +85,13 @@ const HeroSection = () => {
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
         <ChevronDown className="w-6 h-6 text-muted-foreground" />
       </div>
+
+      {/* PDF Viewer */}
+      <PDFViewer
+        isOpen={pdfViewerOpen}
+        onClose={() => setPdfViewerOpen(false)}
+        title={pdfTitle}
+      />
     </section>
   );
 };
