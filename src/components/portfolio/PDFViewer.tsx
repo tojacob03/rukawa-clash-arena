@@ -52,36 +52,38 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full h-[90vh] p-0">
-        <DialogHeader className="p-3 pb-1">
-          <DialogTitle className="flex items-center justify-between gap-2">
+        <DialogHeader className="p-3 pb-1 relative">
+          <DialogTitle className="pr-12">
             <span className="truncate text-base sm:text-lg">{selectedTitle || title}</span>
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {selectedPdf && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={goBackToSelection}
-                  className="gap-1 text-xs px-2 py-1"
-                >
-                  ← Back
-                </Button>
-              )}
-              {(selectedPdf || pdfUrl) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  className="gap-1 text-xs px-2 py-1"
-                >
-                  <Download className="w-3 h-3" />
-                  <span className="hidden sm:inline">Download</span>
-                </Button>
-              )}
-            </div>
           </DialogTitle>
+          
+          {/* Absolutely positioned buttons to avoid overlap with close button */}
+          <div className="absolute top-3 right-12 flex items-center gap-1 sm:gap-2">
+            {selectedPdf && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goBackToSelection}
+                className="gap-1 text-xs px-2 py-1"
+              >
+                ← Back
+              </Button>
+            )}
+            {(selectedPdf || pdfUrl) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="gap-1 text-xs px-2 py-1"
+              >
+                <Download className="w-3 h-3" />
+                <span className="hidden sm:inline">Download</span>
+              </Button>
+            )}
+          </div>
         </DialogHeader>
         
-        <div className="flex-1 p-3 pt-1">
+        <div className={`flex-1 ${showSelection && !selectedPdf ? 'p-3 pt-1' : 'p-0'}`}>
           {showSelection && !selectedPdf ? (
             // Selection Screen
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-full">
