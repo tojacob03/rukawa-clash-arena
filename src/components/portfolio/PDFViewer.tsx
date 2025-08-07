@@ -51,20 +51,20 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full h-[80vh] sm:h-[85vh] p-0 flex flex-col">
-        <DialogHeader className="p-2 pb-1 relative flex-shrink-0">
+      <DialogContent className="max-w-4xl w-full h-[80vh] sm:h-[85vh] p-1 flex flex-col">
+        <DialogHeader className="p-3 pb-1 relative flex-shrink-0">
           <DialogTitle className="pr-12">
             <span className="truncate text-sm sm:text-base">{selectedTitle || title}</span>
           </DialogTitle>
           
           {/* Absolutely positioned buttons to avoid overlap with close button */}
-          <div className="absolute top-2 right-12 flex items-center gap-1">
+          <div className="absolute top-3 right-12 flex items-center gap-1">
             {selectedPdf && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={goBackToSelection}
-                className="gap-1 text-xs px-1.5 py-0.5"
+                className="gap-1 text-xs px-2 py-1"
               >
                 ← <span className="hidden sm:inline">Back</span>
               </Button>
@@ -74,7 +74,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
                 variant="outline"
                 size="sm"
                 onClick={handleDownload}
-                className="gap-1 text-xs px-1.5 py-0.5"
+                className="gap-1 text-xs px-2 py-1"
               >
                 <Download className="w-3 h-3" />
                 <span className="hidden sm:inline">Download</span>
@@ -83,7 +83,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
           </div>
         </DialogHeader>
         
-        <div className={`flex-1 ${showSelection && !selectedPdf ? 'p-2' : ''}`}>
+        <div className={`flex-1 ${showSelection && !selectedPdf ? 'p-3' : 'p-1'}`}>
           {showSelection && !selectedPdf ? (
             // Selection Screen
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-full">
