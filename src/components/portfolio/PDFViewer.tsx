@@ -51,22 +51,22 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full h-[90vh] p-0">
-        <DialogHeader className="p-3 pb-1 relative">
+      <DialogContent className="max-w-4xl w-full h-[80vh] sm:h-[85vh] p-0 flex flex-col">
+        <DialogHeader className="p-2 pb-1 relative flex-shrink-0">
           <DialogTitle className="pr-12">
-            <span className="truncate text-base sm:text-lg">{selectedTitle || title}</span>
+            <span className="truncate text-sm sm:text-base">{selectedTitle || title}</span>
           </DialogTitle>
           
           {/* Absolutely positioned buttons to avoid overlap with close button */}
-          <div className="absolute top-3 right-12 flex items-center gap-1 sm:gap-2">
+          <div className="absolute top-2 right-12 flex items-center gap-1">
             {selectedPdf && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={goBackToSelection}
-                className="gap-1 text-xs px-2 py-1"
+                className="gap-1 text-xs px-1.5 py-0.5"
               >
-                ← Back
+                ← <span className="hidden sm:inline">Back</span>
               </Button>
             )}
             {(selectedPdf || pdfUrl) && (
@@ -74,7 +74,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
                 variant="outline"
                 size="sm"
                 onClick={handleDownload}
-                className="gap-1 text-xs px-2 py-1"
+                className="gap-1 text-xs px-1.5 py-0.5"
               >
                 <Download className="w-3 h-3" />
                 <span className="hidden sm:inline">Download</span>
@@ -83,21 +83,21 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
           </div>
         </DialogHeader>
         
-        <div className={`flex-1 ${showSelection && !selectedPdf ? 'p-3 pt-1' : 'p-0'}`}>
+        <div className={`flex-1 ${showSelection && !selectedPdf ? 'p-2' : ''}`}>
           {showSelection && !selectedPdf ? (
             // Selection Screen
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-full">
               <Button
                 variant="outline"
-                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-4 sm:p-6 lg:p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                className="h-full min-h-[200px] flex flex-col items-center justify-center gap-2 p-3 sm:p-4 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
                 onClick={() => selectPdf(matchAnalysisUrl, "Match Analysis Sample")}
                 disabled={!matchAnalysisUrl}
               >
-                <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
+                <BarChart3 className="w-10 h-10 sm:w-12 sm:h-12 text-primary flex-shrink-0" />
                 <div className="text-center max-w-full">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Match Analysis</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
-                    Team strategies and match predictions
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 break-words">Match Analysis</h3>
+                  <p className="text-xs text-muted-foreground leading-snug">
+                    Team strategies & predictions
                   </p>
                 </div>
                 {!matchAnalysisUrl && (
@@ -107,15 +107,15 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
               
               <Button
                 variant="outline"
-                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-4 sm:p-6 lg:p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                className="h-full min-h-[200px] flex flex-col items-center justify-center gap-2 p-3 sm:p-4 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
                 onClick={() => selectPdf(playerAnalysisUrl, "Player Analysis Sample")}
                 disabled={!playerAnalysisUrl}
               >
-                <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
+                <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-primary flex-shrink-0" />
                 <div className="text-center max-w-full">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Player Analysis</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
-                    Performance analysis and recommendations
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 break-words">Player Analysis</h3>
+                  <p className="text-xs text-muted-foreground leading-snug">
+                    Performance & recommendations
                   </p>
                 </div>
                 {!playerAnalysisUrl && (
