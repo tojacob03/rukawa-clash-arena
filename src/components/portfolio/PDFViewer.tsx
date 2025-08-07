@@ -77,14 +77,6 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
                   Download
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="p-2"
-              >
-                <X className="w-4 h-4" />
-              </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
@@ -92,17 +84,17 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
         <div className="flex-1 p-6 pt-0">
           {showSelection && !selectedPdf ? (
             // Selection Screen
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-full">
               <Button
                 variant="outline"
-                className="h-full min-h-[300px] flex flex-col items-center justify-center gap-4 p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-4 sm:p-6 lg:p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
                 onClick={() => selectPdf(matchAnalysisUrl, "Match Analysis Sample")}
                 disabled={!matchAnalysisUrl}
               >
-                <BarChart3 className="w-16 h-16 text-primary" />
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold mb-2">Match Analysis</h3>
-                  <p className="text-sm text-muted-foreground">
+                <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
+                <div className="text-center max-w-full">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Match Analysis</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight line-clamp-3 break-words">
                     Detailed breakdown of team strategies, meta analysis, and match predictions
                   </p>
                 </div>
@@ -113,14 +105,14 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
               
               <Button
                 variant="outline"
-                className="h-full min-h-[300px] flex flex-col items-center justify-center gap-4 p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-4 sm:p-6 lg:p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
                 onClick={() => selectPdf(playerAnalysisUrl, "Player Analysis Sample")}
                 disabled={!playerAnalysisUrl}
               >
-                <FileText className="w-16 h-16 text-primary" />
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold mb-2">Player Analysis</h3>
-                  <p className="text-sm text-muted-foreground">
+                <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
+                <div className="text-center max-w-full">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Player Analysis</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight line-clamp-3 break-words">
                     Individual player performance breakdowns and improvement recommendations
                   </p>
                 </div>
@@ -149,8 +141,8 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
             </div>
           ) : (
             <iframe
-              src={selectedPdf || pdfUrl}
-              className="w-full h-full rounded-lg border"
+              src={`${selectedPdf || pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+              className="w-full h-full rounded-lg border-0"
               title={selectedTitle || title}
               onError={() => setError(true)}
             />
