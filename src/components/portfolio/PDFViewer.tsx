@@ -51,11 +51,11 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full h-[80vh] p-0">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="max-w-4xl w-full h-[90vh] p-0">
+        <DialogHeader className="p-4 pb-0">
           <DialogTitle className="flex items-center justify-between">
-            <span>{selectedTitle || title}</span>
-            <div className="flex items-center gap-2">
+            <span className="truncate mr-4">{selectedTitle || title}</span>
+            <div className="flex items-center gap-3 flex-shrink-0">
               {selectedPdf && (
                 <Button
                   variant="outline"
@@ -81,7 +81,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 p-6 pt-0">
+        <div className="flex-1 p-4 pt-0">
           {showSelection && !selectedPdf ? (
             // Selection Screen
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-full">
@@ -94,7 +94,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
                 <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
                 <div className="text-center max-w-full">
                   <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Match Analysis</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight line-clamp-3 break-words">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight break-words hyphens-auto">
                     Detailed breakdown of team strategies, meta analysis, and match predictions
                   </p>
                 </div>
@@ -112,7 +112,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
                 <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
                 <div className="text-center max-w-full">
                   <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Player Analysis</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight line-clamp-3 break-words">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight break-words hyphens-auto">
                     Individual player performance breakdowns and improvement recommendations
                   </p>
                 </div>
