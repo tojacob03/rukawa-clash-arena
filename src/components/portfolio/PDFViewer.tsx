@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { X, Download, FileText, BarChart3 } from "lucide-react";
 
-// Placeholder imports for PDFs - replace these paths when you upload the actual PDFs
-// import matchAnalysisPdf from "@/assets/match-analysis-sample.pdf";
-// import playerAnalysisPdf from "@/assets/player-analysis-sample.pdf";
+// Import the actual PDFs
+import matchAnalysisPdf from "@/assets/match-analysis.pdf";
+import playerAnalysisPdf from "@/assets/player-analysis.pdf";
 
 interface PDFViewerProps {
   isOpen: boolean;
@@ -20,9 +20,9 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
 
-  // Placeholder URLs - these will be replaced when you upload the actual PDFs
-  const matchAnalysisUrl = ""; // matchAnalysisPdf;
-  const playerAnalysisUrl = ""; // playerAnalysisPdf;
+  // Use the imported PDF files
+  const matchAnalysisUrl = matchAnalysisPdf;
+  const playerAnalysisUrl = playerAnalysisPdf;
 
   const handleDownload = () => {
     const currentPdfUrl = selectedPdf || pdfUrl;
