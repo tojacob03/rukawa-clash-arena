@@ -91,6 +91,7 @@ const HeroSection = () => {
         isOpen={pdfViewerOpen}
         onClose={() => setPdfViewerOpen(false)}
         title={pdfTitle}
+        showSelection={true}
       />
     </section>
   );

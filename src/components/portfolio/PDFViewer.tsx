@@ -1,27 +1,52 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, Download } from "lucide-react";
+import { X, Download, FileText, BarChart3 } from "lucide-react";
+
+// Placeholder imports for PDFs - replace these paths when you upload the actual PDFs
+// import matchAnalysisPdf from "@/assets/match-analysis-sample.pdf";
+// import playerAnalysisPdf from "@/assets/player-analysis-sample.pdf";
 
 interface PDFViewerProps {
   isOpen: boolean;
   onClose: () => void;
   pdfUrl?: string;
   title: string;
+  showSelection?: boolean;
 }
 
-const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
+const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PDFViewerProps) => {
   const [error, setError] = useState(false);
+  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [selectedTitle, setSelectedTitle] = useState<string>("");
+
+  // Placeholder URLs - these will be replaced when you upload the actual PDFs
+  const matchAnalysisUrl = ""; // matchAnalysisPdf;
+  const playerAnalysisUrl = ""; // playerAnalysisPdf;
 
   const handleDownload = () => {
-    if (pdfUrl) {
+    const currentPdfUrl = selectedPdf || pdfUrl;
+    const currentTitle = selectedTitle || title;
+    if (currentPdfUrl) {
       const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.download = `${title}.pdf`;
+      link.href = currentPdfUrl;
+      link.download = `${currentTitle}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
+  };
+
+  const selectPdf = (url: string, pdfTitle: string) => {
+    setSelectedPdf(url);
+    setSelectedTitle(pdfTitle);
+    setError(false);
+  };
+
+  const goBackToSelection = () => {
+    setSelectedPdf(null);
+    setSelectedTitle("");
+    setError(false);
   };
 
   return (
@@ -29,9 +54,19 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
       <DialogContent className="max-w-4xl w-full h-[80vh] p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center justify-between">
-            <span>{title}</span>
+            <span>{selectedTitle || title}</span>
             <div className="flex items-center gap-2">
-              {pdfUrl && (
+              {selectedPdf && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goBackToSelection}
+                  className="gap-2"
+                >
+                  ← Back
+                </Button>
+              )}
+              {(selectedPdf || pdfUrl) && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -55,7 +90,46 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
         </DialogHeader>
         
         <div className="flex-1 p-6 pt-0">
-          {!pdfUrl ? (
+          {showSelection && !selectedPdf ? (
+            // Selection Screen
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+              <Button
+                variant="outline"
+                className="h-full min-h-[300px] flex flex-col items-center justify-center gap-4 p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                onClick={() => selectPdf(matchAnalysisUrl, "Match Analysis Sample")}
+                disabled={!matchAnalysisUrl}
+              >
+                <BarChart3 className="w-16 h-16 text-primary" />
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold mb-2">Match Analysis</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Detailed breakdown of team strategies, meta analysis, and match predictions
+                  </p>
+                </div>
+                {!matchAnalysisUrl && (
+                  <span className="text-xs text-muted-foreground">Upload PDF to enable</span>
+                )}
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="h-full min-h-[300px] flex flex-col items-center justify-center gap-4 p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                onClick={() => selectPdf(playerAnalysisUrl, "Player Analysis Sample")}
+                disabled={!playerAnalysisUrl}
+              >
+                <FileText className="w-16 h-16 text-primary" />
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold mb-2">Player Analysis</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Individual player performance breakdowns and improvement recommendations
+                  </p>
+                </div>
+                {!playerAnalysisUrl && (
+                  <span className="text-xs text-muted-foreground">Upload PDF to enable</span>
+                )}
+              </Button>
+            </div>
+          ) : !selectedPdf && !pdfUrl ? (
             <div className="flex items-center justify-center h-full bg-muted rounded-lg">
               <div className="text-center">
                 <div className="text-muted-foreground mb-4">No PDF available yet</div>
@@ -75,9 +149,9 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
             </div>
           ) : (
             <iframe
-              src={pdfUrl}
+              src={selectedPdf || pdfUrl}
               className="w-full h-full rounded-lg border"
-              title={title}
+              title={selectedTitle || title}
               onError={() => setError(true)}
             />
           )}
