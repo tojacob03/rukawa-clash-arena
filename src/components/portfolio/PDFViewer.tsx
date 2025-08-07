@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, BarChart3 } from "lucide-react";
+import { X, Download, FileText, BarChart3 } from "lucide-react";
 
+// Import the actual PDFs
 import matchAnalysisPdf from "@/assets/match-analysis.pdf";
 import playerAnalysisPdf from "@/assets/player-analysis.pdf";
 
@@ -19,6 +20,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
 
+  // Use the imported PDF files
   const matchAnalysisUrl = matchAnalysisPdf;
   const playerAnalysisUrl = playerAnalysisPdf;
 
@@ -26,7 +28,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
     const currentPdfUrl = selectedPdf || pdfUrl;
     const currentTitle = selectedTitle || title;
     if (currentPdfUrl) {
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = currentPdfUrl;
       link.download = `${currentTitle}.pdf`;
       document.body.appendChild(link);
@@ -49,75 +51,80 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full h-[90vh] p-0 relative">
-        {/* Header: title + buttons */}
-        <DialogHeader className="p-4 pb-2 pr-16">
-          <DialogTitle className="text-base sm:text-lg truncate">
-            {selectedTitle || title}
+      <DialogContent className="max-w-4xl w-full h-[90vh] p-0">
+        <DialogHeader className="p-3 pb-1 relative">
+          <DialogTitle className="pr-12">
+            <span className="truncate text-base sm:text-lg">{selectedTitle || title}</span>
           </DialogTitle>
-        </DialogHeader>
-
-        {/* Button-Gruppe oben rechts */}
-        <div className="absolute top-4 right-4 flex gap-2 z-10">
-          {selectedPdf && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goBackToSelection}
-              className="gap-1 text-xs px-2 py-1"
-            >
-              ← Back
-            </Button>
-          )}
-          {(selectedPdf || pdfUrl) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="gap-1 text-xs px-2 py-1"
-            >
-              <Download className="w-3 h-3" />
-              <span className="hidden sm:inline">Download</span>
-            </Button>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 h-full overflow-hidden">
-          {showSelection && !selectedPdf ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-full p-4">
+          
+          {/* Absolutely positioned buttons to avoid overlap with close button */}
+          <div className="absolute top-3 right-12 flex items-center gap-1 sm:gap-2">
+            {selectedPdf && (
               <Button
                 variant="outline"
-                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-6 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                size="sm"
+                onClick={goBackToSelection}
+                className="gap-1 text-xs px-2 py-1"
+              >
+                ← Back
+              </Button>
+            )}
+            {(selectedPdf || pdfUrl) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="gap-1 text-xs px-2 py-1"
+              >
+                <Download className="w-3 h-3" />
+                <span className="hidden sm:inline">Download</span>
+              </Button>
+            )}
+          </div>
+        </DialogHeader>
+        
+        <div className={`flex-1 ${showSelection && !selectedPdf ? 'p-3 pt-1' : 'p-0'}`}>
+          {showSelection && !selectedPdf ? (
+            // Selection Screen
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-full">
+              <Button
+                variant="outline"
+                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-4 sm:p-6 lg:p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
                 onClick={() => selectPdf(matchAnalysisUrl, "Match Analysis Sample")}
                 disabled={!matchAnalysisUrl}
               >
-                <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-primary" />
-                <div className="text-center">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">Match Analysis</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
+                <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
+                <div className="text-center max-w-full">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Match Analysis</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                     Team strategies and match predictions
                   </p>
                 </div>
+                {!matchAnalysisUrl && (
+                  <span className="text-xs text-muted-foreground">Upload PDF to enable</span>
+                )}
               </Button>
-
+              
               <Button
                 variant="outline"
-                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-6 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
+                className="h-full min-h-[280px] flex flex-col items-center justify-center gap-3 p-4 sm:p-6 lg:p-8 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
                 onClick={() => selectPdf(playerAnalysisUrl, "Player Analysis Sample")}
                 disabled={!playerAnalysisUrl}
               >
-                <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-primary" />
-                <div className="text-center">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">Player Analysis</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
+                <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-primary flex-shrink-0" />
+                <div className="text-center max-w-full">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 break-words">Player Analysis</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                     Performance analysis and recommendations
                   </p>
                 </div>
+                {!playerAnalysisUrl && (
+                  <span className="text-xs text-muted-foreground">Upload PDF to enable</span>
+                )}
               </Button>
             </div>
           ) : !selectedPdf && !pdfUrl ? (
-            <div className="flex items-center justify-center h-full bg-muted rounded-lg p-4">
+            <div className="flex items-center justify-center h-full bg-muted rounded-lg">
               <div className="text-center">
                 <div className="text-muted-foreground mb-4">No PDF available yet</div>
                 <p className="text-sm text-muted-foreground">
@@ -126,7 +133,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
               </div>
             </div>
           ) : error ? (
-            <div className="flex items-center justify-center h-full bg-muted rounded-lg p-4">
+            <div className="flex items-center justify-center h-full bg-muted rounded-lg">
               <div className="text-center">
                 <div className="text-destructive mb-4">Failed to load PDF</div>
                 <Button onClick={() => setError(false)} variant="outline">
