@@ -1,4 +1,9 @@
 // Static Clash Royale card database with all cards and their properties
+import suspiciousBushImg from '@/assets/cards/suspicious-bush.png';
+import spiritEmpressImg from '@/assets/cards/spirit-empress.png';
+import bossBanditImg from '@/assets/cards/boss-bandit.png';
+import berserkerImg from '@/assets/cards/berserker.png';
+import goblinCurseImg from '@/assets/cards/goblin-curse.png';
 export interface ClashRoyaleCard {
   id: number;
   name: string;
