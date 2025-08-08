@@ -129,7 +129,7 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
             </div>
           ) : fileUrl ? (
             <div className="h-96 border rounded-lg overflow-hidden">
-              {file.file_type === 'application/pdf' ? (
+              {(file.file_type === 'application/pdf' || file.file_type === 'pdf') ? (
                 <iframe
                   src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                   className="w-full h-full rounded-lg border-0"

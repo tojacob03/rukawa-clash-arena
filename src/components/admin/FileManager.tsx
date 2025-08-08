@@ -479,6 +479,12 @@ export function FileManager() {
     e.preventDefault();
     if (!analysisUpload.selectedFile) return;
 
+    const isPdf = analysisUpload.selectedFile.type === 'application/pdf' || analysisUpload.selectedFile.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      toast({ title: 'Unsupported file type', description: 'Bitte nur PDF-Dateien hochladen.', variant: 'destructive' });
+      return;
+    }
+
     setUploadLoading(true);
     try {
       const fileExt = analysisUpload.selectedFile.name.split('.').pop();
@@ -498,7 +504,7 @@ export function FileManager() {
         .insert([{
           file_name: analysisUpload.selectedFile.name,
           file_path: filePath,
-          file_type: analysisUpload.selectedFile.type,
+          file_type: 'pdf',
           opponent_id: analysisUpload.opponent_id
         }]);
 
@@ -836,7 +842,7 @@ export function FileManager() {
                     <Input
                       id="analysisFile"
                       type="file"
-                      accept=".pdf,.doc,.docx,.txt"
+                      accept="application/pdf,.pdf"
                       onChange={(e) => setAnalysisUpload(prev => ({ 
                         ...prev, 
                         selectedFile: e.target.files?.[0] || null 
