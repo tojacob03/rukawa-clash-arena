@@ -106,66 +106,118 @@ export function FileManager() {
   }, []);
 
   const fetchData = async () => {
+    console.log('FileManager: Starting fetchData...');
     setLoading(true);
+    
     try {
-      // Fetch clients
-      const { data: clientsData } = await supabase
+      // Fetch clients first
+      console.log('Fetching clients...');
+      const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
         .select('*')
         .order('name');
 
-      // Fetch deck sets with client info
-      const { data: deckSetsData } = await supabase
+      if (clientsError) {
+        console.error('Error fetching clients:', clientsError);
+        throw clientsError;
+      }
+      console.log('Clients fetched:', clientsData?.length || 0);
+      setClients(clientsData || []);
+
+      // Fetch deck sets with client info - simplified query
+      console.log('Fetching deck sets...');
+      const { data: deckSetsData, error: deckSetsError } = await supabase
         .from('deck_sets')
-        .select(`
-          *,
-          clients (id, name, type)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      // Fetch deck files with deck set info
-      const { data: deckFilesData } = await supabase
+      if (deckSetsError) {
+        console.error('Error fetching deck sets:', deckSetsError);
+        setDeckSets([]);
+      } else {
+        console.log('Deck sets fetched:', deckSetsData?.length || 0);
+        // Map client info separately
+        const deckSetsWithClients = deckSetsData?.map(deckSet => ({
+          ...deckSet,
+          client: clientsData?.find(c => c.id === deckSet.client_id)
+        })) || [];
+        setDeckSets(deckSetsWithClients);
+      }
+
+      // Fetch deck files - simplified query
+      console.log('Fetching deck files...');
+      const { data: deckFilesData, error: deckFilesError } = await supabase
         .from('deck_files')
-        .select(`
-          *,
-          deck_sets (
-            id, name, client_id,
-            clients (id, name, type)
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      // Fetch opponents with client info
-      const { data: opponentsData } = await supabase
+      if (deckFilesError) {
+        console.error('Error fetching deck files:', deckFilesError);
+        setDeckFiles([]);
+      } else {
+        console.log('Deck files fetched:', deckFilesData?.length || 0);
+        // Map relationships separately to avoid type issues
+        const deckFilesWithRelations = deckFilesData?.map(deckFile => {
+          const deckSet = deckSetsData?.find(ds => ds.id === deckFile.deck_set_id);
+          const client = clientsData?.find(c => c.id === deckSet?.client_id);
+          return {
+            ...deckFile,
+            deck_set: deckSet ? { ...deckSet, client } : undefined
+          };
+        }) || [];
+        setDeckFiles(deckFilesWithRelations);
+      }
+
+      // Fetch opponents - simplified query
+      console.log('Fetching opponents...');
+      const { data: opponentsData, error: opponentsError } = await supabase
         .from('opponents')
-        .select(`
-          *,
-          clients (id, name, type)
-        `)
+        .select('*')
         .order('name');
 
-      // Fetch analysis files with opponent info
-      const { data: analysisFilesData } = await supabase
+      if (opponentsError) {
+        console.error('Error fetching opponents:', opponentsError);
+        setOpponents([]);
+      } else {
+        console.log('Opponents fetched:', opponentsData?.length || 0);
+        // Map client info separately
+        const opponentsWithClients = opponentsData?.map(opponent => ({
+          ...opponent,
+          client: clientsData?.find(c => c.id === opponent.client_id)
+        })) || [];
+        setOpponents(opponentsWithClients);
+      }
+
+      // Fetch analysis files - simplified query
+      console.log('Fetching analysis files...');
+      const { data: analysisFilesData, error: analysisFilesError } = await supabase
         .from('analysis_files')
-        .select(`
-          *,
-          opponents (
-            id, name, client_id,
-            clients (id, name, type)
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      setClients(clientsData || []);
-      setDeckSets(deckSetsData || []);
-      setDeckFiles(deckFilesData || []);
-      setOpponents(opponentsData || []);
-      setAnalysisFiles(analysisFilesData || []);
+      if (analysisFilesError) {
+        console.error('Error fetching analysis files:', analysisFilesError);
+        setAnalysisFiles([]);
+      } else {
+        console.log('Analysis files fetched:', analysisFilesData?.length || 0);
+        // Map relationships separately
+        const analysisFilesWithRelations = analysisFilesData?.map(file => {
+          const opponent = opponentsData?.find(o => o.id === file.opponent_id);
+          const client = clientsData?.find(c => c.id === opponent?.client_id);
+          return {
+            ...file,
+            opponent: opponent ? { ...opponent, client } : undefined
+          };
+        }) || [];
+        setAnalysisFiles(analysisFilesWithRelations);
+      }
+
+      console.log('FileManager: fetchData completed');
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('FileManager: Critical error in fetchData:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch data",
+        description: "Failed to load data. Please refresh the page.",
         variant: "destructive",
       });
     } finally {
