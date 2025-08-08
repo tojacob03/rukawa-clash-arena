@@ -68,6 +68,7 @@ export function FileManager() {
   const [analysisFiles, setAnalysisFiles] = useState<AnalysisFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [opLoading, setOpLoading] = useState(false);
 
   // Form states
   const [showDeckSetForm, setShowDeckSetForm] = useState(false);
@@ -289,64 +290,49 @@ export function FileManager() {
 
   const createDeckFile = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (opLoading) return;
+    setOpLoading(true);
     
     console.log('Creating deck file with form data:', deckFileForm);
     
     // Validate form data
     if (!deckFileForm.deck_name.trim()) {
-      toast({
-        title: "Error",
-        description: "Deck name is required",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Deck name is required", variant: "destructive" });
+      setOpLoading(false);
       return;
     }
 
     if (!deckFileForm.deck_set_id) {
-      toast({
-        title: "Error", 
-        description: "Please select a deck set",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Please select a deck set", variant: "destructive" });
+      setOpLoading(false);
       return;
     }
 
     // Validate deck link and extract card IDs
     const parsedDeck = parseDeckLink(deckFileForm.deck_link);
     console.log('Parsed deck:', parsedDeck);
-    
     if (!parsedDeck.isValid) {
-      toast({
-        title: "Error",
-        description: "Invalid deck link. Please provide a valid Clash Royale deck link.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Invalid deck link. Please provide a valid Clash Royale deck link.", variant: "destructive" });
+      setOpLoading(false);
       return;
     }
 
     // Ensure deck_number is a valid integer
     const deckNumber = parseInt(deckFileForm.deck_number.toString(), 10);
     if (isNaN(deckNumber) || deckNumber < 1) {
-      toast({
-        title: "Error",
-        description: "Deck number must be a positive integer",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Deck number must be a positive integer", variant: "destructive" });
+      setOpLoading(false);
       return;
     }
 
     // Check for duplicate deck numbers in the same deck set
     const existingDeckWithNumber = deckFiles.find(deck => 
-      deck.deck_set_id === deckFileForm.deck_set_id && 
-      deck.deck_number === deckNumber
+      deck.deck_set_id === deckFileForm.deck_set_id && deck.deck_number === deckNumber
     );
-    
     if (existingDeckWithNumber) {
-      toast({
-        title: "Error",
-        description: `Deck number ${deckNumber} already exists in this deck set`,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: `Deck number ${deckNumber} already exists in this deck set`, variant: "destructive" });
+      setOpLoading(false);
       return;
     }
 
@@ -361,36 +347,20 @@ export function FileManager() {
 
       console.log('Inserting deck data:', deckData);
 
-      const { error } = await supabase
-        .from('deck_files')
-        .insert([deckData]);
+      const { error } = await supabase.from('deck_files').insert([deckData]);
+      if (error) throw error;
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Deck file created successfully",
-      });
+      toast({ title: "Success", description: "Deck file created successfully" });
 
       // Reset form properly
-      setDeckFileForm({ 
-        deck_name: '', 
-        deck_link: '', 
-        deck_number: 1, 
-        deck_set_id: '' 
-      });
+      setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
       setShowDeckFileForm(false);
       await fetchData();
     } catch (error) {
       console.error('Error creating deck file:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create deck file",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
+    } finally {
+      setOpLoading(false);
     }
   };
 
