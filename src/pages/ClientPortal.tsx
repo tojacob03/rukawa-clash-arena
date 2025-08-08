@@ -63,14 +63,6 @@ const ClientPortal = () => {
   const [loadingOpponents, setLoadingOpponents] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (client) {
-      document.title = `${client.name}s Dashboard | Client Portal`;
-    } else {
-      document.title = 'Client Portal Login';
-    }
-  }, [client]);
-
   const fetchDeckSets = async (clientId: string) => {
     setLoadingDeckSets(true);
     try {
@@ -181,7 +173,8 @@ const ClientPortal = () => {
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-primary" />
               <div>
-                <h1 className="text-3xl font-bold">{client.name}s Dashboard</h1>
+                <h1 className="text-3xl font-bold">Client Portal</h1>
+                <p className="text-muted-foreground">Welcome, {client.name}</p>
               </div>
             </div>
             <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
@@ -196,6 +189,12 @@ const ClientPortal = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <h3 className="font-semibold">Client Information</h3>
+                  <p><strong>Name:</strong> {client.name}</p>
+                  <p><strong>Type:</strong> {client.type === 'player' ? 'Player' : 'Team'}</p>
+                  <p><strong>Status:</strong> Active</p>
+                </div>
 
                 {client.type === 'player' && (
                   <div className="space-y-4">
