@@ -14,8 +14,10 @@ import {
   Download,
   Plus,
   Users,
-  Target
+  Target,
+  Pencil
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { parseDeckLink } from '@/utils/deckParser';
@@ -102,6 +104,10 @@ const [analysisUpload, setAnalysisUpload] = useState({
   selectedFile: null as File | null,
   file_type: 'match_analysis'
 });
+
+const [editDeckSetId, setEditDeckSetId] = useState<string | null>(null);
+const [editDeckSetName, setEditDeckSetName] = useState<string>('');
+const [savingDeckSet, setSavingDeckSet] = useState(false);
 
   const { toast } = useToast();
 
@@ -307,6 +313,39 @@ const [analysisUpload, setAnalysisUpload] = useState({
         description: "Failed to create deck set",
         variant: "destructive",
       });
+    }
+  };
+  
+  // Deck Set rename handlers
+  const openEditDeckSet = (deckSet: DeckSet) => {
+    setEditDeckSetId(deckSet.id);
+    setEditDeckSetName(deckSet.name);
+  };
+
+  const closeEditDeckSet = () => {
+    setEditDeckSetId(null);
+    setEditDeckSetName('');
+    setSavingDeckSet(false);
+  };
+
+  const saveDeckSetName = async () => {
+    if (!editDeckSetId) return;
+    try {
+      setSavingDeckSet(true);
+      const { error } = await supabase
+        .from('deck_sets')
+        .update({ name: editDeckSetName })
+        .eq('id', editDeckSetId);
+      if (error) throw error;
+
+      toast({ title: 'Erfolg', description: 'Deck-Set-Name aktualisiert.' });
+      closeEditDeckSet();
+      await fetchData();
+    } catch (error) {
+      console.error('Error updating deck set name:', error);
+      toast({ title: 'Fehler', description: 'Aktualisierung fehlgeschlagen.', variant: 'destructive' });
+    } finally {
+      setSavingDeckSet(false);
     }
   };
 
@@ -672,11 +711,39 @@ const [analysisUpload, setAnalysisUpload] = useState({
                       <p className="text-sm text-muted-foreground">{deckSet.description}</p>
                       <Badge variant="secondary">{deckSet.client?.name}</Badge>
                     </div>
+                    <Button variant="outline" size="sm" onClick={() => openEditDeckSet(deckSet)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Umbenennen
+                    </Button>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+
+                <Dialog open={!!editDeckSetId} onOpenChange={(open) => { if (!open) closeEditDeckSet(); }}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Deck Set umbenennen</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                      <Label htmlFor="editDeckSetName">Name</Label>
+                      <Input
+                        id="editDeckSetName"
+                        value={editDeckSetName}
+                        onChange={(e) => setEditDeckSetName(e.target.value)}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={closeEditDeckSet}>
+                        Abbrechen
+                      </Button>
+                      <Button onClick={saveDeckSetName} disabled={savingDeckSet || !editDeckSetName.trim()}>
+                        {savingDeckSet ? 'Speichern...' : 'Speichern'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
 
           {/* Deck Files Management */}
           <Card>
