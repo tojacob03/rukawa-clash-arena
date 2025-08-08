@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { Trophy, Medal, Award, Crown } from "lucide-react";
 
 const achievements = [
@@ -33,12 +34,31 @@ const achievements = [
 ];
 
 const AchievementsSection = () => {
+  const { t } = useTranslation();
+  
+  const achievements = [
+    {
+      title: t('achievements.crl.title'),
+      event: t('achievements.crl.event'),
+      icon: Trophy,
+      rank: t('achievements.crl.rank'),
+      color: "text-clash-blue"
+    },
+    {
+      title: t('achievements.copaAmerica.title'),
+      event: t('achievements.copaAmerica.event'),
+      icon: Crown,
+      rank: t('achievements.copaAmerica.rank'),
+      color: "text-clash-gold"
+    }
+  ];
+
   return (
     <section id="achievements" className="py-20 px-6 bg-muted/30">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            Achievements & Results
+            {t('achievements.title')}
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
         </div>

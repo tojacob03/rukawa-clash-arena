@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Mail, MessageCircle, Twitter, Send } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 
 const ContactSection = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,15 +37,15 @@ const ContactSection = () => {
       }
 
       toast({
-        title: "Message Sent!",
-        description: "Thank you for your message. I'll get back to you soon.",
+        title: t('contact.messageSent'),
+        description: t('contact.messageSuccess'),
       });
       setFormData({ name: "", email: "", message: "" });
     } catch (error) {
       console.error('Error submitting form:', error);
       toast({
-        title: "Error",
-        description: "There was an error sending your message. Please try again.",
+        title: t('contact.error'),
+        description: t('contact.errorMessage'),
         variant: "destructive",
       });
     } finally {
@@ -54,21 +56,21 @@ const ContactSection = () => {
   const contactMethods = [
     {
       icon: Mail,
-      label: "Email",
+      label: t('contact.methods.email'),
       value: "to_jacob@me.com",
       href: "mailto:to_jacob@me.com",
       color: "text-clash-blue"
     },
     {
       icon: MessageCircle,
-      label: "Discord",
+      label: t('contact.methods.discord'),
       value: "rukawa03",
       href: "#",
       color: "text-clash-purple"
     },
     {
       icon: Twitter,
-      label: "Twitter/X",
+      label: t('contact.methods.twitter'),
       value: "RukawaAnalyst",
       href: "https://twitter.com/RukawaAnalyst",
       color: "text-clash-gold"
@@ -80,18 +82,18 @@ const ContactSection = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            Get In Touch
+            {t('contact.title')}
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
           <p className="text-lg text-muted-foreground mt-6 max-w-2xl mx-auto">
-            Ready to take your competitive Clash Royale performance to the next level? Let's discuss how I can help.
+            {t('contact.subtitle')}
           </p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Methods */}
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-foreground mb-6">Contact Methods</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-6">{t('contact.methodsTitle')}</h3>
             {contactMethods.map((method, index) => (
               <Card 
                 key={method.label}
@@ -116,10 +118,10 @@ const ContactSection = () => {
           
           {/* Contact Form */}
           <Card className="gradient-card shadow-card border-border/50 p-8">
-            <h3 className="text-2xl font-bold text-foreground mb-6">Send a Message</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-6">{t('contact.formTitle')}</h3>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t('contact.form.name')}</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -130,7 +132,7 @@ const ContactSection = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('contact.form.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -142,7 +144,7 @@ const ContactSection = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
+                <Label htmlFor="message">{t('contact.form.message')}</Label>
                 <Textarea
                   id="message"
                   rows={5}
@@ -150,12 +152,12 @@ const ContactSection = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                   required
                   className="bg-secondary/50 border-border focus:border-primary resize-none"
-                  placeholder="Tell me about your competitive goals and how I can help..."
+                  placeholder={t('contact.form.messagePlaceholder')}
                 />
               </div>
               
               <Button type="submit" variant="hero" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Send Message"}
+                {isSubmitting ? t('contact.form.sending') : t('contact.form.send')}
                 <Send className="w-4 h-4 ml-2" />
               </Button>
             </form>

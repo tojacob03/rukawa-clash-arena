@@ -1,5 +1,6 @@
 import { Mail, MessageCircle, Twitter, Crown } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -17,6 +18,10 @@ const Footer = () => {
               <h3 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">{t('footer.title')}</h3>
               <p className="text-sm text-muted-foreground">{t('footer.subtitle')}</p>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-4 mb-6 md:mb-0">
+            <LanguageSwitcher />
           </div>
           
           <div className="flex items-center gap-4 mb-6 md:mb-0">

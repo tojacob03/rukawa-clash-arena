@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 import { 
   User, 
   Shield, 
@@ -36,6 +37,29 @@ const services = [
 ];
 
 const ServicesSection = () => {
+  const { t } = useTranslation();
+  
+  const services = [
+    {
+      title: t('services.teamAnalysis.title'),
+      description: t('services.teamAnalysis.description'),
+      icon: User,
+      features: t('services.teamAnalysis.features', { returnObjects: true }) as string[]
+    },
+    {
+      title: t('services.opponentScouting.title'),
+      description: t('services.opponentScouting.description'),
+      icon: Shield,
+      features: t('services.opponentScouting.features', { returnObjects: true }) as string[]
+    },
+    {
+      title: t('services.personalCoaching.title'),
+      description: t('services.personalCoaching.description'),
+      icon: TrendingUp,
+      features: t('services.personalCoaching.features', { returnObjects: true }) as string[]
+    }
+  ];
+  
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -45,11 +69,11 @@ const ServicesSection = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            Coaching & Services
+            {t('services.title')}
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
           <p className="text-lg text-muted-foreground mt-6 max-w-2xl mx-auto">
-            Professional coaching and analytical services tailored for competitive Clash Royale players and teams.
+            {t('services.subtitle')}
           </p>
         </div>
         
@@ -84,7 +108,7 @@ const ServicesSection = () => {
                 className="w-full group-hover:border-primary group-hover:text-primary"
                 onClick={scrollToContact}
               >
-                Learn More
+                {t('services.learnMore')}
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Card>

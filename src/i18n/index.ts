@@ -21,8 +21,11 @@ i18n
     },
 
     backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
+      loadPath: '/locales/{{lng}}/common.json',
     },
+
+    ns: ['common'],
+    defaultNS: 'common',
 
     interpolation: {
       escapeValue: false,
