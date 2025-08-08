@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Trophy, BarChart3 } from "lucide-react";
+import { ChevronDown, Trophy, BarChart3, Settings, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroBackground from "@/assets/hero-background.jpg";
 import PDFViewer from "./PDFViewer";
 
@@ -19,6 +20,27 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Navigation Bar */}
+      <nav className="absolute top-0 left-0 right-0 z-20 p-6">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="text-2xl font-bold text-white">Rukawa</div>
+          <div className="flex gap-4">
+            <Link to="/portal">
+              <Button variant="outline" size="sm" className="text-white border-white hover:bg-white hover:text-primary">
+                <Users className="w-4 h-4 mr-2" />
+                Client Portal
+              </Button>
+            </Link>
+            <Link to="/admin">
+              <Button variant="outline" size="sm" className="text-white border-white hover:bg-white hover:text-primary">
+                <Settings className="w-4 h-4 mr-2" />
+                Admin Panel
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
