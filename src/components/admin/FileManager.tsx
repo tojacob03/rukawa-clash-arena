@@ -171,13 +171,25 @@ export function FileManager() {
         const safeDeckFilesData = deckFilesData || [];
         console.log('Deck files fetched:', safeDeckFilesData.length);
         
-        // Simple safe mapping
+        // Simple safe mapping with proper card_ids handling
         const deckFilesWithRelations = safeDeckFilesData.map(deckFile => {
           const deckSet = safeDeckSetsData.find(ds => ds.id === deckFile.deck_set_id);
           const client = safeClientsData.find(c => c.id === deckSet?.client_id);
           
+          // Ensure card_ids are properly formatted integers
+          let processedCardIds = [];
+          if (deckFile.card_ids && Array.isArray(deckFile.card_ids)) {
+            processedCardIds = deckFile.card_ids.map((id: any) => {
+              if (typeof id === 'string' && id.includes('e+')) {
+                return Math.round(parseFloat(id));
+              }
+              return Math.round(Number(id));
+            });
+          }
+          
           return {
             ...deckFile,
+            card_ids: processedCardIds,
             deck_set: deckSet ? { 
               id: deckSet.id,
               name: deckSet.name,
