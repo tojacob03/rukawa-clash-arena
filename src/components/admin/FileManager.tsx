@@ -107,15 +107,16 @@ export function FileManager() {
   }, []);
 
   const fetchData = async () => {
-    console.log('FileManager: Starting fetchData...');
+    console.log('🔥 FileManager: Starting fetchData... loading:', loading, 'opLoading:', opLoading);
     
     // Prevent multiple concurrent fetchData calls
     if (loading) {
-      console.log('fetchData already running, skipping...');
+      console.log('🔥 fetchData already running, skipping...');
       return;
     }
     
     setLoading(true);
+    console.log('🔥 fetchData: setLoading(true) called');
     
     try {
       // Fetch clients first and wait for completion
@@ -291,7 +292,14 @@ export function FileManager() {
   const createDeckFile = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (opLoading) return;
+    console.log('🔥 createDeckFile called, opLoading:', opLoading);
+    
+    if (opLoading) {
+      console.log('🔥 Operation already in progress, returning early');
+      return;
+    }
+    
+    console.log('🔥 Setting opLoading to true');
     setOpLoading(true);
     
     console.log('Creating deck file with form data:', deckFileForm);
@@ -353,22 +361,34 @@ export function FileManager() {
       const { error } = await supabase.from('deck_files').insert([deckData]);
       if (error) throw error;
 
+      console.log('🔥 Deck file created successfully, calling fetchData...');
       toast({ title: "Success", description: "Deck file created successfully" });
 
       // Reset form properly
       setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
       setShowDeckFileForm(false);
+      
+      console.log('🔥 About to call fetchData after deck creation');
       await fetchData();
+      console.log('🔥 fetchData completed after deck creation');
     } catch (error) {
-      console.error('Error creating deck file:', error);
+      console.error('🔥 Error creating deck file:', error);
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
     } finally {
+      console.log('🔥 Setting opLoading to false');
       setOpLoading(false);
     }
   };
 
   const deleteDeckFile = async (deckFileId: string, deckName: string) => {
-    if (opLoading) return;
+    console.log('🔥 deleteDeckFile called, opLoading:', opLoading);
+    
+    if (opLoading) {
+      console.log('🔥 Delete operation blocked - already in progress');
+      return;
+    }
+    
+    console.log('🔥 Setting opLoading to true for delete');
     setOpLoading(true);
 
     try {
@@ -381,20 +401,24 @@ export function FileManager() {
 
       if (error) throw error;
 
+      console.log('🔥 Deck file deleted successfully, calling fetchData...');
       toast({
         title: "Success",
         description: `Deck "${deckName}" deleted successfully`,
       });
 
+      console.log('🔥 About to call fetchData after deletion');
       await fetchData();
+      console.log('🔥 fetchData completed after deletion');
     } catch (error) {
-      console.error('Error deleting deck file:', error);
+      console.error('🔥 Error deleting deck file:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete deck file",
         variant: "destructive",
       });
     } finally {
+      console.log('🔥 Setting opLoading to false after delete');
       setOpLoading(false);
     }
   };
