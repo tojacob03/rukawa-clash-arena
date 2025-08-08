@@ -111,12 +111,12 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
 
             return (
               <div key={`${id}-${index}`} className="relative group">
-                <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105">
+                <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
                   {base ? (
                     <img
                       src={displaySrc ?? ''}
                       alt={name}
-                      className="w-full h-16 object-cover"
+                      className="h-full w-full object-contain"
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
@@ -124,7 +124,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                       }}
                     />
                   ) : (
-                    <div className="w-full h-16 flex items-center justify-center text-xs text-muted-foreground">
+                    <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
                       Unknown {id}
                     </div>
                   )}
