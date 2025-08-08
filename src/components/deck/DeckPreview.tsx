@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ClashRoyaleCard, getCardsByIds, getCardById } from '@/data/clashRoyaleCards';
 import { parseDeckLink } from '@/utils/deckParser';
 import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface DeckPreviewProps {
   deckLink: string;
@@ -25,25 +24,24 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
 
   // Remote fallback for unknown cards (RoyaleAPI)
   const [remoteMap, setRemoteMap] = useState<Map<number, ClashRoyaleCard> | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
   const idsKey = useMemo(() => idsUsed.join(','), [idsUsed]);
 
   useEffect(() => {
-    if (!idsUsed || idsUsed.length === 0) {
+    const unknownIds = idsUsed.filter((id) => !getCardById(id));
+    if (unknownIds.length === 0) {
       setRemoteMap(null);
       return;
     }
 
     let cancelled = false;
-    setLoading(true);
     (async () => {
       try {
-        const res = await fetch('https://royaleapi.github.io/cr-api-data/json/cards.json', { cache: 'no-store' });
+        const res = await fetch('https://royaleapi.github.io/cr-api-data/json/cards.json');
         const data = await res.json();
-        const idsSet = new Set(idsUsed);
+        // Build a map only for the missing ids
         const map = new Map<number, ClashRoyaleCard>();
         for (const entry of data) {
-          if (idsSet.has(entry.id)) {
+          if (unknownIds.includes(entry.id)) {
             const typeLower = (entry.type || '').toLowerCase();
             const imageUrl = `https://cdn.royaleapi.com/static/img/cards/300/${entry.key}.png`;
             map.set(entry.id, {
@@ -60,9 +58,6 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
         if (!cancelled) setRemoteMap(map);
       } catch (e) {
         console.warn('Failed to fetch RoyaleAPI cards.json', e);
-        if (!cancelled) setRemoteMap(null);
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     })();
 
@@ -70,19 +65,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
   }, [idsKey]);
 
   // Resolve cards using local dataset first, then remote fallback
-  const entries = idsUsed.map((id) => {
-    const local = getCardById(id);
-    const remote = remoteMap?.get(id);
-    const merged: ClashRoyaleCard | undefined = local
-      ? {
-          ...local,
-          imageUrl: local.imageUrl || remote?.imageUrl || '',
-          elixir: typeof local.elixir === 'number' ? local.elixir : (remote?.elixir ?? 0),
-          type: local.type || (remote?.type as any) || 'troop',
-        }
-      : remote;
-    return { id, card: merged };
-  });
+  const entries = idsUsed.map((id) => ({ id, card: getCardById(id) || remoteMap?.get(id) }));
   const missing = entries.filter((e) => !e.card).map((e) => e.id);
 
   const resolvedCards = entries
@@ -111,7 +94,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
         </div>
 
         {/* Missing cards notice */}
-        {!loading && missing.length > 0 && (
+        {missing.length > 0 && (
           <div className="text-xs text-muted-foreground">
             {missing.length} unknown card{missing.length > 1 ? 's' : ''}: {missing.join(', ')}
           </div>
@@ -125,27 +108,14 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                 {card ? (
                   <img
                     src={card.imageUrl}
-                    alt={`Clash Royale card: ${card.name}`}
+                    alt={card.name}
                     className="w-full h-16 object-cover"
                     loading="lazy"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      const remoteUrl = remoteMap?.get(id)?.imageUrl;
-                      if (remoteUrl && e.currentTarget.src !== remoteUrl) {
-                        e.currentTarget.src = remoteUrl;
-                      } else {
-                        e.currentTarget.src = '/placeholder.svg';
-                      }
-                    }}
                   />
                 ) : (
-                  {loading ? (
-                    <Skeleton className="w-full h-16" />
-                  ) : (
-                    <div className="w-full h-16 flex items-center justify-center text-xs text-muted-foreground">
-                      Unknown {id}
-                    </div>
-                  )}
+                  <div className="w-full h-16 flex items-center justify-center text-xs text-muted-foreground">
+                    Unknown {id}
+                  </div>
                 )}
                 
                 {/* Elixir Cost Badge */}
