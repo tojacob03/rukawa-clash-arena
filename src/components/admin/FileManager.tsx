@@ -103,6 +103,12 @@ export function FileManager() {
 
   const { toast } = useToast();
 
+  const isMountedRef = React.useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false };
+  }, []);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -112,9 +118,10 @@ export function FileManager() {
     
     // Allow parallel refresh calls; latest completion will set final state
     
-    setLoading(true);
-    console.log('🔥 fetchData: setLoading(true) called');
-    
+    if (isMountedRef.current) {
+      setLoading(true);
+      console.log('🔥 fetchData: setLoading(true) called');
+    }
     try {
       // Fetch clients first and wait for completion
       console.log('Fetching clients...');
@@ -125,13 +132,12 @@ export function FileManager() {
 
       if (clientsError) {
         console.error('Error fetching clients:', clientsError);
-        throw clientsError;
+      } else {
+        console.log('Clients fetched:', clientsData?.length || 0);
       }
-      console.log('Clients fetched:', clientsData?.length || 0);
-      
       // Immediately set clients to prevent undefined errors
       const safeClientsData = clientsData || [];
-      setClients(safeClientsData);
+      if (isMountedRef.current) setClients(safeClientsData);
 
       // Fetch deck sets
       console.log('Fetching deck sets...');
@@ -151,7 +157,7 @@ export function FileManager() {
           ...deckSet,
           client: safeClientsData.find(c => c.id === deckSet.client_id)
         }));
-        setDeckSets(deckSetsWithClients);
+        if (isMountedRef.current) setDeckSets(deckSetsWithClients);
       }
 
       // Fetch deck files
@@ -196,7 +202,7 @@ export function FileManager() {
             } : undefined
           };
         });
-        setDeckFiles(deckFilesWithRelations);
+        if (isMountedRef.current) setDeckFiles(deckFilesWithRelations);
       }
 
       // Fetch opponents
@@ -216,7 +222,7 @@ export function FileManager() {
           ...opponent,
           client: safeClientsData.find(c => c.id === opponent.client_id)
         }));
-        setOpponents(opponentsWithClients);
+        if (isMountedRef.current) setOpponents(opponentsWithClients);
       }
 
       // Fetch analysis files
@@ -248,26 +254,28 @@ export function FileManager() {
             } : undefined
           };
         });
-        setAnalysisFiles(analysisFilesWithRelations);
+        if (isMountedRef.current) setAnalysisFiles(analysisFilesWithRelations);
       }
 
       console.log('FileManager: fetchData completed successfully');
     } catch (error) {
       console.error('FileManager: Critical error in fetchData:', error);
-      // Reset all state to prevent crashes
-      setClients([]);
-      setDeckSets([]);
-      setDeckFiles([]);
-      setOpponents([]);
-      setAnalysisFiles([]);
-      
-      toast({
-        title: "Error",
-        description: "Failed to load data. Please refresh the page.",
-        variant: "destructive",
-      });
+      if (isMountedRef.current) {
+        // Reset all state to prevent crashes
+        setClients([]);
+        setDeckSets([]);
+        setDeckFiles([]);
+        setOpponents([]);
+        setAnalysisFiles([]);
+        
+        toast({
+          title: "Error",
+          description: "Failed to load data. Please refresh the page.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 

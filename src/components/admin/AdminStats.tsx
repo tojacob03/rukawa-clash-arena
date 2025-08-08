@@ -35,6 +35,12 @@ export function AdminStats() {
   });
   const [loading, setLoading] = useState(true);
 
+  const isMountedRef = React.useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false };
+  }, []);
+
   useEffect(() => {
     fetchStats();
   }, []);
@@ -72,20 +78,22 @@ export function AdminStats() {
       const teamClients = clients?.filter(c => c.type === 'team').length || 0;
       const activeClients = clients?.filter(c => c.is_active).length || 0;
 
-      setStats({
-        totalClients,
-        playerClients,
-        teamClients,
-        totalDeckSets: deckSetsCount || 0,
-        totalDeckFiles: deckFilesCount || 0,
-        totalOpponents: opponentsCount || 0,
-        totalAnalysisFiles: analysisFilesCount || 0,
-        activeClients
-      });
+      if (isMountedRef.current) {
+        setStats({
+          totalClients,
+          playerClients,
+          teamClients,
+          totalDeckSets: deckSetsCount || 0,
+          totalDeckFiles: deckFilesCount || 0,
+          totalOpponents: opponentsCount || 0,
+          totalAnalysisFiles: analysisFilesCount || 0,
+          activeClients
+        });
+      }
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 

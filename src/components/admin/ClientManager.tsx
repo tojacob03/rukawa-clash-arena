@@ -41,12 +41,18 @@ export function ClientManager() {
   });
   const { toast } = useToast();
 
+  const isMountedRef = React.useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false };
+  }, []);
+
   useEffect(() => {
     fetchClients();
   }, []);
 
   const fetchClients = async () => {
-    setLoading(true);
+    if (isMountedRef.current) setLoading(true);
     try {
       const { data, error } = await supabase
         .from('clients')
@@ -63,11 +69,11 @@ export function ClientManager() {
         return;
       }
 
-      setClients(data || []);
+      if (isMountedRef.current) setClients(data || []);
     } catch (err) {
       console.error('Error:', err);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 
@@ -328,9 +334,11 @@ export function ClientManager() {
                     <div className="text-sm text-muted-foreground">
                       <strong>Login Code:</strong> {client.login_code}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Created: {new Date(client.created_at).toLocaleDateString()}
-                    </div>
+                    {client.created_at && (
+                      <div className="text-sm text-muted-foreground">
+                        Created: {new Date(client.created_at).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
