@@ -189,12 +189,14 @@ const ClientPortal = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-muted rounded-lg">
-                  <h3 className="font-semibold">Client Information</h3>
-                  <p><strong>Name:</strong> {client.name}</p>
-                  <p><strong>Type:</strong> {client.type === 'player' ? 'Player' : 'Team'}</p>
-                  <p><strong>Status:</strong> Active</p>
-                </div>
+{client.type === 'team' && (
+  <div className="p-4 bg-muted rounded-lg">
+    <h3 className="font-semibold">Client Information</h3>
+    <p><strong>Name:</strong> {client.name}</p>
+    <p><strong>Type:</strong> Team</p>
+    <p><strong>Status:</strong> Active</p>
+  </div>
+)}
 
                 {client.type === 'player' && (
                   <div className="space-y-4">
