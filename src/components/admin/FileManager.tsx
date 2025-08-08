@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { parseDeckLink } from '@/utils/deckParser';
 
 interface Client {
   id: string;
@@ -201,10 +202,58 @@ export function FileManager() {
 
   const createDeckFile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form data
+    if (!deckFileForm.deck_name.trim()) {
+      toast({
+        title: "Error",
+        description: "Deck name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!deckFileForm.deck_set_id) {
+      toast({
+        title: "Error", 
+        description: "Please select a deck set",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate deck link and extract card IDs
+    const parsedDeck = parseDeckLink(deckFileForm.deck_link);
+    if (!parsedDeck.isValid) {
+      toast({
+        title: "Error",
+        description: "Invalid deck link. Please provide a valid Clash Royale deck link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Ensure deck_number is a valid integer
+    const deckNumber = parseInt(deckFileForm.deck_number.toString(), 10);
+    if (isNaN(deckNumber) || deckNumber < 1) {
+      toast({
+        title: "Error",
+        description: "Deck number must be a positive integer",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      const deckData = {
+        ...deckFileForm,
+        deck_number: deckNumber,
+        card_ids: parsedDeck.cards
+      };
+
       const { error } = await supabase
         .from('deck_files')
-        .insert([deckFileForm]);
+        .insert([deckData]);
 
       if (error) throw error;
 
@@ -445,6 +494,7 @@ export function FileManager() {
                     <Select
                       value={deckFileForm.deck_set_id}
                       onValueChange={(value) => setDeckFileForm(prev => ({ ...prev, deck_set_id: value }))}
+                      required
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select deck set" />
