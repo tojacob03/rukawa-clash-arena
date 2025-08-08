@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, LogOut } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Shield, LogOut, Download, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Client {
@@ -15,11 +16,55 @@ interface Client {
   is_active: boolean;
 }
 
+interface DeckSet {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  deck_files: DeckFile[];
+}
+
+interface DeckFile {
+  id: string;
+  file_name: string;
+  file_path: string;
+  deck_number: number;
+  file_size?: number;
+  mime_type?: string;
+}
+
 const ClientPortal = () => {
   const [loginCode, setLoginCode] = useState('');
   const [client, setClient] = useState<Client | null>(null);
+  const [deckSets, setDeckSets] = useState<DeckSet[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingDeckSets, setLoadingDeckSets] = useState(false);
   const [error, setError] = useState('');
+
+  const fetchDeckSets = async (clientId: string) => {
+    setLoadingDeckSets(true);
+    try {
+      const { data, error } = await supabase
+        .from('deck_sets')
+        .select(`
+          *,
+          deck_files (*)
+        `)
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching deck sets:', error);
+        return;
+      }
+
+      setDeckSets(data || []);
+    } catch (err) {
+      console.error('Error fetching deck sets:', err);
+    } finally {
+      setLoadingDeckSets(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +85,9 @@ const ClientPortal = () => {
       }
 
       setClient(data);
+      if (data.type === 'player') {
+        await fetchDeckSets(data.id);
+      }
     } catch (err) {
       setError('Login error. Please try again.');
     } finally {
@@ -49,8 +97,33 @@ const ClientPortal = () => {
 
   const handleLogout = () => {
     setClient(null);
+    setDeckSets([]);
     setLoginCode('');
     setError('');
+  };
+
+  const downloadFile = async (deckFile: DeckFile) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('deck-files')
+        .download(deckFile.file_path);
+
+      if (error) {
+        console.error('Error downloading file:', error);
+        return;
+      }
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = deckFile.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading file:', err);
+    }
   };
 
   if (client) {
@@ -85,9 +158,66 @@ const ClientPortal = () => {
                 </div>
 
                 {client.type === 'player' && (
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-semibold mb-2">Deck Sets</h3>
-                    <p className="text-muted-foreground">Your deck sets will be displayed here (implemented in Phase 3)</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Deck Sets</h3>
+                      {loadingDeckSets && <div className="text-sm text-muted-foreground">Loading...</div>}
+                    </div>
+                    
+                    {deckSets.length === 0 && !loadingDeckSets ? (
+                      <div className="p-4 border rounded-lg text-center">
+                        <p className="text-muted-foreground">No deck sets available</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {deckSets.map((deckSet) => (
+                          <Card key={deckSet.id} className="border">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg">{deckSet.name}</CardTitle>
+                              {deckSet.description && (
+                                <p className="text-sm text-muted-foreground">{deckSet.description}</p>
+                              )}
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">Decks ({deckSet.deck_files?.length || 0}/4)</span>
+                                  <Badge variant="secondary">
+                                    {new Date(deckSet.created_at).toLocaleDateString()}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                  {[1, 2, 3, 4].map((deckNumber) => {
+                                    const deckFile = deckSet.deck_files?.find(f => f.deck_number === deckNumber);
+                                    return (
+                                      <div key={deckNumber} className="flex items-center justify-between p-2 border rounded">
+                                        <div className="flex items-center gap-2">
+                                          <FileText className="h-4 w-4" />
+                                          <span className="text-sm">Deck {deckNumber}</span>
+                                        </div>
+                                        {deckFile ? (
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => downloadFile(deckFile)}
+                                            className="h-6 w-6 p-0"
+                                          >
+                                            <Download className="h-3 w-3" />
+                                          </Button>
+                                        ) : (
+                                          <span className="text-xs text-muted-foreground">N/A</span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
