@@ -84,7 +84,7 @@ export function FileManager() {
   const [deckFileForm, setDeckFileForm] = useState({
     deck_name: '',
     deck_link: '',
-    deck_number: 1,
+    deck_number: 1 as number,
     deck_set_id: ''
   });
 
@@ -506,7 +506,11 @@ export function FileManager() {
                         min="1"
                         max="4"
                         value={deckFileForm.deck_number}
-                        onChange={(e) => setDeckFileForm(prev => ({ ...prev, deck_number: parseInt(e.target.value) }))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = value === '' ? 1 : parseInt(value, 10) || 1;
+                          setDeckFileForm(prev => ({ ...prev, deck_number: numValue }));
+                        }}
                         required
                       />
                     </div>
