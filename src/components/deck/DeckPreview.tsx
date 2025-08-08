@@ -5,17 +5,29 @@ import { Card } from '@/components/ui/card';
 
 interface DeckPreviewProps {
   deckLink: string;
+  cardIds?: number[];
   className?: string;
 }
 
-export function DeckPreview({ deckLink, className = '' }: DeckPreviewProps) {
-  const parsedDeck = parseDeckLink(deckLink);
-  const cards = getCardsByIds(parsedDeck.cards);
+export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewProps) {
+  // Use provided cardIds first, then fall back to parsing the deck link
+  let cards: ClashRoyaleCard[] = [];
+  
+  if (cardIds && cardIds.length === 8) {
+    cards = getCardsByIds(cardIds);
+    console.log('DeckPreview - Using provided cardIds:', cardIds);
+  } else {
+    const parsedDeck = parseDeckLink(deckLink);
+    cards = getCardsByIds(parsedDeck.cards);
+    console.log('DeckPreview - Parsed from deckLink:', deckLink, 'cards:', parsedDeck.cards);
+  }
 
-  if (!parsedDeck.isValid || cards.length !== 8) {
+  console.log('DeckPreview - Final cards found:', cards.length);
+
+  if (cards.length !== 8) {
     return (
       <div className={`flex items-center justify-center p-4 text-muted-foreground ${className}`}>
-        <span className="text-sm">Invalid deck format</span>
+        <span className="text-sm">Invalid deck format (found {cards.length} cards)</span>
       </div>
     );
   }

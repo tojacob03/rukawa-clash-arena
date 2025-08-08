@@ -81,7 +81,7 @@ export function DeckItem({ deckFile }: DeckItemProps) {
       </div>
 
       {/* Deck Preview */}
-      <DeckPreview deckLink={deckFile.deck_link} />
+      <DeckPreview deckLink={deckFile.deck_link} cardIds={deckFile.card_ids} />
     </Card>
   );
 }
