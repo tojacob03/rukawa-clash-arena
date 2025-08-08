@@ -35,13 +35,13 @@ const ClientPortal = () => {
         .single();
 
       if (error || !data) {
-        setError('Ungültiger Login-Code oder Client nicht aktiv');
+        setError('Invalid login code or client not active');
         return;
       }
 
       setClient(data);
     } catch (err) {
-      setError('Fehler beim Login. Bitte versuchen Sie es erneut.');
+      setError('Login error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -62,12 +62,12 @@ const ClientPortal = () => {
               <Shield className="h-8 w-8 text-primary" />
               <div>
                 <h1 className="text-3xl font-bold">Client Portal</h1>
-                <p className="text-muted-foreground">Willkommen, {client.name}</p>
+                <p className="text-muted-foreground">Welcome, {client.name}</p>
               </div>
             </div>
             <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
               <LogOut className="h-4 w-4" />
-              Abmelden
+              Logout
             </Button>
           </div>
 
@@ -80,21 +80,21 @@ const ClientPortal = () => {
                 <div className="p-4 bg-muted rounded-lg">
                   <h3 className="font-semibold">Client Information</h3>
                   <p><strong>Name:</strong> {client.name}</p>
-                  <p><strong>Typ:</strong> {client.type === 'player' ? 'Spieler' : 'Team'}</p>
-                  <p><strong>Status:</strong> Aktiv</p>
+                  <p><strong>Type:</strong> {client.type === 'player' ? 'Player' : 'Team'}</p>
+                  <p><strong>Status:</strong> Active</p>
                 </div>
 
                 {client.type === 'player' && (
                   <div className="p-4 border rounded-lg">
                     <h3 className="font-semibold mb-2">Deck Sets</h3>
-                    <p className="text-muted-foreground">Ihre Deck Sets werden hier angezeigt (in Phase 3 implementiert)</p>
+                    <p className="text-muted-foreground">Your deck sets will be displayed here (implemented in Phase 3)</p>
                   </div>
                 )}
 
                 {client.type === 'team' && (
                   <div className="p-4 border rounded-lg">
-                    <h3 className="font-semibold mb-2">Gegner-Analysen</h3>
-                    <p className="text-muted-foreground">Ihre Gegner-Analysen werden hier angezeigt (in Phase 4 implementiert)</p>
+                    <h3 className="font-semibold mb-2">Opponent Analysis</h3>
+                    <p className="text-muted-foreground">Your opponent analyses will be displayed here (implemented in Phase 4)</p>
                   </div>
                 )}
               </div>
@@ -114,19 +114,19 @@ const ClientPortal = () => {
           </div>
           <CardTitle className="text-2xl">Client Portal</CardTitle>
           <p className="text-muted-foreground">
-            Geben Sie Ihren Login-Code ein
+            Enter your login code
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="loginCode">Login-Code</Label>
+              <Label htmlFor="loginCode">Login Code</Label>
               <Input
                 id="loginCode"
                 type="text"
                 value={loginCode}
                 onChange={(e) => setLoginCode(e.target.value)}
-                placeholder="Ihr Login-Code"
+                placeholder="Your login code"
                 required
               />
             </div>
@@ -138,7 +138,7 @@ const ClientPortal = () => {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Anmelden...' : 'Anmelden'}
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
         </CardContent>
