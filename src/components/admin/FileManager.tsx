@@ -291,7 +291,9 @@ export function FileManager() {
 
       setDeckSetForm({ name: '', description: '', client_id: '' });
       setShowDeckSetForm(false);
-      fetchData();
+      console.log('🔥 About to call fetchData after deck set creation');
+      await fetchData();
+      console.log('🔥 fetchData completed after deck set creation');
     } catch (error) {
       console.error('Error creating deck set:', error);
       toast({
@@ -381,8 +383,9 @@ export function FileManager() {
       setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
       setShowDeckFileForm(false);
       
-      console.log('🔥 Triggering fetchData after deck creation (non-blocking)');
-      fetchData();
+      console.log('🔥 About to call fetchData after deck creation');
+      await fetchData();
+      console.log('🔥 fetchData completed after deck creation');
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
@@ -420,7 +423,8 @@ export function FileManager() {
       });
 
       console.log('🔥 About to call fetchData after deletion');
-      fetchData();
+      await fetchData();
+      console.log('🔥 fetchData completed after deletion');
     } catch (error) {
       console.error('🔥 Error deleting deck file:', error);
       toast({
@@ -454,7 +458,9 @@ export function FileManager() {
 
       setOpponentForm({ name: '', description: '', client_id: '' });
       setShowOpponentForm(false);
-      fetchData();
+      console.log('🔥 About to call fetchData after opponent creation');
+      await fetchData();
+      console.log('🔥 fetchData completed after opponent creation');
     } catch (error) {
       console.error('Error creating opponent:', error);
       toast({
@@ -501,7 +507,9 @@ export function FileManager() {
 
       setAnalysisUpload({ opponent_id: '', selectedFile: null });
       setShowAnalysisUpload(false);
-      fetchData();
+      console.log('🔥 About to call fetchData after analysis upload');
+      await fetchData();
+      console.log('🔥 fetchData completed after analysis upload');
     } catch (error) {
       console.error('Error uploading file:', error);
       toast({
