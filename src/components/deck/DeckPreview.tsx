@@ -114,6 +114,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             const name = (remote?.name ?? local?.name) ?? `Unknown ${id}`;
             const elixir = (remote?.elixir ?? local?.elixir ?? 0);
             const displaySrc = (remote?.imageUrl) ?? base?.imageUrl;
+            const isSuspiciousBush = id === 26000097 || name.toLowerCase() === 'suspicious bush';
 
             return (
               <div key={`${id}-${index}`} className="relative group">
@@ -122,7 +123,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                     <img
                       src={displaySrc ?? ''}
                       alt={name}
-                      className="h-full w-full object-contain"
+                      className={`h-full w-full object-contain ${isSuspiciousBush ? 'transform origin-center scale-110' : ''}`}
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
