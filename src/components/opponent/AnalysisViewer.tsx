@@ -152,6 +152,7 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
             </div>
           )}
         </div>
+      </div>
       </DialogContent>
     </Dialog>
   );
