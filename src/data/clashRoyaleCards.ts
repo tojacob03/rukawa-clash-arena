@@ -126,12 +126,46 @@ export const CLASH_ROYALE_CARDS: ClashRoyaleCard[] = [
   { id: 27000012, name: "Goblin Drill", imageUrl: "https://api-assets.clashroyale.com/cards/300/Dqt3g5_KqGrW8_2_KQ5BQ9-6KkJ8MZ_ZN_8-QqF0qF4.png", elixir: 4, type: "building" }
 ];
 
-// Helper function to get card by ID
+// Remote augmentation: fetch full cards catalog once and merge as fallback
+const REMOTE_CARDS: Map<number, ClashRoyaleCard> = new Map();
+let remoteInitStarted = false;
+
+function initRemoteOnce() {
+  if (remoteInitStarted) return;
+  remoteInitStarted = true;
+  (async () => {
+    try {
+      const res = await fetch('https://royaleapi.github.io/cr-api-data/json/cards.json');
+      const data = await res.json();
+      for (const entry of data) {
+        const typeLower = String(entry.type || '').toLowerCase();
+        const type: 'troop' | 'spell' | 'building' =
+          (typeLower === 'troop' || typeLower === 'spell' || typeLower === 'building')
+            ? (typeLower as any)
+            : 'troop';
+        const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${entry.key}.png`;
+        REMOTE_CARDS.set(Number(entry.id), {
+          id: Number(entry.id),
+          name: String(entry.name || entry.key || `Card ${entry.id}`),
+          imageUrl,
+          elixir: Number(entry.elixir ?? 0),
+          type,
+        });
+      }
+    } catch (e) {
+      console.warn('clashRoyaleCards: failed to prefetch remote catalog', e);
+    }
+  })();
+}
+
+// Helper function to get card by ID (local first, then remote fallback)
 export function getCardById(id: number): ClashRoyaleCard | undefined {
-  return CLASH_ROYALE_CARDS.find(card => card.id === id);
+  initRemoteOnce();
+  return CLASH_ROYALE_CARDS.find(card => card.id === id) ?? REMOTE_CARDS.get(id);
 }
 
 // Helper function to get multiple cards by IDs
 export function getCardsByIds(ids: number[]): ClashRoyaleCard[] {
+  initRemoteOnce();
   return ids.map(id => getCardById(id)).filter(Boolean) as ClashRoyaleCard[];
 }
