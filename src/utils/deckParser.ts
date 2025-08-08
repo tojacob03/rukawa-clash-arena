@@ -22,11 +22,14 @@ export function parseDeckLink(deckLink: string): ParsedDeck {
       return { cards: [], isValid: false };
     }
 
-    // Split by semicolon and convert to numbers
-    const cardIds = deckMatch[1]
+    // Split by semicolon and convert to numbers (handle URL-encoded deck strings)
+    const decoded = decodeURIComponent(deckMatch[1]);
+    const cardIds = decoded
       .split(';')
-      .map(id => parseInt(id.trim(), 10))
-      .filter(id => !isNaN(id));
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0)
+      .map((id) => parseInt(id, 10))
+      .filter((id) => !isNaN(id));
 
     // Clash Royale decks should have exactly 8 cards
     const isValid = cardIds.length === 8;

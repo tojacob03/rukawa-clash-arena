@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClashRoyaleCard, getCardsByIds } from '@/data/clashRoyaleCards';
+import { ClashRoyaleCard, getCardsByIds, getCardById } from '@/data/clashRoyaleCards';
 import { parseDeckLink } from '@/utils/deckParser';
 import { Card } from '@/components/ui/card';
 
@@ -10,16 +10,23 @@ interface DeckPreviewProps {
 }
 
 export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewProps) {
-  // Use provided cardIds first, then fall back to parsing the deck link
-  let cards: ClashRoyaleCard[] = [];
-  
+  // Determine IDs to use
+  let idsUsed: number[] = [];
+
   if (cardIds && cardIds.length === 8) {
-    cards = getCardsByIds(cardIds);
+    idsUsed = cardIds;
     console.log('DeckPreview - Using provided cardIds:', cardIds);
   } else {
     const parsedDeck = parseDeckLink(deckLink);
-    cards = getCardsByIds(parsedDeck.cards);
+    idsUsed = parsedDeck.cards;
     console.log('DeckPreview - Parsed from deckLink:', deckLink, 'cards:', parsedDeck.cards);
+  }
+
+  const cards: ClashRoyaleCard[] = getCardsByIds(idsUsed);
+
+  if (cards.length !== 8) {
+    const missing = idsUsed.filter((id) => !getCardById(id));
+    console.warn('DeckPreview - Missing card IDs in dataset:', missing, 'from ids:', idsUsed);
   }
 
   console.log('DeckPreview - Final cards found:', cards.length);
