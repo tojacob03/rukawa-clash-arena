@@ -168,7 +168,7 @@ const ClientPortal = () => {
   if (client) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-primary" />
@@ -208,7 +208,7 @@ const ClientPortal = () => {
                         <p className="text-muted-foreground">No deck sets available</p>
                       </div>
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-4 lg:grid-cols-2">
                         {deckSets.map((deckSet) => (
                           <Card key={deckSet.id} className="border">
                             <CardHeader className="pb-3">
@@ -262,7 +262,7 @@ const ClientPortal = () => {
                         <p className="text-muted-foreground">No opponents available</p>
                       </div>
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-4 lg:grid-cols-2">
                         {opponents.map((opponent) => (
                           <OpponentCard
                             key={opponent.id}
