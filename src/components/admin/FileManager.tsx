@@ -70,6 +70,7 @@ export function FileManager() {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [createDeckLoading, setCreateDeckLoading] = useState(false);
   const [deletingDeckIds, setDeletingDeckIds] = useState<Set<string>>(new Set());
+  const [deletingAnalysisIds, setDeletingAnalysisIds] = useState<Set<string>>(new Set());
 
   // Form states
   const [showDeckSetForm, setShowDeckSetForm] = useState(false);
@@ -539,6 +540,52 @@ const [analysisUpload, setAnalysisUpload] = useState({
       setUploadLoading(false);
     }
   };
+  
+  const deleteAnalysisFile = async (fileId: string, filePath: string, fileName: string) => {
+    console.log('🔥 deleteAnalysisFile called for:', fileId, filePath);
+    if (deletingAnalysisIds.has(fileId)) {
+      console.log('🔥 Delete operation already in progress for:', fileId);
+      return;
+    }
+    setDeletingAnalysisIds(prev => new Set([...prev, fileId]));
+    try {
+      // Try removing from storage first
+      const { error: storageError } = await supabase.storage
+        .from('analysis-files')
+        .remove([filePath]);
+
+      if (storageError) {
+        console.warn('⚠️ Storage delete error (continuing to delete DB row):', storageError);
+      }
+
+      const { error: dbError } = await supabase
+        .from('analysis_files')
+        .delete()
+        .eq('id', fileId);
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: 'Success',
+        description: `Analysis "${fileName}" deleted successfully`,
+      });
+
+      await fetchData();
+    } catch (error) {
+      console.error('🔥 Error deleting analysis file:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete analysis file',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingAnalysisIds(prev => {
+        const n = new Set(prev);
+        n.delete(fileId);
+        return n;
+      });
+    }
+  };
 
   const playerClients = clients.filter(c => c.type === 'player');
   const teamClients = clients.filter(c => c.type === 'team');
@@ -894,6 +941,15 @@ const [analysisUpload, setAnalysisUpload] = useState({
                       </p>
                       <Badge variant="outline">{file.file_type}</Badge>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteAnalysisFile(file.id, file.file_path, file.file_name)}
+                      className="text-destructive hover:text-destructive"
+                      disabled={deletingAnalysisIds.has(file.id)}
+                    >
+                      {deletingAnalysisIds.has(file.id) ? 'Deleting...' : <Trash2 className="h-4 w-4" />}
+                    </Button>
                   </div>
                 ))}
               </div>
