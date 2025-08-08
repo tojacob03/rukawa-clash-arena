@@ -107,7 +107,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             const base = (remote ?? local) as ClashRoyaleCard | undefined;
             const name = (remote?.name ?? local?.name) ?? `Unknown ${id}`;
             const elixir = (remote?.elixir ?? local?.elixir ?? 0);
-            const displaySrc = (remote?.imageUrl) ?? base?.imageUrl;
+            const displaySrc = (local?.imageUrl) ?? (remote?.imageUrl) ?? base?.imageUrl;
 
             return (
               <div key={`${id}-${index}`} className="relative group">
