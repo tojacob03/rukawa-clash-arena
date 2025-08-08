@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "react-i18next";
 import { 
   User, 
   Shield, 
@@ -9,42 +8,34 @@ import {
   ArrowRight
 } from "lucide-react";
 
+const services = [
+  {
+    title: "Individual Analysis",
+    description: "Personalized analysis and deck picking for competitive players looking to improve their tournament performance.",
+    icon: User,
+    features: ["Player Performance Analysis", "Deck Optimization", "Match History Review"]
+  },
+  {
+    title: "CRL-Level Prep",
+    description: "Professional tournament preparation including opponent scouting and strategic planning for high-level competition.",
+    icon: Shield,
+    features: ["Opponent Research", "Strategic Planning", "Match Preparation"]
+  },
+  {
+    title: "Meta Analysis",
+    description: "Comprehensive meta overviews and duel deck crafting to stay ahead of the competition.",
+    icon: TrendingUp,
+    features: ["Meta Reports", "Deck Building", "Trend Analysis"]
+  },
+  {
+    title: "Analysis Tools",
+    description: "Custom cheat sheets and analysis tools designed to give teams a competitive edge in tournaments.",
+    icon: FileText,
+    features: ["Custom Cheat Sheets", "Data Visualization", "Strategic Tools"]
+  }
+];
+
 const ServicesSection = () => {
-  const { t } = useTranslation();
-  
-  const services = [
-    {
-      title: t('services.teamAnalysis.title', 'Team Analysis'),
-      description: t('services.teamAnalysis.description', 'Professional team analysis and strategic planning.'),
-      icon: User,
-      features: [
-        t('services.teamAnalysis.feature1', 'Player Performance Analysis'),
-        t('services.teamAnalysis.feature2', 'Deck Optimization'),
-        t('services.teamAnalysis.feature3', 'Match History Review')
-      ]
-    },
-    {
-      title: t('services.opponentScouting.title', 'Opponent Scouting'),
-      description: t('services.opponentScouting.description', 'Advanced opponent research and counter-strategy development.'),
-      icon: Shield,
-      features: [
-        t('services.opponentScouting.feature1', 'Opponent Research'),
-        t('services.opponentScouting.feature2', 'Strategic Planning'),
-        t('services.opponentScouting.feature3', 'Match Preparation')
-      ]
-    },
-    {
-      title: t('services.personalCoaching.title', 'Personal Coaching'),
-      description: t('services.personalCoaching.description', 'One-on-one coaching sessions for competitive improvement.'),
-      icon: TrendingUp,
-      features: [
-        t('services.personalCoaching.feature1', 'Individual Training'),
-        t('services.personalCoaching.feature2', 'Strategy Development'),
-        t('services.personalCoaching.feature3', 'Performance Tracking')
-      ]
-    }
-  ];
-  
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -54,11 +45,11 @@ const ServicesSection = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            {t('services.title', 'Coaching & Services')}
+            Coaching & Services
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
           <p className="text-lg text-muted-foreground mt-6 max-w-2xl mx-auto">
-            {t('services.subtitle', 'Professional coaching and analytical services tailored for competitive Clash Royale players and teams.')}
+            Professional coaching and analytical services tailored for competitive Clash Royale players and teams.
           </p>
         </div>
         
@@ -93,7 +84,7 @@ const ServicesSection = () => {
                 className="w-full group-hover:border-primary group-hover:text-primary"
                 onClick={scrollToContact}
               >
-                {t('services.learnMore', 'Learn More')}
+                Learn More
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Card>

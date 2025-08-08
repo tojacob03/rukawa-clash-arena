@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { useTranslation } from "react-i18next";
 
 const languages = [
   {
@@ -35,47 +34,12 @@ const languages = [
 ];
 
 const LanguagesSection = () => {
-  const { t } = useTranslation();
-  
-  const languages = [
-    {
-      name: t('languages.de.name'),
-      level: t('languages.de.level'),
-      flag: "🇩🇪",
-      proficiency: 100
-    },
-    {
-      name: t('languages.en.name'),
-      level: t('languages.en.level'),
-      flag: "🇺🇸", 
-      proficiency: 95
-    },
-    {
-      name: t('languages.es.name'),
-      level: t('languages.es.level'),
-      flag: "🇪🇸",
-      proficiency: 65
-    },
-    {
-      name: t('languages.ru.name'),
-      level: t('languages.ru.level'),
-      flag: "🇷🇺",
-      proficiency: 40
-    },
-    {
-      name: t('languages.ar.name'),
-      level: t('languages.ar.level'),
-      flag: "🇸🇦",
-      proficiency: 40
-    }
-  ];
-
   return (
     <section id="languages" className="py-20 px-6 bg-muted/30">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            {t('languages.title')}
+            Languages
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
         </div>

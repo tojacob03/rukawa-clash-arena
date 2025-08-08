@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { useTranslation } from "react-i18next";
 import { 
   FileSpreadsheet, 
   Search, 
@@ -43,42 +42,17 @@ const skills = [
 ];
 
 const SkillsSection = () => {
-  const { t } = useTranslation();
-  
-  const skills = [
-    {
-      name: t('skills.strategicAnalysis.name'),
-      icon: FileSpreadsheet,
-      description: t('skills.strategicAnalysis.description')
-    },
-    {
-      name: t('skills.opponentScouting.name'),
-      icon: Search,
-      description: t('skills.opponentScouting.description')
-    },
-    {
-      name: t('skills.performanceTracking.name'),
-      icon: Layers,
-      description: t('skills.performanceTracking.description')
-    },
-    {
-      name: t('skills.coaching.name'),
-      icon: TrendingUp,
-      description: t('skills.coaching.description')
-    }
-  ];
-
   return (
     <section id="skills" className="py-20 px-6 bg-muted/30">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            {t('skills.title')}
+            Core Skills
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {skills.map((skill, index) => (
             <Card 
               key={skill.name}

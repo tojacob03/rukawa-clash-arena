@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "react-i18next";
 import { X, Download, FileText, BarChart3 } from "lucide-react";
 
 // Import the actual PDFs
@@ -17,7 +16,6 @@ interface PDFViewerProps {
 }
 
 const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PDFViewerProps) => {
-  const { t } = useTranslation();
   const [error, setError] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
@@ -68,7 +66,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
                 onClick={goBackToSelection}
                 className="gap-1 text-xs px-2 py-1"
               >
-                ← <span className="hidden sm:inline">{t('pdfViewer.back')}</span>
+                ← <span className="hidden sm:inline">Back</span>
               </Button>
             )}
             {(selectedPdf || pdfUrl) && (
@@ -79,7 +77,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
                 className="gap-1 text-xs px-2 py-1"
               >
                 <Download className="w-3 h-3" />
-                <span className="hidden sm:inline">{t('pdfViewer.download')}</span>
+                <span className="hidden sm:inline">Download</span>
               </Button>
             )}
           </div>
@@ -92,14 +90,14 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
               <Button
                 variant="outline"
                 className="h-full min-h-[200px] flex flex-col items-center justify-center gap-2 p-3 sm:p-4 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
-                onClick={() => selectPdf(matchAnalysisUrl, t('pdfViewer.matchAnalysis'))}
+                onClick={() => selectPdf(matchAnalysisUrl, "Match Analysis Sample")}
                 disabled={!matchAnalysisUrl}
               >
                 <BarChart3 className="w-10 h-10 sm:w-12 sm:h-12 text-primary flex-shrink-0" />
                 <div className="text-center max-w-full">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1 break-words">{t('pdfViewer.matchAnalysis')}</h3>
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 break-words">Match Analysis</h3>
                   <p className="text-xs text-muted-foreground leading-snug">
-                    {t('pdfViewer.matchAnalysisDesc')}
+                    Team strategies & predictions
                   </p>
                 </div>
                 {!matchAnalysisUrl && (
@@ -110,14 +108,14 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
               <Button
                 variant="outline"
                 className="h-full min-h-[200px] flex flex-col items-center justify-center gap-2 p-3 sm:p-4 hover:bg-secondary/50 transition-all duration-300 hover:scale-105"
-                onClick={() => selectPdf(playerAnalysisUrl, t('pdfViewer.playerAnalysis'))}
+                onClick={() => selectPdf(playerAnalysisUrl, "Player Analysis Sample")}
                 disabled={!playerAnalysisUrl}
               >
                 <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-primary flex-shrink-0" />
                 <div className="text-center max-w-full">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1 break-words">{t('pdfViewer.playerAnalysis')}</h3>
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 break-words">Player Analysis</h3>
                   <p className="text-xs text-muted-foreground leading-snug">
-                    {t('pdfViewer.playerAnalysisDesc')}
+                    Performance & recommendations
                   </p>
                 </div>
                 {!playerAnalysisUrl && (
@@ -128,18 +126,18 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
           ) : !selectedPdf && !pdfUrl ? (
             <div className="flex items-center justify-center h-full bg-muted rounded-lg">
               <div className="text-center">
-                <div className="text-muted-foreground mb-4">{t('pdfViewer.noPdf')}</div>
+                <div className="text-muted-foreground mb-4">No PDF available yet</div>
                 <p className="text-sm text-muted-foreground">
-                  {t('pdfViewer.uploadPdf')}
+                  Upload a PDF to display here
                 </p>
               </div>
             </div>
           ) : error ? (
             <div className="flex items-center justify-center h-full bg-muted rounded-lg">
               <div className="text-center">
-                <div className="text-destructive mb-4">{t('pdfViewer.loadError')}</div>
+                <div className="text-destructive mb-4">Failed to load PDF</div>
                 <Button onClick={() => setError(false)} variant="outline">
-                  {t('pdfViewer.tryAgain')}
+                  Try Again
                 </Button>
               </div>
             </div>
