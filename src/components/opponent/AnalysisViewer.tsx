@@ -91,7 +91,7 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="inset-0 m-4 sm:m-8 w-auto max-w-none h-auto p-0">
+      <DialogContent className="w-[90vw] sm:max-w-4xl max-h-[90vh] p-0">
         <div className="flex h-full flex-col">
           <DialogHeader className="p-6 pb-4">
             <div className="flex items-center justify-between">
@@ -123,14 +123,14 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
 
         <div className="px-6 pb-6">
           {loading ? (
-            <div className="flex items-center justify-center h-[85vh]">
+            <div className="flex items-center justify-center h-[70vh]">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Loading analysis file...</p>
               </div>
             </div>
           ) : fileUrl ? (
-            <div className="h-[85vh] border rounded-lg overflow-hidden">
+            <div className="h-[70vh] border rounded-lg overflow-hidden">
               {(file.mime_type === 'application/pdf' || file.file_type === 'application/pdf' || file.file_type === 'pdf') ? (
                 <iframe
                   src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
@@ -147,7 +147,7 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
               )}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[85vh] text-muted-foreground">
+            <div className="flex items-center justify-center h-[70vh] text-muted-foreground">
               <p>Failed to load file</p>
             </div>
           )}
