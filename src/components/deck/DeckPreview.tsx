@@ -70,7 +70,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
     .map((e) => e.id);
 
   const resolvedCards = entries
-    .map((e) => e.local ?? e.remote)
+    .map((e) => e.remote ?? e.local)
     .filter(Boolean) as ClashRoyaleCard[];
 
   if (missing.length > 0) {
@@ -104,9 +104,9 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
         {/* Card Grid */}
         <div className="grid grid-cols-4 gap-2">
           {entries.map(({ id, local, remote }, index) => {
-            const base = (local ?? remote) as ClashRoyaleCard | undefined;
-            const name = base?.name ?? `Unknown ${id}`;
-            const elixir = base?.elixir ?? (remote?.elixir ?? (local?.elixir ?? 0));
+            const base = (remote ?? local) as ClashRoyaleCard | undefined;
+            const name = (remote?.name ?? local?.name) ?? `Unknown ${id}`;
+            const elixir = (remote?.elixir ?? local?.elixir ?? 0);
             const displaySrc = (remote?.imageUrl) ?? base?.imageUrl;
 
             return (
