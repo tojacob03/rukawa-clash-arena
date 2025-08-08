@@ -110,11 +110,7 @@ export function FileManager() {
   const fetchData = async () => {
     console.log('🔥 FileManager: Starting fetchData... loading:', loading);
     
-    // Prevent multiple concurrent fetchData calls
-    if (loading) {
-      console.log('🔥 fetchData already running, skipping...');
-      return;
-    }
+    // Allow parallel refresh calls; latest completion will set final state
     
     setLoading(true);
     console.log('🔥 fetchData: setLoading(true) called');
