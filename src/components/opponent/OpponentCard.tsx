@@ -93,57 +93,112 @@ export function OpponentCard({ opponent, onViewAnalysis }: OpponentCardProps) {
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">
-              Analysis Files ({opponent.analysis_files?.length || 0})
-            </span>
+            <span className="text-sm font-medium">Analysis</span>
           </div>
 
-          {opponent.analysis_files && opponent.analysis_files.length > 0 ? (
-            <div className="space-y-2">
-              {opponent.analysis_files.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">{file.file_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {file.file_type} • {new Date(file.created_at).toLocaleDateString()}
-                      </p>
+          {(() => {
+            const matchFiles = (opponent.analysis_files || []).filter(f => f.file_type === 'match_analysis');
+            const playerFiles = (opponent.analysis_files || []).filter(f => f.file_type === 'player_analysis');
+
+            return (
+              <div className="space-y-6">
+                {matchFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold">Match Analysis</h4>
+                    <div className="space-y-2">
+                      {matchFiles.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{file.file_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(file.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onViewAnalysis(file)}
+                              className="h-8 w-8 p-0"
+                              title="View Analysis"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => downloadFile(file)}
+                              className="h-8 w-8 p-0"
+                              title="Download File"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onViewAnalysis(file)}
-                      className="h-8 w-8 p-0"
-                      title="View Analysis"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => downloadFile(file)}
-                      className="h-8 w-8 p-0"
-                      title="Download File"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
+                )}
+
+                {playerFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold">Player Analysis</h4>
+                    <div className="space-y-2">
+                      {playerFiles.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{file.file_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(file.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onViewAnalysis(file)}
+                              className="h-8 w-8 p-0"
+                              title="View Analysis"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => downloadFile(file)}
+                              className="h-8 w-8 p-0"
+                              title="Download File"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center p-6 text-muted-foreground">
-              <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No analysis files available</p>
-            </div>
-          )}
+                )}
+
+                {(!matchFiles.length && !playerFiles.length) && (
+                  <div className="text-center p-6 text-muted-foreground">
+                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No analysis files available</p>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </CardContent>
     </Card>
