@@ -142,7 +142,7 @@ export function FileManager() {
       const { data: deckSetsData, error: deckSetsError } = await supabase
         .from('deck_sets')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('name');
 
       const safeDeckSetsData = deckSetsData || [];
       if (deckSetsError) {
@@ -163,7 +163,7 @@ export function FileManager() {
       const { data: deckFilesData, error: deckFilesError } = await supabase
         .from('deck_files')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('deck_number');
 
       if (deckFilesError) {
         console.error('Error fetching deck files:', deckFilesError);
@@ -228,7 +228,7 @@ export function FileManager() {
       const { data: analysisFilesData, error: analysisFilesError } = await supabase
         .from('analysis_files')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('file_name');
 
       if (analysisFilesError) {
         console.error('Error fetching analysis files:', analysisFilesError);
