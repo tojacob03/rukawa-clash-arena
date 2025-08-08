@@ -203,6 +203,8 @@ export function FileManager() {
   const createDeckFile = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Creating deck file with form data:', deckFileForm);
+    
     // Validate form data
     if (!deckFileForm.deck_name.trim()) {
       toast({
@@ -224,6 +226,8 @@ export function FileManager() {
 
     // Validate deck link and extract card IDs
     const parsedDeck = parseDeckLink(deckFileForm.deck_link);
+    console.log('Parsed deck:', parsedDeck);
+    
     if (!parsedDeck.isValid) {
       toast({
         title: "Error",
@@ -244,32 +248,60 @@ export function FileManager() {
       return;
     }
 
+    // Check for duplicate deck numbers in the same deck set
+    const existingDeckWithNumber = deckFiles.find(deck => 
+      deck.deck_set_id === deckFileForm.deck_set_id && 
+      deck.deck_number === deckNumber
+    );
+    
+    if (existingDeckWithNumber) {
+      toast({
+        title: "Error",
+        description: `Deck number ${deckNumber} already exists in this deck set`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const deckData = {
-        ...deckFileForm,
+        deck_name: deckFileForm.deck_name.trim(),
+        deck_link: deckFileForm.deck_link.trim(),
         deck_number: deckNumber,
+        deck_set_id: deckFileForm.deck_set_id,
         card_ids: parsedDeck.cards
       };
+
+      console.log('Inserting deck data:', deckData);
 
       const { error } = await supabase
         .from('deck_files')
         .insert([deckData]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
         description: "Deck file created successfully",
       });
 
-      setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
+      // Reset form properly
+      setDeckFileForm({ 
+        deck_name: '', 
+        deck_link: '', 
+        deck_number: 1, 
+        deck_set_id: '' 
+      });
       setShowDeckFileForm(false);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error('Error creating deck file:', error);
       toast({
         title: "Error",
-        description: "Failed to create deck file",
+        description: error instanceof Error ? error.message : "Failed to create deck file",
         variant: "destructive",
       });
     }
