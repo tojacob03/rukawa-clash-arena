@@ -14,50 +14,126 @@ import {
   Plus, 
   Settings,
   BarChart3,
-  Upload
+  Upload,
+  LogIn
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ClientManager } from '@/components/admin/ClientManager';
 import { FileManager } from '@/components/admin/FileManager';
 import { AdminStats } from '@/components/admin/AdminStats';
+import type { User, Session } from '@supabase/supabase-js';
 
 const AdminPanel = () => {
-  const [adminCode, setAdminCode] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  // Simple admin authentication (in production, use proper auth)
-  const handleAdminLogin = (e: React.FormEvent) => {
+  // Check if current user is admin
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('is_admin', { user_id: userId });
+      
+      if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+  };
+
+  // Handle admin login
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setAuthLoading(true);
     setError('');
 
-    // Simple admin code check (you can enhance this with proper auth)
-    if (adminCode === 'admin123') {
-      setIsAuthenticated(true);
-      localStorage.setItem('adminAuth', 'true');
-    } else {
-      setError('Invalid admin code');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError(error.message);
+      } else if (data.user) {
+        const adminStatus = await checkAdminStatus(data.user.id);
+        if (!adminStatus) {
+          setError('Access denied. Admin privileges required.');
+          await supabase.auth.signOut();
+        }
+      }
+    } catch (error) {
+      setError('Authentication failed');
     }
-    setLoading(false);
+    
+    setAuthLoading(false);
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setAdminCode('');
-    localStorage.removeItem('adminAuth');
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
-  // Check if admin is already authenticated
+  // Initialize auth state
   useEffect(() => {
-    const adminAuth = localStorage.getItem('adminAuth');
-    if (adminAuth === 'true') {
-      setIsAuthenticated(true);
-    }
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          const adminStatus = await checkAdminStatus(session.user.id);
+          setIsAdmin(adminStatus);
+        } else {
+          setIsAdmin(false);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const adminStatus = await checkAdminStatus(session.user.id);
+        setIsAdmin(adminStatus);
+      }
+      
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (!isAuthenticated) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -67,19 +143,31 @@ const AdminPanel = () => {
             </div>
             <CardTitle className="text-2xl">Admin Panel</CardTitle>
             <p className="text-muted-foreground">
-              Enter admin code to access management panel
+              Sign in with admin credentials to access management panel
             </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="adminCode">Admin Code</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="adminCode"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
                   type="password"
-                  value={adminCode}
-                  onChange={(e) => setAdminCode(e.target.value)}
-                  placeholder="Enter admin code"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
                   required
                 />
               </div>
@@ -90,8 +178,9 @@ const AdminPanel = () => {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Authenticating...' : 'Access Admin Panel'}
+              <Button type="submit" className="w-full" disabled={authLoading}>
+                <LogIn className="h-4 w-4 mr-2" />
+                {authLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
           </CardContent>
