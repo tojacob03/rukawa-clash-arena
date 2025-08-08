@@ -91,7 +91,7 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] p-0">
+      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-5xl h-[90vh] max-h-[95vh] p-0">
         <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">
