@@ -24,20 +24,15 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
 
   const cards: ClashRoyaleCard[] = getCardsByIds(idsUsed);
 
-  if (cards.length !== 8) {
-    const missing = idsUsed.filter((id) => !getCardById(id));
+  const missing = idsUsed.filter((id) => !getCardById(id));
+  if (missing.length > 0) {
     console.warn('DeckPreview - Missing card IDs in dataset:', missing, 'from ids:', idsUsed);
   }
 
   console.log('DeckPreview - Final cards found:', cards.length);
 
-  if (cards.length !== 8) {
-    return (
-      <div className={`flex items-center justify-center p-4 text-muted-foreground ${className}`}>
-        <span className="text-sm">Invalid deck format (found {cards.length} cards)</span>
-      </div>
-    );
-  }
+  const entries = idsUsed.map((id) => ({ id, card: getCardById(id) }));
+
 
   const totalElixir = cards.reduce((sum, card) => sum + card.elixir, 0);
   const averageElixir = (totalElixir / cards.length).toFixed(1);
@@ -54,27 +49,40 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
           </div>
         </div>
 
+        {/* Missing cards notice */}
+        {missing.length > 0 && (
+          <div className="text-xs text-muted-foreground">
+            {missing.length} unknown card{missing.length > 1 ? 's' : ''}: {missing.join(', ')}
+          </div>
+        )}
+
         {/* Card Grid */}
         <div className="grid grid-cols-4 gap-2">
-          {cards.map((card, index) => (
-            <div key={`${card.id}-${index}`} className="relative group">
+          {entries.map(({ id, card }, index) => (
+            <div key={`${id}-${index}`} className="relative group">
               <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105">
-                <img
-                  src={card.imageUrl}
-                  alt={card.name}
-                  className="w-full h-16 object-cover"
-                  loading="lazy"
-                />
+                {card ? (
+                  <img
+                    src={card.imageUrl}
+                    alt={card.name}
+                    className="w-full h-16 object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-16 flex items-center justify-center text-xs text-muted-foreground">
+                    Unknown {id}
+                  </div>
+                )}
                 
                 {/* Elixir Cost Badge */}
                 <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {card.elixir}
+                  {card ? card.elixir : '?'}
                 </div>
 
                 {/* Card Name Tooltip */}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <span className="text-white text-xs font-medium block truncate">
-                    {card.name}
+                    {card ? card.name : 'Unbekannte Karte'}
                   </span>
                 </div>
               </div>
