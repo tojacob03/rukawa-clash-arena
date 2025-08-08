@@ -173,7 +173,7 @@ export type Database = {
       }
       deck_files: {
         Row: {
-          card_ids: Json | null
+          card_ids: number[] | null
           created_at: string
           deck_link: string
           deck_name: string
@@ -182,7 +182,7 @@ export type Database = {
           id: string
         }
         Insert: {
-          card_ids?: Json | null
+          card_ids?: number[] | null
           created_at?: string
           deck_link: string
           deck_name: string
@@ -191,7 +191,7 @@ export type Database = {
           id?: string
         }
         Update: {
-          card_ids?: Json | null
+          card_ids?: number[] | null
           created_at?: string
           deck_link?: string
           deck_name?: string

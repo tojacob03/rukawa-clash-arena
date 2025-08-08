@@ -337,12 +337,15 @@ export function FileManager() {
     }
 
     try {
+      // Ensure card_ids are clean integers (parseDeckLink already returns numbers)
+      const cardIds = parsedDeck.cards.map(id => Math.round(id));
+
       const deckData = {
         deck_name: deckFileForm.deck_name.trim(),
         deck_link: deckFileForm.deck_link.trim(),
         deck_number: deckNumber,
         deck_set_id: deckFileForm.deck_set_id,
-        card_ids: parsedDeck.cards
+        card_ids: cardIds, // Integer array for PostgreSQL
       };
 
       console.log('Inserting deck data:', deckData);
@@ -365,6 +368,9 @@ export function FileManager() {
   };
 
   const deleteDeckFile = async (deckFileId: string, deckName: string) => {
+    if (opLoading) return;
+    setOpLoading(true);
+
     try {
       console.log('Deleting deck file:', deckFileId, deckName);
       
@@ -373,10 +379,7 @@ export function FileManager() {
         .delete()
         .eq('id', deckFileId);
 
-      if (error) {
-        console.error('Supabase error deleting deck file:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -391,6 +394,8 @@ export function FileManager() {
         description: error instanceof Error ? error.message : "Failed to delete deck file",
         variant: "destructive",
       });
+    } finally {
+      setOpLoading(false);
     }
   };
 
@@ -632,7 +637,9 @@ export function FileManager() {
                     </Select>
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit">Create Deck File</Button>
+                    <Button type="submit" disabled={opLoading}>
+                      {opLoading ? "Creating..." : "Create Deck File"}
+                    </Button>
                     <Button type="button" variant="outline" onClick={() => setShowDeckFileForm(false)}>
                       Cancel
                     </Button>
@@ -655,8 +662,9 @@ export function FileManager() {
                       size="sm"
                       onClick={() => deleteDeckFile(deckFile.id, deckFile.deck_name)}
                       className="text-destructive hover:text-destructive"
+                      disabled={opLoading}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {opLoading ? "Deleting..." : <Trash2 className="h-4 w-4" />}
                     </Button>
                   </div>
                 ))}
