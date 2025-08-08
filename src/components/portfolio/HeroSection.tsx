@@ -40,20 +40,20 @@ const HeroSection = () => {
       <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
         <div className="animate-slide-in-up">
           <h1 className="text-6xl md:text-8xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            {t('hero.title')}
+            {t('hero.title', 'Rukawa')}
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            {t('hero.subtitle')}
+            {t('hero.subtitle', 'Data-driven Clash Royale Analyst & Coach with international tournament experience')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button 
               variant="hero" 
               size="xl"
-              onClick={() => openPDFViewer(t('hero.portfolioTitle'))}
+              onClick={() => openPDFViewer(t('hero.portfolioTitle', 'Portfolio & Analysis Samples'))}
               className="group"
             >
-              {t('hero.viewWork')}
+              {t('hero.viewWork', 'View My Work')}
               <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
             </Button>
             <Button 
@@ -61,7 +61,7 @@ const HeroSection = () => {
               size="xl"
               onClick={() => scrollToSection('contact')}
             >
-              {t('hero.getInTouch')}
+              {t('hero.getInTouch', 'Get In Touch')}
             </Button>
           </div>
         </div>
@@ -70,15 +70,15 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
           <div className="text-center animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="text-3xl font-bold text-clash-gold mb-2">5+</div>
-            <div className="text-muted-foreground">{t('hero.yearsExperience')}</div>
+            <div className="text-muted-foreground">{t('hero.yearsExperience', 'Years Experience')}</div>
           </div>
           <div className="text-center animate-slide-in-up" style={{ animationDelay: '0.4s' }}>
             <div className="text-3xl font-bold text-clash-gold mb-2">Top 9-12</div>
-            <div className="text-muted-foreground">{t('hero.monthlyFinals')}</div>
+            <div className="text-muted-foreground">{t('hero.monthlyFinals', 'CRL Monthly Finals')}</div>
           </div>
           <div className="text-center animate-slide-in-up" style={{ animationDelay: '0.6s' }}>
             <div className="text-3xl font-bold text-clash-gold mb-2">Top 6</div>
-            <div className="text-muted-foreground">{t('hero.copaAmericaFinish')}</div>
+            <div className="text-muted-foreground">{t('hero.copaAmericaFinish', 'Copa América Finish')}</div>
           </div>
         </div>
       </div>
