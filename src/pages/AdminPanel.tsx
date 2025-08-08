@@ -96,6 +96,7 @@ const AdminPanel = () => {
   useEffect(() => {
     console.log('AdminPanel: Starting initialization');
     let isMounted = true;
+    let adminStatusChecked = false;
     
     const initializeAuth = async () => {
       try {
@@ -118,7 +119,10 @@ const AdminPanel = () => {
             console.log('Checking admin status...');
             const adminStatus = await checkAdminStatus(session.user.id);
             console.log('Admin status result:', adminStatus);
-            if (isMounted) setIsAdmin(adminStatus);
+            if (isMounted) {
+              setIsAdmin(adminStatus);
+              adminStatusChecked = true;
+            }
           } else {
             if (isMounted) setIsAdmin(false);
           }
@@ -132,21 +136,27 @@ const AdminPanel = () => {
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener - only check admin status on sign in/out, not token refresh
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', event, session?.user?.id || 'No user');
         
-        if (isMounted) {
+        if (!isMounted) return;
+        
+        // Only handle actual sign in/out events, ignore token refresh
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           setSession(session);
           setUser(session?.user ?? null);
           
-          if (session?.user) {
+          // Only check admin status if not already checked or on sign in/out (not token refresh)
+          if (session?.user && (event === 'SIGNED_IN' || !adminStatusChecked)) {
             const adminStatus = await checkAdminStatus(session.user.id);
             console.log('Admin status from auth change:', adminStatus);
             setIsAdmin(adminStatus);
-          } else {
+            adminStatusChecked = true;
+          } else if (!session?.user) {
             setIsAdmin(false);
+            adminStatusChecked = false;
           }
           
           setLoading(false);
