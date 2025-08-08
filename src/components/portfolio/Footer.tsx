@@ -1,6 +1,8 @@
 import { Mail, MessageCircle, Twitter, Crown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -12,8 +14,8 @@ const Footer = () => {
               <Crown className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">Rukawa</h3>
-              <p className="text-sm text-muted-foreground">Clash Royale Analyst & Coach</p>
+              <h3 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">{t('footer.title')}</h3>
+              <p className="text-sm text-muted-foreground">{t('footer.subtitle')}</p>
             </div>
           </div>
           
@@ -43,10 +45,10 @@ const Footer = () => {
           
           <div className="text-center md:text-right">
             <p className="text-sm text-muted-foreground">
-              © {currentYear} Rukawa. All rights reserved.
+              © {currentYear} Rukawa. {t('footer.copyright')}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Data-driven excellence in esports
+              {t('footer.tagline')}
             </p>
           </div>
         </div>

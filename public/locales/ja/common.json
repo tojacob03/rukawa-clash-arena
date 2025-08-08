@@ -1,0 +1,151 @@
+{
+  "hero": {
+    "title": "Rukawa",
+    "subtitle": "クラッシュロワイヤル アナリスト＆コーチ",
+    "description": "データドリブンなパフォーマンス分析とクラッシュロワイヤルeスポーツチーム向けの戦略的インサイト",
+    "viewWork": "作品を見る",
+    "getInTouch": "お問い合わせ",
+    "stats": {
+      "yearsExperience": "年の経験",
+      "monthlyFinals": "CRL月間決勝",
+      "copaAmericaFinish": "コパアメリカ順位"
+    }
+  },
+  "about": {
+    "title": "自己紹介",
+    "objective": "目標",
+    "description": "データドリブンなアナリストとして競争力のあるクラッシュロワイヤルチームに貢献し、構造化されたスカウティングと対戦相手のインサイトを提供して、マッチアップの準備とチーム全体のパフォーマンスをサポートします。"
+  },
+  "skills": {
+    "title": "コアスキル",
+    "list": {
+      "strategicAnalysis": "戦略分析",
+      "strategicAnalysisDesc": "メタトレンドとデッキシナジーの深い分析",
+      "opponentScouting": "対戦相手スカウティング",
+      "opponentScoutingDesc": "対戦相手の戦略とプレイスタイルの詳細な調査",
+      "performanceTracking": "パフォーマンストラッキング",
+      "performanceTrackingDesc": "プレイヤーパフォーマンスとチーム結果の統計分析",
+      "coaching": "コーチング＆メンタリング",
+      "coachingDesc": "プレイヤーとチーム開発のための個別指導"
+    }
+  },
+  "teamHistory": {
+    "title": "チーム履歴",
+    "roles": {
+      "analyst": "アナリスト",
+      "coach": "コーチ",
+      "manager": "マネージャー"
+    },
+    "achievements": {
+      "crlFinals": "CRL決勝進出",
+      "copaAmerica": "コパアメリカ2位"
+    }
+  },
+  "achievements": {
+    "title": "実績と結果",
+    "list": {
+      "crlFinals": {
+        "title": "CRL決勝",
+        "event": "クラッシュロワイヤルリーグ シーズン4"
+      },
+      "copaAmerica": {
+        "title": "2位",
+        "event": "コパアメリカ クラッシュロワイヤル 2023"
+      },
+      "monthlyFinals": {
+        "title": "月間決勝",
+        "event": "CRL定期予選"
+      },
+      "teamCoaching": {
+        "title": "チームコーチング",
+        "event": "成功したプレイヤー育成"
+      }
+    }
+  },
+  "services": {
+    "title": "サービス",
+    "subtitle": "プロフェッショナルなクラッシュロワイヤルコーチングと分析サービス",
+    "list": {
+      "teamAnalysis": {
+        "title": "チーム分析",
+        "description": "チームパフォーマンスと戦略的整合性の包括的評価",
+        "features": [
+          "詳細なパフォーマンス指標",
+          "戦略的推奨事項",
+          "個別プレイヤー評価"
+        ]
+      },
+      "opponentScouting": {
+        "title": "対戦相手スカウティング",
+        "description": "対戦相手の戦略と弱点の詳細分析",
+        "features": [
+          "デッキトレンド分析",
+          "プレイスタイルプロファイル",
+          "マッチアップ予測"
+        ]
+      },
+      "personalCoaching": {
+        "title": "パーソナルコーチング",
+        "description": "個人スキル向上のためのマンツーマンコーチングセッション",
+        "features": [
+          "パーソナライズされたトレーニングプラン",
+          "リプレイ分析",
+          "メンタル準備"
+        ]
+      }
+    },
+    "learnMore": "詳しく見る"
+  },
+  "languages": {
+    "title": "言語",
+    "levels": {
+      "native": "ネイティブ",
+      "c2": "C2",
+      "b1": "B1",
+      "a2": "A2"
+    },
+    "names": {
+      "german": "ドイツ語",
+      "english": "英語",
+      "spanish": "スペイン語",
+      "russian": "ロシア語",
+      "arabic": "アラビア語",
+      "japanese": "日本語",
+      "french": "フランス語",
+      "portuguese": "ポルトガル語"
+    }
+  },
+  "contact": {
+    "title": "お問い合わせ",
+    "subtitle": "あなたのチームを次のレベルに引き上げる準備はできていますか？話しましょう！",
+    "form": {
+      "name": "名前",
+      "email": "メール",
+      "message": "メッセージ",
+      "send": "メッセージを送信",
+      "sending": "送信中...",
+      "success": "メッセージが正常に送信されました！",
+      "error": "メッセージの送信エラー。"
+    },
+    "methods": {
+      "email": "メール",
+      "discord": "Discord",
+      "twitter": "Twitter"
+    }
+  },
+  "footer": {
+    "title": "Rukawa",
+    "subtitle": "クラッシュロワイヤル アナリスト＆コーチ",
+    "copyright": "すべての権利を保有。",
+    "tagline": "eスポーツにおけるデータドリブンな優秀性"
+  },
+  "pdfViewer": {
+    "back": "戻る",
+    "download": "ダウンロード",
+    "matchAnalysis": "マッチ分析",
+    "playerAnalysis": "プレイヤー分析",
+    "selectDocument": "文書を選択",
+    "noDocument": "利用可能な文書がありません",
+    "error": "PDF読み込みエラー"
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "hero": {
+    "title": "Rukawa",
+    "subtitle": "Analista e Treinador de Clash Royale",
+    "description": "Análise de performance baseada em dados e insights estratégicos para equipes de esports de Clash Royale",
+    "viewWork": "Ver Meu Trabalho",
+    "getInTouch": "Entrar em Contato",
+    "stats": {
+      "yearsExperience": "Anos de Experiência",
+      "monthlyFinals": "Finais Mensais CRL",
+      "copaAmericaFinish": "Posição Copa América"
+    }
+  },
+  "about": {
+    "title": "Sobre Mim",
+    "objective": "Objetivo",
+    "description": "Contribuir para uma equipe competitiva de Clash Royale como analista orientado por dados, fornecendo scouting estruturado e insights de adversários para apoiar a preparação de confrontos e performance geral da equipe."
+  },
+  "skills": {
+    "title": "Habilidades Principais",
+    "list": {
+      "strategicAnalysis": "Análise Estratégica",
+      "strategicAnalysisDesc": "Análise profunda de tendências meta e sinergias de deck",
+      "opponentScouting": "Scouting de Adversários",
+      "opponentScoutingDesc": "Pesquisa detalhada sobre estratégia e estilo de jogo do adversário",
+      "performanceTracking": "Acompanhamento de Performance",
+      "performanceTrackingDesc": "Análise estatística de performance do jogador e resultados da equipe",
+      "coaching": "Coaching e Mentoria",
+      "coachingDesc": "Orientação personalizada para desenvolvimento de jogadores e equipes"
+    }
+  },
+  "teamHistory": {
+    "title": "Histórico da Equipe",
+    "roles": {
+      "analyst": "Analista",
+      "coach": "Treinador",
+      "manager": "Gerente"
+    },
+    "achievements": {
+      "crlFinals": "Finais CRL alcançadas",
+      "copaAmerica": "Copa América 2º lugar"
+    }
+  },
+  "achievements": {
+    "title": "Conquistas e Resultados",
+    "list": {
+      "crlFinals": {
+        "title": "Finais CRL",
+        "event": "Clash Royale League Temporada 4"
+      },
+      "copaAmerica": {
+        "title": "2º Lugar",
+        "event": "Copa América Clash Royale 2023"
+      },
+      "monthlyFinals": {
+        "title": "Finais Mensais",
+        "event": "Qualificação Regular CRL"
+      },
+      "teamCoaching": {
+        "title": "Coaching de Equipe",
+        "event": "Desenvolvimento Bem-sucedido de Jogadores"
+      }
+    }
+  },
+  "services": {
+    "title": "Serviços",
+    "subtitle": "Serviços profissionais de coaching e análise de Clash Royale",
+    "list": {
+      "teamAnalysis": {
+        "title": "Análise de Equipe",
+        "description": "Avaliação abrangente de performance da equipe e alinhamento estratégico",
+        "features": [
+          "Métricas detalhadas de performance",
+          "Recomendações estratégicas",
+          "Avaliações individuais de jogadores"
+        ]
+      },
+      "opponentScouting": {
+        "title": "Scouting de Adversários",
+        "description": "Análise aprofundada de estratégias e fraquezas dos adversários",
+        "features": [
+          "Análise de tendências de deck",
+          "Perfis de estilos de jogo",
+          "Previsões de confrontos"
+        ]
+      },
+      "personalCoaching": {
+        "title": "Coaching Pessoal",
+        "description": "Sessões de coaching individuais para melhorar habilidades pessoais",
+        "features": [
+          "Planos de treinamento personalizados",
+          "Análise de replays",
+          "Preparação mental"
+        ]
+      }
+    },
+    "learnMore": "Saiba Mais"
+  },
+  "languages": {
+    "title": "Idiomas",
+    "levels": {
+      "native": "Nativo",
+      "c2": "C2",
+      "b1": "B1",
+      "a2": "A2"
+    },
+    "names": {
+      "german": "Alemão",
+      "english": "Inglês",
+      "spanish": "Espanhol",
+      "russian": "Russo",
+      "arabic": "Árabe",
+      "japanese": "Japonês",
+      "french": "Francês",
+      "portuguese": "Português"
+    }
+  },
+  "contact": {
+    "title": "Entre em Contato",
+    "subtitle": "Pronto para levar sua equipe ao próximo nível? Vamos conversar!",
+    "form": {
+      "name": "Nome",
+      "email": "Email",
+      "message": "Mensagem",
+      "send": "Enviar Mensagem",
+      "sending": "Enviando...",
+      "success": "Mensagem enviada com sucesso!",
+      "error": "Erro ao enviar mensagem."
+    },
+    "methods": {
+      "email": "Email",
+      "discord": "Discord",
+      "twitter": "Twitter"
+    }
+  },
+  "footer": {
+    "title": "Rukawa",
+    "subtitle": "Analista e Treinador de Clash Royale",
+    "copyright": "Todos os direitos reservados.",
+    "tagline": "Excelência baseada em dados no esporte eletrônico"
+  },
+  "pdfViewer": {
+    "back": "Voltar",
+    "download": "Baixar",
+    "matchAnalysis": "Análise de Partida",
+    "playerAnalysis": "Análise de Jogador",
+    "selectDocument": "Selecionar Documento",
+    "noDocument": "Nenhum documento disponível",
+    "error": "Erro ao carregar PDF"
+  }
+}
