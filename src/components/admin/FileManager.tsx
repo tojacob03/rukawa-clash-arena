@@ -307,6 +307,36 @@ export function FileManager() {
     }
   };
 
+  const deleteDeckFile = async (deckFileId: string, deckName: string) => {
+    try {
+      console.log('Deleting deck file:', deckFileId, deckName);
+      
+      const { error } = await supabase
+        .from('deck_files')
+        .delete()
+        .eq('id', deckFileId);
+
+      if (error) {
+        console.error('Supabase error deleting deck file:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: `Deck "${deckName}" deleted successfully`,
+      });
+
+      await fetchData();
+    } catch (error) {
+      console.error('Error deleting deck file:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete deck file",
+        variant: "destructive",
+      });
+    }
+  };
+
   const createOpponent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -563,6 +593,14 @@ export function FileManager() {
                       </p>
                       <Badge variant="secondary">{deckFile.deck_set?.client?.name}</Badge>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteDeckFile(deckFile.id, deckFile.deck_name)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </div>
