@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ClashRoyaleCard, getCardsByIds, getCardById } from '@/data/clashRoyaleCards';
 import { parseDeckLink } from '@/utils/deckParser';
 import { Card } from '@/components/ui/card';
@@ -22,20 +22,64 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
     console.log('DeckPreview - Parsed from deckLink:', deckLink, 'cards:', parsedDeck.cards);
   }
 
-  const cards: ClashRoyaleCard[] = getCardsByIds(idsUsed);
+  // Remote fallback for unknown cards (RoyaleAPI)
+  const [remoteMap, setRemoteMap] = useState<Map<number, ClashRoyaleCard> | null>(null);
+  const idsKey = useMemo(() => idsUsed.join(','), [idsUsed]);
 
-  const missing = idsUsed.filter((id) => !getCardById(id));
+  useEffect(() => {
+    const unknownIds = idsUsed.filter((id) => !getCardById(id));
+    if (unknownIds.length === 0) {
+      setRemoteMap(null);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('https://royaleapi.github.io/cr-api-data/json/cards.json');
+        const data = await res.json();
+        // Build a map only for the missing ids
+        const map = new Map<number, ClashRoyaleCard>();
+        for (const entry of data) {
+          if (unknownIds.includes(entry.id)) {
+            const typeLower = (entry.type || '').toLowerCase();
+            const imageUrl = `https://cdn.royaleapi.com/static/img/cards/300/${entry.key}.png`;
+            map.set(entry.id, {
+              id: entry.id,
+              name: entry.name,
+              imageUrl,
+              elixir: Number(entry.elixir ?? 0),
+              type: (typeLower === 'troop' || typeLower === 'spell' || typeLower === 'building')
+                ? typeLower
+                : 'troop',
+            });
+          }
+        }
+        if (!cancelled) setRemoteMap(map);
+      } catch (e) {
+        console.warn('Failed to fetch RoyaleAPI cards.json', e);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [idsKey]);
+
+  // Resolve cards using local dataset first, then remote fallback
+  const entries = idsUsed.map((id) => ({ id, card: getCardById(id) || remoteMap?.get(id) }));
+  const missing = entries.filter((e) => !e.card).map((e) => e.id);
+
+  const resolvedCards = entries
+    .map((e) => e.card)
+    .filter(Boolean) as ClashRoyaleCard[];
+
   if (missing.length > 0) {
-    console.warn('DeckPreview - Missing card IDs in dataset:', missing, 'from ids:', idsUsed);
+    console.warn('DeckPreview - Missing card IDs (local + remote fallback):', missing, 'from ids:', idsUsed);
   }
 
-  console.log('DeckPreview - Final cards found:', cards.length);
+  console.log('DeckPreview - Final cards resolved:', resolvedCards.length);
 
-  const entries = idsUsed.map((id) => ({ id, card: getCardById(id) }));
-
-
-  const totalElixir = cards.reduce((sum, card) => sum + card.elixir, 0);
-  const averageElixir = (totalElixir / cards.length).toFixed(1);
+  const totalElixir = resolvedCards.reduce((sum, card) => sum + card.elixir, 0);
+  const averageElixir = resolvedCards.length ? (totalElixir / resolvedCards.length).toFixed(1) : '0.0';
 
   return (
     <Card className={`p-4 ${className}`}>
@@ -93,7 +137,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
         {/* Card Type Distribution */}
         <div className="flex justify-center gap-4 text-xs text-muted-foreground">
           {['troop', 'spell', 'building'].map(type => {
-            const count = cards.filter(card => card.type === type).length;
+            const count = resolvedCards.filter(card => card.type === type).length;
             if (count === 0) return null;
             
             return (
