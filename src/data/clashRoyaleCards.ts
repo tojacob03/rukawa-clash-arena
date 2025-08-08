@@ -128,7 +128,14 @@ export const CLASH_ROYALE_CARDS: ClashRoyaleCard[] = [
   { id: 27000009, name: "Tombstone", imageUrl: "https://api-assets.clashroyale.com/cards/300/G1iVIKJMBiJd-c5HceMOTzJO4t-VYzUk5u_K8NYOvf8.png", elixir: 3, type: "building" },
   { id: 27000010, name: "Furnace", imageUrl: "https://api-assets.clashroyale.com/cards/300/q5hJH7Xf-B4FQQ-rRGIcqVm8sZnQQA1YJ9IY5n7UKxs.png", elixir: 4, type: "building" },
   { id: 27000011, name: "Goblin Cage", imageUrl: "https://api-assets.clashroyale.com/cards/300/S_HAg1nGH2m0vQ7IVQsS8FRbhvN4OKWkXG6t6YGgY-E.png", elixir: 4, type: "building" },
-  { id: 27000012, name: "Goblin Drill", imageUrl: "https://api-assets.clashroyale.com/cards/300/Dqt3g5_KqGrW8_2_KQ5BQ9-6KkJ8MZ_ZN_8-QqF0qF4.png", elixir: 4, type: "building" }
+  { id: 27000012, name: "Goblin Drill", imageUrl: "https://api-assets.clashroyale.com/cards/300/Dqt3g5_KqGrW8_2_KQ5BQ9-6KkJ8MZ_ZN_8-QqF0qF4.png", elixir: 4, type: "building" },
+
+  // Newer cards (overrides)
+  { id: 26000097, name: "Suspicious Bush", imageUrl: suspiciousBushImg, elixir: 2, type: "troop" },
+  { id: 26000102, name: "Berserker", imageUrl: berserkerImg, elixir: 2, type: "troop" },
+  { id: 26000103, name: "Boss Bandit", imageUrl: bossBanditImg, elixir: 6, type: "troop" },
+  { id: 28000024, name: "Goblin Curse", imageUrl: goblinCurseImg, elixir: 2, type: "spell" },
+  { id: 28000025, name: "Spirit Empress", imageUrl: spiritEmpressImg, elixir: 6, type: "troop" },
 ];
 
 // Remote augmentation: fetch full cards catalog once and merge as fallback
