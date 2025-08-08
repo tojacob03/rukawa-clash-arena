@@ -24,27 +24,20 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
 
   // Remote fallback for unknown cards (RoyaleAPI)
   const [remoteMap, setRemoteMap] = useState<Map<number, ClashRoyaleCard> | null>(null);
-  const [useRemote, setUseRemote] = useState<Set<number>>(new Set());
   const idsKey = useMemo(() => idsUsed.join(','), [idsUsed]);
-
   useEffect(() => {
-    const unknownIds = idsUsed.filter((id) => !getCardById(id));
-    if (unknownIds.length === 0) {
-      setRemoteMap(null);
-      return;
-    }
-
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch('https://royaleapi.github.io/cr-api-data/json/cards.json');
         const data = await res.json();
-        // Build a map only for the missing ids
+        // Build a map for all ids in this deck
         const map = new Map<number, ClashRoyaleCard>();
+        const idSet = new Set(idsUsed);
         for (const entry of data) {
-          if (unknownIds.includes(entry.id)) {
+          if (idSet.has(entry.id)) {
             const typeLower = (entry.type || '').toLowerCase();
-            const imageUrl = `https://royaleapi.github.io/cr-api-assets/cards-300/${entry.key}.png`;
+            const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${entry.key}.png`;
             map.set(entry.id, {
               id: entry.id,
               name: entry.name,
@@ -114,9 +107,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             const base = (local ?? remote) as ClashRoyaleCard | undefined;
             const name = base?.name ?? `Unknown ${id}`;
             const elixir = base?.elixir ?? (remote?.elixir ?? (local?.elixir ?? 0));
-            const displaySrc = (remote && useRemote.has(id))
-              ? remote.imageUrl
-              : base?.imageUrl;
+            const displaySrc = (remote?.imageUrl) ?? base?.imageUrl;
 
             return (
               <div key={`${id}-${index}`} className="relative group">
@@ -128,46 +119,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                       className="w-full h-16 object-cover"
                       loading="lazy"
                       referrerPolicy="no-referrer"
-                      onError={async (e) => {
-                        // Prefer switching to remote image if available
-                        if (!Array.from(useRemote).includes(id) && remote?.imageUrl) {
-                          setUseRemote((prev) => {
-                            const next = new Set(prev);
-                            next.add(id);
-                            return next;
-                          });
-                          return;
-                        }
-                        // If remote not yet available, try to fetch it on-demand
-                        if (!remote) {
-                          try {
-                            const res = await fetch('https://royaleapi.github.io/cr-api-data/json/cards.json');
-                            const data = await res.json();
-                            const entry = data.find((d: any) => d.id === id);
-                            if (entry) {
-                              const typeLower = (entry.type || '').toLowerCase();
-                              const imageUrl = `https://royaleapi.github.io/cr-api-assets/cards-300/${entry.key}.png`;
-                              setRemoteMap((prev) => {
-                                const map = new Map(prev ?? []);
-                                map.set(entry.id, {
-                                  id: entry.id,
-                                  name: entry.name,
-                                  imageUrl,
-                                  elixir: Number(entry.elixir ?? 0),
-                                  type: (typeLower === 'troop' || typeLower === 'spell' || typeLower === 'building') ? typeLower : 'troop',
-                                });
-                                return map;
-                              });
-                              setUseRemote((prev) => {
-                                const next = new Set(prev);
-                                next.add(id);
-                                return next;
-                              });
-                              return;
-                            }
-                          } catch {}
-                        }
-                        // Final fallback: show placeholder image
+                      onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src = '/placeholder.svg';
                       }}
                     />
