@@ -123,7 +123,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                     <img
                       src={displaySrc ?? ''}
                       alt={name}
-                      className={`h-full w-full object-contain ${isSuspiciousBush ? 'transform origin-center scale-110' : ''}`}
+                      className={`h-full w-full object-contain ${isSuspiciousBush ? 'transform origin-center scale-90' : ''}`}
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
