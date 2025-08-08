@@ -107,10 +107,17 @@ export function FileManager() {
 
   const fetchData = async () => {
     console.log('FileManager: Starting fetchData...');
+    
+    // Prevent multiple concurrent fetchData calls
+    if (loading) {
+      console.log('fetchData already running, skipping...');
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      // Fetch clients first
+      // Fetch clients first and wait for completion
       console.log('Fetching clients...');
       const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
@@ -122,29 +129,33 @@ export function FileManager() {
         throw clientsError;
       }
       console.log('Clients fetched:', clientsData?.length || 0);
-      setClients(clientsData || []);
+      
+      // Immediately set clients to prevent undefined errors
+      const safeClientsData = clientsData || [];
+      setClients(safeClientsData);
 
-      // Fetch deck sets with client info - simplified query
+      // Fetch deck sets
       console.log('Fetching deck sets...');
       const { data: deckSetsData, error: deckSetsError } = await supabase
         .from('deck_sets')
         .select('*')
         .order('created_at', { ascending: false });
 
+      const safeDeckSetsData = deckSetsData || [];
       if (deckSetsError) {
         console.error('Error fetching deck sets:', deckSetsError);
         setDeckSets([]);
       } else {
-        console.log('Deck sets fetched:', deckSetsData?.length || 0);
-        // Map client info separately
-        const deckSetsWithClients = deckSetsData?.map(deckSet => ({
+        console.log('Deck sets fetched:', safeDeckSetsData.length);
+        // Simple mapping without complex nesting
+        const deckSetsWithClients = safeDeckSetsData.map(deckSet => ({
           ...deckSet,
-          client: clientsData?.find(c => c.id === deckSet.client_id)
-        })) || [];
+          client: safeClientsData.find(c => c.id === deckSet.client_id)
+        }));
         setDeckSets(deckSetsWithClients);
       }
 
-      // Fetch deck files - simplified query
+      // Fetch deck files
       console.log('Fetching deck files...');
       const { data: deckFilesData, error: deckFilesError } = await supabase
         .from('deck_files')
@@ -155,40 +166,49 @@ export function FileManager() {
         console.error('Error fetching deck files:', deckFilesError);
         setDeckFiles([]);
       } else {
-        console.log('Deck files fetched:', deckFilesData?.length || 0);
-        // Map relationships separately to avoid type issues
-        const deckFilesWithRelations = deckFilesData?.map(deckFile => {
-          const deckSet = deckSetsData?.find(ds => ds.id === deckFile.deck_set_id);
-          const client = clientsData?.find(c => c.id === deckSet?.client_id);
+        const safeDeckFilesData = deckFilesData || [];
+        console.log('Deck files fetched:', safeDeckFilesData.length);
+        
+        // Simple safe mapping
+        const deckFilesWithRelations = safeDeckFilesData.map(deckFile => {
+          const deckSet = safeDeckSetsData.find(ds => ds.id === deckFile.deck_set_id);
+          const client = safeClientsData.find(c => c.id === deckSet?.client_id);
+          
           return {
             ...deckFile,
-            deck_set: deckSet ? { ...deckSet, client } : undefined
+            deck_set: deckSet ? { 
+              id: deckSet.id,
+              name: deckSet.name,
+              description: deckSet.description || '',
+              client_id: deckSet.client_id,
+              client: client || undefined
+            } : undefined
           };
-        }) || [];
+        });
         setDeckFiles(deckFilesWithRelations);
       }
 
-      // Fetch opponents - simplified query
+      // Fetch opponents
       console.log('Fetching opponents...');
       const { data: opponentsData, error: opponentsError } = await supabase
         .from('opponents')
         .select('*')
         .order('name');
 
+      const safeOpponentsData = opponentsData || [];
       if (opponentsError) {
         console.error('Error fetching opponents:', opponentsError);
         setOpponents([]);
       } else {
-        console.log('Opponents fetched:', opponentsData?.length || 0);
-        // Map client info separately
-        const opponentsWithClients = opponentsData?.map(opponent => ({
+        console.log('Opponents fetched:', safeOpponentsData.length);
+        const opponentsWithClients = safeOpponentsData.map(opponent => ({
           ...opponent,
-          client: clientsData?.find(c => c.id === opponent.client_id)
-        })) || [];
+          client: safeClientsData.find(c => c.id === opponent.client_id)
+        }));
         setOpponents(opponentsWithClients);
       }
 
-      // Fetch analysis files - simplified query
+      // Fetch analysis files
       console.log('Fetching analysis files...');
       const { data: analysisFilesData, error: analysisFilesError } = await supabase
         .from('analysis_files')
@@ -199,22 +219,37 @@ export function FileManager() {
         console.error('Error fetching analysis files:', analysisFilesError);
         setAnalysisFiles([]);
       } else {
-        console.log('Analysis files fetched:', analysisFilesData?.length || 0);
-        // Map relationships separately
-        const analysisFilesWithRelations = analysisFilesData?.map(file => {
-          const opponent = opponentsData?.find(o => o.id === file.opponent_id);
-          const client = clientsData?.find(c => c.id === opponent?.client_id);
+        const safeAnalysisFilesData = analysisFilesData || [];
+        console.log('Analysis files fetched:', safeAnalysisFilesData.length);
+        
+        const analysisFilesWithRelations = safeAnalysisFilesData.map(file => {
+          const opponent = safeOpponentsData.find(o => o.id === file.opponent_id);
+          const client = safeClientsData.find(c => c.id === opponent?.client_id);
+          
           return {
             ...file,
-            opponent: opponent ? { ...opponent, client } : undefined
+            opponent: opponent ? { 
+              id: opponent.id,
+              name: opponent.name,
+              description: opponent.description || '',
+              client_id: opponent.client_id,
+              client: client || undefined
+            } : undefined
           };
-        }) || [];
+        });
         setAnalysisFiles(analysisFilesWithRelations);
       }
 
-      console.log('FileManager: fetchData completed');
+      console.log('FileManager: fetchData completed successfully');
     } catch (error) {
       console.error('FileManager: Critical error in fetchData:', error);
+      // Reset all state to prevent crashes
+      setClients([]);
+      setDeckSets([]);
+      setDeckFiles([]);
+      setOpponents([]);
+      setAnalysisFiles([]);
+      
       toast({
         title: "Error",
         description: "Failed to load data. Please refresh the page.",
