@@ -97,6 +97,7 @@ const AdminPanel = () => {
     console.log('AdminPanel: Starting initialization');
     let isMounted = true;
     let adminStatusChecked = false;
+    let isWindowFocused = true;
     
     const initializeAuth = async () => {
       try {
@@ -136,12 +137,23 @@ const AdminPanel = () => {
       }
     };
 
-    // Set up auth state listener - only check admin status on sign in/out, not token refresh
+    // Handle window focus/blur to prevent issues when switching between apps
+    const handleFocus = () => {
+      console.log('Window focused');
+      isWindowFocused = true;
+    };
+    
+    const handleBlur = () => {
+      console.log('Window blurred');
+      isWindowFocused = false;
+    };
+
+    // Set up auth state listener - only when window is focused
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id || 'No user');
+        console.log('Auth state change:', event, session?.user?.id || 'No user', 'Window focused:', isWindowFocused);
         
-        if (!isMounted) return;
+        if (!isMounted || !isWindowFocused) return;
         
         // Only handle actual sign in/out events, ignore token refresh
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
@@ -164,12 +176,18 @@ const AdminPanel = () => {
       }
     );
 
+    // Add focus/blur listeners
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+
     // Initialize
     initializeAuth();
 
     return () => {
       console.log('Cleaning up AdminPanel auth subscription');
       isMounted = false;
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
       subscription.unsubscribe();
     };
   }, []);
