@@ -96,10 +96,11 @@ export function FileManager() {
     client_id: ''
   });
 
-  const [analysisUpload, setAnalysisUpload] = useState({
-    opponent_id: '',
-    selectedFile: null as File | null
-  });
+const [analysisUpload, setAnalysisUpload] = useState({
+  opponent_id: '',
+  selectedFile: null as File | null,
+  file_type: 'match_analysis'
+});
 
   const { toast } = useToast();
 
@@ -504,7 +505,9 @@ export function FileManager() {
         .insert([{
           file_name: analysisUpload.selectedFile.name,
           file_path: filePath,
-          file_type: 'pdf',
+          file_type: analysisUpload.file_type,
+          mime_type: analysisUpload.selectedFile.type,
+          file_size: analysisUpload.selectedFile.size,
           opponent_id: analysisUpload.opponent_id
         }]);
 
@@ -515,7 +518,7 @@ export function FileManager() {
         description: "Analysis file uploaded successfully",
       });
 
-      setAnalysisUpload({ opponent_id: '', selectedFile: null });
+      setAnalysisUpload({ opponent_id: '', selectedFile: null, file_type: 'match_analysis' });
       setShowAnalysisUpload(false);
       console.log('🔥 About to call fetchData after analysis upload');
       await fetchData();
@@ -834,6 +837,21 @@ export function FileManager() {
                             {opponent.name} ({opponent.client?.name})
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="analysisType">Analysis Type</Label>
+                    <Select
+                      value={analysisUpload.file_type}
+                      onValueChange={(value) => setAnalysisUpload(prev => ({ ...prev, file_type: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="match_analysis">Match Analysis</SelectItem>
+                        <SelectItem value="player_analysis">Player Analysis</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

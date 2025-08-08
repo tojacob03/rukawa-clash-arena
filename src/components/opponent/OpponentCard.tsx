@@ -11,6 +11,7 @@ interface AnalysisFile {
   file_name: string;
   file_path: string;
   file_type: string;
+  mime_type?: string;
   created_at: string;
 }
 
