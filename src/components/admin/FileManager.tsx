@@ -68,7 +68,8 @@ export function FileManager() {
   const [analysisFiles, setAnalysisFiles] = useState<AnalysisFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
-  const [opLoading, setOpLoading] = useState(false);
+  const [createDeckLoading, setCreateDeckLoading] = useState(false);
+  const [deletingDeckIds, setDeletingDeckIds] = useState<Set<string>>(new Set());
 
   // Form states
   const [showDeckSetForm, setShowDeckSetForm] = useState(false);
@@ -107,7 +108,7 @@ export function FileManager() {
   }, []);
 
   const fetchData = async () => {
-    console.log('🔥 FileManager: Starting fetchData... loading:', loading, 'opLoading:', opLoading);
+    console.log('🔥 FileManager: Starting fetchData... loading:', loading);
     
     // Prevent multiple concurrent fetchData calls
     if (loading) {
@@ -304,28 +305,28 @@ export function FileManager() {
   const createDeckFile = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('🔥 createDeckFile called, opLoading:', opLoading);
+    console.log('🔥 createDeckFile called, createDeckLoading:', createDeckLoading);
     
-    if (opLoading) {
-      console.log('🔥 Operation already in progress, returning early');
+    if (createDeckLoading) {
+      console.log('🔥 Deck creation already in progress, returning early');
       return;
     }
     
-    console.log('🔥 Setting opLoading to true');
-    setOpLoading(true);
+    console.log('🔥 Setting createDeckLoading to true');
+    setCreateDeckLoading(true);
     
     console.log('Creating deck file with form data:', deckFileForm);
     
     // Validate form data
     if (!deckFileForm.deck_name.trim()) {
       toast({ title: "Error", description: "Deck name is required", variant: "destructive" });
-      setOpLoading(false);
+      setCreateDeckLoading(false);
       return;
     }
 
     if (!deckFileForm.deck_set_id) {
       toast({ title: "Error", description: "Please select a deck set", variant: "destructive" });
-      setOpLoading(false);
+      setCreateDeckLoading(false);
       return;
     }
 
@@ -334,7 +335,7 @@ export function FileManager() {
     console.log('Parsed deck:', parsedDeck);
     if (!parsedDeck.isValid) {
       toast({ title: "Error", description: "Invalid deck link. Please provide a valid Clash Royale deck link.", variant: "destructive" });
-      setOpLoading(false);
+      setCreateDeckLoading(false);
       return;
     }
 
@@ -342,7 +343,7 @@ export function FileManager() {
     const deckNumber = parseInt(deckFileForm.deck_number.toString(), 10);
     if (isNaN(deckNumber) || deckNumber < 1) {
       toast({ title: "Error", description: "Deck number must be a positive integer", variant: "destructive" });
-      setOpLoading(false);
+      setCreateDeckLoading(false);
       return;
     }
 
@@ -352,7 +353,7 @@ export function FileManager() {
     );
     if (existingDeckWithNumber) {
       toast({ title: "Error", description: `Deck number ${deckNumber} already exists in this deck set`, variant: "destructive" });
-      setOpLoading(false);
+      setCreateDeckLoading(false);
       return;
     }
 
@@ -387,21 +388,21 @@ export function FileManager() {
       console.error('🔥 Error creating deck file:', error);
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
     } finally {
-      console.log('🔥 Setting opLoading to false');
-      setOpLoading(false);
+      console.log('🔥 Setting createDeckLoading to false');
+      setCreateDeckLoading(false);
     }
   };
 
   const deleteDeckFile = async (deckFileId: string, deckName: string) => {
-    console.log('🔥 deleteDeckFile called, opLoading:', opLoading);
+    console.log('🔥 deleteDeckFile called for:', deckFileId);
     
-    if (opLoading) {
-      console.log('🔥 Delete operation blocked - already in progress');
+    if (deletingDeckIds.has(deckFileId)) {
+      console.log('🔥 Delete operation already in progress for:', deckFileId);
       return;
     }
     
-    console.log('🔥 Setting opLoading to true for delete');
-    setOpLoading(true);
+    console.log('🔥 Adding to deletingDeckIds:', deckFileId);
+    setDeletingDeckIds(prev => new Set([...prev, deckFileId]));
 
     try {
       console.log('Deleting deck file:', deckFileId, deckName);
@@ -430,8 +431,12 @@ export function FileManager() {
         variant: "destructive",
       });
     } finally {
-      console.log('🔥 Setting opLoading to false after delete');
-      setOpLoading(false);
+      console.log('🔥 Removing from deletingDeckIds:', deckFileId);
+      setDeletingDeckIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(deckFileId);
+        return newSet;
+      });
     }
   };
 
@@ -673,8 +678,8 @@ export function FileManager() {
                     </Select>
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" disabled={opLoading}>
-                      {opLoading ? "Creating..." : "Create Deck File"}
+                    <Button type="submit" disabled={createDeckLoading}>
+                      {createDeckLoading ? "Creating..." : "Create Deck File"}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => setShowDeckFileForm(false)}>
                       Cancel
@@ -698,9 +703,9 @@ export function FileManager() {
                       size="sm"
                       onClick={() => deleteDeckFile(deckFile.id, deckFile.deck_name)}
                       className="text-destructive hover:text-destructive"
-                      disabled={opLoading}
+                      disabled={deletingDeckIds.has(deckFile.id)}
                     >
-                      {opLoading ? "Deleting..." : <Trash2 className="h-4 w-4" />}
+                      {deletingDeckIds.has(deckFile.id) ? "Deleting..." : <Trash2 className="h-4 w-4" />}
                     </Button>
                   </div>
                 ))}
