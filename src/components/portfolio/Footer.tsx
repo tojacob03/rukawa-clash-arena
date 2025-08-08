@@ -1,5 +1,4 @@
-import { Mail, MessageCircle, Twitter, Crown, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Mail, MessageCircle, Twitter, Crown } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -40,13 +39,6 @@ const Footer = () => {
             >
               <Twitter className="w-5 h-5" />
             </a>
-            <Link 
-              to="/portal"
-              className="p-3 rounded-lg bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-              aria-label="Client Portal"
-            >
-              <Shield className="w-5 h-5" />
-            </Link>
           </div>
           
           <div className="text-center md:text-right">
