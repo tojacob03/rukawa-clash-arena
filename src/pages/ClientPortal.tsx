@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Shield, LogOut, Download, FileText } from 'lucide-react';
+import { Shield, LogOut, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { DeckItem } from '@/components/deck/DeckItem';
 
 interface Client {
   id: string;
@@ -26,11 +27,10 @@ interface DeckSet {
 
 interface DeckFile {
   id: string;
-  file_name: string;
-  file_path: string;
+  deck_name: string;
+  deck_link: string;
   deck_number: number;
-  file_size?: number;
-  mime_type?: string;
+  card_ids?: any; // JSON from database
 }
 
 const ClientPortal = () => {
@@ -102,29 +102,6 @@ const ClientPortal = () => {
     setError('');
   };
 
-  const downloadFile = async (deckFile: DeckFile) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('deck-files')
-        .download(deckFile.file_path);
-
-      if (error) {
-        console.error('Error downloading file:', error);
-        return;
-      }
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = deckFile.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Error downloading file:', err);
-    }
-  };
 
   if (client) {
     return (
@@ -187,30 +164,17 @@ const ClientPortal = () => {
                                   </Badge>
                                 </div>
                                 
-                                <div className="grid grid-cols-2 gap-2">
-                                  {[1, 2, 3, 4].map((deckNumber) => {
-                                    const deckFile = deckSet.deck_files?.find(f => f.deck_number === deckNumber);
-                                    return (
-                                      <div key={deckNumber} className="flex items-center justify-between p-2 border rounded">
-                                        <div className="flex items-center gap-2">
-                                          <FileText className="h-4 w-4" />
-                                          <span className="text-sm">Deck {deckNumber}</span>
-                                        </div>
-                                        {deckFile ? (
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => downloadFile(deckFile)}
-                                            className="h-6 w-6 p-0"
-                                          >
-                                            <Download className="h-3 w-3" />
-                                          </Button>
-                                        ) : (
-                                          <span className="text-xs text-muted-foreground">N/A</span>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
+                                <div className="space-y-3">
+                                  {deckSet.deck_files && deckSet.deck_files.length > 0 ? (
+                                    deckSet.deck_files.map((deckFile) => (
+                                      <DeckItem key={deckFile.id} deckFile={deckFile} />
+                                    ))
+                                  ) : (
+                                    <div className="text-center p-4 text-muted-foreground">
+                                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                      <p>No decks available in this set</p>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </CardContent>

@@ -149,34 +149,31 @@ export type Database = {
       }
       deck_files: {
         Row: {
+          card_ids: Json | null
           created_at: string
+          deck_link: string
+          deck_name: string
           deck_number: number
           deck_set_id: string
-          file_name: string
-          file_path: string
-          file_size: number | null
           id: string
-          mime_type: string | null
         }
         Insert: {
+          card_ids?: Json | null
           created_at?: string
+          deck_link: string
+          deck_name: string
           deck_number: number
           deck_set_id: string
-          file_name: string
-          file_path: string
-          file_size?: number | null
           id?: string
-          mime_type?: string | null
         }
         Update: {
+          card_ids?: Json | null
           created_at?: string
+          deck_link?: string
+          deck_name?: string
           deck_number?: number
           deck_set_id?: string
-          file_name?: string
-          file_path?: string
-          file_size?: number | null
           id?: string
-          mime_type?: string | null
         }
         Relationships: [
           {
