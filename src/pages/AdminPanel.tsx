@@ -34,18 +34,23 @@ const AdminPanel = () => {
   const [password, setPassword] = useState('');
 
   // Check if current user is admin
-  const checkAdminStatus = async (userId: string) => {
+  const checkAdminStatus = async (userId: string): Promise<boolean> => {
     try {
+      console.log('Checking admin status for user:', userId);
+      
       const { data, error } = await supabase
         .rpc('is_admin', { user_id: userId });
-      
+
+      console.log('Admin check result:', { data, error });
+
       if (error) {
         console.error('Error checking admin status:', error);
         return false;
       }
-      return data;
+
+      return data === true;
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('Exception checking admin status:', error);
       return false;
     }
   };
@@ -89,38 +94,76 @@ const AdminPanel = () => {
 
   // Initialize auth state
   useEffect(() => {
+    console.log('AdminPanel: Starting initialization');
+    let isMounted = true;
+    
+    const initializeAuth = async () => {
+      try {
+        console.log('Getting current session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        console.log('Current session user:', session?.user?.id || 'None');
+
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            console.log('Checking admin status...');
+            const adminStatus = await checkAdminStatus(session.user.id);
+            console.log('Admin status result:', adminStatus);
+            if (isMounted) setIsAdmin(adminStatus);
+          } else {
+            if (isMounted) setIsAdmin(false);
+          }
+          
+          console.log('Setting loading to false');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error in initializeAuth:', error);
+        if (isMounted) setLoading(false);
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Auth state change:', event, session?.user?.id || 'No user');
         
-        if (session?.user) {
-          const adminStatus = await checkAdminStatus(session.user.id);
-          setIsAdmin(adminStatus);
-        } else {
-          setIsAdmin(false);
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            const adminStatus = await checkAdminStatus(session.user.id);
+            console.log('Admin status from auth change:', adminStatus);
+            setIsAdmin(adminStatus);
+          } else {
+            setIsAdmin(false);
+          }
+          
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const adminStatus = await checkAdminStatus(session.user.id);
-        setIsAdmin(adminStatus);
-      }
-      
-      setLoading(false);
-    });
+    // Initialize
+    initializeAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('Cleaning up AdminPanel auth subscription');
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
+
 
   if (loading) {
     return (
