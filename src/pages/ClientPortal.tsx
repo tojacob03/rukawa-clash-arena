@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Shield, LogOut, FileText } from 'lucide-react';
+import { Shield, LogOut, FileText, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DeckItem } from '@/components/deck/DeckItem';
+import { OpponentCard } from '@/components/opponent/OpponentCard';
+import { AnalysisViewer } from '@/components/opponent/AnalysisViewer';
 
 interface Client {
   id: string;
@@ -33,12 +35,32 @@ interface DeckFile {
   card_ids?: any; // JSON from database
 }
 
+interface AnalysisFile {
+  id: string;
+  file_name: string;
+  file_path: string;
+  file_type: string;
+  created_at: string;
+}
+
+interface Opponent {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  analysis_files: AnalysisFile[];
+}
+
 const ClientPortal = () => {
   const [loginCode, setLoginCode] = useState('');
   const [client, setClient] = useState<Client | null>(null);
   const [deckSets, setDeckSets] = useState<DeckSet[]>([]);
+  const [opponents, setOpponents] = useState<Opponent[]>([]);
+  const [selectedAnalysisFile, setSelectedAnalysisFile] = useState<AnalysisFile | null>(null);
+  const [showAnalysisViewer, setShowAnalysisViewer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingDeckSets, setLoadingDeckSets] = useState(false);
+  const [loadingOpponents, setLoadingOpponents] = useState(false);
   const [error, setError] = useState('');
 
   const fetchDeckSets = async (clientId: string) => {
@@ -66,6 +88,31 @@ const ClientPortal = () => {
     }
   };
 
+  const fetchOpponents = async (clientId: string) => {
+    setLoadingOpponents(true);
+    try {
+      const { data, error } = await supabase
+        .from('opponents')
+        .select(`
+          *,
+          analysis_files (*)
+        `)
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching opponents:', error);
+        return;
+      }
+
+      setOpponents(data || []);
+    } catch (err) {
+      console.error('Error fetching opponents:', err);
+    } finally {
+      setLoadingOpponents(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -87,6 +134,8 @@ const ClientPortal = () => {
       setClient(data);
       if (data.type === 'player') {
         await fetchDeckSets(data.id);
+      } else if (data.type === 'team') {
+        await fetchOpponents(data.id);
       }
     } catch (err) {
       setError('Login error. Please try again.');
@@ -98,8 +147,21 @@ const ClientPortal = () => {
   const handleLogout = () => {
     setClient(null);
     setDeckSets([]);
+    setOpponents([]);
     setLoginCode('');
     setError('');
+    setSelectedAnalysisFile(null);
+    setShowAnalysisViewer(false);
+  };
+
+  const handleViewAnalysis = (file: AnalysisFile) => {
+    setSelectedAnalysisFile(file);
+    setShowAnalysisViewer(true);
+  };
+
+  const handleCloseAnalysisViewer = () => {
+    setShowAnalysisViewer(false);
+    setSelectedAnalysisFile(null);
   };
 
 
@@ -186,14 +248,42 @@ const ClientPortal = () => {
                 )}
 
                 {client.type === 'team' && (
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-semibold mb-2">Opponent Analysis</h3>
-                    <p className="text-muted-foreground">Your opponent analyses will be displayed here (implemented in Phase 4)</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">Opponent Analysis</h3>
+                      </div>
+                      {loadingOpponents && <div className="text-sm text-muted-foreground">Loading...</div>}
+                    </div>
+                    
+                    {opponents.length === 0 && !loadingOpponents ? (
+                      <div className="p-4 border rounded-lg text-center">
+                        <p className="text-muted-foreground">No opponents available</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {opponents.map((opponent) => (
+                          <OpponentCard
+                            key={opponent.id}
+                            opponent={opponent}
+                            onViewAnalysis={handleViewAnalysis}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
+
+          {/* Analysis Viewer Modal */}
+          <AnalysisViewer
+            file={selectedAnalysisFile}
+            isOpen={showAnalysisViewer}
+            onClose={handleCloseAnalysisViewer}
+          />
         </div>
       </div>
     );
