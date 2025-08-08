@@ -44,7 +44,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
         for (const entry of data) {
           if (unknownIds.includes(entry.id)) {
             const typeLower = (entry.type || '').toLowerCase();
-            const imageUrl = `https://cdn.royaleapi.com/static/img/cards/300/${entry.key}.png`;
+            const imageUrl = `https://royaleapi.github.io/cr-api-assets/cards-300/${entry.key}.png`;
             map.set(entry.id, {
               id: entry.id,
               name: entry.name,
@@ -124,9 +124,10 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                   {base ? (
                     <img
                       src={displaySrc ?? ''}
-                      alt={`${name} Karte`}
+                      alt={name}
                       className="w-full h-16 object-cover"
                       loading="lazy"
+                      referrerPolicy="no-referrer"
                       onError={async (e) => {
                         // Prefer switching to remote image if available
                         if (!Array.from(useRemote).includes(id) && remote?.imageUrl) {
@@ -145,7 +146,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                             const entry = data.find((d: any) => d.id === id);
                             if (entry) {
                               const typeLower = (entry.type || '').toLowerCase();
-                              const imageUrl = `https://cdn.royaleapi.com/static/img/cards/300/${entry.key}.png`;
+                              const imageUrl = `https://royaleapi.github.io/cr-api-assets/cards-300/${entry.key}.png`;
                               setRemoteMap((prev) => {
                                 const map = new Map(prev ?? []);
                                 map.set(entry.id, {
