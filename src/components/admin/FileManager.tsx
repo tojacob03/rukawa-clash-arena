@@ -381,9 +381,8 @@ export function FileManager() {
       setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
       setShowDeckFileForm(false);
       
-      console.log('🔥 About to call fetchData after deck creation');
-      await fetchData();
-      console.log('🔥 fetchData completed after deck creation');
+      console.log('🔥 Triggering fetchData after deck creation (non-blocking)');
+      fetchData();
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
@@ -421,8 +420,7 @@ export function FileManager() {
       });
 
       console.log('🔥 About to call fetchData after deletion');
-      await fetchData();
-      console.log('🔥 fetchData completed after deletion');
+      fetchData();
     } catch (error) {
       console.error('🔥 Error deleting deck file:', error);
       toast({
