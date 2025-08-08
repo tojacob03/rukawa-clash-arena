@@ -49,7 +49,7 @@ export function DeckItem({ deckFile }: DeckItemProps) {
   return (
     <Card className="p-6 space-y-4 shadow-card hover:shadow-glow transition-all duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-foreground">
             {deckFile.deck_name}
@@ -59,7 +59,7 @@ export function DeckItem({ deckFile }: DeckItemProps) {
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0 whitespace-nowrap">
           <Button
             variant="outline"
             size="sm"
@@ -71,6 +71,7 @@ export function DeckItem({ deckFile }: DeckItemProps) {
           </Button>
           
           <Button
+            size="sm"
             onClick={handleCopyDeck}
             className="flex items-center gap-1"
           >
