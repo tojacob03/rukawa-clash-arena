@@ -127,7 +127,7 @@ export const CLASH_ROYALE_CARDS: ClashRoyaleCard[] = [
   { id: 27000007, name: "Elixir Collector", imageUrl: "https://api-assets.clashroyale.com/cards/300/h_F-1G6YD5LZhQ5M-wE0yF-FJF6E9lN6N8X8TU-QEGc.png", elixir: 6, type: "building" },
   { id: 27000008, name: "X-Bow", imageUrl: "https://api-assets.clashroyale.com/cards/300/zTKOjILNJPMxVn2r4Dj6lY2YH0QHqN9Z8f_8xVvLKcA.png", elixir: 6, type: "building" },
   { id: 27000009, name: "Tombstone", imageUrl: "https://api-assets.clashroyale.com/cards/300/G1iVIKJMBiJd-c5HceMOTzJO4t-VYzUk5u_K8NYOvf8.png", elixir: 3, type: "building" },
-  { id: 27000010, name: "Furnace", imageUrl: furnaceImg, elixir: 4, type: "building" },
+  { id: 27000010, name: "Furnace", imageUrl: furnaceImg, elixir: 4, type: "troop" },
   { id: 27000011, name: "Goblin Cage", imageUrl: "https://api-assets.clashroyale.com/cards/300/S_HAg1nGH2m0vQ7IVQsS8FRbhvN4OKWkXG6t6YGgY-E.png", elixir: 4, type: "building" },
   { id: 27000012, name: "Goblin Drill", imageUrl: "https://api-assets.clashroyale.com/cards/300/Dqt3g5_KqGrW8_2_KQ5BQ9-6KkJ8MZ_ZN_8-QqF0qF4.png", elixir: 4, type: "building" },
 

@@ -70,7 +70,13 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
     .map((e) => e.id);
 
   const resolvedCards = entries
-    .map((e) => e.remote ?? e.local)
+    .map((e) => {
+      if (e.local && e.remote) {
+        // Prefer local metadata like type to avoid remote overrides (e.g., Furnace rework)
+        return { ...e.remote, type: e.local.type };
+      }
+      return (e.local ?? e.remote) ?? undefined;
+    })
     .filter(Boolean) as ClashRoyaleCard[];
 
   if (missing.length > 0) {
