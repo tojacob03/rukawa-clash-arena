@@ -91,34 +91,35 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-5xl h-[90vh] max-h-[95vh] p-0">
-        <DialogHeader className="p-6 pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">
-              {file.file_name}
-            </DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={downloadFile}
-                disabled={!fileUrl}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={onClose}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+      <DialogContent className="inset-0 m-4 sm:m-8 w-auto max-w-none h-auto p-0">
+        <div className="flex h-full flex-col">
+          <DialogHeader className="p-6 pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-lg font-semibold">
+                {file.file_name}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={downloadFile}
+                  disabled={!fileUrl}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onClose}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </div>
-        </DialogHeader>
+          </DialogHeader>
 
         <div className="px-6 pb-6">
           {loading ? (
