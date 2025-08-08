@@ -480,6 +480,11 @@ const [analysisUpload, setAnalysisUpload] = useState({
     e.preventDefault();
     if (!analysisUpload.selectedFile) return;
 
+    if (!analysisUpload.opponent_id) {
+      toast({ title: 'Gegner auswählen', description: 'Bitte zuerst einen Opponenten auswählen.', variant: 'destructive' });
+      return;
+    }
+
     const isPdf = analysisUpload.selectedFile.type === 'application/pdf' || analysisUpload.selectedFile.name.toLowerCase().endsWith('.pdf');
     if (!isPdf) {
       toast({ title: 'Unsupported file type', description: 'Bitte nur PDF-Dateien hochladen.', variant: 'destructive' });
@@ -527,7 +532,7 @@ const [analysisUpload, setAnalysisUpload] = useState({
       console.error('Error uploading file:', error);
       toast({
         title: "Error",
-        description: "Failed to upload analysis file",
+        description: error instanceof Error ? error.message : String(error),
         variant: "destructive",
       });
     } finally {
