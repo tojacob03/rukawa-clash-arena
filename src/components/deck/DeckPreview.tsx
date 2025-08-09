@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ClashRoyaleCard, getCardsByIds, getCardById } from '@/data/clashRoyaleCards';
 import { parseDeckLink } from '@/utils/deckParser';
 import { Card } from '@/components/ui/card';
-import goblinMachineImg from '@/assets/cards/goblin-machine.png';
 interface DeckPreviewProps {
   deckLink: string;
   cardIds?: number[];
@@ -38,10 +37,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
           if (idSet.has(entry.id)) {
             const typeLower = String(entry.type || '').toLowerCase();
             const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
-            let imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
-            if (keySanitized === 'goblin-machine') {
-              imageUrl = goblinMachineImg as string;
-            }
+            const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
             map.set(entry.id, {
               id: entry.id,
               name: entry.name,
@@ -117,30 +113,21 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             const base = (remote ?? local) as ClashRoyaleCard | undefined;
             const name = (remote?.name ?? local?.name) ?? `Unknown ${id}`;
             const elixir = (remote?.elixir ?? local?.elixir ?? 0);
-            const displaySrc = id === 26000096 ? (goblinMachineImg as string) : ((remote?.imageUrl) ?? base?.imageUrl);
+            const displaySrc = (remote?.imageUrl) ?? base?.imageUrl;
             const isSuspiciousBush = id === 26000097 || name.toLowerCase() === 'suspicious bush';
-
-            if (id === 26000096) {
-              console.log('DeckPreview - Goblin Machine debug', { id, name, elixir, src: displaySrc, hasRemote: !!remote, hasLocal: !!local });
-            }
 
             return (
               <div key={`${id}-${index}`} className="relative group">
                 <div className="relative overflow-visible rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
-                  {(base || id === 26000096) ? (
+                  {base ? (
                     <img
-                      src={(id === 26000096 ? (goblinMachineImg as string) : (displaySrc ?? ''))}
+                      src={displaySrc ?? ''}
                       alt={name}
                       className={`h-full w-full object-contain ${isSuspiciousBush ? 'transform origin-center scale-90' : ''}`}
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        if (id === 26000096 || name.toLowerCase() === 'goblin machine') {
-                          img.src = goblinMachineImg as string;
-                        } else {
-                          img.src = '/placeholder.svg';
-                        }
+                        (e.currentTarget as HTMLImageElement).src = '/placeholder.svg';
                       }}
                     />
                   ) : (
@@ -150,7 +137,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                   )}
                   
                   <div className="absolute -top-2 -left-2 z-10 bg-primary text-primary-foreground text-[8px] sm:text-[10px] font-bold rounded-full w-4 h-4 sm:w-4 sm:h-4 flex items-center justify-center">
-                    {(base || id === 26000096) ? (id === 26000096 ? (elixir || 5) : elixir) : '?'}
+                    {base ? elixir : '?'}
                   </div>
 
                   {/* Card Name Tooltip */}
