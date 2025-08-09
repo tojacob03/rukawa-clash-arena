@@ -419,9 +419,7 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       console.log('Inserting deck data:', deckData);
 
       // Add a safety timeout to avoid hanging UI
-      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Insert timed out')), 15000));
-      const insertPromise = supabase.from('deck_files').insert([deckData]);
-      const { error } = await Promise.race([insertPromise, timeout]) as { error: any };
+      const { error } = await supabase.from('deck_files').insert([deckData]);
       if (error) throw error;
 
       console.log('🔥 Deck file created successfully, calling fetchData...');
