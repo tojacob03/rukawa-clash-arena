@@ -109,10 +109,9 @@ const [editDeckSetId, setEditDeckSetId] = useState<string | null>(null);
 const [editDeckSetName, setEditDeckSetName] = useState<string>('');
 const [savingDeckSet, setSavingDeckSet] = useState(false);
 
-  const { toast, dismiss } = useToast();
+  const { toast } = useToast();
 
   const isMountedRef = React.useRef(true);
-  const processingToastIdRef = React.useRef<string | null>(null);
   useEffect(() => {
     isMountedRef.current = true;
     return () => { isMountedRef.current = false };
@@ -394,13 +393,6 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       setCreateDeckLoading(false);
       return;
     }
-    
-    // Validate allowed deck number range (1-4)
-    if (deckNumber > 4) {
-      toast({ title: "Error", description: "Deck number must be between 1 and 4", variant: "destructive" });
-      setCreateDeckLoading(false);
-      return;
-    }
 
     // Check for duplicate deck numbers in the same deck set
     const existingDeckWithNumber = deckFiles.find(deck => 
@@ -412,70 +404,38 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       return;
     }
 
-    // Check total decks per set (max 4)
-    const decksInSet = deckFiles.filter(deck => deck.deck_set_id === deckFileForm.deck_set_id);
-    if (decksInSet.length >= 4) {
-      toast({ title: "Error", description: "This deck set already has 4 decks", variant: "destructive" });
-      setCreateDeckLoading(false);
-      return;
-    }
     try {
       // Ensure card_ids are clean integers (parseDeckLink already returns numbers)
       const cardIds = parsedDeck.cards.map(id => Math.round(id));
-
-      // Capture stable references for background ops before we mutate state
-      const deckSetId = deckFileForm.deck_set_id;
 
       const deckData = {
         deck_name: deckFileForm.deck_name.trim(),
         deck_link: createDeckLink(cardIds),
         deck_number: deckNumber,
-        deck_set_id: deckSetId,
+        deck_set_id: deckFileForm.deck_set_id,
         card_ids: cardIds, // Integer array for PostgreSQL
       };
 
       console.log('Inserting deck data:', deckData);
 
-      // Server-side duplicate/limit checks to avoid DB constraint issues
-      const { count: numberCount, error: numberCheckError } = await supabase
-        .from('deck_files')
-        .select('id', { count: 'exact', head: true })
-        .eq('deck_set_id', deckSetId)
-        .eq('deck_number', deckNumber);
-      if (numberCheckError) throw numberCheckError;
-      if ((numberCount ?? 0) > 0) {
-        toast({ title: 'Error', description: `Deck number ${deckNumber} already exists in this deck set`, variant: 'destructive' });
-        setCreateDeckLoading(false);
-        return;
-      }
-
-      const { count: totalCount, error: totalCheckError } = await supabase
-        .from('deck_files')
-        .select('id', { count: 'exact', head: true })
-        .eq('deck_set_id', deckSetId);
-      if (totalCheckError) throw totalCheckError;
-      if ((totalCount ?? 0) >= 4) {
-        toast({ title: 'Error', description: 'This deck set already has 4 decks', variant: 'destructive' });
-        setCreateDeckLoading(false);
-        return;
-      }
-
-      // Perform insert (simple, no background timers)
-      const { error } = await supabase.from('deck_files').insert([deckData]);
+      // Add a safety timeout to avoid hanging UI
+      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Insert timed out')), 15000));
+      const insertPromise = supabase.from('deck_files').insert([deckData]);
+      const { error } = await Promise.race([insertPromise, timeout]) as { error: any };
       if (error) throw error;
 
-      toast({ title: 'Success', description: 'Deck file created successfully' });
+      console.log('🔥 Deck file created successfully, calling fetchData...');
+      toast({ title: "Success", description: "Deck file created successfully" });
 
-      // Reset form and refresh
+      // Reset form properly
       setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
       setShowDeckFileForm(false);
+      
+      console.log('🔥 About to call fetchData after deck creation');
       await fetchData();
+      console.log('🔥 fetchData completed after deck creation');
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
-      if (processingToastIdRef.current) {
-        dismiss(processingToastIdRef.current);
-        processingToastIdRef.current = null;
-      }
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
     } finally {
       console.log('🔥 Setting createDeckLoading to false');
