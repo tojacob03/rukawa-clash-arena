@@ -204,14 +204,18 @@ const ClientPortal = () => {
                     ) : (
                       <div className="grid gap-4 lg:grid-cols-2">
                         {deckSets.map((deckSet) => (
-                          <Card key={deckSet.id} className="border">
-                            <CardHeader className="pb-3">
+                          <Card
+                            key={deckSet.id}
+                            className="relative overflow-hidden border shadow-card hover:shadow-glow transition-all duration-300 hover-scale animate-fade-in border-l-4 border-primary"
+                          >
+                            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/60 to-transparent" />
+                            <CardHeader className="pb-3 bg-primary/5">
                               <CardTitle className="text-lg">{deckSet.name}</CardTitle>
                               {deckSet.description && (
                                 <p className="text-sm text-muted-foreground">{deckSet.description}</p>
                               )}
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="bg-muted/40 rounded-b-lg">
                               <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-medium">Decks ({deckSet.deck_files?.length || 0}/4)</span>
