@@ -418,16 +418,29 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
 
       console.log('Inserting deck data:', deckData);
 
-      // Add a safety timeout to avoid hanging UI (extended) and minimize return payload
-      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Insert timed out')), 30000));
+      // Start insert with background fallback to avoid UI hanging
+      let finished = false;
       const insertPromise = supabase.from('deck_files').insert([deckData]);
-      const { error } = await Promise.race([insertPromise, timeout]) as { error: any };
+      const bgTimer = setTimeout(() => {
+        if (!finished) {
+          console.log('⏳ Insert still running after 5s, releasing UI and continuing in background');
+          setCreateDeckLoading(false);
+          toast({ title: 'Wird verarbeitet…', description: 'Deck wird im Hintergrund angelegt.' });
+          // Reset form so user can continue working
+          setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
+          setShowDeckFileForm(false);
+        }
+      }, 5000);
+
+      const { error } = await insertPromise;
+      finished = true;
+      clearTimeout(bgTimer);
       if (error) throw error;
 
       console.log('🔥 Deck file created successfully, calling fetchData...');
-      toast({ title: "Success", description: "Deck file created successfully" });
+      toast({ title: 'Success', description: 'Deck file created successfully' });
 
-      // Reset form properly
+      // Reset form if it wasn't reset already by the background release
       setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
       setShowDeckFileForm(false);
       
