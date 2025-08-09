@@ -422,33 +422,69 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       // Ensure card_ids are clean integers (parseDeckLink already returns numbers)
       const cardIds = parsedDeck.cards.map(id => Math.round(id));
 
+      // Capture stable references for background ops before we mutate state
+      const deckSetId = deckFileForm.deck_set_id;
+
       const deckData = {
         deck_name: deckFileForm.deck_name.trim(),
         deck_link: createDeckLink(cardIds),
         deck_number: deckNumber,
-        deck_set_id: deckFileForm.deck_set_id,
+        deck_set_id: deckSetId,
         card_ids: cardIds, // Integer array for PostgreSQL
       };
 
       console.log('Inserting deck data:', deckData);
 
-      // Start insert with background fallback to avoid UI hanging
+      // Start insert and a safety poll to verify creation even if network stalls
       let finished = false;
+      let pollTimer: any = null;
+      let releaseTimer: any = null;
+
       const insertPromise = supabase.from('deck_files').insert([deckData]);
-      const bgTimer = setTimeout(() => {
+
+      // Release UI early if it takes longer than 3s
+      releaseTimer = setTimeout(() => {
         if (!finished) {
-          console.log('⏳ Insert still running after 5s, releasing UI and continuing in background');
+          console.log('⏳ Insert still running after 3s, releasing UI and polling in background');
           setCreateDeckLoading(false);
           toast({ title: 'Wird verarbeitet…', description: 'Deck wird im Hintergrund angelegt.' });
           // Reset form so user can continue working
           setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
           setShowDeckFileForm(false);
         }
-      }, 5000);
+      }, 3000);
+
+      // Poll every 2s up to 20s to detect if row exists (avoids silent failures)
+      const pollStart = Date.now();
+      const maxPollMs = 20000;
+      const doPoll = async () => {
+        try {
+          const { data } = await supabase
+            .from('deck_files')
+            .select('id')
+            .eq('deck_set_id', deckFileForm.deck_set_id)
+            .eq('deck_number', deckNumber)
+            .maybeSingle();
+          if (data) {
+            console.log('✅ Deck detected by poll');
+            clearInterval(pollTimer);
+            toast({ title: 'Success', description: 'Deck file created successfully' });
+            fetchData();
+          } else if (Date.now() - pollStart > maxPollMs) {
+            console.warn('🕒 Poll timeout without detecting deck');
+            clearInterval(pollTimer);
+            toast({ title: 'Fehler', description: 'Deck-Erstellung hat zu lange gedauert oder fehlgeschlagen.', variant: 'destructive' });
+          }
+        } catch (e) {
+          console.warn('Poll error:', e);
+        }
+      };
+      pollTimer = setInterval(doPoll, 2000);
 
       const { error } = await insertPromise;
       finished = true;
-      clearTimeout(bgTimer);
+      clearTimeout(releaseTimer);
+      clearInterval(pollTimer);
       if (error) throw error;
 
       console.log('🔥 Deck file created successfully, calling fetchData...');
