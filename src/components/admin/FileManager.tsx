@@ -109,9 +109,10 @@ const [editDeckSetId, setEditDeckSetId] = useState<string | null>(null);
 const [editDeckSetName, setEditDeckSetName] = useState<string>('');
 const [savingDeckSet, setSavingDeckSet] = useState(false);
 
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
 
   const isMountedRef = React.useRef(true);
+  const processingToastIdRef = React.useRef<string | null>(null);
   useEffect(() => {
     isMountedRef.current = true;
     return () => { isMountedRef.current = false };
@@ -447,7 +448,8 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
         if (!finished) {
           console.log('⏳ Insert still running after 3s, releasing UI and polling in background');
           setCreateDeckLoading(false);
-          toast({ title: 'Wird verarbeitet…', description: 'Deck wird im Hintergrund angelegt.' });
+          const t = toast({ title: 'Wird verarbeitet…', description: 'Deck wird im Hintergrund angelegt.' });
+          processingToastIdRef.current = t.id;
           // Reset form so user can continue working
           setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
           setShowDeckFileForm(false);
@@ -462,17 +464,25 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
           const { data } = await supabase
             .from('deck_files')
             .select('id')
-            .eq('deck_set_id', deckFileForm.deck_set_id)
+            .eq('deck_set_id', deckSetId)
             .eq('deck_number', deckNumber)
             .maybeSingle();
           if (data) {
             console.log('✅ Deck detected by poll');
             clearInterval(pollTimer);
+            if (processingToastIdRef.current) {
+              dismiss(processingToastIdRef.current);
+              processingToastIdRef.current = null;
+            }
             toast({ title: 'Success', description: 'Deck file created successfully' });
             fetchData();
           } else if (Date.now() - pollStart > maxPollMs) {
             console.warn('🕒 Poll timeout without detecting deck');
             clearInterval(pollTimer);
+            if (processingToastIdRef.current) {
+              dismiss(processingToastIdRef.current);
+              processingToastIdRef.current = null;
+            }
             toast({ title: 'Fehler', description: 'Deck-Erstellung hat zu lange gedauert oder fehlgeschlagen.', variant: 'destructive' });
           }
         } catch (e) {
@@ -488,6 +498,10 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       if (error) throw error;
 
       console.log('🔥 Deck file created successfully, calling fetchData...');
+      if (processingToastIdRef.current) {
+        dismiss(processingToastIdRef.current);
+        processingToastIdRef.current = null;
+      }
       toast({ title: 'Success', description: 'Deck file created successfully' });
 
       // Reset form if it wasn't reset already by the background release
@@ -499,6 +513,10 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       console.log('🔥 fetchData triggered after deck creation');
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
+      if (processingToastIdRef.current) {
+        dismiss(processingToastIdRef.current);
+        processingToastIdRef.current = null;
+      }
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
     } finally {
       console.log('🔥 Setting createDeckLoading to false');
