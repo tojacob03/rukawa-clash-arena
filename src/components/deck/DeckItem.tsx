@@ -59,24 +59,24 @@ export function DeckItem({ deckFile }: DeckItemProps) {
           </p>
         </div>
         
-        <div className="flex gap-2 shrink-0 whitespace-nowrap">
+        <div className="flex flex-wrap gap-2 justify-end">
           <Button
             variant="outline"
             size="sm"
             onClick={handleCopyLink}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 min-w-0"
           >
             <Copy className="w-4 h-4" />
-            Copy Link
+            <span className="hidden sm:inline">Copy Link</span>
           </Button>
           
           <Button
             size="sm"
             onClick={handleCopyDeck}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 min-w-0"
           >
             <ExternalLink className="w-4 h-4" />
-            Open in Game
+            <span className="hidden sm:inline">Open in Game</span>
           </Button>
         </div>
       </div>

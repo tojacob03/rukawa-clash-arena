@@ -136,8 +136,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                     </div>
                   )}
                   
-                  {/* Elixir Cost Badge */}
-                  <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                     {base ? elixir : '?'}
                   </div>
 
