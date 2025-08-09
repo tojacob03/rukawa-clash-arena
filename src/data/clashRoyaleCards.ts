@@ -161,7 +161,7 @@ function initRemoteOnce() {
             : 'troop';
         const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
         let imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
-        if (Number(entry.id) === 26000096) {
+        if (keySanitized === 'goblin-machine') {
           imageUrl = goblinMachineImg as string;
         }
         REMOTE_CARDS.set(Number(entry.id), {

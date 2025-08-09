@@ -39,7 +39,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             const typeLower = String(entry.type || '').toLowerCase();
             const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
             let imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
-            if (Number(entry.id) === 26000096) {
+            if (keySanitized === 'goblin-machine') {
               imageUrl = goblinMachineImg as string;
             }
             map.set(entry.id, {
@@ -120,6 +120,10 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             const displaySrc = (remote?.imageUrl) ?? base?.imageUrl;
             const isSuspiciousBush = id === 26000097 || name.toLowerCase() === 'suspicious bush';
 
+            if (id === 26000096) {
+              console.log('DeckPreview - Goblin Machine debug', { id, name, elixir, src: displaySrc, hasRemote: !!remote, hasLocal: !!local });
+            }
+
             return (
               <div key={`${id}-${index}`} className="relative group">
                 <div className="relative overflow-visible rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
@@ -131,7 +135,12 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = '/placeholder.svg';
+                        const img = e.currentTarget as HTMLImageElement;
+                        if (id === 26000096 || name.toLowerCase() === 'goblin machine') {
+                          img.src = goblinMachineImg as string;
+                        } else {
+                          img.src = '/placeholder.svg';
+                        }
                       }}
                     />
                   ) : (
