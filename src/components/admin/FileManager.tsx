@@ -436,81 +436,40 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
 
       console.log('Inserting deck data:', deckData);
 
-      // Start insert and a safety poll to verify creation even if network stalls
-      let finished = false;
-      let pollTimer: any = null;
-      let releaseTimer: any = null;
+      // Server-side duplicate/limit checks to avoid DB constraint issues
+      const { count: numberCount, error: numberCheckError } = await supabase
+        .from('deck_files')
+        .select('id', { count: 'exact', head: true })
+        .eq('deck_set_id', deckSetId)
+        .eq('deck_number', deckNumber);
+      if (numberCheckError) throw numberCheckError;
+      if ((numberCount ?? 0) > 0) {
+        toast({ title: 'Error', description: `Deck number ${deckNumber} already exists in this deck set`, variant: 'destructive' });
+        setCreateDeckLoading(false);
+        return;
+      }
 
-      const insertPromise = supabase.from('deck_files').insert([deckData]);
+      const { count: totalCount, error: totalCheckError } = await supabase
+        .from('deck_files')
+        .select('id', { count: 'exact', head: true })
+        .eq('deck_set_id', deckSetId);
+      if (totalCheckError) throw totalCheckError;
+      if ((totalCount ?? 0) >= 4) {
+        toast({ title: 'Error', description: 'This deck set already has 4 decks', variant: 'destructive' });
+        setCreateDeckLoading(false);
+        return;
+      }
 
-      // Release UI early if it takes longer than 3s
-      releaseTimer = setTimeout(() => {
-        if (!finished) {
-          console.log('⏳ Insert still running after 3s, releasing UI and polling in background');
-          setCreateDeckLoading(false);
-          const t = toast({ title: 'Wird verarbeitet…', description: 'Deck wird im Hintergrund angelegt.' });
-          processingToastIdRef.current = t.id;
-          // Reset form so user can continue working
-          setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
-          setShowDeckFileForm(false);
-        }
-      }, 3000);
-
-      // Poll every 2s up to 20s to detect if row exists (avoids silent failures)
-      const pollStart = Date.now();
-      const maxPollMs = 20000;
-      const doPoll = async () => {
-        try {
-          const { data } = await supabase
-            .from('deck_files')
-            .select('id')
-            .eq('deck_set_id', deckSetId)
-            .eq('deck_number', deckNumber)
-            .maybeSingle();
-          if (data) {
-            console.log('✅ Deck detected by poll');
-            clearInterval(pollTimer);
-            if (processingToastIdRef.current) {
-              dismiss(processingToastIdRef.current);
-              processingToastIdRef.current = null;
-            }
-            toast({ title: 'Success', description: 'Deck file created successfully' });
-            fetchData();
-          } else if (Date.now() - pollStart > maxPollMs) {
-            console.warn('🕒 Poll timeout without detecting deck');
-            clearInterval(pollTimer);
-            if (processingToastIdRef.current) {
-              dismiss(processingToastIdRef.current);
-              processingToastIdRef.current = null;
-            }
-            toast({ title: 'Fehler', description: 'Deck-Erstellung hat zu lange gedauert oder fehlgeschlagen.', variant: 'destructive' });
-          }
-        } catch (e) {
-          console.warn('Poll error:', e);
-        }
-      };
-      pollTimer = setInterval(doPoll, 2000);
-
-      const { error } = await insertPromise;
-      finished = true;
-      clearTimeout(releaseTimer);
-      clearInterval(pollTimer);
+      // Perform insert (simple, no background timers)
+      const { error } = await supabase.from('deck_files').insert([deckData]);
       if (error) throw error;
 
-      console.log('🔥 Deck file created successfully, calling fetchData...');
-      if (processingToastIdRef.current) {
-        dismiss(processingToastIdRef.current);
-        processingToastIdRef.current = null;
-      }
       toast({ title: 'Success', description: 'Deck file created successfully' });
 
-      // Reset form if it wasn't reset already by the background release
+      // Reset form and refresh
       setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
       setShowDeckFileForm(false);
-      
-      console.log('🔥 About to call fetchData after deck creation');
-      fetchData();
-      console.log('🔥 fetchData triggered after deck creation');
+      await fetchData();
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
       if (processingToastIdRef.current) {
