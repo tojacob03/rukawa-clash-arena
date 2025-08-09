@@ -89,7 +89,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
   const averageElixir = resolvedCards.length ? (totalElixir / resolvedCards.length).toFixed(1) : '0.0';
 
   return (
-    <Card className={`p-4 ${className}`}>
+    <Card className={`p-3 sm:p-4 overflow-hidden ${className}`}>
       <div className="space-y-4">
         {/* Elixir Cost Display */}
         <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
 
             return (
               <div key={`${id}-${index}`} className="relative group">
-                <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
+                <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4] p-1.5 sm:p-2">
                   {base ? (
                     <img
                       src={displaySrc ?? ''}
@@ -136,7 +136,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                     </div>
                   )}
                   
-                  <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                  <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-[9px] sm:text-[11px] font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                     {base ? elixir : '?'}
                   </div>
 
@@ -153,7 +153,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
         </div>
 
         {/* Card Type Distribution */}
-        <div className="flex justify-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap justify-center gap-3 text-[11px] text-muted-foreground">
           {['troop', 'spell', 'building'].map(type => {
             const count = resolvedCards.filter(card => card.type === type).length;
             if (count === 0) return null;
