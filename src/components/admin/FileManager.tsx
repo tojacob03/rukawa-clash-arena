@@ -393,6 +393,13 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       setCreateDeckLoading(false);
       return;
     }
+    
+    // Validate allowed deck number range (1-4)
+    if (deckNumber > 4) {
+      toast({ title: "Error", description: "Deck number must be between 1 and 4", variant: "destructive" });
+      setCreateDeckLoading(false);
+      return;
+    }
 
     // Check for duplicate deck numbers in the same deck set
     const existingDeckWithNumber = deckFiles.find(deck => 
@@ -404,6 +411,13 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       return;
     }
 
+    // Check total decks per set (max 4)
+    const decksInSet = deckFiles.filter(deck => deck.deck_set_id === deckFileForm.deck_set_id);
+    if (decksInSet.length >= 4) {
+      toast({ title: "Error", description: "This deck set already has 4 decks", variant: "destructive" });
+      setCreateDeckLoading(false);
+      return;
+    }
     try {
       // Ensure card_ids are clean integers (parseDeckLink already returns numbers)
       const cardIds = parsedDeck.cards.map(id => Math.round(id));
