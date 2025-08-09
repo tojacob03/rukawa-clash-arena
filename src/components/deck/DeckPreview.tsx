@@ -89,7 +89,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
   const averageElixir = resolvedCards.length ? (totalElixir / resolvedCards.length).toFixed(1) : '0.0';
 
   return (
-    <Card className={`p-3 sm:p-4 overflow-hidden ${className}`}>
+    <Card className={`p-3 sm:p-4 ${className}`}>
       <div className="space-y-4">
         {/* Elixir Cost Display */}
         <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
 
             return (
               <div key={`${id}-${index}`} className="relative group">
-                <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
+                <div className="relative overflow-visible rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
                   {base ? (
                     <img
                       src={displaySrc ?? ''}
