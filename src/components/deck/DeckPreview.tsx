@@ -117,7 +117,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             const base = (remote ?? local) as ClashRoyaleCard | undefined;
             const name = (remote?.name ?? local?.name) ?? `Unknown ${id}`;
             const elixir = (remote?.elixir ?? local?.elixir ?? 0);
-            const displaySrc = (remote?.imageUrl) ?? base?.imageUrl;
+            const displaySrc = id === 26000096 ? (goblinMachineImg as string) : ((remote?.imageUrl) ?? base?.imageUrl);
             const isSuspiciousBush = id === 26000097 || name.toLowerCase() === 'suspicious bush';
 
             if (id === 26000096) {
@@ -127,9 +127,9 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
             return (
               <div key={`${id}-${index}`} className="relative group">
                 <div className="relative overflow-visible rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
-                  {base ? (
+                  {(base || id === 26000096) ? (
                     <img
-                      src={displaySrc ?? ''}
+                      src={(id === 26000096 ? (goblinMachineImg as string) : (displaySrc ?? ''))}
                       alt={name}
                       className={`h-full w-full object-contain ${isSuspiciousBush ? 'transform origin-center scale-90' : ''}`}
                       loading="lazy"
