@@ -36,8 +36,9 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
         const idSet = new Set(idsUsed);
         for (const entry of data) {
           if (idSet.has(entry.id)) {
-            const typeLower = (entry.type || '').toLowerCase();
-            const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${entry.key}.png`;
+            const typeLower = String(entry.type || '').toLowerCase();
+            const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
+            const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
             map.set(entry.id, {
               id: entry.id,
               name: entry.name,

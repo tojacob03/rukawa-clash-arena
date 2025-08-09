@@ -158,7 +158,8 @@ function initRemoteOnce() {
           (typeLower === 'troop' || typeLower === 'spell' || typeLower === 'building')
             ? (typeLower as any)
             : 'troop';
-        const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${entry.key}.png`;
+        const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
+        const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
         REMOTE_CARDS.set(Number(entry.id), {
           id: Number(entry.id),
           name: String(entry.name || entry.key || `Card ${entry.id}`),
