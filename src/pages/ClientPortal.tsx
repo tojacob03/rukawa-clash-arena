@@ -224,13 +224,13 @@ const ClientPortal = () => {
                                   </Badge>
                                 </div>
                                 
-                                <div className="space-y-3">
+                                <div className="grid gap-3 sm:grid-cols-2">
                                   {deckSet.deck_files && deckSet.deck_files.length > 0 ? (
                                     deckSet.deck_files.map((deckFile) => (
                                       <DeckItem key={deckFile.id} deckFile={deckFile} />
                                     ))
                                   ) : (
-                                    <div className="text-center p-4 text-muted-foreground">
+                                    <div className="col-span-full text-center p-4 text-muted-foreground">
                                       <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
                                       <p>No decks available in this set</p>
                                     </div>
