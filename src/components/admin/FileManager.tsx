@@ -359,30 +359,25 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       return;
     }
     
-    console.log('🔥 Setting createDeckLoading to true');
-    setCreateDeckLoading(true);
-    
     console.log('Creating deck file with form data:', deckFileForm);
     
     // Validate form data
     if (!deckFileForm.deck_name.trim()) {
       toast({ title: "Error", description: "Deck name is required", variant: "destructive" });
-      setCreateDeckLoading(false);
       return;
     }
 
     if (!deckFileForm.deck_set_id) {
       toast({ title: "Error", description: "Please select a deck set", variant: "destructive" });
-      setCreateDeckLoading(false);
       return;
     }
 
     // Validate deck link and extract card IDs
-    const parsedDeck = parseDeckLink(deckFileForm.deck_link.trim());
-    console.log('Parsed deck:', parsedDeck);
+    const rawLink = deckFileForm.deck_link.trim();
+    const parsedDeck = parseDeckLink(rawLink);
+    console.log('Parsed deck (pre-normalize):', parsedDeck);
     if (!parsedDeck.isValid) {
       toast({ title: "Error", description: "Invalid deck link. Please provide a valid Clash Royale deck link.", variant: "destructive" });
-      setCreateDeckLoading(false);
       return;
     }
 
@@ -390,7 +385,6 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
     const deckNumber = parseInt(deckFileForm.deck_number.toString(), 10);
     if (isNaN(deckNumber) || deckNumber < 1) {
       toast({ title: "Error", description: "Deck number must be a positive integer", variant: "destructive" });
-      setCreateDeckLoading(false);
       return;
     }
 
@@ -400,9 +394,11 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
     );
     if (existingDeckWithNumber) {
       toast({ title: "Error", description: `Deck number ${deckNumber} already exists in this deck set`, variant: "destructive" });
-      setCreateDeckLoading(false);
       return;
     }
+
+    console.log('🔥 Setting createDeckLoading to true');
+    setCreateDeckLoading(true);
 
     try {
       // Ensure card_ids are clean integers (parseDeckLink already returns numbers)
@@ -416,11 +412,18 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
         card_ids: cardIds, // Integer array for PostgreSQL
       };
 
-      console.log('Inserting deck data:', deckData);
+      console.log('Inserting deck data with timeout:', deckData);
 
       // Add a safety timeout to avoid hanging UI
-      const { error } = await supabase.from('deck_files').insert([deckData]);
-      if (error) throw error;
+      const insertPromise = supabase.from('deck_files').insert([deckData]);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out')), 12000)
+      );
+
+      const result: any = await Promise.race([insertPromise, timeoutPromise]);
+      if (result && 'error' in result && result.error) {
+        throw result.error;
+      }
 
       console.log('🔥 Deck file created successfully, calling fetchData...');
       toast({ title: "Success", description: "Deck file created successfully" });
