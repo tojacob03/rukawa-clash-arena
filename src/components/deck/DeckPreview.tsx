@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ClashRoyaleCard, getCardsByIds, getCardById } from '@/data/clashRoyaleCards';
 import { parseDeckLink } from '@/utils/deckParser';
 import { Card } from '@/components/ui/card';
-
+import goblinMachineImg from '@/assets/cards/goblin-machine.png';
 interface DeckPreviewProps {
   deckLink: string;
   cardIds?: number[];
@@ -38,7 +38,10 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
           if (idSet.has(entry.id)) {
             const typeLower = String(entry.type || '').toLowerCase();
             const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
-            const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
+            let imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
+            if (Number(entry.id) === 26000096) {
+              imageUrl = goblinMachineImg as string;
+            }
             map.set(entry.id, {
               id: entry.id,
               name: entry.name,

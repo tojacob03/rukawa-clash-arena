@@ -5,6 +5,7 @@ import bossBanditImg from '@/assets/cards/boss-bandit.png';
 import berserkerImg from '@/assets/cards/berserker.png';
 import goblinCurseImg from '@/assets/cards/goblin-curse.png';
 import furnaceImg from '@/assets/cards/furnace.png';
+import goblinMachineImg from '@/assets/cards/goblin-machine.png';
 export interface ClashRoyaleCard {
   id: number;
   name: string;
@@ -133,7 +134,7 @@ export const CLASH_ROYALE_CARDS: ClashRoyaleCard[] = [
 
   // Newer cards (overrides)
   // Ensure Goblin Machine (26000096) is recognized locally; include working image and elixir
-  { id: 26000096, name: "Goblin Machine", imageUrl: "https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/goblin-machine.png", elixir: 5, type: "troop" },
+  { id: 26000096, name: "Goblin Machine", imageUrl: goblinMachineImg, elixir: 5, type: "troop" },
   { id: 26000097, name: "Suspicious Bush", imageUrl: suspiciousBushImg, elixir: 2, type: "troop" },
   { id: 26000102, name: "Berserker", imageUrl: berserkerImg, elixir: 2, type: "troop" },
   { id: 26000103, name: "Boss Bandit", imageUrl: bossBanditImg, elixir: 6, type: "troop" },
@@ -159,7 +160,10 @@ function initRemoteOnce() {
             ? (typeLower as any)
             : 'troop';
         const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
-        const imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
+        let imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;
+        if (Number(entry.id) === 26000096) {
+          imageUrl = goblinMachineImg as string;
+        }
         REMOTE_CARDS.set(Number(entry.id), {
           id: Number(entry.id),
           name: String(entry.name || entry.key || `Card ${entry.id}`),

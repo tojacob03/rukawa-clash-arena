@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="Clash Royale, stats, Stats Royale, best decks, top decks, chests, cards, player stats, clan stats, card stats, deck builder, Clash Royale strategy, Clash Royale meta"
+        name="keywords">
+
+  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
+  <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">
+  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png">
+  <link href="/site.webmanifest" rel="manifest">
+  <link color="#001836" href="/safari-pinned-tab.svg" rel="mask-icon">
+  <meta content="Stats Royale" name="apple-mobile-web-app-title">
+  <meta content="Stats Royale" name="application-name">
+  <meta content="#001836" name="msapplication-TileColor">
+  <meta content="#001836" name="theme-color">
+
+  <!-- Start SmartBanner configuration -->
+  <meta name="smartbanner:title" content="Stats Royale">
+  <meta name="smartbanner:author" content="Overwolf">
+  <meta name="smartbanner:price" content="FREE">
+  <meta name="smartbanner:price-suffix-apple" content=" - On the App Store">
+  <meta name="smartbanner:price-suffix-google" content=" - In Google Play">
+  <meta name="smartbanner:icon-apple"
+        content="https://statsroyale.com/apple-touch-icon-180x180.png">
+  <meta name="smartbanner:icon-google" content="https://statsroyale.com/android-chrome-192x192.png">
+  <meta name="smartbanner:button" content="VIEW">
+  <meta name="smartbanner:button-url-apple"
+        content="https://apps.apple.com/us/app/stats-royale-for-clash-royale/id1264722932">
+  <meta name="smartbanner:button-url-google"
+        content="https://play.google.com/store/apps/details?id=com.overwolf.statsroyale&hl=en_CA">
+  <meta name="smartbanner:enabled-platforms" content="android,ios">
+  <meta name="smartbanner:close-label" content="Close">
+  <!-- End SmartBanner configuration -->
+
+  <link data-root="" href="/" hreflang="en" rel="alternate">
+  <link data-root="/es" href="/es/" hreflang="es" rel="alternate">
+  <link data-root="/fr" href="/fr/" hreflang="fr" rel="alternate">
+  <link data-root="/it" href="/it/" hreflang="it" rel="alternate">
+  <link data-root="/pt" href="/pt/" hreflang="pt" rel="alternate">
+  <link data-root="/br" href="/br/" hreflang="pt-br" rel="alternate">
+  <link data-root="/de" href="/de/" hreflang="de" rel="alternate">
+  <link data-root="/ru" href="/ru/" hreflang="ru" rel="alternate">
+  <link data-root="/zh" href="/zh/" hreflang="zh" rel="alternate">
+  <link data-root="/tw" href="/tw/" hreflang="zh-tw" rel="alternate">
+  <link data-root="/ja" href="/ja/" hreflang="ja" rel="alternate">
+  <link data-root="/ko" href="/ko/" hreflang="ko" rel="alternate">
+  <link data-root="/id" href="/id/" hreflang="id" rel="alternate">
+  <link data-root="/fi" href="/fi/" hreflang="fi" rel="alternate">
+  <link data-root="/tr" href="/tr/" hreflang="tr" rel="alternate">
+  <link href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css"
+        rel="stylesheet"/>
+  <script type="module" crossorigin src="/assets/index-CV6XNtc_.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index--S9waHMg.css">
+</head>
+<body>
+<div id="app"></div>
+<script data-cfasync="false">
+  window.nitroAds = window.nitroAds || {
+    createAd: function () {
+      return new Promise(e => {
+        window.nitroAds.queue.push(["createAd", arguments, e])
+      })
+    }, addUserToken: function () {
+      window.nitroAds.queue.push(["addUserToken", arguments])
+    }, queue: []
+  };
+</script>
+<script data-cfasync="false" async src="https://s.nitropay.com/ads-1907.js"></script>
+<script>
+  var _comscore = _comscore || [];
+  _comscore.push({ c1: "2", c2: "20631572" });
+  (function () {
+    var s = document.createElement("script"), el = document.getElementsByTagName("script")[0];
+    s.async = true;
+    s.src = "https://sb.scorecardresearch.com/cs/20631572/beacon.js";
+    el.parentNode.insertBefore(s, el);
+  })();
+</script>
+<noscript>
+  <img src="https://sb.scorecardresearch.com/p?c1=2&c2=20631572&cv=3.6.0&cj=1"/>
+</noscript>
+</body>
+</html>
