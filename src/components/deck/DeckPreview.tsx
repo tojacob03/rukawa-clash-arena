@@ -150,7 +150,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                   )}
                   
                   <div className="absolute -top-2 -left-2 z-10 bg-primary text-primary-foreground text-[8px] sm:text-[10px] font-bold rounded-full w-4 h-4 sm:w-4 sm:h-4 flex items-center justify-center">
-                    {base ? elixir : '?'}
+                    {(base || id === 26000096) ? (id === 26000096 ? (elixir || 5) : elixir) : '?'}
                   </div>
 
                   {/* Card Name Tooltip */}
