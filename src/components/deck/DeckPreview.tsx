@@ -118,7 +118,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
 
             return (
               <div key={`${id}-${index}`} className="relative group">
-                <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4] p-1.5 sm:p-2">
+                <div className="relative overflow-hidden rounded-lg bg-card border shadow-sm transition-transform hover:scale-105 aspect-[3/4]">
                   {base ? (
                     <img
                       src={displaySrc ?? ''}
@@ -136,7 +136,7 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
                     </div>
                   )}
                   
-                  <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-[9px] sm:text-[11px] font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                  <div className="absolute top-0.5 left-0.5 bg-primary text-primary-foreground text-[8px] sm:text-[10px] font-bold rounded-full w-4 h-4 sm:w-4 sm:h-4 flex items-center justify-center">
                     {base ? elixir : '?'}
                   </div>
 
