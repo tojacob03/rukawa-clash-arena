@@ -92,11 +92,11 @@ export function DeckPreview({ deckLink, cardIds, className = '' }: DeckPreviewPr
     <Card className={`p-3 sm:p-4 overflow-hidden ${className}`}>
       <div className="space-y-4">
         {/* Elixir Cost Display */}
-        <div className="flex items-start justify-between">
-          <span className="text-sm font-medium text-foreground leading-none">Average Elixir Cost</span>
-          <div className="flex items-start gap-1 self-start leading-none text-right">
-            <span className="text-base sm:text-lg font-bold text-primary leading-none">{averageElixir}</span>
-            <span className="text-[10px] sm:text-xs text-muted-foreground leading-none">elixir</span>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-foreground leading-none">Average Elixir Cost</span>
+          <div className="flex items-center gap-1 leading-none text-right">
+            <span className="text-sm sm:text-base font-bold text-primary leading-none">{averageElixir}</span>
+            <span className="text-[10px] text-muted-foreground leading-none">elixir</span>
           </div>
         </div>
 
