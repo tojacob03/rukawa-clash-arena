@@ -57,6 +57,16 @@ export function createDeckLink(cardIds: number[]): string {
 }
 
 /**
+ * Normalizes any supported Clash Royale deck link to canonical scheme form.
+ * Supports link.clashroyale.com links and raw clashroyale:// links.
+ */
+export function normalizeDeckLink(input: string): string | null {
+  const parsed = parseDeckLink(input);
+  if (!parsed.isValid || parsed.cards.length !== 8) return null;
+  return createDeckLink(parsed.cards);
+}
+
+/**
  * Validates if a deck link is properly formatted
  */
 export function isValidDeckLink(deckLink: string): boolean {

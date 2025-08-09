@@ -20,7 +20,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { parseDeckLink } from '@/utils/deckParser';
+import { parseDeckLink, createDeckLink } from '@/utils/deckParser';
 
 interface Client {
   id: string;
@@ -410,7 +410,7 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
 
       const deckData = {
         deck_name: deckFileForm.deck_name.trim(),
-        deck_link: deckFileForm.deck_link.trim(),
+        deck_link: createDeckLink(cardIds),
         deck_number: deckNumber,
         deck_set_id: deckFileForm.deck_set_id,
         card_ids: cardIds, // Integer array for PostgreSQL
