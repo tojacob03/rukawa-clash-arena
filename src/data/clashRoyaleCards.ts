@@ -132,14 +132,16 @@ export const CLASH_ROYALE_CARDS: ClashRoyaleCard[] = [
   { id: 27000011, name: "Goblin Cage", imageUrl: "https://api-assets.clashroyale.com/cards/300/S_HAg1nGH2m0vQ7IVQsS8FRbhvN4OKWkXG6t6YGgY-E.png", elixir: 4, type: "building" },
   { id: 27000012, name: "Goblin Drill", imageUrl: "https://api-assets.clashroyale.com/cards/300/Dqt3g5_KqGrW8_2_KQ5BQ9-6KkJ8MZ_ZN_8-QqF0qF4.png", elixir: 4, type: "building" },
 
-  // Newer cards (overrides)
-  // Ensure Goblin Machine (26000096) is recognized locally; include working image and elixir
-  { id: 26000096, name: "Goblin Machine", imageUrl: goblinMachineImg, elixir: 5, type: "troop" },
-  { id: 26000097, name: "Suspicious Bush", imageUrl: suspiciousBushImg, elixir: 2, type: "troop" },
-  { id: 26000102, name: "Berserker", imageUrl: berserkerImg, elixir: 2, type: "troop" },
-  { id: 26000103, name: "Boss Bandit", imageUrl: bossBanditImg, elixir: 6, type: "troop" },
-  { id: 28000024, name: "Goblin Curse", imageUrl: goblinCurseImg, elixir: 2, type: "spell" },
-  { id: 28000025, name: "Spirit Empress", imageUrl: spiritEmpressImg, elixir: 6, type: "troop" },
+// Newer cards (overrides)
+// Ensure Goblin Machine (26000096) is recognized locally; include working image and elixir
+{ id: 26000093, name: "Little Prince", imageUrl: "https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/little-prince.png", elixir: 4, type: "troop" },
+{ id: 26000095, name: "Goblin Demolisher", imageUrl: "https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/goblin-demolisher.png", elixir: 4, type: "troop" },
+{ id: 26000096, name: "Goblin Machine", imageUrl: goblinMachineImg, elixir: 5, type: "troop" },
+{ id: 26000097, name: "Suspicious Bush", imageUrl: suspiciousBushImg, elixir: 2, type: "troop" },
+{ id: 26000102, name: "Berserker", imageUrl: berserkerImg, elixir: 2, type: "troop" },
+{ id: 26000103, name: "Boss Bandit", imageUrl: bossBanditImg, elixir: 6, type: "troop" },
+{ id: 28000024, name: "Goblin Curse", imageUrl: goblinCurseImg, elixir: 2, type: "spell" },
+{ id: 28000025, name: "Spirit Empress", imageUrl: spiritEmpressImg, elixir: 6, type: "troop" },
 ];
 
 // Remote augmentation: fetch full cards catalog once and merge as fallback
