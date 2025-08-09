@@ -432,8 +432,8 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       setShowDeckFileForm(false);
       
       console.log('🔥 About to call fetchData after deck creation');
-      await fetchData();
-      console.log('🔥 fetchData completed after deck creation');
+      fetchData();
+      console.log('🔥 fetchData triggered after deck creation');
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
