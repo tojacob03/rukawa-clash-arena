@@ -119,6 +119,25 @@ const [analysisUpload, setAnalysisUpload] = useState({
   file_type: 'match_analysis'
 });
 
+// Helper to get the next available deck number (1-4) for a selected set
+const getNextDeckNumberForSet = React.useCallback((setId: string) => {
+  const used = new Set(
+    deckFiles.filter(d => d.deck_set_id === setId).map(d => d.deck_number)
+  );
+  for (let n = 1; n <= 4; n++) {
+    if (!used.has(n)) return n;
+  }
+  return 4; // fallback
+}, [deckFiles]);
+
+// When deck set changes in the form, preset the next free deck number
+useEffect(() => {
+  if (!deckFileForm.deck_set_id) return;
+  const next = getNextDeckNumberForSet(deckFileForm.deck_set_id);
+  setDeckFileForm(prev => ({ ...prev, deck_number: next }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [deckFileForm.deck_set_id, getNextDeckNumberForSet]);
+
 const [editDeckSetId, setEditDeckSetId] = useState<string | null>(null);
 const [editDeckSetName, setEditDeckSetName] = useState<string>('');
 const [savingDeckSet, setSavingDeckSet] = useState(false);
@@ -453,7 +472,9 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       deck.deck_set_id === deckFileForm.deck_set_id && deck.deck_number === deckNumber
     );
     if (existingDeckWithNumber) {
-      toast({ title: "Error", description: `Deck number ${deckNumber} already exists in this deck set`, variant: "destructive" });
+      const next = getNextDeckNumberForSet(deckFileForm.deck_set_id);
+      setDeckFileForm(prev => ({ ...prev, deck_number: next }));
+      toast({ title: "Hinweis", description: `Decknummer ${deckNumber} existiert bereits – Nummer ${next} wurde vorausgewählt.` });
       return;
     }
 
@@ -480,13 +501,11 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       console.log('🔥 Deck file created successfully, calling fetchData...');
       toast({ title: "Success", description: "Deck file created successfully" });
 
-      // Reset form properly
-      setDeckFileForm({ deck_name: '', deck_link: '', deck_number: 1, deck_set_id: '' });
-      setShowDeckFileForm(false);
-      
-      console.log('🔥 About to call fetchData after deck creation (no await)');
-      // Refresh in background so the UI is immediately ready for the next add
-      fetchData();
+      // Keep form open for quick multi-add: refresh and preset next free number
+      await fetchData();
+      const nextNum = getNextDeckNumberForSet(deckFileForm.deck_set_id);
+      setDeckFileForm({ deck_name: '', deck_link: '', deck_number: nextNum, deck_set_id: deckFileForm.deck_set_id });
+
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
       toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
