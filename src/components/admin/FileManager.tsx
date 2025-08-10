@@ -120,21 +120,25 @@ const [analysisUpload, setAnalysisUpload] = useState({
 });
 
 // Helper to get the next available deck number (1-4) for a selected set
-const getNextDeckNumberForSet = React.useCallback((setId: string) => {
+const getNextDeckNumberForSet = React.useCallback((setId: string): number | null => {
   const used = new Set(
     deckFiles.filter(d => d.deck_set_id === setId).map(d => d.deck_number)
   );
   for (let n = 1; n <= 4; n++) {
     if (!used.has(n)) return n;
   }
-  return 4; // fallback
+  return null; // no free slots
 }, [deckFiles]);
 
 // When deck set changes in the form, preset the next free deck number
 useEffect(() => {
   if (!deckFileForm.deck_set_id) return;
   const next = getNextDeckNumberForSet(deckFileForm.deck_set_id);
-  setDeckFileForm(prev => ({ ...prev, deck_number: next }));
+  if (next !== null) {
+    setDeckFileForm(prev => ({ ...prev, deck_number: next }));
+  } else {
+    toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.' });
+  }
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [deckFileForm.deck_set_id, getNextDeckNumberForSet]);
 
@@ -476,9 +480,17 @@ console.log('🔥 fetchData scheduled after deck set creation');
     if (!existingNumsError) {
       const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
       if (usedNumbers.has(deckNumber)) {
-        const next = [1, 2, 3, 4].find(n => !usedNumbers.has(n)) ?? 4;
-        setDeckFileForm(prev => ({ ...prev, deck_number: next }));
-        toast({ title: "Hinweis", description: `Decknummer ${deckNumber} existiert bereits – Nummer ${next} wurde vorausgewählt.` });
+        const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n));
+        if (freeNext === undefined) {
+          toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
+          return;
+        }
+        setDeckFileForm(prev => ({ ...prev, deck_number: freeNext }));
+        toast({ title: "Hinweis", description: `Decknummer ${deckNumber} existiert bereits – Nummer ${freeNext} wurde vorausgewählt.` });
+        return;
+      }
+      if ([1,2,3,4].every(n => usedNumbers.has(n))) {
+        toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
         return;
       }
     } else {
@@ -515,11 +527,13 @@ const usedNow = new Set(
   deckFiles.filter(d => d.deck_set_id === deckFileForm.deck_set_id).map(d => d.deck_number)
 );
 usedNow.add(deckNumber);
-let nextNum = 1;
-for (let n = 1; n <= 4; n++) {
-  if (!usedNow.has(n)) { nextNum = n; break; }
+const freeNext = [1,2,3,4].find(n => !usedNow.has(n));
+if (freeNext === undefined) {
+  setShowDeckFileForm(false);
+  toast({ title: 'Set voll', description: 'Dieses Set hat jetzt 4 Decks. Formular geschlossen.' });
+} else {
+  setDeckFileForm({ deck_name: '', deck_link: '', deck_number: freeNext, deck_set_id: deckFileForm.deck_set_id });
 }
-setDeckFileForm({ deck_name: '', deck_link: '', deck_number: nextNum, deck_set_id: deckFileForm.deck_set_id });
 
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
@@ -532,9 +546,13 @@ setDeckFileForm({ deck_name: '', deck_link: '', deck_number: nextNum, deck_set_i
             .select('deck_number')
             .eq('deck_set_id', deckFileForm.deck_set_id);
           const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
-          const next = [1, 2, 3, 4].find(n => !usedNumbers.has(n)) ?? 4;
-          setDeckFileForm(prev => ({ ...prev, deck_number: next }));
-          toast({ title: 'Hinweis', description: `Decknummer bereits vergeben. Nummer ${next} wurde vorausgewählt.` });
+          const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n));
+          if (freeNext === undefined) {
+            toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
+          } else {
+            setDeckFileForm(prev => ({ ...prev, deck_number: freeNext }));
+            toast({ title: 'Hinweis', description: `Decknummer bereits vergeben. Nummer ${freeNext} wurde vorausgewählt.` });
+          }
         } catch (e) {
           toast({ title: 'Fehler', description: 'Decknummer bereits vergeben. Bitte andere Nummer wählen.', variant: 'destructive' });
         }
