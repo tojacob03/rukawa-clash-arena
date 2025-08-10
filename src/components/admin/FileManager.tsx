@@ -471,7 +471,8 @@ console.log('🔥 fetchData scheduled after deck set creation');
       return;
     }
 
-    // Fresh duplicate check against DB to avoid stale state
+    // Fresh duplicate check against DB and auto-pick next free number if needed
+    let deckNumberToUse = deckNumber;
     const { data: existingNumsData, error: existingNumsError } = await supabase
       .from('deck_files')
       .select('deck_number')
@@ -479,15 +480,15 @@ console.log('🔥 fetchData scheduled after deck set creation');
 
     if (!existingNumsError) {
       const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
-      if (usedNumbers.has(deckNumber)) {
+      if (usedNumbers.has(deckNumberToUse)) {
         const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n));
         if (freeNext === undefined) {
           toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
           return;
         }
+        deckNumberToUse = freeNext;
         setDeckFileForm(prev => ({ ...prev, deck_number: freeNext }));
-        toast({ title: "Hinweis", description: `Decknummer ${deckNumber} existiert bereits – Nummer ${freeNext} wurde vorausgewählt.` });
-        return;
+        toast({ title: 'Hinweis', description: `Decknummer ${deckNumber} existiert bereits – Nummer ${freeNext} wurde vorausgewählt.` });
       }
       if ([1,2,3,4].every(n => usedNumbers.has(n))) {
         toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
@@ -507,7 +508,7 @@ console.log('🔥 fetchData scheduled after deck set creation');
       const deckData = {
         deck_name: deckFileForm.deck_name.trim(),
         deck_link: createDeckLink(cardIds),
-        deck_number: deckNumber,
+        deck_number: deckNumberToUse,
         deck_set_id: deckFileForm.deck_set_id,
         card_ids: cardIds, // Integer array for PostgreSQL
       };
@@ -526,7 +527,7 @@ fetchData();
 const usedNow = new Set(
   deckFiles.filter(d => d.deck_set_id === deckFileForm.deck_set_id).map(d => d.deck_number)
 );
-usedNow.add(deckNumber);
+usedNow.add(deckNumberToUse);
 const freeNext = [1,2,3,4].find(n => !usedNow.has(n));
 if (freeNext === undefined) {
   setShowDeckFileForm(false);
