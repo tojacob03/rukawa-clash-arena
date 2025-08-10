@@ -480,30 +480,19 @@ console.log('🔥 fetchData scheduled after deck set creation');
       .select('deck_number')
       .eq('deck_set_id', deckFileForm.deck_set_id);
 
-    if (!existingNumsError) {
-      const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
-      if (usedNumbers.has(deckNumberToUse)) {
-        const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n));
-        if (freeNext === undefined) {
-          toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
-          setCreateDeckLoading(false);
-          return;
-        }
-        deckNumberToUse = freeNext;
-        setDeckFileForm(prev => ({ ...prev, deck_number: freeNext }));
-        toast({ title: 'Hinweis', description: `Decknummer ${deckNumber} existiert bereits – Nummer ${freeNext} wurde vorausgewählt.` });
-      }
-      if ([1,2,3,4].every(n => usedNumbers.has(n))) {
-        toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
-        setCreateDeckLoading(false);
-        return;
-      }
-    } else {
+    if (existingNumsError) {
       console.warn('Could not fetch existing deck numbers for set:', existingNumsError);
     }
 
-    console.log('🔥 Setting createDeckLoading to true');
-    setCreateDeckLoading(true);
+    const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
+    if ([1,2,3,4].every(n => usedNumbers.has(n))) {
+      toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
+      setCreateDeckLoading(false);
+      return;
+    }
+    const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n)) ?? 1;
+    deckNumberToUse = freeNext;
+    setDeckFileForm(prev => ({ ...prev, deck_number: deckNumberToUse }));
 
     const cardIds = parsedDeck.cards.map(id => Math.round(id));
 
