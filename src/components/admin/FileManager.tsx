@@ -21,6 +21,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { parseDeckLink, createDeckLink } from '@/utils/deckParser';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Client {
   id: string;
@@ -73,6 +84,9 @@ export function FileManager() {
   const [createDeckLoading, setCreateDeckLoading] = useState(false);
   const [deletingDeckIds, setDeletingDeckIds] = useState<Set<string>>(new Set());
   const [deletingAnalysisIds, setDeletingAnalysisIds] = useState<Set<string>>(new Set());
+  const [selectedDeckSetIds, setSelectedDeckSetIds] = useState<Set<string>>(new Set());
+  const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
+  const [bulkDeletingSets, setBulkDeletingSets] = useState(false);
 
   // Form states
   const [showDeckSetForm, setShowDeckSetForm] = useState(false);
@@ -346,6 +360,52 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       toast({ title: 'Fehler', description: 'Aktualisierung fehlgeschlagen.', variant: 'destructive' });
     } finally {
       setSavingDeckSet(false);
+    }
+  };
+
+  const toggleDeckSetSelection = (id: string) => {
+    setSelectedDeckSetIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllDeckSets = () => {
+    setSelectedDeckSetIds(new Set(deckSets.map(ds => ds.id)));
+  };
+
+  const clearSelectedDeckSets = () => {
+    setSelectedDeckSetIds(new Set());
+  };
+
+  const deleteSelectedDeckSets = async () => {
+    const ids = Array.from(selectedDeckSetIds);
+    if (ids.length === 0) return;
+    try {
+      setBulkDeletingSets(true);
+      // First delete deck files belonging to the selected sets
+      const { error: filesError } = await supabase
+        .from('deck_files')
+        .delete()
+        .in('deck_set_id', ids);
+      if (filesError) throw filesError;
+
+      // Then delete the deck sets
+      const { error: setsError } = await supabase
+        .from('deck_sets')
+        .delete()
+        .in('id', ids);
+      if (setsError) throw setsError;
+
+      toast({ title: 'Erfolg', description: `${ids.length} Deck-Set(s) gelöscht.` });
+      clearSelectedDeckSets();
+      await fetchData();
+    } catch (error) {
+      console.error('Error deleting deck sets:', error);
+      toast({ title: 'Fehler', description: 'Löschen der Deck-Sets fehlgeschlagen.', variant: 'destructive' });
+    } finally {
+      setBulkDeletingSets(false);
     }
   };
 
@@ -652,11 +712,39 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Deck Sets</CardTitle>
-                <Button onClick={() => setShowDeckSetForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Deck Set
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (selectedDeckSetIds.size === deckSets.length) {
+                        clearSelectedDeckSets();
+                      } else {
+                        selectAllDeckSets();
+                      }
+                    }}
+                  >
+                    {selectedDeckSetIds.size === deckSets.length && deckSets.length > 0 ? 'Auswahl aufheben' : 'Alle auswählen'}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setConfirmBulkDeleteOpen(true)}
+                    disabled={selectedDeckSetIds.size === 0}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {bulkDeletingSets ? 'Löschen...' : 'Ausgewählte löschen'}
+                  </Button>
+                  <Button onClick={() => setShowDeckSetForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Deck Set
+                  </Button>
+                </div>
               </div>
+              {selectedDeckSetIds.size > 0 && (
+                <p className="text-sm text-muted-foreground mt-2">{selectedDeckSetIds.size} Set(s) ausgewählt</p>
+              )}
+
             </CardHeader>
             <CardContent>
               {showDeckSetForm && (
@@ -710,10 +798,24 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
               <div className="grid gap-4">
                 {deckSets.map(deckSet => (
                   <div key={deckSet.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-semibold">{deckSet.name}</h3>
-                      <p className="text-sm text-muted-foreground">{deckSet.description}</p>
-                      <Badge variant="secondary">{deckSet.client?.name}</Badge>
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={selectedDeckSetIds.has(deckSet.id)}
+                        onCheckedChange={(checked) => {
+                          const isChecked = Boolean(checked);
+                          setSelectedDeckSetIds(prev => {
+                            const next = new Set(prev);
+                            if (isChecked) next.add(deckSet.id); else next.delete(deckSet.id);
+                            return next;
+                          });
+                        }}
+                        aria-label="Deck-Set auswählen"
+                      />
+                      <div>
+                        <h3 className="font-semibold">{deckSet.name}</h3>
+                        <p className="text-sm text-muted-foreground">{deckSet.description}</p>
+                        <Badge variant="secondary">{deckSet.client?.name}</Badge>
+                      </div>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => openEditDeckSet(deckSet)}>
                       <Pencil className="h-4 w-4 mr-2" />
@@ -746,6 +848,23 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <AlertDialog open={confirmBulkDeleteOpen} onOpenChange={setConfirmBulkDeleteOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Ausgewählte Deck-Sets löschen?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Diese Aktion kann nicht rückgängig gemacht werden. Es werden {selectedDeckSetIds.size} Set(s) und alle zugehörigen Deck Files gelöscht.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction onClick={deleteSelectedDeckSets} disabled={bulkDeletingSets}>
+                        {bulkDeletingSets ? 'Löschen...' : 'Löschen'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </CardContent>
             </Card>
 
