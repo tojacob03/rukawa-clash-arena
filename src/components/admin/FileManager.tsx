@@ -472,18 +472,10 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
         card_ids: cardIds, // Integer array for PostgreSQL
       };
 
-      console.log('Inserting deck data with timeout:', deckData);
+      console.log('Inserting deck data:', deckData);
 
-      // Add a safety timeout to avoid hanging UI
-      const insertPromise = supabase.from('deck_files').insert([deckData]);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), 12000)
-      );
-
-      const result: any = await Promise.race([insertPromise, timeoutPromise]);
-      if (result && 'error' in result && result.error) {
-        throw result.error;
-      }
+      const { error } = await supabase.from('deck_files').insert([deckData]);
+      if (error) throw error;
 
       console.log('🔥 Deck file created successfully, calling fetchData...');
       toast({ title: "Success", description: "Deck file created successfully" });
