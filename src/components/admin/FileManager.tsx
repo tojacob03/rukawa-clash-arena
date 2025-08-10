@@ -467,15 +467,22 @@ console.log('🔥 fetchData scheduled after deck set creation');
       return;
     }
 
-    // Check for duplicate deck numbers in the same deck set
-    const existingDeckWithNumber = deckFiles.find(deck => 
-      deck.deck_set_id === deckFileForm.deck_set_id && deck.deck_number === deckNumber
-    );
-    if (existingDeckWithNumber) {
-      const next = getNextDeckNumberForSet(deckFileForm.deck_set_id);
-      setDeckFileForm(prev => ({ ...prev, deck_number: next }));
-      toast({ title: "Hinweis", description: `Decknummer ${deckNumber} existiert bereits – Nummer ${next} wurde vorausgewählt.` });
-      return;
+    // Fresh duplicate check against DB to avoid stale state
+    const { data: existingNumsData, error: existingNumsError } = await supabase
+      .from('deck_files')
+      .select('deck_number')
+      .eq('deck_set_id', deckFileForm.deck_set_id);
+
+    if (!existingNumsError) {
+      const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
+      if (usedNumbers.has(deckNumber)) {
+        const next = [1, 2, 3, 4].find(n => !usedNumbers.has(n)) ?? 4;
+        setDeckFileForm(prev => ({ ...prev, deck_number: next }));
+        toast({ title: "Hinweis", description: `Decknummer ${deckNumber} existiert bereits – Nummer ${next} wurde vorausgewählt.` });
+        return;
+      }
+    } else {
+      console.warn('Could not fetch existing deck numbers for set:', existingNumsError);
     }
 
     console.log('🔥 Setting createDeckLoading to true');
@@ -516,7 +523,24 @@ setDeckFileForm({ deck_name: '', deck_link: '', deck_number: nextNum, deck_set_i
 
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
-      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to create deck file", variant: "destructive" });
+      const code = (error as any)?.code || '';
+      const msg = (error as any)?.message || '';
+      if (code === '23505' || /duplicate key|unique constraint/i.test(msg)) {
+        try {
+          const { data: existingNumsData } = await supabase
+            .from('deck_files')
+            .select('deck_number')
+            .eq('deck_set_id', deckFileForm.deck_set_id);
+          const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
+          const next = [1, 2, 3, 4].find(n => !usedNumbers.has(n)) ?? 4;
+          setDeckFileForm(prev => ({ ...prev, deck_number: next }));
+          toast({ title: 'Hinweis', description: `Decknummer bereits vergeben. Nummer ${next} wurde vorausgewählt.` });
+        } catch (e) {
+          toast({ title: 'Fehler', description: 'Decknummer bereits vergeben. Bitte andere Nummer wählen.', variant: 'destructive' });
+        }
+      } else {
+        toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create deck file', variant: 'destructive' });
+      }
     } finally {
       console.log('🔥 Setting createDeckLoading to false');
       setCreateDeckLoading(false);
