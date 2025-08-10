@@ -471,6 +471,8 @@ console.log('🔥 fetchData scheduled after deck set creation');
       return;
     }
 
+    // Start loading to gate duplicate submissions
+    setCreateDeckLoading(true);
     // Fresh duplicate check against DB and auto-pick next free number if needed
     let deckNumberToUse = deckNumber;
     const { data: existingNumsData, error: existingNumsError } = await supabase
@@ -484,6 +486,7 @@ console.log('🔥 fetchData scheduled after deck set creation');
         const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n));
         if (freeNext === undefined) {
           toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
+          setCreateDeckLoading(false);
           return;
         }
         deckNumberToUse = freeNext;
@@ -492,6 +495,7 @@ console.log('🔥 fetchData scheduled after deck set creation');
       }
       if ([1,2,3,4].every(n => usedNumbers.has(n))) {
         toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
+        setCreateDeckLoading(false);
         return;
       }
     } else {
