@@ -336,9 +336,9 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
 
       setDeckSetForm({ name: '', description: '', client_id: '' });
       setShowDeckSetForm(false);
-      console.log('🔥 About to call fetchData after deck set creation');
-      await fetchData();
-      console.log('🔥 fetchData completed after deck set creation');
+console.log('🔥 About to call fetchData after deck set creation (no await)');
+fetchData();
+console.log('🔥 fetchData scheduled after deck set creation');
     } catch (error) {
       console.error('Error creating deck set:', error);
       toast({
@@ -501,10 +501,10 @@ const [savingDeckSet, setSavingDeckSet] = useState(false);
       console.log('🔥 Deck file created successfully, calling fetchData...');
       toast({ title: "Success", description: "Deck file created successfully" });
 
-      // Keep form open for quick multi-add: refresh and preset next free number
-      await fetchData();
-      const nextNum = getNextDeckNumberForSet(deckFileForm.deck_set_id);
-      setDeckFileForm({ deck_name: '', deck_link: '', deck_number: nextNum, deck_set_id: deckFileForm.deck_set_id });
+// Refresh in background so UI stays responsive
+fetchData();
+const nextNum = getNextDeckNumberForSet(deckFileForm.deck_set_id);
+setDeckFileForm({ deck_name: '', deck_link: '', deck_number: nextNum, deck_set_id: deckFileForm.deck_set_id });
 
     } catch (error) {
       console.error('🔥 Error creating deck file:', error);
