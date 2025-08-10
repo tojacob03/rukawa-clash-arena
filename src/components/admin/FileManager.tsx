@@ -501,9 +501,9 @@ console.log('🔥 fetchData scheduled after deck set creation');
     console.log('🔥 Setting createDeckLoading to true');
     setCreateDeckLoading(true);
 
+    const cardIds = parsedDeck.cards.map(id => Math.round(id));
+
     try {
-      // Ensure card_ids are clean integers (parseDeckLink already returns numbers)
-      const cardIds = parsedDeck.cards.map(id => Math.round(id));
 
       const deckData = {
         deck_name: deckFileForm.deck_name.trim(),
@@ -542,20 +542,49 @@ if (freeNext === undefined) {
       const msg = (error as any)?.message || '';
       if (code === '23505' || /duplicate key|unique constraint/i.test(msg)) {
         try {
-          const { data: existingNumsData } = await supabase
+          const { data: existingNumsData2 } = await supabase
             .from('deck_files')
-            .select('deck_number')
+            .select('deck_number, deck_link')
             .eq('deck_set_id', deckFileForm.deck_set_id);
-          const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
-          const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n));
-          if (freeNext === undefined) {
-            toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
-          } else {
-            setDeckFileForm(prev => ({ ...prev, deck_number: freeNext }));
-            toast({ title: 'Hinweis', description: `Decknummer bereits vergeben. Nummer ${freeNext} wurde vorausgewählt.` });
+
+          const usedNumbers = new Set((existingNumsData2 || []).map((r: any) => r.deck_number));
+          const linkExists = (existingNumsData2 || []).some((r: any) => r.deck_link === createDeckLink(cardIds));
+          if (linkExists) {
+            toast({ title: 'Deck-Link bereits vorhanden', description: 'Dieser Deck-Link existiert bereits in diesem Set.', variant: 'destructive' });
+            return;
           }
+
+          const retryNum = [1, 2, 3, 4].find(n => !usedNumbers.has(n));
+          if (retryNum !== undefined && retryNum !== deckNumberToUse) {
+            const retryData = {
+              deck_name: deckFileForm.deck_name.trim(),
+              deck_link: createDeckLink(cardIds),
+              deck_number: retryNum,
+              deck_set_id: deckFileForm.deck_set_id,
+              card_ids: cardIds,
+            };
+            const { error: retryError } = await supabase.from('deck_files').insert([retryData]);
+            if (!retryError) {
+              toast({ title: 'Success', description: `Deck mit Nummer ${retryNum} erstellt (automatisch angepasst).` });
+              fetchData();
+              const usedNow = new Set(
+                deckFiles.filter(d => d.deck_set_id === deckFileForm.deck_set_id).map(d => d.deck_number)
+              );
+              usedNow.add(retryNum);
+              const freeNext = [1,2,3,4].find(n => !usedNow.has(n));
+              if (freeNext === undefined) {
+                setShowDeckFileForm(false);
+                toast({ title: 'Set voll', description: 'Dieses Set hat jetzt 4 Decks. Formular geschlossen.' });
+              } else {
+                setDeckFileForm({ deck_name: '', deck_link: '', deck_number: freeNext, deck_set_id: deckFileForm.deck_set_id });
+              }
+              return;
+            }
+          }
+
+          toast({ title: 'Duplikat', description: 'Bitte eine andere Decknummer oder einen anderen Link wählen.', variant: 'destructive' });
         } catch (e) {
-          toast({ title: 'Fehler', description: 'Decknummer bereits vergeben. Bitte andere Nummer wählen.', variant: 'destructive' });
+          toast({ title: 'Fehler', description: 'Konnte Duplikat nicht automatisch beheben.', variant: 'destructive' });
         }
       } else {
         toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create deck file', variant: 'destructive' });
