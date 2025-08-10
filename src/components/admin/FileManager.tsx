@@ -503,7 +503,15 @@ console.log('🔥 fetchData scheduled after deck set creation');
 
 // Refresh in background so UI stays responsive
 fetchData();
-const nextNum = getNextDeckNumberForSet(deckFileForm.deck_set_id);
+// Compute next available number using current state + just inserted number to avoid race
+const usedNow = new Set(
+  deckFiles.filter(d => d.deck_set_id === deckFileForm.deck_set_id).map(d => d.deck_number)
+);
+usedNow.add(deckNumber);
+let nextNum = 1;
+for (let n = 1; n <= 4; n++) {
+  if (!usedNow.has(n)) { nextNum = n; break; }
+}
 setDeckFileForm({ deck_name: '', deck_link: '', deck_number: nextNum, deck_set_id: deckFileForm.deck_set_id });
 
     } catch (error) {
