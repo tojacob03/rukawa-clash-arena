@@ -495,27 +495,21 @@ console.log('🔥 fetchData scheduled after deck set creation');
       const { error } = await supabase.from('deck_files').insert([deckData]);
       if (error) throw error;
 
-      console.log('🔥 Deck file created successfully. Refreshing data and preparing form for next deck...');
+      console.log('🔥 Deck file created successfully. Preparing form for next deck...');
       toast({ title: "Success", description: "Deck file created successfully" });
 
       // Allow immediate next submission; don't block on refresh
       setCreateDeckLoading(false);
 
-      // Ensure freshest state before proposing next number
-      await fetchData();
+      // Refresh in background so UI stays responsive
+      fetchData();
 
-      // Re-check used numbers directly from DB to avoid any stale state
-      const { data: numsAfterInsert, error: numsErr } = await supabase
-        .from('deck_files')
-        .select('deck_number')
-        .eq('deck_set_id', deckFileForm.deck_set_id);
-
-      if (numsErr) {
-        console.warn('Could not fetch deck numbers after insert:', numsErr);
-      }
-
-      const usedNow = new Set((numsAfterInsert || []).map((r: any) => r.deck_number));
-      const freeNext = [1, 2, 3, 4].find(n => !usedNow.has(n));
+      // Compute next available number using current state + just inserted number to avoid race
+      const usedNow = new Set(
+        deckFiles.filter(d => d.deck_set_id === deckFileForm.deck_set_id).map(d => d.deck_number)
+      );
+      usedNow.add(deckNumberToUse);
+      const freeNext = [1,2,3,4].find(n => !usedNow.has(n));
 
       if (freeNext === undefined) {
         setShowDeckFileForm(false);
