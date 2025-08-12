@@ -475,8 +475,33 @@ console.log('🔥 fetchData scheduled after deck set creation');
 
     // Start loading to gate duplicate submissions
     setCreateDeckLoading(true);
-    // Use requested deck number initially; handle conflicts on insert
+
+    // Always compute the next free deck number (1-4) from DB to avoid stale UI state
     let deckNumberToUse = deckNumber;
+    try {
+      const { data: existingNumsData, error: existingNumsError } = await supabase
+        .from('deck_files')
+        .select('deck_number')
+        .eq('deck_set_id', deckFileForm.deck_set_id);
+
+      if (existingNumsError) {
+        console.warn('Could not fetch existing deck numbers for set:', existingNumsError);
+      }
+
+      const usedNumbers = new Set((existingNumsData || []).map((r: any) => r.deck_number));
+      if ([1, 2, 3, 4].every(n => usedNumbers.has(n))) {
+        toast({ title: 'Set voll', description: 'Dieses Set hat bereits 4 Decks. Bitte anderes Set wählen.', variant: 'destructive' });
+        setCreateDeckLoading(false);
+        return;
+      }
+
+      const freeNext = [1, 2, 3, 4].find(n => !usedNumbers.has(n)) ?? 1;
+      deckNumberToUse = freeNext;
+      setDeckFileForm(prev => ({ ...prev, deck_number: deckNumberToUse }));
+    } catch (e) {
+      console.warn('Deck number pre-check failed, continuing with provided number', e);
+    }
+
     // Ensure card_ids are clean integers
     const cardIds = parsedDeck.cards.map(id => Math.round(id));
 
