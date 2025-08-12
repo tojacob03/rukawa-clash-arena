@@ -11,33 +11,44 @@ export interface ParsedDeck {
  */
 export function parseDeckLink(deckLink: string): ParsedDeck {
   try {
-    // Check if it's a valid Clash Royale deck link
-    if (!deckLink.includes('clashroyale://') && !deckLink.includes('deck=')) {
+    const input = (deckLink || '').trim();
+    if (!input) return { cards: [], isValid: false };
+
+    // 1) Try to extract the deck param anywhere in the string (case-insensitive)
+    const deckMatch = input.match(/deck=([^&\s]+)/i);
+    let deckParam = deckMatch ? deckMatch[1] : '';
+
+    if (deckParam) {
+      // Decode URL-encoded sequences like %3B
+      deckParam = decodeURIComponent(deckParam);
+    } else {
+      // 2) Fallback: accept 8 IDs entered directly, separated by semicolons/commas/spaces
+      const parts = input
+        .split(/[;_,\s]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const asNums = parts
+        .map((id) => parseInt(id, 10))
+        .filter((id) => !isNaN(id));
+
+      if (asNums.length === 8) {
+        return { cards: asNums, isValid: true };
+      }
+
       return { cards: [], isValid: false };
     }
 
-    // Extract the deck parameter
-    const deckMatch = deckLink.match(/deck=([^&]+)/);
-    if (!deckMatch) {
-      return { cards: [], isValid: false };
-    }
-
-    // Split by semicolon and convert to numbers (handle URL-encoded deck strings)
-    const decoded = decodeURIComponent(deckMatch[1]);
-    const cardIds = decoded
-      .split(';')
+    // Convert the deckParam (e.g. "26000017;27000006;...") to integers
+    const cardIds = deckParam
+      .split(/[;_,\s]+/)
       .map((id) => id.trim())
       .filter((id) => id.length > 0)
       .map((id) => parseInt(id, 10))
       .filter((id) => !isNaN(id));
 
-    // Clash Royale decks should have exactly 8 cards
     const isValid = cardIds.length === 8;
-
-    return {
-      cards: cardIds,
-      isValid
-    };
+    return { cards: cardIds, isValid };
   } catch (error) {
     console.error('Error parsing deck link:', error);
     return { cards: [], isValid: false };
