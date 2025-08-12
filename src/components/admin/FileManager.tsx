@@ -446,14 +446,19 @@ console.log('🔥 fetchData scheduled after deck set creation');
     
     console.log('Creating deck file with form data:', deckFileForm);
     
+    // Gate duplicate submissions early
+    setCreateDeckLoading(true);
+    
     // Validate form data
     if (!deckFileForm.deck_name.trim()) {
       toast({ title: "Error", description: "Deck name is required", variant: "destructive" });
+      setCreateDeckLoading(false);
       return;
     }
 
     if (!deckFileForm.deck_set_id) {
       toast({ title: "Error", description: "Please select a deck set", variant: "destructive" });
+      setCreateDeckLoading(false);
       return;
     }
 
@@ -463,6 +468,7 @@ console.log('🔥 fetchData scheduled after deck set creation');
     console.log('Parsed deck (pre-normalize):', parsedDeck);
     if (!parsedDeck.isValid) {
       toast({ title: "Error", description: "Invalid deck link. Please provide a valid Clash Royale deck link.", variant: "destructive" });
+      setCreateDeckLoading(false);
       return;
     }
 
@@ -470,11 +476,9 @@ console.log('🔥 fetchData scheduled after deck set creation');
     const deckNumber = parseInt(deckFileForm.deck_number.toString(), 10);
     if (isNaN(deckNumber) || deckNumber < 1) {
       toast({ title: "Error", description: "Deck number must be a positive integer", variant: "destructive" });
+      setCreateDeckLoading(false);
       return;
     }
-
-    // Start loading to gate duplicate submissions
-    setCreateDeckLoading(true);
 
     // Always compute the next free deck number (1-4) from DB to avoid stale UI state
     let deckNumberToUse = deckNumber;
