@@ -973,7 +973,18 @@ console.log('🔥 fetchData scheduled after deck set creation');
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Deck Files</CardTitle>
-                <Button onClick={() => setShowDeckFileForm(true)}>
+                <Button onClick={() => {
+                  setShowDeckFileForm(true);
+                  setDeckFileForm(prev => {
+                    if (prev.deck_set_id) return prev;
+                    const first = deckSets[0];
+                    if (first) {
+                      const nextNum = getNextDeckNumberForSet(first.id) ?? 1;
+                      return { ...prev, deck_set_id: first.id, deck_number: nextNum };
+                    }
+                    return prev;
+                  });
+                }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Deck File
                 </Button>
