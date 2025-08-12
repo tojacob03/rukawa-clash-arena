@@ -119,6 +119,8 @@ const [analysisUpload, setAnalysisUpload] = useState({
   file_type: 'match_analysis'
 });
 
+const [deckFormKey, setDeckFormKey] = useState(0);
+
 // Helper to get the next available deck number (1-4) for a selected set
 const getNextDeckNumberForSet = React.useCallback((setId: string): number | null => {
   const used = new Set(
@@ -496,6 +498,9 @@ console.log('🔥 fetchData scheduled after deck set creation');
       console.log('🔥 Deck file created successfully. Refreshing data and preparing form for next deck...');
       toast({ title: "Success", description: "Deck file created successfully" });
 
+      // Allow immediate next submission; don't block on refresh
+      setCreateDeckLoading(false);
+
       // Ensure freshest state before proposing next number
       await fetchData();
 
@@ -517,6 +522,7 @@ console.log('🔥 fetchData scheduled after deck set creation');
         toast({ title: 'Set voll', description: 'Dieses Set hat jetzt 4 Decks. Formular geschlossen.' });
       } else {
         setDeckFileForm({ deck_name: '', deck_link: '', deck_number: freeNext, deck_set_id: deckFileForm.deck_set_id });
+        setDeckFormKey((k) => k + 1);
       }
 
     } catch (error) {
@@ -566,17 +572,27 @@ console.log('🔥 fetchData scheduled after deck set creation');
           const { error: retryError } = await supabase.from('deck_files').insert([retryData]);
           if (!retryError) {
             toast({ title: 'Success', description: `Deck erstellt: #${retryData.deck_number} – ${retryData.deck_name}` });
-            fetchData();
-            const usedNow = new Set(
-              deckFiles.filter(d => d.deck_set_id === deckFileForm.deck_set_id).map(d => d.deck_number)
-            );
-            usedNow.add(retryData.deck_number);
+
+            // Allow immediate next submission; don't block on refresh
+            setCreateDeckLoading(false);
+
+            await fetchData();
+
+            const { data: numsAfterRetry, error: numsErr2 } = await supabase
+              .from('deck_files')
+              .select('deck_number')
+              .eq('deck_set_id', deckFileForm.deck_set_id);
+            if (numsErr2) {
+              console.warn('Could not fetch deck numbers after retry insert:', numsErr2);
+            }
+            const usedNow = new Set((numsAfterRetry || []).map((r: any) => r.deck_number));
             const freeNext = [1,2,3,4].find(n => !usedNow.has(n));
             if (freeNext === undefined) {
               setShowDeckFileForm(false);
               toast({ title: 'Set voll', description: 'Dieses Set hat jetzt 4 Decks. Formular geschlossen.' });
             } else {
               setDeckFileForm({ deck_name: '', deck_link: '', deck_number: freeNext, deck_set_id: deckFileForm.deck_set_id });
+              setDeckFormKey((k) => k + 1);
             }
             return;
           }
@@ -971,7 +987,7 @@ console.log('🔥 fetchData scheduled after deck set creation');
             </CardHeader>
             <CardContent>
               {showDeckFileForm && (
-                <form onSubmit={createDeckFile} className="space-y-4 mb-6 p-4 border rounded-lg">
+                <form key={deckFormKey} onSubmit={createDeckFile} className="space-y-4 mb-6 p-4 border rounded-lg">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="deckFileName">Deck Name</Label>
