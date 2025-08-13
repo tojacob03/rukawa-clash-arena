@@ -567,6 +567,7 @@ console.log('🔥 fetchData scheduled after deck set creation');
 
           if (linkExists) {
             toast({ title: 'Deck-Link bereits vorhanden', description: 'Dieser Deck-Link existiert bereits in diesem Set.', variant: 'destructive' });
+            setCreateDeckLoading(false);
             return;
           }
 
