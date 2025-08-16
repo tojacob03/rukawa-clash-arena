@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -284,9 +284,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_client: {
+        Args: { login_code_param: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_type: Database["public"]["Enums"]["client_type"]
+          is_active: boolean
+        }[]
+      }
       get_admin_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
+      }
+      get_client_analysis_files: {
+        Args: { client_id_param: string }
+        Returns: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          opponent_id: string
+        }[]
+      }
+      get_client_deck_files: {
+        Args: { client_id_param: string }
+        Returns: {
+          card_ids: number[]
+          created_at: string
+          deck_link: string
+          deck_name: string
+          deck_number: number
+          deck_set_id: string
+          id: string
+        }[]
+      }
+      get_client_deck_sets: {
+        Args: { client_id_param: string }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          updated_at: string
+        }[]
+      }
+      get_client_opponents: {
+        Args: { client_id_param: string }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          updated_at: string
+        }[]
       }
       is_admin: {
         Args: { user_id: string }

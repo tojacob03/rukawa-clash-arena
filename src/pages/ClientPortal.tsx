@@ -66,21 +66,28 @@ const ClientPortal = () => {
   const fetchDeckSets = async (clientId: string) => {
     setLoadingDeckSets(true);
     try {
-      const { data, error } = await supabase
-        .from('deck_sets')
-        .select(`
-          *,
-          deck_files (*)
-        `)
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
+      const { data: deckSetsData, error: deckSetsError } = await supabase
+        .rpc('get_client_deck_sets', { client_id_param: clientId });
 
-      if (error) {
-        console.error('Error fetching deck sets:', error);
+      if (deckSetsError) {
+        console.error('Error fetching deck sets:', deckSetsError);
         return;
       }
 
-      setDeckSets(data || []);
+      const { data: deckFilesData, error: deckFilesError } = await supabase
+        .rpc('get_client_deck_files', { client_id_param: clientId });
+
+      if (deckFilesError) {
+        console.error('Error fetching deck files:', deckFilesError);
+        return;
+      }
+
+      const deckSetsWithFiles = deckSetsData.map(deckSet => ({
+        ...deckSet,
+        deck_files: deckFilesData.filter(file => file.deck_set_id === deckSet.id)
+      }));
+
+      setDeckSets(deckSetsWithFiles);
     } catch (err) {
       console.error('Error fetching deck sets:', err);
     } finally {
@@ -91,21 +98,28 @@ const ClientPortal = () => {
   const fetchOpponents = async (clientId: string) => {
     setLoadingOpponents(true);
     try {
-      const { data, error } = await supabase
-        .from('opponents')
-        .select(`
-          *,
-          analysis_files (*)
-        `)
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
+      const { data: opponentsData, error: opponentsError } = await supabase
+        .rpc('get_client_opponents', { client_id_param: clientId });
 
-      if (error) {
-        console.error('Error fetching opponents:', error);
+      if (opponentsError) {
+        console.error('Error fetching opponents:', opponentsError);
         return;
       }
 
-      setOpponents(data || []);
+      const { data: analysisFilesData, error: analysisFilesError } = await supabase
+        .rpc('get_client_analysis_files', { client_id_param: clientId });
+
+      if (analysisFilesError) {
+        console.error('Error fetching analysis files:', analysisFilesError);
+        return;
+      }
+
+      const opponentsWithFiles = opponentsData.map(opponent => ({
+        ...opponent,
+        analysis_files: analysisFilesData.filter(file => file.opponent_id === opponent.id)
+      }));
+
+      setOpponents(opponentsWithFiles);
     } catch (err) {
       console.error('Error fetching opponents:', err);
     } finally {
@@ -119,23 +133,28 @@ const ClientPortal = () => {
     setError('');
 
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('login_code', loginCode.trim())
-        .eq('is_active', true)
-        .single();
+      const { data: clientData, error } = await supabase
+        .rpc('authenticate_client', { login_code_param: loginCode.trim() });
 
-      if (error || !data) {
+      if (error || !clientData || clientData.length === 0) {
         setError('Invalid login code or client not active');
         return;
       }
 
-      setClient(data);
-      if (data.type === 'player') {
-        await fetchDeckSets(data.id);
-      } else if (data.type === 'team') {
-        await fetchOpponents(data.id);
+      const authResult = clientData[0];
+      const clientObject = {
+        id: authResult.client_id,
+        name: authResult.client_name,
+        type: authResult.client_type,
+        is_active: authResult.is_active,
+        login_code: loginCode.trim()
+      };
+
+      setClient(clientObject);
+      if (authResult.client_type === 'player') {
+        await fetchDeckSets(authResult.client_id);
+      } else if (authResult.client_type === 'team') {
+        await fetchOpponents(authResult.client_id);
       }
     } catch (err) {
       setError('Login error. Please try again.');
