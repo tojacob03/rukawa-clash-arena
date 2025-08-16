@@ -89,8 +89,8 @@ const HeroSection = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
           <div className="text-center animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
-            <div className="text-3xl font-bold text-clash-gold mb-2">5+</div>
-            <div className="text-muted-foreground">Years Experience</div>
+            <div className="text-3xl font-bold text-clash-gold mb-2">Harvard Certified</div>
+            <div className="text-muted-foreground">Computer Science</div>
           </div>
           <div className="text-center animate-slide-in-up" style={{ animationDelay: '0.4s' }}>
             <div className="text-3xl font-bold text-clash-gold mb-2">Top 9-12</div>
