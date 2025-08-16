@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Download } from 'lucide-react';
+import { X, Download, ExternalLink } from 'lucide-react';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -71,6 +71,16 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
     }
   };
 
+  const openInNewTab = () => {
+    if (!fileUrl) return;
+    
+    window.open(fileUrl, '_blank');
+    toast({
+      title: "Opening PDF",
+      description: "PDF will open in a new tab",
+    });
+  };
+
   const downloadFile = async () => {
     if (!file || !fileUrl) return;
 
@@ -102,6 +112,16 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={openInNewTab}
+                  disabled={!fileUrl}
+                  className="flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open in New Tab
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={downloadFile}
                   disabled={!fileUrl}
                   className="flex items-center gap-2"
@@ -121,38 +141,60 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
             </div>
           </DialogHeader>
 
-        <div className="px-6 pb-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-[70vh]">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading analysis file...</p>
-              </div>
-            </div>
-          ) : fileUrl ? (
-            <div className="h-[70vh] border rounded-lg overflow-hidden">
-              {(file.mime_type === 'application/pdf' || file.file_name.toLowerCase().endsWith('.pdf')) ? (
-                <iframe
-                  src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                  className="w-full h-full rounded-lg border-0"
-                  title={file.file_name}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <div className="text-center">
-                    <p>Preview not available for this file type</p>
-                    <p className="text-sm mt-2">Use the download button to view the file</p>
-                  </div>
+          <div className="px-6 pb-6 flex-1">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading analysis file...</p>
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-[70vh] text-muted-foreground">
-              <p>Failed to load file</p>
-            </div>
-          )}
+              </div>
+            ) : fileUrl ? (
+              <div className="h-full border rounded-lg overflow-hidden bg-muted/20">
+                {file.file_name.toLowerCase().endsWith('.pdf') ? (
+                  <div className="h-full flex flex-col">
+                    <div className="flex-1 relative">
+                      <iframe
+                        src={`${fileUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                        className="w-full h-full border-0"
+                        title={file.file_name}
+                        allow="fullscreen"
+                      />
+                    </div>
+                    <div className="p-3 bg-muted/40 border-t">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                          If the PDF doesn't load properly, try opening it in a new tab or downloading it.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={openInNewTab}>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Open in New Tab
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={downloadFile}>
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <div className="text-center">
+                      <p>Preview not available for this file type</p>
+                      <p className="text-sm mt-2">Use the download button to view the file</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <p>Failed to load file</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </DialogContent>
     </Dialog>
   );
