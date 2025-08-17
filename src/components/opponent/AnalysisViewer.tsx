@@ -107,9 +107,33 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
       <DialogContent className="w-screen max-w-[96vw] sm:max-w-[1200px] h-[85vh] p-0">
         <div className="flex h-full flex-col">
           <DialogHeader className="p-6 pb-4">
-            <DialogTitle className="text-lg font-semibold">
-              {file.file_name}
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-lg font-semibold">
+                {file.file_name}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={openInNewTab}
+                  disabled={!fileUrl}
+                  className="flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open in New Tab
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={downloadFile}
+                  disabled={!fileUrl}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+            </div>
           </DialogHeader>
 
           <div className="px-6 pb-6 flex-1">
@@ -123,20 +147,18 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
             ) : fileUrl ? (
               <div className="h-full border rounded-lg overflow-hidden bg-muted/20">
                  {file.file_name.toLowerCase().endsWith('.pdf') ? (
-                   <iframe
-                     src={fileUrl}
-                     className="w-full h-full border-0"
+                   <object
+                     data={fileUrl}
+                     type="application/pdf"
+                     className="w-full h-full"
                      title={file.file_name}
-                     onLoad={() => console.log('PDF iframe loaded successfully')}
-                     onError={(e) => {
-                       console.error('PDF iframe error:', e);
-                       toast({
-                         title: "Display Error",
-                         description: "Could not display PDF in browser. Try downloading the file.",
-                         variant: "destructive",
-                       });
-                     }}
-                   />
+                   >
+                     <embed
+                       src={fileUrl}
+                       type="application/pdf"
+                       className="w-full h-full"
+                     />
+                   </object>
                  ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
                     <div className="text-center">
