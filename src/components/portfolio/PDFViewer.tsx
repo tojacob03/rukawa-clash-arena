@@ -143,7 +143,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
             </div>
           ) : (
             <iframe
-              src={`${selectedPdf || pdfUrl}#view=FitH`}
+              src={selectedPdf || pdfUrl}
               className="w-full h-full rounded-lg border-0"
               title={selectedTitle || title}
               onError={() => setError(true)}
