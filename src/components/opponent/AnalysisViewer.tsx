@@ -129,14 +129,6 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
                   <Download className="h-4 w-4" />
                   Download
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={onClose}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </DialogHeader>
@@ -154,12 +146,11 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
                 {file.file_name.toLowerCase().endsWith('.pdf') ? (
                   <div className="h-full flex flex-col">
                     <div className="flex-1 relative">
-                      <iframe
-                        src={`${fileUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
-                        className="w-full h-full border-0"
-                        title={file.file_name}
-                        allow="fullscreen"
-                      />
+                       <iframe
+                         src={`${fileUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                         className="w-full h-full border-0"
+                         title={file.file_name}
+                       />
                     </div>
                     <div className="p-3 bg-muted/40 border-t">
                       <div className="flex items-center justify-between">
