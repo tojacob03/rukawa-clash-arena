@@ -143,34 +143,13 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
               </div>
             ) : fileUrl ? (
               <div className="h-full border rounded-lg overflow-hidden bg-muted/20">
-                {file.file_name.toLowerCase().endsWith('.pdf') ? (
-                  <div className="h-full flex flex-col">
-                    <div className="flex-1 relative">
-                       <iframe
-                         src={`${fileUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
-                         className="w-full h-full border-0"
-                         title={file.file_name}
-                       />
-                    </div>
-                    <div className="p-3 bg-muted/40 border-t">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">
-                          If the PDF doesn't load properly, try opening it in a new tab or downloading it.
-                        </p>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={openInNewTab}>
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Open in New Tab
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={downloadFile}>
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
+                 {file.file_name.toLowerCase().endsWith('.pdf') ? (
+                   <iframe
+                     src={`${fileUrl}#view=FitH`}
+                     className="w-full h-full border-0"
+                     title={file.file_name}
+                   />
+                 ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
                     <div className="text-center">
                       <p>Preview not available for this file type</p>
