@@ -146,7 +146,11 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
               src={selectedPdf || pdfUrl}
               className="w-full h-full rounded-lg border-0"
               title={selectedTitle || title}
-              onError={() => setError(true)}
+              onLoad={() => console.log('Portfolio PDF iframe loaded successfully')}
+              onError={(e) => {
+                console.error('Portfolio PDF iframe error:', e);
+                setError(true);
+              }}
             />
           )}
         </div>

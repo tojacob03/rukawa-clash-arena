@@ -43,12 +43,13 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
     
     setLoading(true);
     try {
+      console.log('Loading file:', file.file_path);
       const { data, error } = await supabase.storage
         .from('analysis-files')
         .download(file.file_path);
 
       if (error) {
-        console.error('Error loading file:', error);
+        console.error('Supabase error loading file:', error);
         toast({
           title: "Load failed",
           description: "Could not load the analysis file.",
@@ -57,7 +58,9 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
         return;
       }
 
+      console.log('File data received, size:', data.size, 'type:', data.type);
       const url = URL.createObjectURL(data);
+      console.log('Blob URL created:', url);
       setFileUrl(url);
     } catch (err) {
       console.error('Error loading file:', err);
@@ -104,33 +107,9 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
       <DialogContent className="w-screen max-w-[96vw] sm:max-w-[1200px] h-[85vh] p-0">
         <div className="flex h-full flex-col">
           <DialogHeader className="p-6 pb-4">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-lg font-semibold">
-                {file.file_name}
-              </DialogTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={openInNewTab}
-                  disabled={!fileUrl}
-                  className="flex items-center gap-2"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Open in New Tab
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={downloadFile}
-                  disabled={!fileUrl}
-                  className="flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
-              </div>
-            </div>
+            <DialogTitle className="text-lg font-semibold">
+              {file.file_name}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="px-6 pb-6 flex-1">
@@ -148,6 +127,15 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
                      src={fileUrl}
                      className="w-full h-full border-0"
                      title={file.file_name}
+                     onLoad={() => console.log('PDF iframe loaded successfully')}
+                     onError={(e) => {
+                       console.error('PDF iframe error:', e);
+                       toast({
+                         title: "Display Error",
+                         description: "Could not display PDF in browser. Try downloading the file.",
+                         variant: "destructive",
+                       });
+                     }}
                    />
                  ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
