@@ -147,18 +147,12 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
             ) : fileUrl ? (
               <div className="h-full border rounded-lg overflow-hidden bg-muted/20">
                  {file.file_name.toLowerCase().endsWith('.pdf') ? (
-                   <object
-                     data={fileUrl}
-                     type="application/pdf"
-                     className="w-full h-full"
+                   <iframe
+                     src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                     className="w-full h-full border-0"
                      title={file.file_name}
-                   >
-                     <embed
-                       src={fileUrl}
-                       type="application/pdf"
-                       className="w-full h-full"
-                     />
-                   </object>
+                     sandbox="allow-same-origin allow-scripts"
+                   />
                  ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
                     <div className="text-center">

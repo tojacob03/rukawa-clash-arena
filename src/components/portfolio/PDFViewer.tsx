@@ -143,9 +143,10 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title, showSelection = false }: PD
             </div>
           ) : (
             <iframe
-              src={selectedPdf || pdfUrl}
+              src={`${selectedPdf || pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
               className="w-full h-full rounded-lg border-0"
               title={selectedTitle || title}
+              sandbox="allow-same-origin allow-scripts"
               onLoad={() => console.log('Portfolio PDF iframe loaded successfully')}
               onError={(e) => {
                 console.error('Portfolio PDF iframe error:', e);
