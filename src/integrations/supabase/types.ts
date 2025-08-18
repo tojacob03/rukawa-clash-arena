@@ -317,6 +317,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_table_security: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          has_anon_policies: boolean
+          policy_count: number
+          rls_enabled: boolean
+          table_name: string
+        }[]
+      }
       authenticate_client: {
         Args: { login_code_param: string }
         Returns: {
