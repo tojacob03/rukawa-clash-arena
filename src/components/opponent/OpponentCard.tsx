@@ -33,21 +33,44 @@ export function OpponentCard({ opponent, onViewAnalysis }: OpponentCardProps) {
 
   const downloadFile = async (file: AnalysisFile) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('analysis-files')
-        .download(file.file_path);
-
-      if (error) {
-        console.error('Error downloading file:', error);
+      // Get session token from sessionStorage (set by ClientPortal)
+      const sessionToken = sessionStorage.getItem('client_session_token');
+      if (!sessionToken) {
         toast({
-          title: "Download failed",
-          description: "Could not download the analysis file.",
+          title: "Authentication required",
+          description: "Please log in again to download files.",
           variant: "destructive",
         });
         return;
       }
 
-      const url = URL.createObjectURL(data);
+      // Use the secure edge function to get signed URL
+      const { data, error } = await supabase.functions.invoke('get-client-file', {
+        body: {
+          sessionToken,
+          filePath: file.file_path,
+          bucket: 'analysis-files'
+        }
+      });
+
+      if (error) {
+        console.error('Error getting file URL:', error);
+        toast({
+          title: "Download failed", 
+          description: "Could not access the analysis file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Download using the signed URL
+      const response = await fetch(data.signedUrl);
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = file.file_name;

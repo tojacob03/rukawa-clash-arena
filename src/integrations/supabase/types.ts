@@ -180,6 +180,30 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_rate_limits: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          last_submission: string | null
+          submission_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address: unknown
+          last_submission?: string | null
+          submission_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          last_submission?: string | null
+          submission_count?: number | null
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -317,7 +341,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      audit_table_security: {
+      admin_security_audit: {
         Args: Record<PropertyKey, never>
         Returns: {
           has_anon_policies: boolean
@@ -326,13 +350,13 @@ export type Database = {
           table_name: string
         }[]
       }
-      authenticate_client: {
-        Args: { login_code_param: string }
+      audit_table_security: {
+        Args: Record<PropertyKey, never>
         Returns: {
-          client_id: string
-          client_name: string
-          client_type: Database["public"]["Enums"]["client_type"]
-          is_active: boolean
+          has_anon_policies: boolean
+          policy_count: number
+          rls_enabled: boolean
+          table_name: string
         }[]
       }
       authenticate_client_secure: {
@@ -361,18 +385,6 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
       }
-      get_client_analysis_files: {
-        Args: { client_id_param: string }
-        Returns: {
-          created_at: string
-          file_name: string
-          file_path: string
-          file_size: number
-          file_type: string
-          id: string
-          opponent_id: string
-        }[]
-      }
       get_client_analysis_files_secure: {
         Args: { session_token_param: string }
         Returns: {
@@ -383,18 +395,6 @@ export type Database = {
           file_type: string
           id: string
           opponent_id: string
-        }[]
-      }
-      get_client_deck_files: {
-        Args: { client_id_param: string }
-        Returns: {
-          card_ids: number[]
-          created_at: string
-          deck_link: string
-          deck_name: string
-          deck_number: number
-          deck_set_id: string
-          id: string
         }[]
       }
       get_client_deck_files_secure: {
@@ -409,36 +409,8 @@ export type Database = {
           id: string
         }[]
       }
-      get_client_deck_sets: {
-        Args: { client_id_param: string }
-        Returns: {
-          created_at: string
-          description: string
-          id: string
-          name: string
-          updated_at: string
-        }[]
-      }
       get_client_deck_sets_secure: {
         Args: { session_token_param: string }
-        Returns: {
-          created_at: string
-          description: string
-          id: string
-          name: string
-          updated_at: string
-        }[]
-      }
-      get_client_file_signed_url: {
-        Args: {
-          bucket_name?: string
-          client_id_param: string
-          file_path_param: string
-        }
-        Returns: string
-      }
-      get_client_opponents: {
-        Args: { client_id_param: string }
         Returns: {
           created_at: string
           description: string
@@ -457,9 +429,30 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_session_client_info: {
+        Args: { session_token_param: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_type: Database["public"]["Enums"]["client_type"]
+        }[]
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      security_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      submit_contact_form_secure: {
+        Args: {
+          email_param: string
+          ip_address_param?: unknown
+          message_param: string
+          name_param: string
+        }
+        Returns: string
       }
       validate_client_session: {
         Args: { session_token_param: string }

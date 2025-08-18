@@ -22,13 +22,16 @@ const ContactSection = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .insert([{
-          name: formData.name,
-          email: formData.email,
-          message: formData.message
-        }]);
+      // Get client IP for rate limiting (best effort)
+      const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => null);
+      const ipData = ipResponse ? await ipResponse.json() : null;
+
+      const { data, error } = await supabase.rpc('submit_contact_form_secure', {
+        name_param: formData.name,
+        email_param: formData.email,
+        message_param: formData.message,
+        ip_address_param: ipData?.ip || '0.0.0.0'
+      });
 
       if (error) {
         throw error;
@@ -39,13 +42,23 @@ const ContactSection = () => {
         description: "Thank you for your message. I'll get back to you soon.",
       });
       setFormData({ name: "", email: "", message: "" });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
-      toast({
-        title: "Error",
-        description: "There was an error sending your message. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Handle rate limiting specifically
+      if (error.message?.includes('Rate limit exceeded')) {
+        toast({
+          title: "Rate Limit Exceeded",
+          description: "Too many submissions. Please wait an hour before sending another message.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "There was an error sending your message. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

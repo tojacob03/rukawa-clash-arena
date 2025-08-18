@@ -185,6 +185,9 @@ const ClientPortal = () => {
 
       setClient(clientObject);
       
+      // Store session token securely
+      sessionStorage.setItem('client_session_token', authResult.session_token);
+      
       // Fetch data using the session token
       if (authResult.client_type === 'player') {
         await fetchDeckSets(authResult.session_token);
@@ -204,6 +207,9 @@ const ClientPortal = () => {
   };
 
   const handleLogout = () => {
+    // Clear session token from storage
+    sessionStorage.removeItem('client_session_token');
+    
     setClient(null);
     setDeckSets([]);
     setOpponents([]);
