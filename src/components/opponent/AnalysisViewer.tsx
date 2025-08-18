@@ -19,9 +19,10 @@ interface AnalysisViewerProps {
   file: AnalysisFile | null;
   isOpen: boolean;
   onClose: () => void;
+  sessionToken?: string;
 }
 
-export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
+export function AnalysisViewer({ file, isOpen, onClose, sessionToken }: AnalysisViewerProps) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -39,29 +40,35 @@ export function AnalysisViewer({ file, isOpen, onClose }: AnalysisViewerProps) {
   }, [file, isOpen]);
 
   const loadFile = async () => {
-    if (!file) return;
+    if (!file || !sessionToken) return;
     
     setLoading(true);
     try {
-      console.log('Loading file:', file.file_path);
-      const { data, error } = await supabase.storage
-        .from('analysis-files')
-        .download(file.file_path);
+      console.log('Loading file via edge function:', file.file_path);
+      
+      // Use edge function for secure file access
+      const { data, error } = await supabase.functions.invoke('get-client-file', {
+        body: {
+          sessionToken,
+          filePath: file.file_path,
+          bucket: 'analysis-files'
+        }
+      });
 
       if (error) {
-        console.error('Supabase error loading file:', error);
+        console.error('Edge function error:', error);
         toast({
           title: "Load failed",
-          description: "Could not load the analysis file.",
+          description: "Could not access the analysis file.",
           variant: "destructive",
         });
         return;
       }
 
-      console.log('File data received, size:', data.size, 'type:', data.type);
-      const url = URL.createObjectURL(data);
-      console.log('Blob URL created:', url);
-      setFileUrl(url);
+      if (data?.signedUrl) {
+        console.log('Signed URL received successfully');
+        setFileUrl(data.signedUrl);
+      }
     } catch (err) {
       console.error('Error loading file:', err);
       toast({

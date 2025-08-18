@@ -79,32 +79,65 @@ export type Database = {
           },
         ]
       }
+      client_login_attempts: {
+        Row: {
+          attempted_at: string
+          id: string
+          ip_address: unknown | null
+          login_code: string
+          success: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          id?: string
+          ip_address?: unknown | null
+          login_code: string
+          success?: boolean
+        }
+        Update: {
+          attempted_at?: string
+          id?: string
+          ip_address?: unknown | null
+          login_code?: string
+          success?: boolean
+        }
+        Relationships: []
+      }
       client_sessions: {
         Row: {
           client_id: string
           created_at: string
+          expires_at: string
           id: string
           ip_address: unknown | null
+          is_active: boolean
           last_active: string
           login_code: string
+          session_token: string | null
           user_agent: string | null
         }
         Insert: {
           client_id: string
           created_at?: string
+          expires_at?: string
           id?: string
           ip_address?: unknown | null
+          is_active?: boolean
           last_active?: string
           login_code: string
+          session_token?: string | null
           user_agent?: string | null
         }
         Update: {
           client_id?: string
           created_at?: string
+          expires_at?: string
           id?: string
           ip_address?: unknown | null
+          is_active?: boolean
           last_active?: string
           login_code?: string
+          session_token?: string | null
           user_agent?: string | null
         }
         Relationships: [
@@ -293,12 +326,42 @@ export type Database = {
           is_active: boolean
         }[]
       }
+      authenticate_client_secure: {
+        Args: {
+          ip_address_param?: unknown
+          login_code_param: string
+          user_agent_param?: string
+        }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_type: Database["public"]["Enums"]["client_type"]
+          is_active: boolean
+          session_token: string
+        }[]
+      }
+      cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_admin_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
       }
       get_client_analysis_files: {
         Args: { client_id_param: string }
+        Returns: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          opponent_id: string
+        }[]
+      }
+      get_client_analysis_files_secure: {
+        Args: { session_token_param: string }
         Returns: {
           created_at: string
           file_name: string
@@ -321,6 +384,18 @@ export type Database = {
           id: string
         }[]
       }
+      get_client_deck_files_secure: {
+        Args: { session_token_param: string }
+        Returns: {
+          card_ids: number[]
+          created_at: string
+          deck_link: string
+          deck_name: string
+          deck_number: number
+          deck_set_id: string
+          id: string
+        }[]
+      }
       get_client_deck_sets: {
         Args: { client_id_param: string }
         Returns: {
@@ -330,6 +405,24 @@ export type Database = {
           name: string
           updated_at: string
         }[]
+      }
+      get_client_deck_sets_secure: {
+        Args: { session_token_param: string }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          updated_at: string
+        }[]
+      }
+      get_client_file_signed_url: {
+        Args: {
+          bucket_name?: string
+          client_id_param: string
+          file_path_param: string
+        }
+        Returns: string
       }
       get_client_opponents: {
         Args: { client_id_param: string }
@@ -341,9 +434,27 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_client_opponents_secure: {
+        Args: { session_token_param: string }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          updated_at: string
+        }[]
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      validate_client_session: {
+        Args: { session_token_param: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_type: Database["public"]["Enums"]["client_type"]
+        }[]
       }
     }
     Enums: {

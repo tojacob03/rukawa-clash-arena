@@ -17,6 +17,7 @@ interface Client {
   type: 'player' | 'team';
   login_code: string;
   is_active: boolean;
+  sessionToken: string;
 }
 
 interface DeckSet {
@@ -63,22 +64,30 @@ const ClientPortal = () => {
   const [loadingOpponents, setLoadingOpponents] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchDeckSets = async (clientId: string) => {
+  const fetchDeckSets = async (sessionToken: string) => {
     setLoadingDeckSets(true);
     try {
       const { data: deckSetsData, error: deckSetsError } = await supabase
-        .rpc('get_client_deck_sets', { client_id_param: clientId });
+        .rpc('get_client_deck_sets_secure', { session_token_param: sessionToken });
 
       if (deckSetsError) {
         console.error('Error fetching deck sets:', deckSetsError);
+        if (deckSetsError.message?.includes('session')) {
+          setError('Session expired. Please log in again.');
+          handleLogout();
+        }
         return;
       }
 
       const { data: deckFilesData, error: deckFilesError } = await supabase
-        .rpc('get_client_deck_files', { client_id_param: clientId });
+        .rpc('get_client_deck_files_secure', { session_token_param: sessionToken });
 
       if (deckFilesError) {
         console.error('Error fetching deck files:', deckFilesError);
+        if (deckFilesError.message?.includes('session')) {
+          setError('Session expired. Please log in again.');
+          handleLogout();
+        }
         return;
       }
 
@@ -95,22 +104,30 @@ const ClientPortal = () => {
     }
   };
 
-  const fetchOpponents = async (clientId: string) => {
+  const fetchOpponents = async (sessionToken: string) => {
     setLoadingOpponents(true);
     try {
       const { data: opponentsData, error: opponentsError } = await supabase
-        .rpc('get_client_opponents', { client_id_param: clientId });
+        .rpc('get_client_opponents_secure', { session_token_param: sessionToken });
 
       if (opponentsError) {
         console.error('Error fetching opponents:', opponentsError);
+        if (opponentsError.message?.includes('session')) {
+          setError('Session expired. Please log in again.');
+          handleLogout();
+        }
         return;
       }
 
       const { data: analysisFilesData, error: analysisFilesError } = await supabase
-        .rpc('get_client_analysis_files', { client_id_param: clientId });
+        .rpc('get_client_analysis_files_secure', { session_token_param: sessionToken });
 
       if (analysisFilesError) {
         console.error('Error fetching analysis files:', analysisFilesError);
+        if (analysisFilesError.message?.includes('session')) {
+          setError('Session expired. Please log in again.');
+          handleLogout();
+        }
         return;
       }
 
@@ -134,9 +151,24 @@ const ClientPortal = () => {
 
     try {
       const { data: clientData, error } = await supabase
-        .rpc('authenticate_client', { login_code_param: loginCode.trim() });
+        .rpc('authenticate_client_secure', { 
+          login_code_param: loginCode.trim(),
+          ip_address_param: null,
+          user_agent_param: navigator.userAgent 
+        });
 
-      if (error || !clientData || clientData.length === 0) {
+      if (error) {
+        if (error.message?.includes('Too many failed')) {
+          setError('Too many failed login attempts. Please try again later.');
+        } else if (error.message?.includes('Invalid login code')) {
+          setError('Invalid login code or inactive client.');
+        } else {
+          setError('Login error. Please try again.');
+        }
+        return;
+      }
+
+      if (!clientData || clientData.length === 0) {
         setError('Invalid login code or client not active');
         return;
       }
@@ -147,17 +179,25 @@ const ClientPortal = () => {
         name: authResult.client_name,
         type: authResult.client_type,
         is_active: authResult.is_active,
-        login_code: loginCode.trim()
+        login_code: loginCode.trim(),
+        sessionToken: authResult.session_token
       };
 
       setClient(clientObject);
+      
+      // Fetch data using the session token
       if (authResult.client_type === 'player') {
-        await fetchDeckSets(authResult.client_id);
+        await fetchDeckSets(authResult.session_token);
       } else if (authResult.client_type === 'team') {
-        await fetchOpponents(authResult.client_id);
+        await fetchOpponents(authResult.session_token);
       }
-    } catch (err) {
-      setError('Login error. Please try again.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      if (err.message?.includes('Too many failed')) {
+        setError('Too many failed login attempts. Please try again later.');
+      } else {
+        setError('Login error. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -300,6 +340,7 @@ const ClientPortal = () => {
             file={selectedAnalysisFile}
             isOpen={showAnalysisViewer}
             onClose={handleCloseAnalysisViewer}
+            sessionToken={client.sessionToken}
           />
         </div>
       </div>
