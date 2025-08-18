@@ -1,0 +1,85 @@
+-- Complete rewrite of authenticate_client_secure to fix all ambiguous references
+CREATE OR REPLACE FUNCTION public.authenticate_client_secure(login_code_param text, ip_address_param inet DEFAULT NULL::inet, user_agent_param text DEFAULT NULL::text)
+ RETURNS TABLE(ret_client_id uuid, ret_client_name text, ret_client_type client_type, ret_is_active boolean, ret_session_token text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  found_client_id uuid;
+  found_client_name text;
+  found_client_type client_type;
+  found_is_active boolean;
+  new_session_token text;
+  recent_attempts integer;
+  chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz0123456789';
+  i integer;
+BEGIN
+  -- Rate limiting: Check for too many recent failed attempts
+  SELECT COUNT(*) INTO recent_attempts
+  FROM public.client_login_attempts cla
+  WHERE cla.login_code = login_code_param
+    AND cla.attempted_at > now() - interval '1 hour'
+    AND cla.success = false;
+
+  IF recent_attempts >= 5 THEN
+    -- Log the blocked attempt
+    INSERT INTO public.client_login_attempts (login_code, ip_address, attempted_at, success)
+    VALUES (login_code_param, ip_address_param, now(), false);
+    
+    RAISE EXCEPTION 'Too many failed login attempts. Please try again later.';
+  END IF;
+
+  -- Find the client
+  SELECT c.id, c.name, c.type, c.is_active
+  INTO found_client_id, found_client_name, found_client_type, found_is_active
+  FROM public.clients c
+  WHERE c.login_code = login_code_param;
+
+  -- Log the attempt
+  INSERT INTO public.client_login_attempts (login_code, ip_address, attempted_at, success)
+  VALUES (login_code_param, ip_address_param, now(), found_client_id IS NOT NULL AND found_is_active);
+
+  -- Check if client exists and is active
+  IF found_client_id IS NULL OR found_is_active = false THEN
+    RAISE EXCEPTION 'Invalid login code or inactive client';
+  END IF;
+
+  -- Generate secure session token using random()
+  new_session_token := '';
+  FOR i IN 1..64 LOOP
+    new_session_token := new_session_token || substr(chars, floor(random() * length(chars) + 1)::integer, 1);
+  END LOOP;
+
+  -- Delete any existing sessions for this client first
+  DELETE FROM public.client_sessions cs WHERE cs.client_id = found_client_id;
+
+  -- Create new session
+  INSERT INTO public.client_sessions (
+    client_id, 
+    session_token, 
+    ip_address, 
+    user_agent, 
+    login_code,
+    expires_at,
+    is_active
+  ) VALUES (
+    found_client_id, 
+    new_session_token, 
+    ip_address_param, 
+    user_agent_param, 
+    login_code_param,
+    now() + interval '24 hours',
+    true
+  );
+
+  -- Return client info with session token
+  RETURN QUERY
+  SELECT 
+    found_client_id,
+    found_client_name,
+    found_client_type,
+    found_is_active,
+    new_session_token;
+END;
+$function$;
