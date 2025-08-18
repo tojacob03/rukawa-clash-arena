@@ -344,6 +344,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      generate_secure_login_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_admin_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
