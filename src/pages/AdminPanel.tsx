@@ -29,6 +29,7 @@ const AdminPanel = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,32 +56,65 @@ const AdminPanel = () => {
     }
   };
 
-  // Handle admin login
+  // Handle admin login with timeout and robust error handling
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
+    setIsAuthenticating(true);
     setError('');
 
+    console.log('[AdminPanel] Starting login attempt for:', email);
+    const loginStartTime = Date.now();
+
+    // Create abort controller for timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, 15000); // 15 second timeout
+
     try {
+      console.log('[AdminPanel] Calling signInWithPassword...');
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      clearTimeout(timeoutId);
+      const loginDuration = Date.now() - loginStartTime;
+      console.log(`[AdminPanel] Login response received in ${loginDuration}ms`);
+
       if (error) {
-        setError(error.message);
+        console.error('[AdminPanel] Auth error:', error);
+        setError(error.message || 'Login failed. Please check your credentials.');
       } else if (data.user) {
+        console.log('[AdminPanel] User authenticated, checking admin status...');
+        const adminCheckStart = Date.now();
+        
         const adminStatus = await checkAdminStatus(data.user.id);
+        const adminCheckDuration = Date.now() - adminCheckStart;
+        console.log(`[AdminPanel] Admin check completed in ${adminCheckDuration}ms, result:`, adminStatus);
+        
         if (!adminStatus) {
           setError('Access denied. Admin privileges required.');
+          console.log('[AdminPanel] Not admin, signing out...');
           await supabase.auth.signOut();
         }
       }
-    } catch (error) {
-      setError('Authentication failed');
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      const loginDuration = Date.now() - loginStartTime;
+      
+      if (error.name === 'AbortError') {
+        console.error(`[AdminPanel] Login timeout after ${loginDuration}ms`);
+        setError('Login timeout. Please check your connection and try again.');
+      } else {
+        console.error('[AdminPanel] Login exception:', error);
+        setError('Authentication failed. Please try again.');
+      }
     }
     
     setAuthLoading(false);
+    setIsAuthenticating(false);
   };
 
   // Handle logout
@@ -148,12 +182,13 @@ const AdminPanel = () => {
       isWindowFocused = false;
     };
 
-    // Set up auth state listener - only when window is focused
+    // Set up auth state listener - respect focus unless authenticating
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id || 'No user', 'Window focused:', isWindowFocused);
+        console.log('Auth state change:', event, session?.user?.id || 'No user', 'Window focused:', isWindowFocused, 'Authenticating:', isAuthenticating);
         
-        if (!isMounted || !isWindowFocused) return;
+        // Allow processing during authentication even if window not focused
+        if (!isMounted || (!isWindowFocused && !isAuthenticating)) return;
         
         // Only handle actual sign in/out events, ignore token refresh
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
@@ -251,7 +286,12 @@ const AdminPanel = () => {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full" disabled={authLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={authLoading}
+                onClick={() => setIsAuthenticating(true)}
+              >
                 <LogIn className="h-4 w-4 mr-2" />
                 {authLoading ? 'Signing in...' : 'Sign In'}
               </Button>
