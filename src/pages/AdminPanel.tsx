@@ -34,24 +34,32 @@ const AdminPanel = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Check if current user is admin
+  // Check if current user is admin with timeout
   const checkAdminStatus = async (userId: string): Promise<boolean> => {
     try {
-      console.log('Checking admin status for user:', userId);
+      console.log('[AdminPanel] Checking admin status for user:', userId);
+      
+      // Add timeout to admin check
+      const abortController = new AbortController();
+      const timeoutId = setTimeout(() => abortController.abort(), 10000); // 10 second timeout
       
       const { data, error } = await supabase
         .rpc('is_admin', { user_id: userId });
 
-      console.log('Admin check result:', { data, error });
+      clearTimeout(timeoutId);
+      console.log('[AdminPanel] Admin check result:', { data, error });
 
       if (error) {
-        console.error('Error checking admin status:', error);
+        console.error('[AdminPanel] Error checking admin status:', error);
         return false;
       }
 
       return data === true;
-    } catch (error) {
-      console.error('Exception checking admin status:', error);
+    } catch (error: any) {
+      console.error('[AdminPanel] Exception checking admin status:', error);
+      if (error.name === 'AbortError') {
+        console.error('[AdminPanel] Admin check timeout');
+      }
       return false;
     }
   };
@@ -135,25 +143,35 @@ const AdminPanel = () => {
     
     const initializeAuth = async () => {
       try {
-        console.log('Getting current session...');
+        console.log('[AdminPanel] Getting current session...');
+        const sessionStartTime = Date.now();
+        
+        // Add timeout to session retrieval
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => abortController.abort(), 10000);
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
+        clearTimeout(timeoutId);
+        const sessionDuration = Date.now() - sessionStartTime;
+        console.log(`[AdminPanel] Session retrieved in ${sessionDuration}ms`);
+        
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('[AdminPanel] Error getting session:', error);
           if (isMounted) setLoading(false);
           return;
         }
 
-        console.log('Current session user:', session?.user?.id || 'None');
+        console.log('[AdminPanel] Current session user:', session?.user?.id || 'None');
 
         if (isMounted) {
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            console.log('Checking admin status...');
+            console.log('[AdminPanel] Checking admin status...');
             const adminStatus = await checkAdminStatus(session.user.id);
-            console.log('Admin status result:', adminStatus);
+            console.log('[AdminPanel] Admin status result:', adminStatus);
             if (isMounted) {
               setIsAdmin(adminStatus);
               adminStatusChecked = true;
@@ -162,11 +180,14 @@ const AdminPanel = () => {
             if (isMounted) setIsAdmin(false);
           }
           
-          console.log('Setting loading to false');
+          console.log('[AdminPanel] Setting loading to false');
           setLoading(false);
         }
-      } catch (error) {
-        console.error('Error in initializeAuth:', error);
+      } catch (error: any) {
+        console.error('[AdminPanel] Error in initializeAuth:', error);
+        if (error.name === 'AbortError') {
+          console.error('[AdminPanel] Session retrieval timeout');
+        }
         if (isMounted) setLoading(false);
       }
     };
