@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { DeckItem } from '@/components/deck/DeckItem';
 import { OpponentCard } from '@/components/opponent/OpponentCard';
 import { AnalysisViewer } from '@/components/opponent/AnalysisViewer';
+import { withTimeout, withSupabaseTimeout } from '@/lib/withTimeout';
+import { safeStorage } from '@/lib/safeStorage';
 
 interface Client {
   id: string;
@@ -67,65 +69,43 @@ const ClientPortal = () => {
   const fetchDeckSets = async (sessionToken: string) => {
     setLoadingDeckSets(true);
     console.log('[ClientPortal] Fetching deck sets...');
-    const fetchStart = Date.now();
 
     try {
-      // Create timeout controller
-      const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), 15000);
-
-      const deckSetsPromise = supabase
-        .rpc('get_client_deck_sets_secure', { session_token_param: sessionToken });
-      
       console.log('[ClientPortal] Calling get_client_deck_sets_secure...');
-      const { data: deckSetsData, error: deckSetsError } = await deckSetsPromise;
-      
-      clearTimeout(timeoutId);
-      console.log(`[ClientPortal] Deck sets response in ${Date.now() - fetchStart}ms`);
+      const deckSetsResult = await withSupabaseTimeout(
+        async () => await supabase.rpc('get_client_deck_sets_secure', { session_token_param: sessionToken }),
+        15000,
+        'deck sets fetch'
+      );
 
-      if (deckSetsError) {
-        console.error('[ClientPortal] Error fetching deck sets:', deckSetsError);
-        if (deckSetsError.message?.includes('session')) {
-          setError('Session expired. Please log in again.');
-          handleLogout();
-        } else {
-          setError('Failed to load deck sets. Please try again.');
-        }
+      if (deckSetsResult.error) {
+        console.error('[ClientPortal] Error fetching deck sets:', deckSetsResult.error);
+        setError('Failed to load deck sets. Please try again.');
         return;
       }
 
-      const filesStart = Date.now();
-      const abortController2 = new AbortController();
-      const timeoutId2 = setTimeout(() => abortController2.abort(), 15000);
+      const deckFilesResult = await withSupabaseTimeout(
+        async () => await supabase.rpc('get_client_deck_files_secure', { session_token_param: sessionToken }),
+        15000,
+        'deck files fetch'
+      );
 
-      console.log('[ClientPortal] Calling get_client_deck_files_secure...');
-      const { data: deckFilesData, error: deckFilesError } = await supabase
-        .rpc('get_client_deck_files_secure', { session_token_param: sessionToken });
-
-      clearTimeout(timeoutId2);
-      console.log(`[ClientPortal] Deck files response in ${Date.now() - filesStart}ms`);
-
-      if (deckFilesError) {
-        console.error('[ClientPortal] Error fetching deck files:', deckFilesError);
-        if (deckFilesError.message?.includes('session')) {
-          setError('Session expired. Please log in again.');
-          handleLogout();
-        } else {
-          setError('Failed to load deck files. Please try again.');
-        }
+      if (deckFilesResult.error) {
+        console.error('[ClientPortal] Error fetching deck files:', deckFilesResult.error);
+        setError('Failed to load deck files. Please try again.');
         return;
       }
 
-      const deckSetsWithFiles = deckSetsData.map(deckSet => ({
+      const deckSetsWithFiles = (deckSetsResult.data || []).map((deckSet: any) => ({
         ...deckSet,
-        deck_files: deckFilesData.filter(file => file.deck_set_id === deckSet.id)
+        deck_files: (deckFilesResult.data || []).filter((file: any) => file.deck_set_id === deckSet.id)
       }));
 
       setDeckSets(deckSetsWithFiles);
       console.log(`[ClientPortal] Successfully loaded ${deckSetsWithFiles.length} deck sets`);
     } catch (err: any) {
       console.error('[ClientPortal] Exception fetching deck sets:', err);
-      if (err.name === 'AbortError') {
+      if (err.name === 'TimeoutError') {
         setError('Request timeout. Please check your connection and try again.');
       } else {
         setError('Failed to load deck sets. Please try again.');
@@ -138,63 +118,43 @@ const ClientPortal = () => {
   const fetchOpponents = async (sessionToken: string) => {
     setLoadingOpponents(true);
     console.log('[ClientPortal] Fetching opponents...');
-    const fetchStart = Date.now();
 
     try {
-      // Create timeout controller
-      const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), 15000);
-
       console.log('[ClientPortal] Calling get_client_opponents_secure...');
-      const { data: opponentsData, error: opponentsError } = await supabase
-        .rpc('get_client_opponents_secure', { session_token_param: sessionToken });
+      const opponentsResult = await withSupabaseTimeout(
+        async () => await supabase.rpc('get_client_opponents_secure', { session_token_param: sessionToken }),
+        15000,
+        'opponents fetch'
+      );
 
-      clearTimeout(timeoutId);
-      console.log(`[ClientPortal] Opponents response in ${Date.now() - fetchStart}ms`);
-
-      if (opponentsError) {
-        console.error('[ClientPortal] Error fetching opponents:', opponentsError);
-        if (opponentsError.message?.includes('session')) {
-          setError('Session expired. Please log in again.');
-          handleLogout();
-        } else {
-          setError('Failed to load opponents. Please try again.');
-        }
+      if (opponentsResult.error) {
+        console.error('[ClientPortal] Error fetching opponents:', opponentsResult.error);
+        setError('Failed to load opponents. Please try again.');
         return;
       }
 
-      const analysisStart = Date.now();
-      const abortController2 = new AbortController();
-      const timeoutId2 = setTimeout(() => abortController2.abort(), 15000);
+      const analysisResult = await withSupabaseTimeout(
+        async () => await supabase.rpc('get_client_analysis_files_secure', { session_token_param: sessionToken }),
+        15000,
+        'analysis files fetch'
+      );
 
-      console.log('[ClientPortal] Calling get_client_analysis_files_secure...');
-      const { data: analysisFilesData, error: analysisFilesError } = await supabase
-        .rpc('get_client_analysis_files_secure', { session_token_param: sessionToken });
-
-      clearTimeout(timeoutId2);
-      console.log(`[ClientPortal] Analysis files response in ${Date.now() - analysisStart}ms`);
-
-      if (analysisFilesError) {
-        console.error('[ClientPortal] Error fetching analysis files:', analysisFilesError);
-        if (analysisFilesError.message?.includes('session')) {
-          setError('Session expired. Please log in again.');
-          handleLogout();
-        } else {
-          setError('Failed to load analysis files. Please try again.');
-        }
+      if (analysisResult.error) {
+        console.error('[ClientPortal] Error fetching analysis files:', analysisResult.error);
+        setError('Failed to load analysis files. Please try again.');
         return;
       }
 
-      const opponentsWithFiles = opponentsData.map(opponent => ({
+      const opponentsWithFiles = (opponentsResult.data || []).map((opponent: any) => ({
         ...opponent,
-        analysis_files: analysisFilesData.filter(file => file.opponent_id === opponent.id)
+        analysis_files: (analysisResult.data || []).filter((file: any) => file.opponent_id === opponent.id)
       }));
 
       setOpponents(opponentsWithFiles);
       console.log(`[ClientPortal] Successfully loaded ${opponentsWithFiles.length} opponents`);
     } catch (err: any) {
       console.error('[ClientPortal] Exception fetching opponents:', err);
-      if (err.name === 'AbortError') {
+      if (err.name === 'TimeoutError') {
         setError('Request timeout. Please check your connection and try again.');
       } else {
         setError('Failed to load opponents. Please try again.');
@@ -210,30 +170,24 @@ const ClientPortal = () => {
     setError('');
 
     console.log('[ClientPortal] Starting login attempt with code:', loginCode.trim());
-    const loginStart = Date.now();
 
     try {
-      // Create timeout controller for authentication
-      const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), 15000);
-
       console.log('[ClientPortal] Calling authenticate_client_secure...');
-      const { data: clientData, error } = await supabase
-        .rpc('authenticate_client_secure', { 
+      const authResult = await withSupabaseTimeout(
+        async () => await supabase.rpc('authenticate_client_secure', { 
           login_code_param: loginCode.trim(),
           ip_address_param: null,
           user_agent_param: navigator.userAgent 
-        });
+        }),
+        15000,
+        'client authentication'
+      );
 
-      clearTimeout(timeoutId);
-      const loginDuration = Date.now() - loginStart;
-      console.log(`[ClientPortal] Authentication response in ${loginDuration}ms`);
-
-      if (error) {
-        console.error('[ClientPortal] Authentication error:', error);
-        if (error.message?.includes('Too many failed')) {
+      if (authResult.error) {
+        console.error('[ClientPortal] Authentication error:', authResult.error);
+        if (authResult.error.message?.includes('Too many failed')) {
           setError('Too many failed login attempts. Please try again later.');
-        } else if (error.message?.includes('Invalid login code')) {
+        } else if (authResult.error.message?.includes('Invalid login code')) {
           setError('Invalid login code or inactive client.');
         } else {
           setError('Login failed. Please check your code and try again.');
@@ -241,39 +195,38 @@ const ClientPortal = () => {
         return;
       }
 
-      if (!clientData || clientData.length === 0) {
+      if (!authResult.data || (authResult.data as any[]).length === 0) {
         setError('Invalid login code or client not active');
         return;
       }
 
-      const authResult = clientData[0];
-      console.log(`[ClientPortal] Login successful for client:`, authResult.client_name, authResult.client_type);
+      const clientData = (authResult.data as any[])[0];
+      console.log(`[ClientPortal] Login successful for client:`, clientData.client_name, clientData.client_type);
       
       const clientObject = {
-        id: authResult.client_id,
-        name: authResult.client_name,
-        type: authResult.client_type,
-        is_active: authResult.is_active,
+        id: clientData.client_id,
+        name: clientData.client_name,
+        type: clientData.client_type,
+        is_active: clientData.is_active,
         login_code: loginCode.trim(),
-        sessionToken: authResult.session_token
+        sessionToken: clientData.session_token
       };
 
       setClient(clientObject);
       
       // Store session token securely
-      sessionStorage.setItem('client_session_token', authResult.session_token);
+      sessionStorage.setItem('client_session_token', clientData.session_token);
       
       // Fetch data using the session token
-      if (authResult.client_type === 'player') {
-        await fetchDeckSets(authResult.session_token);
-      } else if (authResult.client_type === 'team') {
-        await fetchOpponents(authResult.session_token);
+      if (clientData.client_type === 'player') {
+        await fetchDeckSets(clientData.session_token);
+      } else if (clientData.client_type === 'team') {
+        await fetchOpponents(clientData.session_token);
       }
     } catch (err: any) {
-      const loginDuration = Date.now() - loginStart;
-      console.error('[ClientPortal] Login exception after', loginDuration + 'ms:', err);
+      console.error('[ClientPortal] Login exception:', err);
       
-      if (err.name === 'AbortError') {
+      if (err.name === 'TimeoutError') {
         setError('Login timeout. Please check your connection and try again.');
       } else if (err.message?.includes('Too many failed')) {
         setError('Too many failed login attempts. Please try again later.');
@@ -296,6 +249,13 @@ const ClientPortal = () => {
     setError('');
     setSelectedAnalysisFile(null);
     setShowAnalysisViewer(false);
+  };
+
+  // Reset portal session and reload
+  const handleResetPortalSession = () => {
+    console.log('[ClientPortal] Resetting portal session...');
+    safeStorage.resetSupabaseSession();
+    window.location.reload();
   };
 
   const handleViewAnalysis = (file: AnalysisFile) => {
@@ -466,6 +426,15 @@ const ClientPortal = () => {
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Logging in...' : 'Login'}
+            </Button>
+
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full" 
+              onClick={handleResetPortalSession}
+            >
+              Portal-Session zurücksetzen
             </Button>
           </form>
         </CardContent>

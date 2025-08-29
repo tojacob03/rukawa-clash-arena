@@ -21,6 +21,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ClientManager } from '@/components/admin/ClientManager';
 import { FileManager } from '@/components/admin/FileManager';
 import { AdminStats } from '@/components/admin/AdminStats';
+import { withTimeout, withSupabaseTimeout } from '@/lib/withTimeout';
+import { safeStorage } from '@/lib/safeStorage';
 import type { User, Session } from '@supabase/supabase-js';
 
 const AdminPanel = () => {
@@ -34,37 +36,32 @@ const AdminPanel = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Check if current user is admin with timeout
+  // Check if current user is admin with robust timeout
   const checkAdminStatus = async (userId: string): Promise<boolean> => {
     try {
       console.log('[AdminPanel] Checking admin status for user:', userId);
       
-      // Add timeout to admin check
-      const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), 10000); // 10 second timeout
-      
-      const { data, error } = await supabase
-        .rpc('is_admin', { user_id: userId });
+      const result = await withSupabaseTimeout(
+        async () => await supabase.rpc('is_admin', { user_id: userId }),
+        10000,
+        'admin status check'
+      );
 
-      clearTimeout(timeoutId);
-      console.log('[AdminPanel] Admin check result:', { data, error });
+      console.log('[AdminPanel] Admin check result:', result);
 
-      if (error) {
-        console.error('[AdminPanel] Error checking admin status:', error);
+      if (result.error) {
+        console.error('[AdminPanel] Error checking admin status:', result.error);
         return false;
       }
 
-      return data === true;
+      return result.data === true;
     } catch (error: any) {
       console.error('[AdminPanel] Exception checking admin status:', error);
-      if (error.name === 'AbortError') {
-        console.error('[AdminPanel] Admin check timeout');
-      }
       return false;
     }
   };
 
-  // Handle admin login with timeout and robust error handling
+  // Handle admin login with robust timeout handling
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
@@ -72,35 +69,20 @@ const AdminPanel = () => {
     setError('');
 
     console.log('[AdminPanel] Starting login attempt for:', email);
-    const loginStartTime = Date.now();
-
-    // Create abort controller for timeout
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => {
-      abortController.abort();
-    }, 15000); // 15 second timeout
 
     try {
       console.log('[AdminPanel] Calling signInWithPassword...');
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      clearTimeout(timeoutId);
-      const loginDuration = Date.now() - loginStartTime;
-      console.log(`[AdminPanel] Login response received in ${loginDuration}ms`);
+      const loginPromise = supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await withTimeout(loginPromise, 15000, 'admin login');
 
       if (error) {
         console.error('[AdminPanel] Auth error:', error);
         setError(error.message || 'Login failed. Please check your credentials.');
       } else if (data.user) {
         console.log('[AdminPanel] User authenticated, checking admin status...');
-        const adminCheckStart = Date.now();
         
         const adminStatus = await checkAdminStatus(data.user.id);
-        const adminCheckDuration = Date.now() - adminCheckStart;
-        console.log(`[AdminPanel] Admin check completed in ${adminCheckDuration}ms, result:`, adminStatus);
+        console.log('[AdminPanel] Admin check result:', adminStatus);
         
         if (!adminStatus) {
           setError('Access denied. Admin privileges required.');
@@ -109,11 +91,8 @@ const AdminPanel = () => {
         }
       }
     } catch (error: any) {
-      clearTimeout(timeoutId);
-      const loginDuration = Date.now() - loginStartTime;
-      
-      if (error.name === 'AbortError') {
-        console.error(`[AdminPanel] Login timeout after ${loginDuration}ms`);
+      if (error.name === 'TimeoutError') {
+        console.error('[AdminPanel] Login timeout:', error.message);
         setError('Login timeout. Please check your connection and try again.');
       } else {
         console.error('[AdminPanel] Login exception:', error);
@@ -123,6 +102,13 @@ const AdminPanel = () => {
     
     setAuthLoading(false);
     setIsAuthenticating(false);
+  };
+
+  // Reset session and reload
+  const handleResetSession = () => {
+    console.log('[AdminPanel] Resetting session...');
+    safeStorage.resetSupabaseSession();
+    window.location.reload();
   };
 
   // Handle logout
@@ -144,17 +130,9 @@ const AdminPanel = () => {
     const initializeAuth = async () => {
       try {
         console.log('[AdminPanel] Getting current session...');
-        const sessionStartTime = Date.now();
         
-        // Add timeout to session retrieval
-        const abortController = new AbortController();
-        const timeoutId = setTimeout(() => abortController.abort(), 10000);
-        
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        clearTimeout(timeoutId);
-        const sessionDuration = Date.now() - sessionStartTime;
-        console.log(`[AdminPanel] Session retrieved in ${sessionDuration}ms`);
+        const sessionPromise = supabase.auth.getSession();
+        const { data: { session }, error } = await withTimeout(sessionPromise, 10000, 'session retrieval');
         
         if (error) {
           console.error('[AdminPanel] Error getting session:', error);
@@ -185,33 +163,21 @@ const AdminPanel = () => {
         }
       } catch (error: any) {
         console.error('[AdminPanel] Error in initializeAuth:', error);
-        if (error.name === 'AbortError') {
-          console.error('[AdminPanel] Session retrieval timeout');
+        if (error.name === 'TimeoutError') {
+          console.error('[AdminPanel] Session retrieval timeout:', error.message);
         }
         if (isMounted) setLoading(false);
       }
     };
 
-    // Handle window focus/blur to prevent issues when switching between apps
-    const handleFocus = () => {
-      console.log('Window focused');
-      isWindowFocused = true;
-    };
-    
-    const handleBlur = () => {
-      console.log('Window blurred');
-      isWindowFocused = false;
-    };
-
-    // Set up auth state listener - respect focus unless authenticating
+    // Set up auth state listener - removed focus-gating for reliability
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id || 'No user', 'Window focused:', isWindowFocused, 'Authenticating:', isAuthenticating);
+        console.log('[AdminPanel] Auth state change:', event, session?.user?.id || 'No user');
         
-        // Allow processing during authentication even if window not focused
-        if (!isMounted || (!isWindowFocused && !isAuthenticating)) return;
+        if (!isMounted) return;
         
-        // Only handle actual sign in/out events, ignore token refresh
+        // Handle all auth events consistently
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           setSession(session);
           setUser(session?.user ?? null);
@@ -219,10 +185,17 @@ const AdminPanel = () => {
           // Defer admin status check to prevent deadlock
           if (session?.user && (event === 'SIGNED_IN' || !adminStatusChecked)) {
             setTimeout(async () => {
-              const adminStatus = await checkAdminStatus(session.user.id);
-              console.log('Admin status from auth change:', adminStatus);
-              setIsAdmin(adminStatus);
-              adminStatusChecked = true;
+              try {
+                const adminStatus = await checkAdminStatus(session.user.id);
+                console.log('[AdminPanel] Admin status from auth change:', adminStatus);
+                if (isMounted) {
+                  setIsAdmin(adminStatus);
+                  adminStatusChecked = true;
+                }
+              } catch (error) {
+                console.error('[AdminPanel] Error checking admin status in auth change:', error);
+                if (isMounted) setIsAdmin(false);
+              }
             }, 0);
           } else if (!session?.user) {
             setIsAdmin(false);
@@ -234,18 +207,12 @@ const AdminPanel = () => {
       }
     );
 
-    // Add focus/blur listeners
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('blur', handleBlur);
-
     // Initialize
     initializeAuth();
 
     return () => {
-      console.log('Cleaning up AdminPanel auth subscription');
+      console.log('[AdminPanel] Cleaning up auth subscription');
       isMounted = false;
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('blur', handleBlur);
       subscription.unsubscribe();
     };
   }, []);
@@ -315,6 +282,15 @@ const AdminPanel = () => {
               >
                 <LogIn className="h-4 w-4 mr-2" />
                 {authLoading ? 'Signing in...' : 'Sign In'}
+              </Button>
+
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleResetSession}
+              >
+                Reset Session
               </Button>
             </form>
           </CardContent>
