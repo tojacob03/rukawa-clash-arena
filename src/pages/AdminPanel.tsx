@@ -150,7 +150,7 @@ const AdminPanel = () => {
 
     // Set up auth state listener - only when window is focused
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event, session?.user?.id || 'No user', 'Window focused:', isWindowFocused);
         
         if (!isMounted || !isWindowFocused) return;
@@ -160,12 +160,14 @@ const AdminPanel = () => {
           setSession(session);
           setUser(session?.user ?? null);
           
-          // Only check admin status if not already checked or on sign in/out (not token refresh)
+          // Defer admin status check to prevent deadlock
           if (session?.user && (event === 'SIGNED_IN' || !adminStatusChecked)) {
-            const adminStatus = await checkAdminStatus(session.user.id);
-            console.log('Admin status from auth change:', adminStatus);
-            setIsAdmin(adminStatus);
-            adminStatusChecked = true;
+            setTimeout(async () => {
+              const adminStatus = await checkAdminStatus(session.user.id);
+              console.log('Admin status from auth change:', adminStatus);
+              setIsAdmin(adminStatus);
+              adminStatusChecked = true;
+            }, 0);
           } else if (!session?.user) {
             setIsAdmin(false);
             adminStatusChecked = false;
