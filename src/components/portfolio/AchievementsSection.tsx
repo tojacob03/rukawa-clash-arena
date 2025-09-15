@@ -17,10 +17,10 @@ const achievements = [
     color: "text-clash-gold"
   },
   {
-    title: "CRL July Achievements",
-    event: "Top 32 & Top 12 Finishes",
+    title: "CRL Monthly Finals Achievements",
+    event: "Top 2 & Top 12 Finishes",
     icon: Medal,
-    rank: "Top 32/12",
+    rank: "Top 2/12",
     color: "text-clash-silver"
   },
   {
