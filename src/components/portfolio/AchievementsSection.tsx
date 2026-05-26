@@ -7,29 +7,29 @@ const achievements = [
     event: "GGtoor x Haneki Cup Season 1",
     icon: Trophy,
     rank: "4th",
-    color: "text-clash-blue"
+    color: "text-clash-blue",
   },
   {
     title: "Champion",
     event: "Amazon University Esports Masters S4 Germany",
     icon: Crown,
     rank: "1st",
-    color: "text-clash-gold"
+    color: "text-clash-gold",
   },
   {
     title: "CRL Monthly Finals Achievements",
-    event: "Top 2 & Top 12 Finishes",
+    event: "Top 2, 3, 4 & Top 12 Finishes",
     icon: Medal,
     rank: "Top 2/12",
-    color: "text-clash-silver"
+    color: "text-clash-silver",
   },
   {
     title: "Copa América",
     event: "Supremacy League 2025",
     icon: Award,
     rank: "Top 6",
-    color: "text-primary"
-  }
+    color: "text-primary",
+  },
 ];
 
 const AchievementsSection = () => {
@@ -42,10 +42,10 @@ const AchievementsSection = () => {
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {achievements.map((achievement, index) => (
-            <Card 
+            <Card
               key={index}
               className="gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300 group hover:scale-105"
               style={{ animationDelay: `${index * 0.1}s` }}
