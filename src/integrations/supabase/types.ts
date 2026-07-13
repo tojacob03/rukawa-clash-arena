@@ -83,21 +83,21 @@ export type Database = {
         Row: {
           attempted_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           login_code: string
           success: boolean
         }
         Insert: {
           attempted_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           login_code: string
           success?: boolean
         }
         Update: {
           attempted_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           login_code?: string
           success?: boolean
         }
@@ -109,7 +109,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean
           last_active: string
           login_code: string
@@ -121,7 +121,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_active?: string
           login_code: string
@@ -133,7 +133,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_active?: string
           login_code?: string
@@ -342,7 +342,7 @@ export type Database = {
     }
     Functions: {
       admin_security_audit: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           has_anon_policies: boolean
           policy_count: number
@@ -351,7 +351,7 @@ export type Database = {
         }[]
       }
       audit_table_security: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           has_anon_policies: boolean
           policy_count: number
@@ -373,14 +373,8 @@ export type Database = {
           session_token: string
         }[]
       }
-      cleanup_expired_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_secure_login_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      cleanup_expired_sessions: { Args: never; Returns: undefined }
+      generate_secure_login_code: { Args: never; Returns: string }
       get_admin_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["admin_role"]
@@ -437,14 +431,8 @@ export type Database = {
           client_type: Database["public"]["Enums"]["client_type"]
         }[]
       }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      security_maintenance: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
+      security_maintenance: { Args: never; Returns: undefined }
       submit_contact_form_secure: {
         Args: {
           email_param: string
