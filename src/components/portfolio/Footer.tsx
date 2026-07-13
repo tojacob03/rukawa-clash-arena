@@ -58,6 +58,14 @@ const Footer = () => {
             </p>
           </div>
         </div>
+
+        <div className="mt-8 pt-6 border-t border-border/30">
+          <p className="text-xs text-muted-foreground/70 text-center leading-relaxed max-w-4xl mx-auto">
+            Rukawa Analytics provides professional esports analysis services. We are not
+            associated with any casual player profiles or other individuals using the handle
+            'Rukawa' in competitive gaming.
+          </p>
+        </div>
       </div>
     </footer>
   );
