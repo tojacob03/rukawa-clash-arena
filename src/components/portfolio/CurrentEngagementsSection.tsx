@@ -18,8 +18,8 @@ const CurrentEngagementsSection = () => {
               <Briefcase className="w-8 h-8 text-primary-foreground" />
             </div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold mb-4 text-clash-gold">Active Analyst Role</h3>
-              <p className="text-lg text-muted-foreground leading-relaxed">
+              <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-clash-gold">Active Analyst Role</h3>
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
                 Since May 2026, I have returned to the competitive Clash Royale scene as a
                 dedicated Esports Analyst. My focus lies on strategic matchup preparation and
                 data-driven opponent research. Currently, I am providing analytical support
