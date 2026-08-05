@@ -18,9 +18,9 @@ const achievements = [
   },
   {
     title: "CRL Monthly Finals Achievements",
-    event: "Top 2, 3, 4, 8 & Top 12 Finishes",
+    event: "Top 2, 3x2,and 4 Finishes",
     icon: Medal,
-    rank: "Top 2/3(x2)/4/8/12",
+    rank: "3 MF Podium Finishes in 4 months across CRL 25 and 26",
     color: "text-clash-silver",
   },
   {
