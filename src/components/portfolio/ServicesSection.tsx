@@ -41,10 +41,10 @@ const ServicesSection = () => {
   };
 
   return (
-    <section id="services" className="py-20 px-6">
+    <section id="services" className="py-14 sm:py-20 px-5 sm:px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
             Coaching & Services
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
@@ -53,11 +53,11 @@ const ServicesSection = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
           {services.map((service, index) => (
             <Card 
               key={index}
-              className="gradient-card shadow-card border-border/50 p-8 hover:shadow-glow transition-all duration-300 group"
+              className="gradient-card shadow-card border-border/50 p-6 sm:p-8 hover:shadow-glow transition-all duration-300 group"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start gap-4 mb-6">

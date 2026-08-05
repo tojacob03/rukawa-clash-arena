@@ -35,10 +35,10 @@ const languages = [
 
 const LanguagesSection = () => {
   return (
-    <section id="languages" className="py-20 px-6 bg-muted/30">
+    <section id="languages" className="py-14 sm:py-20 px-5 sm:px-6 bg-muted/30">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
             Languages
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
