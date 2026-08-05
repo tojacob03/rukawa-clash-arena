@@ -49,11 +49,11 @@ const HeroSection = () => {
       <div className="absolute inset-0 gradient-hero" />
 
       {/* Floating Elements */}
-      <div className="absolute top-20 left-10 animate-float">
+      <div className="absolute top-20 left-10 animate-float hidden sm:block">
         <Trophy className="w-8 h-8 text-clash-gold opacity-30" />
       </div>
       <div
-        className="absolute top-40 right-20 animate-float"
+        className="absolute top-40 right-20 animate-float hidden sm:block"
         style={{
           animationDelay: "1s",
         }}
