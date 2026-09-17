@@ -25,7 +25,7 @@ const techGroups: TechGroup[] = [
     title: "AI-Augmented Engineering",
     description: "Leveraging LLMs and generative systems for rapid tool design and automated workflows.",
     icon: Cpu,
-    items: ["Prompt Architecture", "LLM Workflows (Claude / Gemini)", "Rapid Prototyping", "Automated Scripting"],
+    items: ["Cursor (AI-First IDE)", "Prompt Architecture", "LLM Workflows (Claude / Gemini)", "Automated Scripting"],
   },
   {
     title: "Web & Product Deployment",
