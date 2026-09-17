@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MessageCircle, Twitter, Send } from "lucide-react";
+import { Mail, MessageCircle, Twitter, Send, Linkedin } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,7 +64,13 @@ const ContactSection = () => {
     }
   };
 
-  const contactMethods = [
+  const contactMethods: {
+    icon: typeof Mail;
+    label: string;
+    value: string;
+    href?: string;
+    color: string;
+  }[] = [
     {
       icon: Mail,
       label: "Email",
@@ -73,10 +79,17 @@ const ContactSection = () => {
       color: "text-clash-blue"
     },
     {
+      icon: Linkedin,
+      label: "LinkedIn",
+      value: "Till Oscar Jacob",
+      href: "https://www.linkedin.com/in/till-oscar-jacob-846403358",
+      color: "text-foreground"
+    },
+    {
       icon: MessageCircle,
       label: "Discord",
       value: "rukawa03",
-      href: "#",
+      href: undefined,
       color: "text-clash-purple"
     },
     {
@@ -89,7 +102,7 @@ const ContactSection = () => {
   ];
 
   return (
-    <section id="contact" className="py-14 sm:py-20 px-5 sm:px-6">
+    <section id="contact" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
@@ -97,7 +110,7 @@ const ContactSection = () => {
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
           <p className="text-lg text-muted-foreground mt-6 max-w-2xl mx-auto">
-            Ready to take your competitive Clash Royale performance to the next level? Let's discuss how I can help.
+            Recruiter, org, or player — if you want to talk about Solo CRL analysis or the tooling behind it.
           </p>
         </div>
         
@@ -111,18 +124,32 @@ const ContactSection = () => {
                 className="gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300 group"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <a 
-                  href={method.href}
-                  className="flex items-center gap-4 group-hover:scale-105 transition-transform"
-                >
-                  <div className={`p-3 rounded-lg bg-secondary/50 ${method.color} group-hover:animate-glow`}>
-                    <method.icon className="w-6 h-6" />
+                {method.href ? (
+                  <a
+                    href={method.href}
+                    className="flex items-center gap-4"
+                    target={method.href.startsWith("http") ? "_blank" : undefined}
+                    rel={method.href.startsWith("http") ? "noreferrer" : undefined}
+                  >
+                    <div className={`p-3 rounded-lg bg-secondary/50 ${method.color}`}>
+                      <method.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">{method.label}</h4>
+                      <p className="text-muted-foreground">{method.value}</p>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-lg bg-secondary/50 ${method.color}`}>
+                      <method.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">{method.label}</h4>
+                      <p className="text-muted-foreground">{method.value}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-foreground">{method.label}</h4>
-                    <p className="text-muted-foreground">{method.value}</p>
-                  </div>
-                </a>
+                )}
               </Card>
             ))}
           </div>
@@ -163,7 +190,7 @@ const ContactSection = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                   required
                   className="bg-secondary/50 border-border focus:border-primary resize-none"
-                  placeholder="Tell me about your competitive goals and how I can help..."
+                  placeholder="What you are looking for…"
                 />
               </div>
               

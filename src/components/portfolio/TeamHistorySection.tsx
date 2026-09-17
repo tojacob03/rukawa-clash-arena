@@ -3,22 +3,22 @@ import { Calendar, Users, Trophy, Briefcase, Activity } from "lucide-react";
 
 const teamHistory = [
   {
-    role: "Freelance Data Analyst",
-    team: "SK Gaming & Joblife (via Coach)",
+    role: "Freelance data analyst",
+    team: "SK Gaming & Joblife (via coach)",
     period: "May 2026 – Present",
     description:
-      "Returned from a brief retirement to provide exclusive analytical support, match preparation, and data modeling for top-tier CRL players (Morten & Viiper) and their head coach.",
-    achievement: "CRL 2026 World Championship Track",
+      "Player-level prep for Solo CRL: battle-log profiling, Game 1 tendencies, remaining-deck support for Morten and Viiper.",
+    achievement: "CRL 2026 World Championship track",
     icon: Activity,
-    color: "text-green-400", // Hebt das aktuelle Projekt farblich hervor
+    color: "text-green-400",
   },
   {
-    role: "Independent Coach & Analyst",
-    team: "Freelance / Solo Engagements",
+    role: "Independent coach & analyst",
+    team: "Freelance",
     period: "2025",
     description:
-      "Provided dedicated solo deckpicking for two competitive players during the Clash Royale League season, later transitioning to an analyst role supporting a head coach before a temporary retirement.",
-    achievement: "CRL 2025 Season",
+      "Deck picking and later analyst support during the CRL 2025 season, before a short break.",
+    achievement: "CRL 2025 season",
     icon: Briefcase,
     color: "text-clash-silver",
   },
@@ -26,12 +26,12 @@ const teamHistory = [
     role: "Analyst",
     team: "Selección Colombia",
     period: "Supremacy League Copa América 2025",
-    achievement: "Top 6 Finish",
+    achievement: "Top 6 finish",
     icon: Trophy,
     color: "text-clash-gold",
   },
   {
-    role: "Analyst/Coach",
+    role: "Analyst / coach",
     team: "Odyssey",
     period: "March 2025 – October 2025",
     icon: Users,
@@ -48,26 +48,24 @@ const teamHistory = [
 
 const TeamHistorySection = () => {
   return (
-    <section id="team-history" className="py-14 sm:py-20 px-5 sm:px-6">
+    <section id="experience" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
-            Team History
+            Experience
           </h2>
-          <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
+          <div className="w-24 h-1 gradient-accent mx-auto rounded-full" />
         </div>
 
         <div className="relative">
-          {/* Timeline Line */}
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-clash-blue to-clash-gold hidden md:block"></div>
+          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-clash-blue to-clash-gold hidden md:block" />
 
           <div className="space-y-8">
             {teamHistory.map((item, index) => (
-              <div key={index} className="relative animate-slide-in-up" style={{ animationDelay: `${index * 0.2}s` }}>
-                {/* Timeline Dot */}
-                <div className="absolute left-6 w-4 h-4 gradient-primary rounded-full shadow-glow hidden md:block"></div>
+              <div key={index} className="relative">
+                <div className="absolute left-6 w-4 h-4 gradient-primary rounded-full hidden md:block" />
 
-                <Card className="ml-0 md:ml-20 gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300">
+                <Card className="ml-0 md:ml-20 gradient-card shadow-card border-border/50 p-6">
                   <div className="flex items-start gap-4">
                     <div className={`p-3 rounded-lg bg-secondary/50 ${item.color}`}>
                       <item.icon className="w-6 h-6" />
@@ -81,11 +79,9 @@ const TeamHistorySection = () => {
                         </div>
                       </div>
                       <p className="text-lg text-clash-blue font-semibold mb-2">{item.team}</p>
-
                       {item.description && (
                         <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{item.description}</p>
                       )}
-
                       {item.achievement && (
                         <div className="inline-flex items-center gap-2 px-3 py-1 gradient-accent rounded-full text-accent-foreground text-sm font-medium">
                           <Trophy className="w-4 h-4" />
