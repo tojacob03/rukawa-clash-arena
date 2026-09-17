@@ -2,6 +2,7 @@ import HeroSection from "@/components/portfolio/HeroSection";
 import AboutSection from "@/components/portfolio/AboutSection";
 import CurrentEngagementsSection from "@/components/portfolio/CurrentEngagementsSection";
 import SkillsSection from "@/components/portfolio/SkillsSection";
+import TechStackSection from "@/components/portfolio/TechStackSection"; // <-- Neuer Import
 import TeamHistorySection from "@/components/portfolio/TeamHistorySection";
 import AchievementsSection from "@/components/portfolio/AchievementsSection";
 import ServicesSection from "@/components/portfolio/ServicesSection";
@@ -16,6 +17,7 @@ const Index = () => {
       <AboutSection />
       <CurrentEngagementsSection />
       <SkillsSection />
+      <TechStackSection /> {/* <-- Hier eingefügt */}
       <TeamHistorySection />
       <AchievementsSection />
       <ServicesSection />
