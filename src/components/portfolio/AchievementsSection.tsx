@@ -17,7 +17,7 @@ const achievements = [
     color: "text-clash-gold",
   },
   {
-    title: "CRL Monthly Finals Achievements",
+    title: "CRL Monthly Finals",
     event: "1x Top 2, 2x Top 3, 1x Top 4",
     icon: Medal,
     rank: "CRL 25 & 26",
