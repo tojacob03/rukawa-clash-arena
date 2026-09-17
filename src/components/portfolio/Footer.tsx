@@ -29,8 +29,7 @@ const Footer = () => {
               href="https://www.linkedin.com/in/till-oscar-jacob-846403358"
               className="p-3 rounded-lg bg-secondary/50 text-foreground hover:bg-secondary transition-colors"
               aria-label="LinkedIn"
-              target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
               <Linkedin className="w-5 h-5" />
             </a>

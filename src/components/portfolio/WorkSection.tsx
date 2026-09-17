@@ -59,8 +59,7 @@ const WorkSection = () => {
               <h3 className="text-2xl font-bold mb-3">Decks, cards, Game 1</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Filtered by mode and season: deck win rates, card usage, tower
-                troop, and Game-1 habits in Bo3/Bo5. That is the player model —
-                not a matchup PDF against a named opponent.
+                troop, and Game-1 habits in Bo3/Bo5.
               </p>
             </div>
             <Card className="gradient-card border-border/50 p-4 sm:p-5">
@@ -97,8 +96,8 @@ const WorkSection = () => {
               <h3 className="text-2xl font-bold mb-3">Remaining decks under bans</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Once cards and slots are burned, remaining-deck scoring ranks
-                what they still have based on history — the output a Solo CRL
-                player needs mid-set, not a post-match write-up.
+                what they still have based on history for mid-set Solo CRL
+                decisions.
               </p>
             </div>
             <Card className="gradient-card border-border/50 p-4 sm:p-5 overflow-x-auto">

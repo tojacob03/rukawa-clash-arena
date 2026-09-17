@@ -21,9 +21,8 @@ const AboutSection = () => {
           </p>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
             That work currently includes analytical support for players such as
-            Morten (SK Gaming) and Viiper (Joblife). Delivery happens in a
-            private web app — not in the old PDF scouting packs or a client
-            portal.
+            Morten (SK Gaming) and Viiper (Joblife), delivered through a private
+            web app.
           </p>
         </Card>
       </div>

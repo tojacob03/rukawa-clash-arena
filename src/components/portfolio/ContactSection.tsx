@@ -128,8 +128,7 @@ const ContactSection = () => {
                   <a
                     href={method.href}
                     className="flex items-center gap-4"
-                    target={method.href.startsWith("http") ? "_blank" : undefined}
-                    rel={method.href.startsWith("http") ? "noreferrer" : undefined}
+                    rel={method.href.startsWith("http") ? "noopener noreferrer" : undefined}
                   >
                     <div className={`p-3 rounded-lg bg-secondary/50 ${method.color}`}>
                       <method.icon className="w-6 h-6" />

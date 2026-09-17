@@ -65,7 +65,7 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-10 sm:mt-16">
           <div className="text-center animate-slide-in-up" style={{ animationDelay: "0.2s" }}>
             <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Player analysis</div>
-            <div className="text-sm sm:text-base text-muted-foreground">Solo CRL, not team match reports</div>
+            <div className="text-sm sm:text-base text-muted-foreground">Solo CRL player prep</div>
           </div>
           <div className="text-center animate-slide-in-up" style={{ animationDelay: "0.4s" }}>
             <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Top 2, 3 & 4</div>
