@@ -1,13 +1,34 @@
 import { Card } from "@/components/ui/card";
-import { Calendar, Users, Trophy } from "lucide-react";
+import { Calendar, Users, Trophy, Briefcase, Activity } from "lucide-react";
 
 const teamHistory = [
   {
-    role: "Analyst",
-    team: "The Dark Empire",
-    period: "2019–2021",
-    icon: Users,
+    role: "Freelance Data Analyst",
+    team: "SK Gaming & Joblife (via Coach)",
+    period: "May 2026 – Present",
+    description:
+      "Returned from a brief retirement to provide exclusive analytical support, match preparation, and data modeling for top-tier CRL players (Morten & Viiper) and their head coach.",
+    achievement: "CRL 2026 World Championship Track",
+    icon: Activity,
+    color: "text-green-400", // Hebt das aktuelle Projekt farblich hervor
+  },
+  {
+    role: "Independent Coach & Analyst",
+    team: "Freelance / Solo Engagements",
+    period: "2025",
+    description:
+      "Provided dedicated solo deckpicking for two competitive players during the Clash Royale League season, later transitioning to an analyst role supporting a head coach before a temporary retirement.",
+    achievement: "CRL 2025 Season",
+    icon: Briefcase,
     color: "text-clash-silver",
+  },
+  {
+    role: "Analyst",
+    team: "Selección Colombia",
+    period: "Supremacy League Copa América 2025",
+    achievement: "Top 6 Finish",
+    icon: Trophy,
+    color: "text-clash-gold",
   },
   {
     role: "Analyst/Coach",
@@ -18,11 +39,10 @@ const teamHistory = [
   },
   {
     role: "Analyst",
-    team: "Selección Colombia",
-    period: "Supremacy League Copa América 2025",
-    achievement: "Top 6 Finish",
-    icon: Trophy,
-    color: "text-clash-gold",
+    team: "The Dark Empire",
+    period: "2019–2021",
+    icon: Users,
+    color: "text-clash-silver",
   },
 ];
 
@@ -55,12 +75,17 @@ const TeamHistorySection = () => {
                     <div className="flex-1">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                         <h3 className="text-xl font-bold text-foreground">{item.role}</h3>
-                        <div className="flex items-center gap-2 text-muted-foreground">
+                        <div className="flex items-center gap-2 text-muted-foreground mt-1 sm:mt-0">
                           <Calendar className="w-4 h-4" />
                           <span className="text-sm">{item.period}</span>
                         </div>
                       </div>
                       <p className="text-lg text-clash-blue font-semibold mb-2">{item.team}</p>
+
+                      {item.description && (
+                        <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{item.description}</p>
+                      )}
+
                       {item.achievement && (
                         <div className="inline-flex items-center gap-2 px-3 py-1 gradient-accent rounded-full text-accent-foreground text-sm font-medium">
                           <Trophy className="w-4 h-4" />
