@@ -33,21 +33,14 @@ const HeroSection = () => {
 
       <div className="relative z-10 text-center max-w-4xl mx-auto px-5 sm:px-6">
         <div className="animate-slide-in-up">
-          <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-4 sm:mb-6 text-white">
-            Rukawa
-          </h1>
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-4 sm:mb-6 text-white">Rukawa</h1>
           <p className="text-base sm:text-xl md:text-2xl text-white/85 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Clash Royale analyst for Solo CRL. I turn a player’s battle log into
-            set decisions — and I built the app that does it.
+            Clash Royale analyst for Solo CRL. I turn a player’s battle log into set decisions - and I built the app
+            that does it.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center mb-10 sm:mb-12">
-            <Button
-              variant="hero"
-              size="xl"
-              onClick={() => scrollToSection("work")}
-              className="group w-full sm:w-auto"
-            >
+            <Button variant="hero" size="xl" onClick={() => scrollToSection("work")} className="group w-full sm:w-auto">
               View the method
               <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
             </Button>
