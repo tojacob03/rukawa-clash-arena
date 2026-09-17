@@ -14,7 +14,12 @@ const techGroups: TechGroup[] = [
     title: "Data & Quantitative Analysis",
     description: "Statistical modeling, opponent profiling, and structured data extraction.",
     icon: Database,
-    items: ["Python (Pandas, NumPy)", "Harvard CS50 AI", "Advanced Excel / Sheets", "Exploratory Data Analysis"],
+    items: [
+      "Python (Pandas, NumPy)",
+      "Algorithmic Pattern Recognition",
+      "Data Normalization & Fallbacks",
+      "Harvard CS50 AI",
+    ],
   },
   {
     title: "AI-Augmented Engineering",
@@ -26,13 +31,23 @@ const techGroups: TechGroup[] = [
     title: "Web & Product Deployment",
     description: "Building responsive, low-latency analytics dashboards and client portals.",
     icon: Code2,
-    items: ["React & TypeScript", "Tailwind CSS", "Vite / Lovable", "Netlify Deployment"],
+    items: [
+      "React & TypeScript",
+      "Supabase (PostgreSQL & Edge Functions)",
+      "Recharts (Data Visualization)",
+      "Vite / Lovable & Tailwind",
+    ],
   },
   {
     title: "Performance & Decision Support",
     description: "Translating raw metrics into high-stakes tournament decisions under time pressure.",
     icon: LineChart,
-    items: ["Decision Support Systems (DSS)", "Seeding Models", "Opponent Scouting Engines", "Custom Metric Trackers"],
+    items: [
+      "Decision Support Systems (DSS)",
+      "Automated Rule/Violation Detection",
+      "Opponent Scouting Engines",
+      "Custom Metric Trackers",
+    ],
   },
 ];
 
@@ -65,13 +80,9 @@ const TechStackSection = () => {
                     <div className="p-3 gradient-primary rounded-xl shadow-glow">
                       <Icon className="w-6 h-6 text-primary-foreground" />
                     </div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-clash-gold">
-                      {group.title}
-                    </h3>
+                    <h3 className="text-xl sm:text-2xl font-bold text-clash-gold">{group.title}</h3>
                   </div>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-6 leading-relaxed">
-                    {group.description}
-                  </p>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-6 leading-relaxed">{group.description}</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-border/30">
