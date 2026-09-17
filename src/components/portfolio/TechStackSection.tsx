@@ -17,7 +17,7 @@ const techGroups = [
   },
   {
     title: "Product",
-    description: "Private React app for the players I work with — not a public dashboard.",
+    description: "Private React app for the players I work with - not a public dashboard.",
     icon: Code2,
     items: ["React & TypeScript", "Supabase (Postgres & Edge Functions)", "Auth / access gates", "Vite & Tailwind"],
   },
