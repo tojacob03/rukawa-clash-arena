@@ -47,7 +47,7 @@ const AchievementsSection = () => {
           {achievements.map((achievement, index) => (
             <Card
               key={index}
-              className="gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300 group hover:scale-105"
+              className="gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300 group"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start gap-4">

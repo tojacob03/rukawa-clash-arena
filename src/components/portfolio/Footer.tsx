@@ -1,5 +1,4 @@
-import { Mail, MessageCircle, Twitter, Crown, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Mail, MessageCircle, Twitter, Crown, Linkedin } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,38 +8,36 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="flex items-center gap-3 mb-6 md:mb-0">
-            <div className="p-2 gradient-primary rounded-lg shadow-glow">
+            <div className="p-2 gradient-primary rounded-lg">
               <Crown className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
               <h3 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">Rukawa</h3>
-              <p className="text-sm text-muted-foreground">Clash Royale Analyst & Coach</p>
+              <p className="text-sm text-muted-foreground">Clash Royale analyst · Solo CRL</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4 mb-6 md:mb-0">
-            <Link 
-              to="/portal"
-              className="p-3 rounded-lg bg-secondary/50 text-primary hover:bg-secondary transition-colors"
-              aria-label="Client Portal"
-            >
-              <Shield className="w-5 h-5" />
-            </Link>
-            <a 
+            <a
               href="mailto:to_jacob@me.com"
               className="p-3 rounded-lg bg-secondary/50 text-clash-blue hover:bg-secondary transition-colors"
               aria-label="Email"
             >
               <Mail className="w-5 h-5" />
             </a>
-            <a 
-              href="#"
-              className="p-3 rounded-lg bg-secondary/50 text-clash-purple hover:bg-secondary transition-colors"
-              aria-label="Discord"
+            <a
+              href="https://www.linkedin.com/in/till-oscar-jacob-846403358"
+              className="p-3 rounded-lg bg-secondary/50 text-foreground hover:bg-secondary transition-colors"
+              aria-label="LinkedIn"
+              target="_blank"
+              rel="noreferrer"
             >
-              <MessageCircle className="w-5 h-5" />
+              <Linkedin className="w-5 h-5" />
             </a>
-            <a 
+            <span className="p-3 rounded-lg bg-secondary/50 text-clash-purple" title="Discord: rukawa03">
+              <MessageCircle className="w-5 h-5" />
+            </span>
+            <a
               href="https://twitter.com/RukawaAnalyst"
               className="p-3 rounded-lg bg-secondary/50 text-clash-gold hover:bg-secondary transition-colors"
               aria-label="Twitter"
@@ -48,23 +45,10 @@ const Footer = () => {
               <Twitter className="w-5 h-5" />
             </a>
           </div>
-          
-          <div className="text-center md:text-right">
-            <p className="text-sm text-muted-foreground">
-              © {currentYear} Rukawa. All rights reserved.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Data-driven excellence in esports
-            </p>
-          </div>
-        </div>
 
-        <div className="mt-8 pt-6 border-t border-border/30">
-          <p className="text-xs text-muted-foreground/70 text-center leading-relaxed max-w-4xl mx-auto">
-            Rukawa Analytics provides professional esports analysis services. We are not
-            associated with any casual player profiles or other individuals using the handle
-            'Rukawa' in competitive gaming.
-          </p>
+          <div className="text-center md:text-right">
+            <p className="text-sm text-muted-foreground">© {currentYear} Rukawa. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </footer>
