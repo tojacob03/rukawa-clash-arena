@@ -10,9 +10,8 @@ const WorkSection = () => {
           </h2>
           <div className="w-24 h-1 gradient-accent mx-auto rounded-full" />
           <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Internal app used with the players I support. Player tags, names, and
-            clans are omitted. The live tool is private — these are the three
-            steps that matter in Solo CRL prep.
+            Internal app used with the players I support. Player tags, names, and clans are omitted. The live tool is
+            private - these are the three steps that matter in Solo CRL prep.
           </p>
         </div>
 
@@ -22,9 +21,8 @@ const WorkSection = () => {
               <p className="text-xs uppercase tracking-widest text-clash-gold mb-2">01 · Ingest</p>
               <h3 className="text-2xl font-bold mb-3">Player tag → battle log</h3>
               <p className="text-muted-foreground leading-relaxed">
-                A tag (or several alts) pulls the official API profile, stores
-                battles, and runs duel detection on recent friendlies so CRL
-                sets show up immediately — not after a nightly sweep.
+                A tag (or several alts) pulls the official API profile, stores battles, and runs duel detection on
+                recent friendlies so CRL sets show up immediately - not after a nightly sweep.
               </p>
             </div>
             <Card className="gradient-card border-border/50 p-4 sm:p-5 font-mono text-sm overflow-hidden">
@@ -58,8 +56,7 @@ const WorkSection = () => {
               <p className="text-xs uppercase tracking-widest text-clash-gold mb-2">02 · Profile</p>
               <h3 className="text-2xl font-bold mb-3">Decks, cards, Game 1</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Filtered by mode and season: deck win rates, card usage, tower
-                troop, and Game-1 habits in Bo3/Bo5.
+                Filtered by mode and season: deck win rates, card usage, tower troop, and Game-1 habits in Bo3/Bo5.
               </p>
             </div>
             <Card className="gradient-card border-border/50 p-4 sm:p-5">
@@ -95,9 +92,8 @@ const WorkSection = () => {
               <p className="text-xs uppercase tracking-widest text-clash-gold mb-2">03 · Decision</p>
               <h3 className="text-2xl font-bold mb-3">Remaining decks under bans</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Once cards and slots are burned, remaining-deck scoring ranks
-                what they still have based on history for mid-set Solo CRL
-                decisions.
+                Once cards and slots are burned, remaining-deck scoring ranks what they still have based on history for
+                mid-set Solo CRL decisions.
               </p>
             </div>
             <Card className="gradient-card border-border/50 p-4 sm:p-5 overflow-x-auto">
