@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Trophy, BarChart3 } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
@@ -55,19 +56,28 @@ const HeroSection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-10 sm:mt-16">
-          <div className="text-center animate-slide-in-up" style={{ animationDelay: "0.2s" }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mt-10 sm:mt-16">
+          <Card
+            className="text-center animate-slide-in-up gradient-card/90 border-white/15 p-5 sm:p-6 shadow-card backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1"
+            style={{ animationDelay: "0.2s" }}
+          >
             <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Player analysis</div>
             <div className="text-sm sm:text-base text-muted-foreground">Solo CRL player prep</div>
-          </div>
-          <div className="text-center animate-slide-in-up" style={{ animationDelay: "0.4s" }}>
+          </Card>
+          <Card
+            className="text-center animate-slide-in-up gradient-card/90 border-white/15 p-5 sm:p-6 shadow-card backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1"
+            style={{ animationDelay: "0.4s" }}
+          >
             <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Top 2, 3 & 4</div>
             <div className="text-sm sm:text-base text-muted-foreground">CRL Monthly Finals support</div>
-          </div>
-          <div className="text-center animate-slide-in-up" style={{ animationDelay: "0.6s" }}>
+          </Card>
+          <Card
+            className="text-center animate-slide-in-up gradient-card/90 border-white/15 p-5 sm:p-6 shadow-card backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1"
+            style={{ animationDelay: "0.6s" }}
+          >
             <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Internal tooling</div>
             <div className="text-sm sm:text-base text-muted-foreground">Ingest, duel detection, remaining decks</div>
-          </div>
+          </Card>
         </div>
       </div>
 
