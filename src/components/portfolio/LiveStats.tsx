@@ -114,7 +114,7 @@ const LiveStats = () => {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-              Pro Grinder (14d)
+              Most Practice Battles (14d)
             </span>
             <div className="flex items-baseline gap-1.5">
               <span className="text-lg font-bold text-foreground leading-tight">
