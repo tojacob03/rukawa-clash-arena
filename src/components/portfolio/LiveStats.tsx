@@ -46,7 +46,7 @@ const LiveStats = () => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
     },
-    refetchInterval: 15 * 1000,
+    refetchInterval: 10 * 1000,
     refetchOnWindowFocus: true,
     staleTime: 10 * 1000,
     retry: 2,
