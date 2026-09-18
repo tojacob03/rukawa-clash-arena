@@ -1,7 +1,26 @@
-import { Mail, MessageCircle, Twitter, Crown, Linkedin } from "lucide-react";
+import { Mail, Crown, Linkedin, X } from "lucide-react";
+import DiscordIcon from "@/components/icons/DiscordIcon";
+import { useToast } from "@/hooks/use-toast";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { toast } = useToast();
+
+  const handleCopyDiscord = async (username: string) => {
+    try {
+      await navigator.clipboard.writeText(username);
+      toast({
+        title: "Copied!",
+        description: `Discord username "${username}" copied to clipboard.`,
+      });
+    } catch {
+      toast({
+        title: "Couldn't copy",
+        description: `Copy it manually: ${username}`,
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <footer className="py-12 px-6 bg-secondary/30 border-t border-border/50">
@@ -33,15 +52,22 @@ const Footer = () => {
             >
               <Linkedin className="w-5 h-5" />
             </a>
-            <span className="p-3 rounded-lg bg-secondary/50 text-clash-purple" title="Discord: rukawa03">
-              <MessageCircle className="w-5 h-5" />
-            </span>
+            <button
+              type="button"
+              onClick={() => handleCopyDiscord("rukawa03")}
+              className="p-3 rounded-lg bg-secondary/50 text-clash-purple hover:bg-secondary transition-colors cursor-pointer"
+              aria-label="Copy Discord username"
+              title="Discord: rukawa03"
+            >
+              <DiscordIcon className="w-5 h-5" />
+            </button>
             <a
               href="https://twitter.com/RukawaAnalyst"
               className="p-3 rounded-lg bg-secondary/50 text-clash-gold hover:bg-secondary transition-colors"
-              aria-label="Twitter"
+              aria-label="Twitter/X"
+              rel="noopener noreferrer"
             >
-              <Twitter className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </a>
           </div>
 
