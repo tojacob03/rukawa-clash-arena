@@ -17,29 +17,11 @@ const flightPath = "M 254.5 276.7 Q 390 230 525.8 341.4";
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
-      {/* 
-        Präzise Keyframes für den Datenstrom und das Flugzeug.
-        Das Flugzeug startet exakt in Deutschland (0,0) und fliegt in einem 
-        natürlichen Bogen direkt zum Shanghai-Endpunkt (271px, 65px).
-      */}
       <style>
         {`
           @keyframes dash-flow {
             0% { stroke-dashoffset: 8; }
             100% { stroke-dashoffset: 0; }
-          }
-          @keyframes flight-smooth {
-            0%   { transform: translate(145px, 168px) rotate(15deg); opacity: 0; }
-            10%  { opacity: 1; }
-            30%  { transform: translate(213px, 143px) rotate(30deg); }
-            50%  { transform: translate(280px, 128px) rotate(45deg); }
-            70%  { transform: translate(348px, 179px) rotate(65deg); }
-            90%  { opacity: 1; }
-            100% { transform: translate(416px, 233px) rotate(85deg); opacity: 0; }
-          }
-          .animate-flight-path {
-            animation: flight-smooth 5s linear infinite;
-            transform-origin: center;
           }
         `}
       </style>
