@@ -7,6 +7,7 @@ import TechStackSection from "@/components/portfolio/TechStackSection";
 import TeamHistorySection from "@/components/portfolio/TeamHistorySection";
 import AchievementsSection from "@/components/portfolio/AchievementsSection";
 import LanguagesSection from "@/components/portfolio/LanguagesSection";
+import ShanghaiRoadmap from "@/components/portfolio/ShanghaiRoadmap";
 import ContactSection from "@/components/portfolio/ContactSection";
 import Footer from "@/components/portfolio/Footer";
 
@@ -22,6 +23,7 @@ const Index = () => {
       <TeamHistorySection />
       <AchievementsSection />
       <LanguagesSection />
+      <ShanghaiRoadmap />
       <ContactSection />
       <Footer />
     </div>
