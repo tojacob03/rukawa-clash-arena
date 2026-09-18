@@ -78,17 +78,36 @@ const LiveStats = () => {
   const { data, isLoading, isError } = useQuery<StatsPayload>({
     queryKey: ["public-stats"],
     queryFn: async () => {
-      const res = await fetch(STATS_URL);
+      const res = await fetch(STATS_URL, { headers: { accept: "application/json" } });
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
     },
     refetchInterval: 15 * 1000,
-    retry: 1,
+    refetchOnWindowFocus: true,
+    staleTime: 10 * 1000,
+    retry: 2,
+    placeholderData: (prev) => prev,
   });
 
-  if (isError) return null;
+  // The upstream feed sometimes returns null for the live fields between refreshes.
+  // Keep the last real values so the ticker never flickers back to "N/A".
+  const lastTop = useRef<StatsPayload["topFriendlyPlayer"]>(null);
+  const lastDuel = useRef<StatsPayload["lastValidDuel"]>(null);
+  const lastBattles = useRef(0);
 
-  if (isLoading || !data) {
+  if (data?.topFriendlyPlayer) lastTop.current = data.topFriendlyPlayer;
+  if (data?.lastValidDuel) lastDuel.current = data.lastValidDuel;
+  if (typeof data?.battlesAnalyzed30d === "number" && data.battlesAnalyzed30d > 0) {
+    lastBattles.current = data.battlesAnalyzed30d;
+  }
+
+  const battles = lastBattles.current;
+  const topFriendlyPlayer = lastTop.current;
+  const lastValidDuel = lastDuel.current;
+
+  if (isError && !battles) return null;
+
+  if ((isLoading || !data) && !battles) {
     return (
       <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8">
         <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-16 animate-pulse">
