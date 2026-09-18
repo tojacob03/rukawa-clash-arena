@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin } from "lucide-react";
+import { MapPin, Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ComposableMap, Geographies, Geography, Marker, Line } from "react-simple-maps";
 
@@ -34,8 +34,8 @@ const ShanghaiRoadmap = () => {
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{
-                scale: 140, // Zoom-Faktor
-                center: [70, 45], // Etwas weiter nach links zentriert, um Europa und Asien perfekt einzufangen
+                scale: 140,
+                center: [70, 45],
               }}
               className="w-full h-full"
             >
@@ -45,34 +45,35 @@ const ShanghaiRoadmap = () => {
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      fill="#1e293b" // Dunkle Länder
-                      stroke="#334155" // Helle Ränder für bessere Sichtbarkeit
+                      fill="#1e293b"
+                      stroke="#334155"
                       strokeWidth={0.7}
-                      className="outline-none transition-colors duration-300 hover:fill-slate-700" // Hover-Effekt
+                      className="outline-none transition-colors duration-300 hover:fill-slate-700"
                     />
                   ))
                 }
               </Geographies>
 
-              {/* Die Daten-Flugroute (Gebogene Linie von DE nach CN) */}
+              {/* Die Daten-Flugroute */}
               <Line
                 from={originCoords}
                 to={destCoords}
-                stroke="#a855f7" // Das Tailwind-Lila (Clash Purple)
+                stroke="#a855f7"
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 className="animate-pulse opacity-60"
-                style={{ strokeDasharray: "4 4" }} // Gestrichelte Tech-Linie
+                style={{ strokeDasharray: "4 4" }}
               />
 
-              {/* Marker: Ursprung (Deutschland) - Kleiner "Sende"-Ping */}
+              {/* Marker: Ursprung (Deutschland) inkl. FLUGZEUG */}
               <Marker coordinates={originCoords}>
+                {/* Sende-Ping */}
                 <motion.circle
                   r="4"
                   fill="#a855f7"
                   className="opacity-80"
                   animate={{
-                    scale: [1, 2],
+                    scale: [1, 2.5],
                     opacity: [0.8, 0],
                   }}
                   transition={{
@@ -82,9 +83,30 @@ const ShanghaiRoadmap = () => {
                   }}
                 />
                 <circle r="2" fill="#a855f7" />
+
+                {/* DAS ANIMIERTE FLUGZEUG */}
+                <motion.g
+                  animate={{
+                    x: [0, 240], // Bewegt sich auf der X-Achse Richtung Shanghai
+                    y: [0, 60], // Bewegt sich auf der Y-Achse nach unten
+                    opacity: [0, 1, 1, 0], // Fadet ein, bleibt sichtbar, fadet vor dem Ziel aus
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.5,
+                  }}
+                >
+                  <Plane
+                    className="w-4 h-4 text-primary drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]"
+                    // Dreht das Icon exakt auf den Winkel der Flugroute
+                    style={{ transform: "translate(-8px, -8px) rotate(75deg)" }}
+                  />
+                </motion.g>
               </Marker>
 
-              {/* Marker: Ziel (Shanghai) - Der große Empfangs-Ping */}
+              {/* Marker: Ziel (Shanghai) */}
               <Marker coordinates={destCoords}>
                 <g transform="translate(-12, -24)">
                   <motion.circle
@@ -126,7 +148,7 @@ const ShanghaiRoadmap = () => {
             </ComposableMap>
           </div>
 
-          {/* Glassmorphism Info-Karte (Jetzt kompakt als kleines Data-Badge) */}
+          {/* Glassmorphism Info-Karte (Jetzt mit Datum) */}
           <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-auto md:top-6 md:bottom-auto z-10 pointer-events-none">
             <Card className="p-5 md:p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-3">
@@ -137,7 +159,11 @@ const ShanghaiRoadmap = () => {
               </div>
 
               <h3 className="text-xl md:text-2xl font-bold text-foreground mb-1">CRL Worlds 2026</h3>
-              <p className="text-primary font-medium m-0">Shanghai, China</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <p className="text-primary font-medium m-0">Shanghai, China</p>
+                <span className="hidden sm:inline text-muted-foreground/50">•</span>
+                <p className="text-foreground/80 font-medium m-0 text-sm sm:text-base">Nov 6-8</p>
+              </div>
             </Card>
           </div>
         </div>
