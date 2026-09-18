@@ -154,11 +154,13 @@ const LiveStats = () => {
             </span>
             <div className="flex items-baseline gap-1.5">
               <span className="text-lg font-bold text-foreground leading-tight font-mono">
-                {data.topFriendlyPlayer ? formatTag(data.topFriendlyPlayer.tag) : "N/A"}
+                {topFriendlyPlayer ? formatTag(topFriendlyPlayer.tag) : "Aggregating…"}
               </span>
-              <span className="text-xs text-muted-foreground font-medium">
-                ({data.topFriendlyPlayer?.count || 0} matches)
-              </span>
+              {topFriendlyPlayer && (
+                <span className="text-xs text-muted-foreground font-medium">
+                  ({topFriendlyPlayer.count.toLocaleString("en-US")} matches)
+                </span>
+              )}
             </div>
           </div>
         </div>
