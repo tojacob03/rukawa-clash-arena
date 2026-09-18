@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowUpRight } from "lucide-react";
 import SectionIntro from "@/components/portfolio/SectionIntro";
 
 const WorkSection = () => {
@@ -127,6 +129,16 @@ const WorkSection = () => {
               </div>
             </Card>
           </motion.div>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <Link
+            to="/work/player-analysis-tooling"
+            className="inline-flex items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
+          >
+            Read the case study
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </section>
