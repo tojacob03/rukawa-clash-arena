@@ -178,13 +178,19 @@ const LiveStats = () => {
             </span>
             <div className="flex flex-col mt-0.5">
               <span className="text-sm font-bold text-foreground leading-tight truncate font-mono">
-                {data.lastValidDuel
-                  ? `${formatTag(data.lastValidDuel.player1)} vs ${formatTag(data.lastValidDuel.player2)}`
+                {lastValidDuel
+                  ? `${formatTag(lastValidDuel.player1)} vs ${formatTag(lastValidDuel.player2)}`
                   : "Awaiting Data..."}
               </span>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                <LiveRelativeTime timestamp={data.lastValidDuel?.time} />
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    lastValidDuel
+                      ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                      : "bg-muted-foreground/50"
+                  }`}
+                />
+                <LiveRelativeTime timestamp={lastValidDuel?.time} />
                 <span className="text-[9px] text-muted-foreground/70 uppercase ml-1 border border-border/50 px-1 rounded whitespace-nowrap">
                   No Repeats
                 </span>
