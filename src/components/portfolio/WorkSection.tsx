@@ -1,57 +1,18 @@
 import { Card } from "@/components/ui/card";
-import { animate, motion, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-
-type CountUpProps = {
-  value: number;
-  className?: string;
-};
-
-const CountUp = ({ value, className = "" }: CountUpProps) => {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.8 });
-  const [currentValue, setCurrentValue] = useState(0);
-
-  useEffect(() => {
-    if (!isInView) return;
-
-    const controls = animate(0, value, {
-      duration: 1.35,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate: (latest) => setCurrentValue(Math.round(latest)),
-    });
-
-    return () => controls.stop();
-  }, [isInView, value]);
-
-  return (
-    <span ref={ref} className={className}>
-      {currentValue}
-    </span>
-  );
-};
+import { motion } from "framer-motion";
+import SectionIntro from "@/components/portfolio/SectionIntro";
 
 const WorkSection = () => {
-  const profileStats = [
-    { value: 186, label: "ANALYZED", className: "text-foreground" },
-    { value: 11, label: "CRL DUELS", className: "text-clash-gold" },
-    { value: 8, label: "DUELS", className: "text-clash-blue" },
-    { value: 6, label: "MODES", className: "text-foreground" },
-  ];
-
   return (
     <section id="work" className="scroll-mt-20 bg-muted/30 px-5 py-14 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-10 max-w-2xl sm:mb-14">
-          <p className="text-[10px] uppercase tracking-[0.28em] text-clash-gold">Featured system</p>
-          <h2 className="mt-3 text-3xl font-bold sm:text-4xl md:text-5xl">Player Analysis Tooling</h2>
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-            A private workflow that moves from raw battle logs to a useful decision before a set. The interface is
-            anonymized; the process is real.
-          </p>
-        </div>
+        <SectionIntro
+          eyebrow="Featured system"
+          title="Player Analysis Tooling"
+          description="A private workflow that moves from raw battle logs to a useful decision before a set. The interface is anonymized; the process is real."
+        />
 
-        <div className="grid gap-4 lg:grid-cols-12 lg:grid-rows-[auto_auto]">
+        <div className="mt-10 grid gap-4 lg:grid-cols-12 lg:grid-rows-[auto_auto]">
           <motion.div
             className="lg:col-span-5 lg:row-span-2"
             initial={{ opacity: 0, x: -16 }}
@@ -77,15 +38,15 @@ const WorkSection = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-md bg-secondary/40 p-3">
-                    <strong className="block text-lg"><CountUp value={1} /></strong>
+                    <strong className="block text-lg">1</strong>
                     <span className="text-[10px] text-muted-foreground">Profile</span>
                   </div>
                   <div className="rounded-md bg-secondary/40 p-3">
-                    <strong className="block text-lg text-clash-gold"><CountUp value={214} /></strong>
+                    <strong className="block text-lg text-clash-gold">214</strong>
                     <span className="text-[10px] text-muted-foreground">Battles</span>
                   </div>
                   <div className="rounded-md bg-secondary/40 p-3">
-                    <strong className="block text-lg text-clash-blue"><CountUp value={12} /></strong>
+                    <strong className="block text-lg text-clash-blue">12</strong>
                     <span className="text-[10px] text-muted-foreground">Duels</span>
                   </div>
                 </div>
@@ -110,12 +71,18 @@ const WorkSection = () => {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-right sm:min-w-[170px]">
-                  {profileStats.map((stat) => (
-                    <span key={stat.label} className={`text-xl font-bold ${stat.className}`}>
-                      <CountUp value={stat.value} />
-                      <small className="ml-1 text-[10px] font-normal text-muted-foreground">{stat.label}</small>
-                    </span>
-                  ))}
+                  <span className="text-xl font-bold text-foreground">
+                    186<small className="ml-1 text-[10px] font-normal text-muted-foreground">ANALYZED</small>
+                  </span>
+                  <span className="text-xl font-bold text-clash-gold">
+                    11<small className="ml-1 text-[10px] font-normal text-muted-foreground">CRL DUELS</small>
+                  </span>
+                  <span className="text-xl font-bold text-clash-blue">
+                    8<small className="ml-1 text-[10px] font-normal text-muted-foreground">DUELS</small>
+                  </span>
+                  <span className="text-xl font-bold text-foreground">
+                    6<small className="ml-1 text-[10px] font-normal text-muted-foreground">MODES</small>
+                  </span>
                 </div>
               </div>
             </Card>
@@ -138,15 +105,19 @@ const WorkSection = () => {
                   </p>
                 </div>
                 <div className="w-full max-w-xs space-y-2 text-sm sm:w-56">
-                  {[['Cycle A', '64%', '1.00'], ['Beatdown B', '58%', '0.81'], ['Control C', '51%', '0.62']].map(([deck, winRate, score], index) => (
+                  {[
+                    ["Cycle A", "64%", "1.00"],
+                    ["Beatdown B", "58%", "0.81"],
+                    ["Control C", "51%", "0.62"],
+                  ].map(([deck, winRate, score], index) => (
                     <div key={deck}>
                       <div className="mb-1 flex justify-between text-xs">
                         <span>{deck}</span>
-                        <span className={index === 0 ? 'text-clash-gold' : 'text-muted-foreground'}>{score}</span>
+                        <span className={index === 0 ? "text-clash-gold" : "text-muted-foreground"}>{score}</span>
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
                         <div
-                          className={`h-full rounded-full ${index === 0 ? 'bg-clash-gold' : 'bg-clash-blue/60'}`}
+                          className={`h-full rounded-full ${index === 0 ? "bg-clash-gold" : "bg-clash-blue/60"}`}
                           style={{ width: winRate }}
                         />
                       </div>
