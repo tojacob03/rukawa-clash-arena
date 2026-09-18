@@ -23,11 +23,15 @@ const ShanghaiRoadmap = () => {
             0% { stroke-dashoffset: 8; }
             100% { stroke-dashoffset: 0; }
           }
-          /* Neue Animation: Lässt das Flugzeug sanft ein- und ausblenden */
+          /* 
+            Gefixte Animation: Durch den festen Ankerpunkt bei 50% gibt es keinen 
+            Transparenz-Drop (Pulsieren) mehr in der Mitte der Strecke. 
+          */
           @keyframes plane-fade {
             0% { opacity: 0; }
-            5% { opacity: 1; }
-            95% { opacity: 1; }
+            10% { opacity: 1; }
+            50% { opacity: 1; }
+            90% { opacity: 1; }
             100% { opacity: 0; }
           }
         `}
@@ -147,19 +151,18 @@ const ShanghaiRoadmap = () => {
                 </g>
               </Marker>
 
-              {/* DAS FLUGZEUG - Massiv und mit sanftem Fade-In/Out */}
+              {/* DAS FLUGZEUG - Massiv, fehlerfrei und nun ein Stück langsamer (8 Sekunden) */}
               <g className="pointer-events-none">
-                <animateMotion dur="6s" repeatCount="indefinite" rotate="auto" path={flightPath} />
+                <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={flightPath} />
 
-                {/* Container für das sanfte Ein- und Ausblenden (Opacity) */}
-                <g style={{ animation: "plane-fade 6s linear infinite" }}>
+                <g style={{ animation: "plane-fade 8s linear infinite" }}>
                   <g transform="rotate(45)">
                     <Plane
                       width={20}
                       height={20}
                       x={-10}
                       y={-10}
-                      fill="currentColor" /* <-- MACHT DAS FLUGZEUG MASSIV */
+                      fill="currentColor"
                       className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,1)]"
                     />
                   </g>
