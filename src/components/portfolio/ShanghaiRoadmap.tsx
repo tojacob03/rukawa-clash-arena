@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin, Activity, Crosshair, Network } from "lucide-react";
+import { MapPin, Activity, Crosshair, Cpu } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 
@@ -96,7 +96,7 @@ const ShanghaiRoadmap = () => {
             </ComposableMap>
           </div>
 
-          {/* Glassmorphism Info-Karte (z-10 damit sie über der Map schwebt) */}
+          {/* Glassmorphism Info-Karte */}
           <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-96 md:top-6 md:bottom-auto z-10 pointer-events-none">
             <Card className="p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-4">
@@ -128,12 +128,13 @@ const ShanghaiRoadmap = () => {
                   </div>
                 </div>
 
+                {/* NEU: Fokus auf deine App und deren Mehrwert */}
                 <div className="flex items-start gap-3">
-                  <Network className="w-5 h-5 text-muted-foreground mt-0.5" />
+                  <Cpu className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-semibold text-foreground">Industry Networking</h4>
+                    <h4 className="text-sm font-semibold text-foreground">Proprietary Tooling</h4>
                     <p className="text-xs text-muted-foreground">
-                      Connecting with global esports organizations and data teams.
+                      Instant duel detection and win-condition predictions straight from raw battle logs.
                     </p>
                   </div>
                 </div>
