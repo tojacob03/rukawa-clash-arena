@@ -39,7 +39,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 const formatTag = (tag: string) => (tag.startsWith("#") ? tag : `#${tag}`);
 
 const LiveStats = () => {
-  const { data, isLoading, isError } = useQuery<StatsPayload>({
+  const { data, isLoading, isError, dataUpdatedAt } = useQuery<StatsPayload>({
     queryKey: ["public-stats"],
     queryFn: async () => {
       const res = await fetch(STATS_URL, { headers: { accept: "application/json" } });
@@ -69,6 +69,37 @@ const LiveStats = () => {
   const dossiers = lastDossiers.current;
   const topFriendlyPlayer = lastTop.current;
 
+  // Reflects the real fetch state - never a decorative animation. "Live" only
+  // shows once we've actually had a successful response.
+  const connectionState: "connecting" | "live" | "offline" =
+    isError && !data ? "offline" : data ? "live" : "connecting";
+
+  const StatusIndicator = () => (
+    <div className="flex items-center gap-1.5 mb-3 sm:mb-0 sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2">
+      <span className="relative flex h-1.5 w-1.5">
+        {connectionState === "live" && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+        )}
+        <span
+          className={`relative inline-flex h-1.5 w-1.5 rounded-full ${
+            connectionState === "live"
+              ? "bg-green-400"
+              : connectionState === "offline"
+              ? "bg-destructive"
+              : "bg-muted-foreground"
+          }`}
+        />
+      </span>
+      <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
+        {connectionState === "live"
+          ? "Live"
+          : connectionState === "offline"
+          ? "Reconnecting"
+          : "Connecting"}
+      </span>
+    </div>
+  );
+
   if (isError && !battles) return null;
 
   if ((isLoading || !data) && !battles) {
@@ -89,60 +120,63 @@ const LiveStats = () => {
 
   return (
     <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8 backdrop-blur-sm relative z-20">
-      <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-6 sm:gap-8">
-        {/* Stat 1: Raw Matches */}
-        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-start">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Swords className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-              Raw Matches Parsed (30d)
-            </span>
-            <span className="text-xl font-bold text-foreground leading-tight">
-              <AnimatedNumber value={battles} />+
-            </span>
-          </div>
-        </div>
-
-        <div className="hidden sm:block w-px h-10 bg-border/50"></div>
-
-        {/* Stat 2: Weekly Friendly Grinder */}
-        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-center">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Trophy className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-              Most Practice Battles (14d)
-            </span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-foreground leading-tight">
-                {topFriendlyPlayer ? topFriendlyPlayer.name || formatTag(topFriendlyPlayer.tag) : "Aggregating…"}
+      <div className="max-w-5xl mx-auto px-6 relative">
+        <StatusIndicator />
+        <div className="flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-6 sm:gap-8">
+          {/* Stat 1: Raw Matches */}
+          <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-start">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Swords className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
+                Raw Matches Parsed (30d)
               </span>
-              {topFriendlyPlayer && (
-                <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
-                  ({topFriendlyPlayer.count.toLocaleString("en-US")} matches)
-                </span>
-              )}
+              <span className="text-xl font-bold text-foreground leading-tight">
+                <AnimatedNumber value={battles} />+
+              </span>
             </div>
           </div>
-        </div>
 
-        <div className="hidden sm:block w-px h-10 bg-border/50"></div>
+          <div className="hidden sm:block w-px h-10 bg-border/50"></div>
 
-        {/* Stat 3: Active Pro Dossiers */}
-        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-end">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Target className="w-5 h-5 text-primary" />
+          {/* Stat 2: Weekly Friendly Grinder */}
+          <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-center">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Trophy className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
+                Most Practice Battles (14d)
+              </span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-lg font-bold text-foreground leading-tight">
+                  {topFriendlyPlayer ? topFriendlyPlayer.name || formatTag(topFriendlyPlayer.tag) : "Aggregating…"}
+                </span>
+                {topFriendlyPlayer && (
+                  <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
+                    ({topFriendlyPlayer.count.toLocaleString("en-US")} matches)
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-              Active Pro Dossiers
-            </span>
-            <span className="text-xl font-bold text-foreground leading-tight">
-              <AnimatedNumber value={dossiers} />
-            </span>
+
+          <div className="hidden sm:block w-px h-10 bg-border/50"></div>
+
+          {/* Stat 3: Active Pro Dossiers */}
+          <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-end">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Target className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
+                Active Pro Dossiers
+              </span>
+              <span className="text-xl font-bold text-foreground leading-tight">
+                <AnimatedNumber value={dossiers} />
+              </span>
+            </div>
           </div>
         </div>
       </div>
