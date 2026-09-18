@@ -67,10 +67,10 @@ const ShanghaiRoadmap = () => {
                 }
               </Geographies>
 
-              {/* Die Daten-Flugroute */}
-              <Line
-                from={originCoords}
-                to={destCoords}
+              {/* Die Daten-Flugroute (gestrichelte Linie) */}
+              <path
+                d={flightPath}
+                fill="none"
                 stroke="#a855f7"
                 strokeWidth={1.5}
                 strokeLinecap="round"
