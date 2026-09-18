@@ -13,7 +13,6 @@ const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
-      
       {/* 
         Präzise Keyframes für den Datenstrom und das Flugzeug.
         Das Flugzeug startet exakt in Deutschland (0,0) und fliegt in einem 
@@ -54,17 +53,16 @@ const ShanghaiRoadmap = () => {
 
         {/* Map Container */}
         <div className="relative w-full h-[500px] rounded-2xl overflow-hidden border border-border/50 bg-secondary/10">
-          
           {/* Grid Overlay für den technischen Look */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
 
           {/* ECHTE VEKTOR-KARTE */}
           <div className="absolute inset-0 z-0 opacity-70">
-            <ComposableMap 
-              projection="geoMercator" 
+            <ComposableMap
+              projection="geoMercator"
               projectionConfig={{
                 scale: 140,
-                center: [70, 45] 
+                center: [70, 45],
               }}
               className="w-full h-full"
             >
@@ -74,8 +72,8 @@ const ShanghaiRoadmap = () => {
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      fill="#1e293b" 
-                      stroke="#334155" 
+                      fill="#1e293b"
+                      stroke="#334155"
                       strokeWidth={0.7}
                       className="outline-none transition-colors duration-300 hover:fill-slate-700"
                     />
@@ -87,14 +85,14 @@ const ShanghaiRoadmap = () => {
               <Line
                 from={originCoords}
                 to={destCoords}
-                stroke="#a855f7" 
+                stroke="#a855f7"
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 className="opacity-70"
-                style={{ 
+                style={{
                   strokeDasharray: "4 4",
-                  animation: "dash-flow 1s linear infinite" 
-                }} 
+                  animation: "dash-flow 1s linear infinite",
+                }}
               />
 
               {/* Marker: Ursprung (Deutschland) */}
@@ -162,7 +160,6 @@ const ShanghaiRoadmap = () => {
                   <Plane className="w-5 h-5 text-primary drop-shadow-[0_0_6px_rgba(168,85,247,0.9)]" />
                 </div>
               </foreignObject>
-
             </ComposableMap>
           </div>
 
@@ -171,9 +168,11 @@ const ShanghaiRoadmap = () => {
             <Card className="p-5 md:p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Next Major Deployment</span>
+                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
+                  Next Major Deployment
+                </span>
               </div>
-              
+
               <h3 className="text-xl md:text-2xl font-bold text-foreground mb-1">CRL Worlds 2026</h3>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <p className="text-primary font-medium m-0">Shanghai, China</p>
@@ -187,5 +186,3 @@ const ShanghaiRoadmap = () => {
     </section>
   );
 };
-
-Ihre Roadmap ist jetzt einsatzbereit.
