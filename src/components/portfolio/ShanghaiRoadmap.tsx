@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ComposableMap, Geographies, Geography, Marker, Line } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 
 // Die GeoJSON-Daten für die Weltkarte (Vektoren)
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
