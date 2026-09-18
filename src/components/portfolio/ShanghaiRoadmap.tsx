@@ -13,7 +13,11 @@ const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
-      {/* 100% kugelsichere CSS-Animationen für Stream und Flugzeug */}
+      {/* 
+        Maßgeschneiderte Keyframes:
+        1. dash-flow: Lässt die Datenpunkte als endlosen Stream nach Shanghai fließen.
+        2. flight: Exakt auf die geodätische Kurve (Erdkrümmung) von DE nach CN berechnet.
+      */}
       <style>
         {`
           @keyframes dash-flow {
@@ -21,13 +25,16 @@ const ShanghaiRoadmap = () => {
             100% { stroke-dashoffset: 0; }
           }
           @keyframes flight {
-            0% { transform: translate(0, 0); opacity: 0; }
-            15% { opacity: 1; }
-            85% { opacity: 1; }
-            100% { transform: translate(220px, 65px); opacity: 0; }
+            0%   { transform: translate(0px, 0px) rotate(15deg); opacity: 0; }
+            5%   { opacity: 1; }
+            25%  { transform: translate(68px, -25px) rotate(30deg); }
+            50%  { transform: translate(135px, -40px) rotate(45deg); }
+            75%  { transform: translate(203px, 11px) rotate(65deg); }
+            95%  { opacity: 1; }
+            100% { transform: translate(271px, 65px) rotate(85deg); opacity: 0; }
           }
           .animate-flight {
-            animation: flight 2.5s linear infinite;
+            animation: flight 5s ease-in-out infinite;
           }
         `}
       </style>
@@ -73,7 +80,7 @@ const ShanghaiRoadmap = () => {
                 }
               </Geographies>
 
-              {/* Die Daten-Flugroute (animiert fließend!) */}
+              {/* Die Daten-Flugroute (animiert fließend entlang der Kurve) */}
               <Line
                 from={originCoords}
                 to={destCoords}
@@ -89,7 +96,7 @@ const ShanghaiRoadmap = () => {
 
               {/* Marker: Ursprung (Deutschland) inkl. FLUGZEUG */}
               <Marker coordinates={originCoords}>
-                {/* Sende-Ping */}
+                {/* Sende-Ping in Europa */}
                 <motion.circle
                   r="4"
                   fill="#a855f7"
@@ -106,9 +113,10 @@ const ShanghaiRoadmap = () => {
                 />
                 <circle r="2" fill="#a855f7" />
 
-                {/* DAS ANIMIERTE FLUGZEUG - Jetzt mit 100% purem CSS animiert und exakt ausgerichtet */}
+                {/* DAS FLUGZEUG - Fliegt jetzt exakt die geodätische Kurve ab */}
                 <g className="animate-flight">
-                  <g transform="translate(-12, -12) rotate(62, 12, 12)">
+                  {/* Diese innere Gruppe zentriert das Icon nur auf den Mittelpunkt, bevor die Animation greift */}
+                  <g transform="translate(-12, -12)">
                     <Plane className="w-6 h-6 text-primary drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
                   </g>
                 </g>
