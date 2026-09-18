@@ -136,7 +136,7 @@ const LiveStats = () => {
               Raw Matches Parsed (30d)
             </span>
             <span className="text-xl font-bold text-foreground leading-tight">
-              <AnimatedNumber value={data.battlesAnalyzed30d} />+
+              <AnimatedNumber value={battles} />+
             </span>
           </div>
         </div>
