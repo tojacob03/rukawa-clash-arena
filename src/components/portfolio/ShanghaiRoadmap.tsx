@@ -23,17 +23,6 @@ const ShanghaiRoadmap = () => {
             0% { stroke-dashoffset: 8; }
             100% { stroke-dashoffset: 0; }
           }
-          /* 
-            Gefixte Animation: Durch den festen Ankerpunkt bei 50% gibt es keinen 
-            Transparenz-Drop (Pulsieren) mehr in der Mitte der Strecke. 
-          */
-          @keyframes plane-fade {
-            0% { opacity: 0; }
-            10% { opacity: 1; }
-            50% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { opacity: 0; }
-          }
         `}
       </style>
 
@@ -151,21 +140,32 @@ const ShanghaiRoadmap = () => {
                 </g>
               </Marker>
 
-              {/* DAS FLUGZEUG - Massiv, fehlerfrei und nun ein Stück langsamer (8 Sekunden) */}
+              {/*
+                DAS FLUGZEUG — Position (animateMotion) und Sichtbarkeit (animate)
+                laufen beide auf der SMIL-Zeitbasis, damit sie garantiert synchron
+                bleiben. Vorher liefen animateMotion (SMIL) und eine CSS-@keyframes-
+                Animation unabhängig voneinander, was je nach Browser-Timing zu einer
+                leichten Phasenverschiebung und damit sichtbarem "Pulsieren" führte.
+              */}
               <g className="pointer-events-none">
                 <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={flightPath} />
 
-                <g style={{ animation: "plane-fade 8s linear infinite" }}>
-                  <g transform="rotate(45)">
-                    <Plane
-                      width={20}
-                      height={20}
-                      x={-10}
-                      y={-10}
-                      fill="currentColor"
-                      className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,1)]"
-                    />
-                  </g>
+                <g transform="rotate(45)">
+                  <animate
+                    attributeName="opacity"
+                    values="0;1;1;1;0"
+                    keyTimes="0;0.1;0.5;0.9;1"
+                    dur="8s"
+                    repeatCount="indefinite"
+                  />
+                  <Plane
+                    width={20}
+                    height={20}
+                    x={-10}
+                    y={-10}
+                    fill="currentColor"
+                    className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,1)]"
+                  />
                 </g>
               </g>
             </ComposableMap>
