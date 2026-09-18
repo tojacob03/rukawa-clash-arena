@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MessageCircle, Twitter, Send, Linkedin } from "lucide-react";
+import { Mail, X, Send, Linkedin, Copy } from "lucide-react";
+import DiscordIcon from "@/components/icons/DiscordIcon";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,11 +65,28 @@ const ContactSection = () => {
     }
   };
 
+  const handleCopyDiscord = async (username: string) => {
+    try {
+      await navigator.clipboard.writeText(username);
+      toast({
+        title: "Copied!",
+        description: `Discord username "${username}" copied to clipboard.`,
+      });
+    } catch {
+      toast({
+        title: "Couldn't copy",
+        description: `Copy it manually: ${username}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   const contactMethods: {
     icon: typeof Mail;
     label: string;
     value: string;
     href?: string;
+    onClick?: () => void;
     color: string;
   }[] = [
     {
@@ -86,14 +104,14 @@ const ContactSection = () => {
       color: "text-foreground",
     },
     {
-      icon: MessageCircle,
+      icon: DiscordIcon,
       label: "Discord",
       value: "rukawa03",
-      href: undefined,
+      onClick: () => handleCopyDiscord("rukawa03"),
       color: "text-clash-purple",
     },
     {
-      icon: Twitter,
+      icon: X,
       label: "Twitter/X",
       value: "RukawaAnalyst",
       href: "https://twitter.com/RukawaAnalyst",
@@ -118,39 +136,51 @@ const ContactSection = () => {
           {/* Contact Methods */}
           <div className="space-y-6">
             <h3 className="text-2xl font-bold text-foreground mb-6">Contact Methods</h3>
-            {contactMethods.map((method, index) => (
-              <Card
-                key={method.label}
-                className="gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300 group"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {method.href ? (
-                  <a
-                    href={method.href}
-                    className="flex items-center gap-4"
-                    rel={method.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  >
-                    <div className={`p-3 rounded-lg bg-secondary/50 ${method.color}`}>
-                      <method.icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">{method.label}</h4>
-                      <p className="text-muted-foreground">{method.value}</p>
-                    </div>
-                  </a>
-                ) : (
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-lg bg-secondary/50 ${method.color}`}>
-                      <method.icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">{method.label}</h4>
-                      <p className="text-muted-foreground">{method.value}</p>
-                    </div>
+            {contactMethods.map((method, index) => {
+              const content = (
+                <>
+                  <div className={`p-3 rounded-lg bg-secondary/50 ${method.color}`}>
+                    <method.icon className="w-6 h-6" />
                   </div>
-                )}
-              </Card>
-            ))}
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground">{method.label}</h4>
+                    <p className="text-muted-foreground">{method.value}</p>
+                  </div>
+                  {method.onClick && (
+                    <Copy className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </>
+              );
+
+              return (
+                <Card
+                  key={method.label}
+                  className="gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300 group"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  {method.href ? (
+                    <a
+                      href={method.href}
+                      className="flex items-center gap-4"
+                      rel={method.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                    >
+                      {content}
+                    </a>
+                  ) : method.onClick ? (
+                    <button
+                      type="button"
+                      onClick={method.onClick}
+                      className="flex items-center gap-4 w-full text-left cursor-pointer"
+                      aria-label={`Copy ${method.label} username`}
+                    >
+                      {content}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-4">{content}</div>
+                  )}
+                </Card>
+              );
+            })}
           </div>
 
           {/* Contact Form */}
