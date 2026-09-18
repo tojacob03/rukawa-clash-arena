@@ -13,15 +13,21 @@ const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
-      {/* 
-        Dieser winzige CSS-Block sorgt dafür, dass die gestrichelte Linie 
-        wie ein echter Datenstrom nach Shanghai fließt. 
-      */}
+      {/* 100% kugelsichere CSS-Animationen für Stream und Flugzeug */}
       <style>
         {`
           @keyframes dash-flow {
             0% { stroke-dashoffset: 8; }
             100% { stroke-dashoffset: 0; }
+          }
+          @keyframes flight {
+            0% { transform: translate(0, 0); opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { transform: translate(220px, 65px); opacity: 0; }
+          }
+          .animate-flight {
+            animation: flight 2.5s linear infinite;
           }
         `}
       </style>
@@ -67,7 +73,7 @@ const ShanghaiRoadmap = () => {
                 }
               </Geographies>
 
-              {/* Die Daten-Flugroute (Jetzt animiert fließend!) */}
+              {/* Die Daten-Flugroute (animiert fließend!) */}
               <Line
                 from={originCoords}
                 to={destCoords}
@@ -100,29 +106,12 @@ const ShanghaiRoadmap = () => {
                 />
                 <circle r="2" fill="#a855f7" />
 
-                {/* DAS ANIMIERTE FLUGZEUG - 100% zuverlässig mit echten SVG-Attributen */}
-                <motion.svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  initial={{ x: -12, y: -12, opacity: 0 }}
-                  animate={{
-                    x: [-12, 220], // Fliegt auf der SVG X-Achse
-                    y: [-12, 65], // Fliegt auf der SVG Y-Achse
-                    opacity: [0, 1, 1, 0], // Fadet sanft ein und wieder aus
-                  }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                  className="overflow-visible"
-                >
-                  {/* Der innere Container kümmert sich NUR um die korrekte Neigung */}
-                  <g transform="rotate(75, 12, 12)">
+                {/* DAS ANIMIERTE FLUGZEUG - Jetzt mit 100% purem CSS animiert und exakt ausgerichtet */}
+                <g className="animate-flight">
+                  <g transform="translate(-12, -12) rotate(62, 12, 12)">
                     <Plane className="w-6 h-6 text-primary drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
                   </g>
-                </motion.svg>
+                </g>
               </Marker>
 
               {/* Marker: Ziel (Shanghai) */}
@@ -167,7 +156,7 @@ const ShanghaiRoadmap = () => {
             </ComposableMap>
           </div>
 
-          {/* Glassmorphism Info-Karte (Kompaktes Data-Badge mit Datum) */}
+          {/* Glassmorphism Info-Karte */}
           <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-auto md:top-6 md:bottom-auto z-10 pointer-events-none">
             <Card className="p-5 md:p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-3">
