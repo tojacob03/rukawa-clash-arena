@@ -13,6 +13,19 @@ const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
+      {/* 
+        Dieser winzige CSS-Block sorgt dafür, dass die gestrichelte Linie 
+        wie ein echter Datenstrom nach Shanghai fließt. 
+      */}
+      <style>
+        {`
+          @keyframes dash-flow {
+            0% { stroke-dashoffset: 8; }
+            100% { stroke-dashoffset: 0; }
+          }
+        `}
+      </style>
+
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4 gradient-primary bg-clip-text text-transparent">
@@ -54,15 +67,18 @@ const ShanghaiRoadmap = () => {
                 }
               </Geographies>
 
-              {/* Die Daten-Flugroute */}
+              {/* Die Daten-Flugroute (Jetzt animiert fließend!) */}
               <Line
                 from={originCoords}
                 to={destCoords}
                 stroke="#a855f7"
                 strokeWidth={1.5}
                 strokeLinecap="round"
-                className="animate-pulse opacity-60"
-                style={{ strokeDasharray: "4 4" }}
+                className="opacity-70"
+                style={{
+                  strokeDasharray: "4 4",
+                  animation: "dash-flow 1s linear infinite",
+                }}
               />
 
               {/* Marker: Ursprung (Deutschland) inkl. FLUGZEUG */}
@@ -84,26 +100,29 @@ const ShanghaiRoadmap = () => {
                 />
                 <circle r="2" fill="#a855f7" />
 
-                {/* DAS ANIMIERTE FLUGZEUG */}
-                <motion.g
+                {/* DAS ANIMIERTE FLUGZEUG - 100% zuverlässig mit echten SVG-Attributen */}
+                <motion.svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  initial={{ x: -12, y: -12, opacity: 0 }}
                   animate={{
-                    x: [0, 240], // Bewegt sich auf der X-Achse Richtung Shanghai
-                    y: [0, 60], // Bewegt sich auf der Y-Achse nach unten
-                    opacity: [0, 1, 1, 0], // Fadet ein, bleibt sichtbar, fadet vor dem Ziel aus
+                    x: [-12, 220], // Fliegt auf der SVG X-Achse
+                    y: [-12, 65], // Fliegt auf der SVG Y-Achse
+                    opacity: [0, 1, 1, 0], // Fadet sanft ein und wieder aus
                   }}
                   transition={{
-                    duration: 3,
+                    duration: 2.5,
                     repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.5,
+                    ease: "linear",
                   }}
+                  className="overflow-visible"
                 >
-                  <Plane
-                    className="w-4 h-4 text-primary drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]"
-                    // Dreht das Icon exakt auf den Winkel der Flugroute
-                    style={{ transform: "translate(-8px, -8px) rotate(75deg)" }}
-                  />
-                </motion.g>
+                  {/* Der innere Container kümmert sich NUR um die korrekte Neigung */}
+                  <g transform="rotate(75, 12, 12)">
+                    <Plane className="w-6 h-6 text-primary drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
+                  </g>
+                </motion.svg>
               </Marker>
 
               {/* Marker: Ziel (Shanghai) */}
@@ -148,7 +167,7 @@ const ShanghaiRoadmap = () => {
             </ComposableMap>
           </div>
 
-          {/* Glassmorphism Info-Karte (Jetzt mit Datum) */}
+          {/* Glassmorphism Info-Karte (Kompaktes Data-Badge mit Datum) */}
           <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-auto md:top-6 md:bottom-auto z-10 pointer-events-none">
             <Card className="p-5 md:p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-3">
