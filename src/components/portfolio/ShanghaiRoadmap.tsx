@@ -186,3 +186,5 @@ const ShanghaiRoadmap = () => {
     </section>
   );
 };
+
+export default ShanghaiRoadmap;
