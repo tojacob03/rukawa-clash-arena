@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -10,10 +11,24 @@ const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
 const originCoords: [number, number] = [10.4515, 51.1657]; // Deutschland (Zentrum)
 const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 
-// Flugroute im SVG-Koordinatensystem der Karte (800x600, Mercator, scale 140, center [70,45]).
+// Flugroute im SVG-Koordinatensystem der Karte (800x600, Mercator).
 const flightPath = "M 254.5 276.7 Q 390 230 525.8 341.4";
 
 const ShanghaiRoadmap = () => {
+  // State, um festzustellen, ob wir uns auf einem mobilen Gerät befinden
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Überprüfe die Bildschirmbreite beim Mounten und bei jedem Resize
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // 640px ist der Tailwind 'sm' Breakpoint
+    };
+
+    checkMobile(); // Initiale Überprüfung
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <section className="py-14 sm:py-20 px-4 sm:px-6 relative overflow-hidden">
       <style>
@@ -43,7 +58,7 @@ const ShanghaiRoadmap = () => {
           </p>
         </div>
 
-        {/* Map Container - Jetzt mit responsiver Höhe für Mobile (320px) bis Desktop (500px) */}
+        {/* Map Container */}
         <div className="relative w-full h-[350px] sm:h-[450px] md:h-[500px] rounded-2xl overflow-hidden border border-border/50 bg-secondary/10">
           {/* Grid Overlay */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
@@ -53,8 +68,9 @@ const ShanghaiRoadmap = () => {
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{
-                scale: 140,
-                center: [70, 45],
+                // Dynamischer Zoom und Fokus-Punkt für Mobile
+                scale: isMobile ? 220 : 140,
+                center: isMobile ? [60, 42] : [70, 45],
               }}
               className="w-full h-full"
             >
@@ -78,11 +94,11 @@ const ShanghaiRoadmap = () => {
                 d={flightPath}
                 fill="none"
                 stroke="#a855f7"
-                strokeWidth={1.5}
+                strokeWidth={isMobile ? 2.5 : 1.5} // Etwas dickere Linie auf Mobile für bessere Sichtbarkeit
                 strokeLinecap="round"
                 className="opacity-70"
                 style={{
-                  strokeDasharray: "4 4",
+                  strokeDasharray: isMobile ? "6 6" : "4 4",
                   animation: "dash-flow 1s linear infinite",
                 }}
               />
@@ -103,7 +119,7 @@ const ShanghaiRoadmap = () => {
                     ease: "easeOut",
                   }}
                 />
-                <circle r="2" fill="#a855f7" />
+                <circle r={isMobile ? "3" : "2"} fill="#a855f7" />
               </Marker>
 
               {/* Marker: Ziel (Shanghai) */}
@@ -158,19 +174,19 @@ const ShanghaiRoadmap = () => {
                     repeatCount="indefinite"
                   />
                   <Plane
-                    width={18}
-                    height={18}
-                    x={-9}
-                    y={-9}
+                    width={isMobile ? 22 : 18}
+                    height={isMobile ? 22 : 18}
+                    x={isMobile ? -11 : -9}
+                    y={isMobile ? -11 : -9}
                     fill="currentColor"
-                    className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,1)] sm:w-[20px] sm:h-[20px]"
+                    className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,1)]"
                   />
                 </g>
               </g>
             </ComposableMap>
           </div>
 
-          {/* Glassmorphism Info-Karte - Positioniert oben links für Mobile & Desktop */}
+          {/* Glassmorphism Info-Karte */}
           <div className="absolute top-4 left-4 right-4 sm:right-auto sm:w-auto sm:top-6 sm:left-6 z-10 pointer-events-none">
             <Card className="p-4 sm:p-5 md:p-6 bg-background/90 md:bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
