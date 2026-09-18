@@ -23,6 +23,13 @@ const ShanghaiRoadmap = () => {
             0% { stroke-dashoffset: 8; }
             100% { stroke-dashoffset: 0; }
           }
+          /* Neue Animation: Lässt das Flugzeug sanft ein- und ausblenden */
+          @keyframes plane-fade {
+            0% { opacity: 0; }
+            5% { opacity: 1; }
+            95% { opacity: 1; }
+            100% { opacity: 0; }
+          }
         `}
       </style>
 
@@ -140,17 +147,22 @@ const ShanghaiRoadmap = () => {
                 </g>
               </Marker>
 
-              {/* DAS FLUGZEUG - fliegt exakt entlang der gestrichelten Route */}
+              {/* DAS FLUGZEUG - Massiv und mit sanftem Fade-In/Out */}
               <g className="pointer-events-none">
                 <animateMotion dur="6s" repeatCount="indefinite" rotate="auto" path={flightPath} />
-                <g transform="rotate(45)">
-                  <Plane
-                    width={20}
-                    height={20}
-                    x={-10}
-                    y={-10}
-                    className="text-primary drop-shadow-[0_0_6px_rgba(168,85,247,0.9)]"
-                  />
+
+                {/* Container für das sanfte Ein- und Ausblenden (Opacity) */}
+                <g style={{ animation: "plane-fade 6s linear infinite" }}>
+                  <g transform="rotate(45)">
+                    <Plane
+                      width={20}
+                      height={20}
+                      x={-10}
+                      y={-10}
+                      fill="currentColor" /* <-- MACHT DAS FLUGZEUG MASSIV */
+                      className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,1)]"
+                    />
+                  </g>
                 </g>
               </g>
             </ComposableMap>
