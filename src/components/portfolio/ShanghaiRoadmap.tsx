@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 import { MapPin, Activity, Crosshair, Cpu } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker, Line } from "react-simple-maps";
 
 // Die GeoJSON-Daten für die Weltkarte (Vektoren)
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
+
+// Koordinaten
+const originCoords: [number, number] = [10.4515, 51.1657]; // Deutschland (Zentrum)
+const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 
 const ShanghaiRoadmap = () => {
   return (
@@ -26,12 +30,12 @@ const ShanghaiRoadmap = () => {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
 
           {/* ECHTE VEKTOR-KARTE */}
-          <div className="absolute inset-0 z-0 opacity-50">
+          <div className="absolute inset-0 z-0 opacity-70">
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{
                 scale: 140, // Zoom-Faktor
-                center: [80, 40], // Zentriert die Karte grob auf Asien/Europa
+                center: [70, 45], // Etwas weiter nach links zentriert, um Europa und Asien perfekt einzufangen
               }}
               className="w-full h-full"
             >
@@ -41,20 +45,48 @@ const ShanghaiRoadmap = () => {
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      fill="#1e293b" // Dunkle Länder (Tailwind slate-800)
-                      stroke="#0f172a" // Noch dunklere Ränder (Tailwind slate-900)
-                      strokeWidth={0.5}
-                      className="outline-none"
+                      fill="#1e293b" // Dunkle Länder
+                      stroke="#334155" // Helle Ränder für bessere Sichtbarkeit
+                      strokeWidth={0.7}
+                      className="outline-none transition-colors duration-300 hover:fill-slate-700" // Hover-Effekt
                     />
                   ))
                 }
               </Geographies>
 
-              {/* Marker exakt auf Shanghai Koordinaten [Längengrad, Breitengrad] */}
-              <Marker coordinates={[121.4737, 31.2304]}>
-                {/* Wir verschieben den Mittelpunkt leicht, damit der MapPin optisch perfekt sitzt */}
+              {/* Die Daten-Flugroute (Gebogene Linie von DE nach CN) */}
+              <Line
+                from={originCoords}
+                to={destCoords}
+                stroke="#a855f7" // Das Tailwind-Lila (Clash Purple)
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                className="animate-pulse opacity-60"
+                style={{ strokeDasharray: "4 4" }} // Gestrichelte Tech-Linie
+              />
+
+              {/* Marker: Ursprung (Deutschland) - Kleiner "Sende"-Ping */}
+              <Marker coordinates={originCoords}>
+                <motion.circle
+                  r="4"
+                  fill="#a855f7"
+                  className="opacity-80"
+                  animate={{
+                    scale: [1, 2],
+                    opacity: [0.8, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                  }}
+                />
+                <circle r="2" fill="#a855f7" />
+              </Marker>
+
+              {/* Marker: Ziel (Shanghai) - Der große Empfangs-Ping */}
+              <Marker coordinates={destCoords}>
                 <g transform="translate(-12, -24)">
-                  {/* Ping 1: Butterweicher Fade-In und Fade-Out */}
                   <motion.circle
                     cx="12"
                     cy="24"
@@ -71,7 +103,6 @@ const ShanghaiRoadmap = () => {
                       ease: "easeInOut",
                     }}
                   />
-                  {/* Ping 2: Startet verzögert für den perfekten Radar-Rhythmus */}
                   <motion.circle
                     cx="12"
                     cy="24"
@@ -89,7 +120,6 @@ const ShanghaiRoadmap = () => {
                       delay: 1.5,
                     }}
                   />
-                  {/* Das Icon selbst, mit leichtem Glow-Effekt */}
                   <MapPin className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
                 </g>
               </Marker>
@@ -128,7 +158,6 @@ const ShanghaiRoadmap = () => {
                   </div>
                 </div>
 
-                {/* NEU: Fokus auf deine App und deren Mehrwert */}
                 <div className="flex items-start gap-3">
                   <Cpu className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
