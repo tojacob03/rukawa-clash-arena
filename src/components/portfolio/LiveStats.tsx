@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { animate, useInView } from "framer-motion";
 import { ShieldCheck, Swords, Trophy } from "lucide-react";
 
-// Deine Public Function URL
+// The public Supabase Edge Function URL
 const STATS_URL = "https://rudopohqygznwhudyohf.supabase.co/functions/v1/public-stats";
 
 interface StatsPayload {
@@ -21,7 +21,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     if (!inView || !nodeRef.current || !Number.isFinite(value)) return;
 
     const from = prevRef.current;
-    // First reveal counts up from zero, later updates tick from the old value.
+    // First reveal counts up from zero smoothly. Later updates tick quickly from the old value.
     const controls = animate(from, value, {
       duration: from === 0 ? 2.5 : 0.8,
       ease: "easeOut",
@@ -31,6 +31,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
         }
       },
     });
+
     prevRef.current = value;
     return () => controls.stop();
   }, [value, inView]);
@@ -51,7 +52,7 @@ const formatRelative = (timestamp: string) => {
 
 const LiveRelativeTime = ({ timestamp }: { timestamp?: string }) => {
   const [timeStr, setTimeStr] = useState(() =>
-    timestamp ? formatRelative(timestamp) ?? "Tracking..." : "Tracking..."
+    timestamp ? (formatRelative(timestamp) ?? "Tracking...") : "Tracking...",
   );
 
   useEffect(() => {
@@ -62,6 +63,7 @@ const LiveRelativeTime = ({ timestamp }: { timestamp?: string }) => {
 
     const updateTimer = () => setTimeStr(formatRelative(timestamp) ?? "Tracking...");
 
+    // Update immediately, then trigger every second
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
 
@@ -71,7 +73,6 @@ const LiveRelativeTime = ({ timestamp }: { timestamp?: string }) => {
   return <span className="text-sm font-semibold text-foreground">{timeStr}</span>;
 };
 
-// Hilfsfunktion, um Tags schöner darzustellen (fügt "#" hinzu, falls es fehlt)
 const formatTag = (tag: string) => (tag.startsWith("#") ? tag : `#${tag}`);
 
 const LiveStats = () => {
@@ -82,15 +83,15 @@ const LiveStats = () => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
     },
+    // Background polling every 15 seconds to keep the dashboard feeling live
     refetchInterval: 15 * 1000,
     refetchOnWindowFocus: true,
     staleTime: 10 * 1000,
     retry: 2,
-    placeholderData: (prev) => prev,
   });
 
-  // The upstream feed sometimes returns null for the live fields between refreshes.
-  // Keep the last real values so the ticker never flickers back to "N/A".
+  // State caching: Keeps the last real values so the ticker never flickers back to "N/A"
+  // during a background refresh or if the backend temporarily returns null.
   const lastTop = useRef<StatsPayload["topFriendlyPlayer"]>(null);
   const lastDuel = useRef<StatsPayload["lastValidDuel"]>(null);
   const lastBattles = useRef(0);
@@ -105,16 +106,34 @@ const LiveStats = () => {
   const topFriendlyPlayer = lastTop.current;
   const lastValidDuel = lastDuel.current;
 
+  // Silent fallback: completely hide the component if there's a fatal error and no cached data
   if (isError && !battles) return null;
 
   if ((isLoading || !data) && !battles) {
     return (
       <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8">
         <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-16 animate-pulse">
+          {/* Skeleton Item 1 */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-muted"></div>
+            <div className="w-10 h-10 rounded-lg bg-primary/20"></div>
             <div className="space-y-2">
-              <div className="h-3 w-24 bg-muted rounded"></div>
+              <div className="h-2 w-28 bg-muted rounded"></div>
+              <div className="h-5 w-20 bg-muted rounded"></div>
+            </div>
+          </div>
+          {/* Skeleton Item 2 */}
+          <div className="flex items-center gap-3 hidden sm:flex">
+            <div className="w-10 h-10 rounded-lg bg-primary/20"></div>
+            <div className="space-y-2">
+              <div className="h-2 w-32 bg-muted rounded"></div>
+              <div className="h-5 w-24 bg-muted rounded"></div>
+            </div>
+          </div>
+          {/* Skeleton Item 3 */}
+          <div className="flex items-center gap-3 hidden md:flex">
+            <div className="w-10 h-10 rounded-lg bg-primary/20"></div>
+            <div className="space-y-2">
+              <div className="h-2 w-36 bg-muted rounded"></div>
               <div className="h-5 w-32 bg-muted rounded"></div>
             </div>
           </div>
@@ -125,27 +144,27 @@ const LiveStats = () => {
 
   return (
     <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8 backdrop-blur-sm relative z-20">
-      <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-6 sm:gap-8">
-        {/* Stat 1: Raw Matches */}
-        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-start">
-          <div className="p-2 bg-primary/10 rounded-lg">
+      <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-center md:justify-evenly items-center gap-6 md:gap-4">
+        {/* Stat 1: Raw Matches Parsed */}
+        <div className="flex items-center gap-3.5 flex-1 justify-center md:justify-start">
+          <div className="p-2.5 bg-primary/10 rounded-lg border border-primary/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
             <Swords className="w-5 h-5 text-primary" />
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
               Raw Matches Parsed (30d)
             </span>
-            <span className="text-xl font-bold text-foreground leading-tight">
+            <span className="text-xl font-bold text-foreground leading-tight tracking-tight">
               <AnimatedNumber value={battles} />+
             </span>
           </div>
         </div>
 
-        <div className="hidden sm:block w-px h-10 bg-border/50"></div>
+        <div className="hidden md:block w-px h-10 bg-border/50"></div>
 
         {/* Stat 2: Weekly Friendly Grinder */}
-        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-center">
-          <div className="p-2 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-3.5 flex-1 justify-center">
+          <div className="p-2.5 bg-primary/10 rounded-lg border border-primary/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
             <Trophy className="w-5 h-5 text-primary" />
           </div>
           <div className="flex flex-col">
@@ -153,7 +172,7 @@ const LiveStats = () => {
               Weekly Friendly Grinder
             </span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-foreground leading-tight font-mono">
+              <span className="text-lg font-bold text-foreground leading-tight font-mono tracking-tight">
                 {topFriendlyPlayer ? formatTag(topFriendlyPlayer.tag) : "Aggregating…"}
               </span>
               {topFriendlyPlayer && (
@@ -165,11 +184,11 @@ const LiveStats = () => {
           </div>
         </div>
 
-        <div className="hidden sm:block w-px h-10 bg-border/50"></div>
+        <div className="hidden md:block w-px h-10 bg-border/50"></div>
 
-        {/* Stat 3: Last Valid Duel Detected */}
-        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-end">
-          <div className="p-2 bg-primary/10 rounded-lg">
+        {/* Stat 3: Last Valid Duel Detected (Ticking Timer) */}
+        <div className="flex items-center gap-3.5 flex-1 justify-center md:justify-end">
+          <div className="p-2.5 bg-primary/10 rounded-lg border border-primary/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
             <ShieldCheck className="w-5 h-5 text-primary" />
           </div>
           <div className="flex flex-col overflow-hidden max-w-full">
@@ -182,7 +201,7 @@ const LiveStats = () => {
                   ? `${formatTag(lastValidDuel.player1)} vs ${formatTag(lastValidDuel.player2)}`
                   : "Awaiting Data..."}
               </span>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-1">
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${
                     lastValidDuel
@@ -191,7 +210,7 @@ const LiveStats = () => {
                   }`}
                 />
                 <LiveRelativeTime timestamp={lastValidDuel?.time} />
-                <span className="text-[9px] text-muted-foreground/70 uppercase ml-1 border border-border/50 px-1 rounded whitespace-nowrap">
+                <span className="text-[9px] text-primary/80 uppercase ml-1 border border-primary/30 bg-primary/5 px-1.5 py-0.5 rounded-sm whitespace-nowrap font-bold">
                   No Repeats
                 </span>
               </div>
