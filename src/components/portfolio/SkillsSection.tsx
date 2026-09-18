@@ -15,7 +15,7 @@ const skills = [
   {
     name: "Remaining-deck support",
     icon: Layers,
-    description: "Score what a player still has after burned cards — mid-set, not post-match.",
+    description: "Score what a player still has after burned cards - mid-set.",
   },
   {
     name: "Prep under time pressure",
