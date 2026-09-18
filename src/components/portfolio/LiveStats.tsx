@@ -14,43 +14,53 @@ interface StatsPayload {
 
 const AnimatedNumber = ({ value }: { value: number }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
-  const inView = useInView(nodeRef, { once: true, margin: "-50px" });
+  const prevRef = useRef(0);
+  const inView = useInView(nodeRef, { margin: "-50px" });
 
   useEffect(() => {
-    if (inView && nodeRef.current) {
-      const controls = animate(0, value, {
-        duration: 2.5,
-        ease: "easeOut",
-        onUpdate(v) {
-          if (nodeRef.current) {
-            nodeRef.current.textContent = Math.round(v).toLocaleString("en-US");
-          }
-        },
-      });
-      return () => controls.stop();
-    }
+    if (!inView || !nodeRef.current || !Number.isFinite(value)) return;
+
+    const from = prevRef.current;
+    // First reveal counts up from zero, later updates tick from the old value.
+    const controls = animate(from, value, {
+      duration: from === 0 ? 2.5 : 0.8,
+      ease: "easeOut",
+      onUpdate(v) {
+        if (nodeRef.current) {
+          nodeRef.current.textContent = Math.round(v).toLocaleString("en-US");
+        }
+      },
+    });
+    prevRef.current = value;
+    return () => controls.stop();
   }, [value, inView]);
 
   return <span ref={nodeRef}>0</span>;
 };
 
+const formatRelative = (timestamp: string) => {
+  const target = new Date(timestamp).getTime();
+  if (Number.isNaN(target)) return null;
+
+  const diffSecs = Math.max(0, Math.floor((Date.now() - target) / 1000));
+  if (diffSecs < 60) return `${diffSecs}s ago`;
+  if (diffSecs < 3600) return `${Math.floor(diffSecs / 60)}m ago`;
+  if (diffSecs < 86400) return `${Math.floor(diffSecs / 3600)}h ago`;
+  return `${Math.floor(diffSecs / 86400)}d ago`;
+};
+
 const LiveRelativeTime = ({ timestamp }: { timestamp?: string }) => {
-  const [timeStr, setTimeStr] = useState("Tracking...");
+  const [timeStr, setTimeStr] = useState(() =>
+    timestamp ? formatRelative(timestamp) ?? "Tracking..." : "Tracking..."
+  );
 
   useEffect(() => {
-    if (!timestamp) return;
+    if (!timestamp) {
+      setTimeStr("Tracking...");
+      return;
+    }
 
-    const updateTimer = () => {
-      const diffMs = new Date().getTime() - new Date(timestamp).getTime();
-      const diffSecs = Math.max(0, Math.floor(diffMs / 1000));
-
-      if (diffSecs < 60) {
-        setTimeStr(`${diffSecs}s ago`);
-      } else {
-        const mins = Math.floor(diffSecs / 60);
-        setTimeStr(`${mins}m ago`);
-      }
-    };
+    const updateTimer = () => setTimeStr(formatRelative(timestamp) ?? "Tracking...");
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
