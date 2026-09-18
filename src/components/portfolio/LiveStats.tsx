@@ -39,7 +39,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 const formatTag = (tag: string) => (tag.startsWith("#") ? tag : `#${tag}`);
 
 const LiveStats = () => {
-  const { data, isLoading, isError, dataUpdatedAt } = useQuery<StatsPayload>({
+  const { data, isLoading, isError } = useQuery<StatsPayload>({
     queryKey: ["public-stats"],
     queryFn: async () => {
       const res = await fetch(STATS_URL, { headers: { accept: "application/json" } });
@@ -75,7 +75,7 @@ const LiveStats = () => {
     isError && !data ? "offline" : data ? "live" : "connecting";
 
   const StatusIndicator = () => (
-    <div className="flex items-center gap-1.5 mb-3 sm:mb-0 sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2">
+    <div className="flex items-center justify-center gap-1.5 pb-3 mb-3 border-b border-border/30">
       <span className="relative flex h-1.5 w-1.5">
         {connectionState === "live" && (
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -120,7 +120,7 @@ const LiveStats = () => {
 
   return (
     <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8 backdrop-blur-sm relative z-20">
-      <div className="max-w-5xl mx-auto px-6 relative">
+      <div className="max-w-5xl mx-auto px-6">
         <StatusIndicator />
         <div className="flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-6 sm:gap-8">
           {/* Stat 1: Raw Matches */}
