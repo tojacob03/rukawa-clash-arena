@@ -1,5 +1,6 @@
 import SiteNav from "@/components/portfolio/SiteNav";
 import HeroSection from "@/components/portfolio/HeroSection";
+import LiveStats from "@/components/portfolio/LiveStats";
 import AboutSection from "@/components/portfolio/AboutSection";
 import WorkSection from "@/components/portfolio/WorkSection";
 import CurrentEngagementsSection from "@/components/portfolio/CurrentEngagementsSection";
@@ -17,6 +18,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <SiteNav />
       <HeroSection />
+      <LiveStats />
       <AboutSection />
       <WorkSection />
       <CurrentEngagementsSection />
