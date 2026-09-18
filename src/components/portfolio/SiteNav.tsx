@@ -17,7 +17,8 @@ const SiteNav = () => {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-5 sm:px-6 h-14 flex items-center justify-between gap-4">
+      {/* Hier ist die Änderung: max-w-6xl und mx-auto wurden durch w-full und dynamisches Padding ersetzt */}
+      <div className="w-full px-5 sm:px-8 lg:px-12 xl:px-16 h-14 flex items-center justify-between gap-4">
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
