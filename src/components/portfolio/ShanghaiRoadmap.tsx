@@ -18,42 +18,45 @@ const ShanghaiRoadmap = () => {
 
         {/* Map Container */}
         <div className="relative w-full h-[500px] rounded-2xl overflow-hidden border border-border/50 bg-secondary/20">
-          {/* Hintergrundbild: Hier tauschst du später die URL gegen einen dunklen Map-Screenshot von Shanghai aus */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1548345680-f5475ea908fc?q=80&w=2000&auto=format&fit=crop')" }}
+          {/* ANGEPASST: Neues Shanghai-Bild, 'mix-blend' entfernt, 'grayscale' hinzugefügt für Sichtbarkeit */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40 grayscale"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1558434690-34988e0c8b9d?q=80&w=2000&auto=format&fit=crop')",
+            }}
           />
-          
+
           {/* Grid Overlay für den technischen Look */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
-          {/* Der Radar-Ping über Shanghai (Position mit top/left anpassbar) */}
+          {/* ANGEPASST: Der Radar-Ping - deutlich langsamer und weicher in der Transparenz */}
           <div className="absolute top-1/2 left-[65%] transform -translate-x-1/2 -translate-y-1/2">
             <div className="relative flex items-center justify-center">
               <MapPin className="w-6 h-6 text-primary relative z-10" />
               <motion.div
-                className="absolute w-12 h-12 bg-primary/30 rounded-full"
+                className="absolute w-12 h-12 bg-primary/20 rounded-full"
                 animate={{
                   scale: [1, 2.5],
-                  opacity: [0.7, 0],
+                  opacity: [0.5, 0],
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 4,
                   repeat: Infinity,
                   ease: "easeOut",
                 }}
               />
               <motion.div
-                className="absolute w-8 h-8 bg-primary/50 rounded-full"
+                className="absolute w-8 h-8 bg-primary/30 rounded-full"
                 animate={{
                   scale: [1, 2],
-                  opacity: [0.9, 0],
+                  opacity: [0.6, 0],
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 4,
                   repeat: Infinity,
                   ease: "easeOut",
-                  delay: 0.5,
+                  delay: 1.5,
                 }}
               />
             </div>
@@ -61,12 +64,14 @@ const ShanghaiRoadmap = () => {
 
           {/* Glassmorphism Info-Karte */}
           <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-96 md:top-6 md:bottom-auto">
-            <Card className="p-6 bg-background/60 backdrop-blur-xl border-border/50 shadow-2xl">
+            <Card className="p-6 bg-background/70 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">Next Major Deployment</span>
+                <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+                  Next Major Deployment
+                </span>
               </div>
-              
+
               <h3 className="text-2xl font-bold text-foreground mb-1">CRL Worlds 2026</h3>
               <p className="text-primary font-medium mb-6">Shanghai, China</p>
 
@@ -75,10 +80,12 @@ const ShanghaiRoadmap = () => {
                   <Activity className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
                     <h4 className="text-sm font-semibold text-foreground">Live Data Ingestion</h4>
-                    <p className="text-xs text-muted-foreground">Real-time meta tracking under offline tournament conditions.</p>
+                    <p className="text-xs text-muted-foreground">
+                      Real-time meta tracking under offline tournament conditions.
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3">
                   <Crosshair className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
@@ -91,7 +98,9 @@ const ShanghaiRoadmap = () => {
                   <Network className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
                     <h4 className="text-sm font-semibold text-foreground">Industry Networking</h4>
-                    <p className="text-xs text-muted-foreground">Connecting with global esports organizations and data teams.</p>
+                    <p className="text-xs text-muted-foreground">
+                      Connecting with global esports organizations and data teams.
+                    </p>
                   </div>
                 </div>
               </div>
