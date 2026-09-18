@@ -1,18 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { animate, useInView } from "framer-motion";
-import { Activity, Swords, Users } from "lucide-react";
+import { ShieldCheck, Swords, Trophy } from "lucide-react";
 
+// Deine Public Function URL
 const STATS_URL = "https://rudopohqygznwhudyohf.supabase.co/functions/v1/public-stats";
 
 interface StatsPayload {
   battlesAnalyzed30d: number;
-  playersTracked: number;
-  // Unser neues Datenfeld aus dem Backend
-  lastBattleIngestedAt: string;
+  topFriendlyPlayer: { tag: string; count: number } | null;
+  lastValidDuel: { player1: string; player2: string; time: string } | null;
 }
 
-// 1. Zählt die absoluten Zahlen einmalig hoch
 const AnimatedNumber = ({ value }: { value: number }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
   const inView = useInView(nodeRef, { once: true, margin: "-50px" });
@@ -35,9 +34,8 @@ const AnimatedNumber = ({ value }: { value: number }) => {
   return <span ref={nodeRef}>0</span>;
 };
 
-// 2. NEU: Die tickende Live-Uhr! Aktualisiert sich jede einzelne Sekunde.
 const LiveRelativeTime = ({ timestamp }: { timestamp?: string }) => {
-  const [timeStr, setTimeStr] = useState("Syncing...");
+  const [timeStr, setTimeStr] = useState("Tracking...");
 
   useEffect(() => {
     if (!timestamp) return;
@@ -50,19 +48,21 @@ const LiveRelativeTime = ({ timestamp }: { timestamp?: string }) => {
         setTimeStr(`${diffSecs}s ago`);
       } else {
         const mins = Math.floor(diffSecs / 60);
-        const secs = diffSecs % 60;
-        setTimeStr(`${mins}m ${secs}s ago`);
+        setTimeStr(`${mins}m ago`);
       }
     };
 
-    updateTimer(); // Sofort updaten beim Mount
-    const interval = setInterval(updateTimer, 1000); // Jede Sekunde ticken lassen
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
   }, [timestamp]);
 
-  return <span className="text-base font-semibold text-foreground leading-tight">{timeStr}</span>;
+  return <span className="text-sm font-semibold text-foreground">{timeStr}</span>;
 };
+
+// Hilfsfunktion, um Tags schöner darzustellen (fügt "#" hinzu, falls es fehlt)
+const formatTag = (tag: string) => (tag.startsWith("#") ? tag : `#${tag}`);
 
 const LiveStats = () => {
   const { data, isLoading, isError } = useQuery<StatsPayload>({
@@ -72,7 +72,6 @@ const LiveStats = () => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
     },
-    // Holt alle 15 Sekunden lautlos im Hintergrund die neuen Daten
     refetchInterval: 15 * 1000,
     retry: 1,
   });
@@ -90,29 +89,22 @@ const LiveStats = () => {
               <div className="h-5 w-32 bg-muted rounded"></div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-muted"></div>
-            <div className="space-y-2">
-              <div className="h-3 w-24 bg-muted rounded"></div>
-              <div className="h-5 w-32 bg-muted rounded"></div>
-            </div>
-          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8 backdrop-blur-sm">
+    <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8 backdrop-blur-sm relative z-20">
       <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-6 sm:gap-8">
-        {/* Stat 1: Battles Analyzed */}
-        <div className="flex items-center gap-3.5">
+        {/* Stat 1: Raw Matches */}
+        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-start">
           <div className="p-2 bg-primary/10 rounded-lg">
             <Swords className="w-5 h-5 text-primary" />
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-              Battles Analyzed (30d)
+              Raw Matches Parsed (30d)
             </span>
             <span className="text-xl font-bold text-foreground leading-tight">
               <AnimatedNumber value={data.battlesAnalyzed30d} />+
@@ -122,35 +114,50 @@ const LiveStats = () => {
 
         <div className="hidden sm:block w-px h-10 bg-border/50"></div>
 
-        {/* Stat 2: Pro Accounts Monitored (Umbenannt) */}
-        <div className="flex items-center gap-3.5">
+        {/* Stat 2: Weekly Friendly Grinder */}
+        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-center">
           <div className="p-2 bg-primary/10 rounded-lg">
-            <Users className="w-5 h-5 text-primary" />
+            <Trophy className="w-5 h-5 text-primary" />
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-              Pro Accounts Monitored
+              Weekly Friendly Grinder
             </span>
-            <span className="text-xl font-bold text-foreground leading-tight">
-              <AnimatedNumber value={data.playersTracked} />
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-bold text-foreground leading-tight font-mono">
+                {data.topFriendlyPlayer ? formatTag(data.topFriendlyPlayer.tag) : "N/A"}
+              </span>
+              <span className="text-xs text-muted-foreground font-medium">
+                ({data.topFriendlyPlayer?.count || 0} matches)
+              </span>
+            </div>
           </div>
         </div>
 
         <div className="hidden sm:block w-px h-10 bg-border/50"></div>
 
-        {/* Stat 3: Last Battle Ingested (Jetzt mit tickendem Timer) */}
-        <div className="flex items-center gap-3.5">
+        {/* Stat 3: Last Valid Duel Detected */}
+        <div className="flex items-center gap-3.5 flex-1 justify-center sm:justify-end">
           <div className="p-2 bg-primary/10 rounded-lg">
-            <Activity className="w-5 h-5 text-primary" />
+            <ShieldCheck className="w-5 h-5 text-primary" />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col overflow-hidden max-w-full">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-              Last Battle Ingested
+              Last Valid Duel Detected
             </span>
-            <div className="flex items-center gap-2 mt-0.5 min-w-[120px]">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-              <LiveRelativeTime timestamp={data.lastBattleIngestedAt} />
+            <div className="flex flex-col mt-0.5">
+              <span className="text-sm font-bold text-foreground leading-tight truncate font-mono">
+                {data.lastValidDuel
+                  ? `${formatTag(data.lastValidDuel.player1)} vs ${formatTag(data.lastValidDuel.player2)}`
+                  : "Awaiting Data..."}
+              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                <LiveRelativeTime timestamp={data.lastValidDuel?.time} />
+                <span className="text-[9px] text-muted-foreground/70 uppercase ml-1 border border-border/50 px-1 rounded whitespace-nowrap">
+                  No Repeats
+                </span>
+              </div>
             </div>
           </div>
         </div>
