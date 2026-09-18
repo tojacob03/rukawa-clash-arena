@@ -140,12 +140,19 @@ const ShanghaiRoadmap = () => {
                 </g>
               </Marker>
 
-              {/* DAS FLUGZEUG - Direkt in der Map-Ebene platziert für butterweiche, fehlerfreie Bewegung */}
-              <foreignObject x="0" y="0" width="100%" height="100%" className="overflow-visible pointer-events-none">
-                <div className="animate-flight-path absolute top-0 left-0">
-                  <Plane className="w-5 h-5 text-primary drop-shadow-[0_0_6px_rgba(168,85,247,0.9)]" />
-                </div>
-              </foreignObject>
+              {/* DAS FLUGZEUG - fliegt exakt entlang der gestrichelten Route */}
+              <g className="pointer-events-none">
+                <animateMotion dur="6s" repeatCount="indefinite" rotate="auto" path={flightPath} />
+                <g transform="rotate(45)">
+                  <Plane
+                    width={20}
+                    height={20}
+                    x={-10}
+                    y={-10}
+                    className="text-primary drop-shadow-[0_0_6px_rgba(168,85,247,0.9)]"
+                  />
+                </g>
+              </g>
             </ComposableMap>
           </div>
 
