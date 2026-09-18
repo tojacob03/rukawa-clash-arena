@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin, Activity, Crosshair, Cpu } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ComposableMap, Geographies, Geography, Marker, Line } from "react-simple-maps";
 
@@ -126,48 +126,18 @@ const ShanghaiRoadmap = () => {
             </ComposableMap>
           </div>
 
-          {/* Glassmorphism Info-Karte */}
-          <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-96 md:top-6 md:bottom-auto z-10 pointer-events-none">
-            <Card className="p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
-              <div className="flex items-center gap-2 mb-4">
+          {/* Glassmorphism Info-Karte (Jetzt kompakt als kleines Data-Badge) */}
+          <div className="absolute bottom-6 left-6 right-6 md:right-auto md:w-auto md:top-6 md:bottom-auto z-10 pointer-events-none">
+            <Card className="p-5 md:p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
                   Next Major Deployment
                 </span>
               </div>
 
-              <h3 className="text-2xl font-bold text-foreground mb-1">CRL Worlds 2026</h3>
-              <p className="text-primary font-medium mb-6">Shanghai, China</p>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Activity className="w-5 h-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground">Live Data Ingestion</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Real-time meta tracking under offline tournament conditions.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Crosshair className="w-5 h-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground">Opponent Scouting</h4>
-                    <p className="text-xs text-muted-foreground">On-site strategic preparation for Tier-1 players.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Cpu className="w-5 h-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground">Proprietary Tooling</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Instant duel detection and win-condition predictions straight from raw battle logs.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-1">CRL Worlds 2026</h3>
+              <p className="text-primary font-medium m-0">Shanghai, China</p>
             </Card>
           </div>
         </div>
