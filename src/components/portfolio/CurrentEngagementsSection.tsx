@@ -1,34 +1,42 @@
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Briefcase } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowUpRight, BriefcaseBusiness } from "lucide-react";
 
 const CurrentEngagementsSection = () => {
   return (
-    <section id="current-engagements" className="py-14 sm:py-20 px-5 sm:px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
-            Current Esports Engagements
-          </h2>
-          <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
-        </div>
-
-        <Card className="gradient-card shadow-card border-border/50 p-6 sm:p-8 md:p-12">
-          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-            <div className="p-4 gradient-primary rounded-xl shadow-glow">
-              <Briefcase className="w-8 h-8 text-primary-foreground" />
+    <section id="current-engagements" className="px-5 py-10 sm:px-6 sm:py-14">
+      <div className="mx-auto max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.45 }}
+        >
+          <Card className="gradient-card border-border/50 p-5 shadow-card sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="rounded-xl border border-clash-gold/30 bg-clash-gold/10 p-3 text-clash-gold">
+                  <BriefcaseBusiness className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <Badge className="border border-clash-gold/30 bg-clash-gold/10 text-clash-gold">Current</Badge>
+                    <span className="text-xs text-muted-foreground">Since May 2026</span>
+                  </div>
+                  <h2 className="text-xl font-bold sm:text-2xl">Esports analyst · Solo CRL preparation</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                    Supporting competitive players including Morten and Viiper with opponent research and set
+                    preparation. Details stay private; the work is reflected in the system above.
+                  </p>
+                </div>
+              </div>
+              <a href="#contact" className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground">
+                Work together <ArrowUpRight className="h-4 w-4" />
+              </a>
             </div>
-            <div className="flex-1">
-              <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-clash-gold">Active Analyst Role</h3>
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-                Since May 2026, I have returned to the competitive Clash Royale scene as a
-                dedicated Esports Analyst. My focus lies on strategic matchup preparation and
-                data-driven opponent research. Currently, I am providing analytical support
-                for top-tier players such as Morten (SK Gaming) and Viiper (Joblife),
-                contributing to recent successes in the CRL Monthly Finals.
-              </p>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
       </div>
     </section>
   );

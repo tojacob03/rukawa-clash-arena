@@ -2,6 +2,7 @@ import SiteNav from "@/components/portfolio/SiteNav";
 import HeroSection from "@/components/portfolio/HeroSection";
 import AboutSection from "@/components/portfolio/AboutSection";
 import WorkSection from "@/components/portfolio/WorkSection";
+import CurrentEngagementsSection from "@/components/portfolio/CurrentEngagementsSection";
 import SkillsSection from "@/components/portfolio/SkillsSection";
 import TechStackSection from "@/components/portfolio/TechStackSection";
 import TeamHistorySection from "@/components/portfolio/TeamHistorySection";
@@ -18,6 +19,7 @@ const Index = () => {
       <HeroSection />
       <AboutSection />
       <WorkSection />
+      <CurrentEngagementsSection />
       <SkillsSection />
       <TechStackSection />
       <TeamHistorySection />
