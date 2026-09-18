@@ -13,10 +13,11 @@ const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
+      
       {/* 
-        Maßgeschneiderte Keyframes:
-        1. dash-flow: Lässt die Datenpunkte als endlosen Stream nach Shanghai fließen.
-        2. flight: Exakt auf die geodätische Kurve (Erdkrümmung) von DE nach CN berechnet.
+        Präzise Keyframes für den Datenstrom und das Flugzeug.
+        Das Flugzeug startet exakt in Deutschland (0,0) und fliegt in einem 
+        natürlichen Bogen direkt zum Shanghai-Endpunkt (271px, 65px).
       */}
       <style>
         {`
@@ -24,17 +25,18 @@ const ShanghaiRoadmap = () => {
             0% { stroke-dashoffset: 8; }
             100% { stroke-dashoffset: 0; }
           }
-          @keyframes flight {
-            0%   { transform: translate(0px, 0px) rotate(15deg); opacity: 0; }
-            5%   { opacity: 1; }
-            25%  { transform: translate(68px, -25px) rotate(30deg); }
-            50%  { transform: translate(135px, -40px) rotate(45deg); }
-            75%  { transform: translate(203px, 11px) rotate(65deg); }
-            95%  { opacity: 1; }
-            100% { transform: translate(271px, 65px) rotate(85deg); opacity: 0; }
+          @keyframes flight-smooth {
+            0%   { transform: translate(145px, 168px) rotate(15deg); opacity: 0; }
+            10%  { opacity: 1; }
+            30%  { transform: translate(213px, 143px) rotate(30deg); }
+            50%  { transform: translate(280px, 128px) rotate(45deg); }
+            70%  { transform: translate(348px, 179px) rotate(65deg); }
+            90%  { opacity: 1; }
+            100% { transform: translate(416px, 233px) rotate(85deg); opacity: 0; }
           }
-          .animate-flight {
-            animation: flight 5s ease-in-out infinite;
+          .animate-flight-path {
+            animation: flight-smooth 5s linear infinite;
+            transform-origin: center;
           }
         `}
       </style>
@@ -52,16 +54,17 @@ const ShanghaiRoadmap = () => {
 
         {/* Map Container */}
         <div className="relative w-full h-[500px] rounded-2xl overflow-hidden border border-border/50 bg-secondary/10">
+          
           {/* Grid Overlay für den technischen Look */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
 
           {/* ECHTE VEKTOR-KARTE */}
           <div className="absolute inset-0 z-0 opacity-70">
-            <ComposableMap
-              projection="geoMercator"
+            <ComposableMap 
+              projection="geoMercator" 
               projectionConfig={{
                 scale: 140,
-                center: [70, 45],
+                center: [70, 45] 
               }}
               className="w-full h-full"
             >
@@ -71,8 +74,8 @@ const ShanghaiRoadmap = () => {
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      fill="#1e293b"
-                      stroke="#334155"
+                      fill="#1e293b" 
+                      stroke="#334155" 
                       strokeWidth={0.7}
                       className="outline-none transition-colors duration-300 hover:fill-slate-700"
                     />
@@ -80,23 +83,22 @@ const ShanghaiRoadmap = () => {
                 }
               </Geographies>
 
-              {/* Die Daten-Flugroute (animiert fließend entlang der Kurve) */}
+              {/* Die Daten-Flugroute */}
               <Line
                 from={originCoords}
                 to={destCoords}
-                stroke="#a855f7"
+                stroke="#a855f7" 
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 className="opacity-70"
-                style={{
+                style={{ 
                   strokeDasharray: "4 4",
-                  animation: "dash-flow 1s linear infinite",
-                }}
+                  animation: "dash-flow 1s linear infinite" 
+                }} 
               />
 
-              {/* Marker: Ursprung (Deutschland) inkl. FLUGZEUG */}
+              {/* Marker: Ursprung (Deutschland) */}
               <Marker coordinates={originCoords}>
-                {/* Sende-Ping in Europa */}
                 <motion.circle
                   r="4"
                   fill="#a855f7"
@@ -112,14 +114,6 @@ const ShanghaiRoadmap = () => {
                   }}
                 />
                 <circle r="2" fill="#a855f7" />
-
-                {/* DAS FLUGZEUG - Fliegt jetzt exakt die geodätische Kurve ab */}
-                <g className="animate-flight">
-                  {/* Diese innere Gruppe zentriert das Icon nur auf den Mittelpunkt, bevor die Animation greift */}
-                  <g transform="translate(-12, -12)">
-                    <Plane className="w-6 h-6 text-primary drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
-                  </g>
-                </g>
               </Marker>
 
               {/* Marker: Ziel (Shanghai) */}
@@ -161,6 +155,14 @@ const ShanghaiRoadmap = () => {
                   <MapPin className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
                 </g>
               </Marker>
+
+              {/* DAS FLUGZEUG - Direkt in der Map-Ebene platziert für butterweiche, fehlerfreie Bewegung */}
+              <foreignObject x="0" y="0" width="100%" height="100%" className="overflow-visible pointer-events-none">
+                <div className="animate-flight-path absolute top-0 left-0">
+                  <Plane className="w-5 h-5 text-primary drop-shadow-[0_0_6px_rgba(168,85,247,0.9)]" />
+                </div>
+              </foreignObject>
+
             </ComposableMap>
           </div>
 
@@ -169,11 +171,9 @@ const ShanghaiRoadmap = () => {
             <Card className="p-5 md:p-6 bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
-                  Next Major Deployment
-                </span>
+                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Next Major Deployment</span>
               </div>
-
+              
               <h3 className="text-xl md:text-2xl font-bold text-foreground mb-1">CRL Worlds 2026</h3>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <p className="text-primary font-medium m-0">Shanghai, China</p>
@@ -188,4 +188,4 @@ const ShanghaiRoadmap = () => {
   );
 };
 
-export default ShanghaiRoadmap;
+Ihre Roadmap ist jetzt einsatzbereit.
