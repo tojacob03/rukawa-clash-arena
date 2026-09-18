@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ComposableMap, Geographies, Geography, Marker, Line } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 
 // Die GeoJSON-Daten für die Weltkarte (Vektoren)
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
@@ -10,32 +10,18 @@ const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
 const originCoords: [number, number] = [10.4515, 51.1657]; // Deutschland (Zentrum)
 const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 
+// Flugroute im SVG-Koordinatensystem der Karte (800x600, Mercator, scale 140, center [70,45]).
+// Deutschland projiziert auf ~(254.5, 276.7), Shanghai auf ~(525.8, 341.4) – Bogen nach Norden.
+const flightPath = "M 254.5 276.7 Q 390 230 525.8 341.4";
+
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
-      {/* 
-        Präzise Keyframes für den Datenstrom und das Flugzeug.
-        Das Flugzeug startet exakt in Deutschland (0,0) und fliegt in einem 
-        natürlichen Bogen direkt zum Shanghai-Endpunkt (271px, 65px).
-      */}
       <style>
         {`
           @keyframes dash-flow {
             0% { stroke-dashoffset: 8; }
             100% { stroke-dashoffset: 0; }
-          }
-          @keyframes flight-smooth {
-            0%   { transform: translate(145px, 168px) rotate(15deg); opacity: 0; }
-            10%  { opacity: 1; }
-            30%  { transform: translate(213px, 143px) rotate(30deg); }
-            50%  { transform: translate(280px, 128px) rotate(45deg); }
-            70%  { transform: translate(348px, 179px) rotate(65deg); }
-            90%  { opacity: 1; }
-            100% { transform: translate(416px, 233px) rotate(85deg); opacity: 0; }
-          }
-          .animate-flight-path {
-            animation: flight-smooth 5s linear infinite;
-            transform-origin: center;
           }
         `}
       </style>
@@ -81,10 +67,10 @@ const ShanghaiRoadmap = () => {
                 }
               </Geographies>
 
-              {/* Die Daten-Flugroute */}
-              <Line
-                from={originCoords}
-                to={destCoords}
+              {/* Die Daten-Flugroute (gestrichelte Linie) */}
+              <path
+                d={flightPath}
+                fill="none"
                 stroke="#a855f7"
                 strokeWidth={1.5}
                 strokeLinecap="round"
@@ -154,12 +140,19 @@ const ShanghaiRoadmap = () => {
                 </g>
               </Marker>
 
-              {/* DAS FLUGZEUG - Direkt in der Map-Ebene platziert für butterweiche, fehlerfreie Bewegung */}
-              <foreignObject x="0" y="0" width="100%" height="100%" className="overflow-visible pointer-events-none">
-                <div className="animate-flight-path absolute top-0 left-0">
-                  <Plane className="w-5 h-5 text-primary drop-shadow-[0_0_6px_rgba(168,85,247,0.9)]" />
-                </div>
-              </foreignObject>
+              {/* DAS FLUGZEUG - fliegt exakt entlang der gestrichelten Route */}
+              <g className="pointer-events-none">
+                <animateMotion dur="6s" repeatCount="indefinite" rotate="auto" path={flightPath} />
+                <g transform="rotate(45)">
+                  <Plane
+                    width={20}
+                    height={20}
+                    x={-10}
+                    y={-10}
+                    className="text-primary drop-shadow-[0_0_6px_rgba(168,85,247,0.9)]"
+                  />
+                </g>
+              </g>
             </ComposableMap>
           </div>
 
