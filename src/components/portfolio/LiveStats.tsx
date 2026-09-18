@@ -14,43 +14,53 @@ interface StatsPayload {
 
 const AnimatedNumber = ({ value }: { value: number }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
-  const inView = useInView(nodeRef, { once: true, margin: "-50px" });
+  const prevRef = useRef(0);
+  const inView = useInView(nodeRef, { margin: "-50px" });
 
   useEffect(() => {
-    if (inView && nodeRef.current) {
-      const controls = animate(0, value, {
-        duration: 2.5,
-        ease: "easeOut",
-        onUpdate(v) {
-          if (nodeRef.current) {
-            nodeRef.current.textContent = Math.round(v).toLocaleString("en-US");
-          }
-        },
-      });
-      return () => controls.stop();
-    }
+    if (!inView || !nodeRef.current || !Number.isFinite(value)) return;
+
+    const from = prevRef.current;
+    // First reveal counts up from zero, later updates tick from the old value.
+    const controls = animate(from, value, {
+      duration: from === 0 ? 2.5 : 0.8,
+      ease: "easeOut",
+      onUpdate(v) {
+        if (nodeRef.current) {
+          nodeRef.current.textContent = Math.round(v).toLocaleString("en-US");
+        }
+      },
+    });
+    prevRef.current = value;
+    return () => controls.stop();
   }, [value, inView]);
 
   return <span ref={nodeRef}>0</span>;
 };
 
+const formatRelative = (timestamp: string) => {
+  const target = new Date(timestamp).getTime();
+  if (Number.isNaN(target)) return null;
+
+  const diffSecs = Math.max(0, Math.floor((Date.now() - target) / 1000));
+  if (diffSecs < 60) return `${diffSecs}s ago`;
+  if (diffSecs < 3600) return `${Math.floor(diffSecs / 60)}m ago`;
+  if (diffSecs < 86400) return `${Math.floor(diffSecs / 3600)}h ago`;
+  return `${Math.floor(diffSecs / 86400)}d ago`;
+};
+
 const LiveRelativeTime = ({ timestamp }: { timestamp?: string }) => {
-  const [timeStr, setTimeStr] = useState("Tracking...");
+  const [timeStr, setTimeStr] = useState(() =>
+    timestamp ? formatRelative(timestamp) ?? "Tracking..." : "Tracking..."
+  );
 
   useEffect(() => {
-    if (!timestamp) return;
+    if (!timestamp) {
+      setTimeStr("Tracking...");
+      return;
+    }
 
-    const updateTimer = () => {
-      const diffMs = new Date().getTime() - new Date(timestamp).getTime();
-      const diffSecs = Math.max(0, Math.floor(diffMs / 1000));
-
-      if (diffSecs < 60) {
-        setTimeStr(`${diffSecs}s ago`);
-      } else {
-        const mins = Math.floor(diffSecs / 60);
-        setTimeStr(`${mins}m ago`);
-      }
-    };
+    const updateTimer = () => setTimeStr(formatRelative(timestamp) ?? "Tracking...");
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
@@ -68,17 +78,36 @@ const LiveStats = () => {
   const { data, isLoading, isError } = useQuery<StatsPayload>({
     queryKey: ["public-stats"],
     queryFn: async () => {
-      const res = await fetch(STATS_URL);
+      const res = await fetch(STATS_URL, { headers: { accept: "application/json" } });
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
     },
     refetchInterval: 15 * 1000,
-    retry: 1,
+    refetchOnWindowFocus: true,
+    staleTime: 10 * 1000,
+    retry: 2,
+    placeholderData: (prev) => prev,
   });
 
-  if (isError) return null;
+  // The upstream feed sometimes returns null for the live fields between refreshes.
+  // Keep the last real values so the ticker never flickers back to "N/A".
+  const lastTop = useRef<StatsPayload["topFriendlyPlayer"]>(null);
+  const lastDuel = useRef<StatsPayload["lastValidDuel"]>(null);
+  const lastBattles = useRef(0);
 
-  if (isLoading || !data) {
+  if (data?.topFriendlyPlayer) lastTop.current = data.topFriendlyPlayer;
+  if (data?.lastValidDuel) lastDuel.current = data.lastValidDuel;
+  if (typeof data?.battlesAnalyzed30d === "number" && data.battlesAnalyzed30d > 0) {
+    lastBattles.current = data.battlesAnalyzed30d;
+  }
+
+  const battles = lastBattles.current;
+  const topFriendlyPlayer = lastTop.current;
+  const lastValidDuel = lastDuel.current;
+
+  if (isError && !battles) return null;
+
+  if ((isLoading || !data) && !battles) {
     return (
       <div className="w-full border-y border-border/40 bg-secondary/10 py-4 mt-8">
         <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-16 animate-pulse">
@@ -107,7 +136,7 @@ const LiveStats = () => {
               Raw Matches Parsed (30d)
             </span>
             <span className="text-xl font-bold text-foreground leading-tight">
-              <AnimatedNumber value={data.battlesAnalyzed30d} />+
+              <AnimatedNumber value={battles} />+
             </span>
           </div>
         </div>
@@ -125,11 +154,13 @@ const LiveStats = () => {
             </span>
             <div className="flex items-baseline gap-1.5">
               <span className="text-lg font-bold text-foreground leading-tight font-mono">
-                {data.topFriendlyPlayer ? formatTag(data.topFriendlyPlayer.tag) : "N/A"}
+                {topFriendlyPlayer ? formatTag(topFriendlyPlayer.tag) : "Aggregating…"}
               </span>
-              <span className="text-xs text-muted-foreground font-medium">
-                ({data.topFriendlyPlayer?.count || 0} matches)
-              </span>
+              {topFriendlyPlayer && (
+                <span className="text-xs text-muted-foreground font-medium">
+                  ({topFriendlyPlayer.count.toLocaleString("en-US")} matches)
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -147,13 +178,19 @@ const LiveStats = () => {
             </span>
             <div className="flex flex-col mt-0.5">
               <span className="text-sm font-bold text-foreground leading-tight truncate font-mono">
-                {data.lastValidDuel
-                  ? `${formatTag(data.lastValidDuel.player1)} vs ${formatTag(data.lastValidDuel.player2)}`
+                {lastValidDuel
+                  ? `${formatTag(lastValidDuel.player1)} vs ${formatTag(lastValidDuel.player2)}`
                   : "Awaiting Data..."}
               </span>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                <LiveRelativeTime timestamp={data.lastValidDuel?.time} />
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    lastValidDuel
+                      ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                      : "bg-muted-foreground/50"
+                  }`}
+                />
+                <LiveRelativeTime timestamp={lastValidDuel?.time} />
                 <span className="text-[9px] text-muted-foreground/70 uppercase ml-1 border border-border/50 px-1 rounded whitespace-nowrap">
                   No Repeats
                 </span>
