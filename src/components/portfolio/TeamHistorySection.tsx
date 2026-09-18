@@ -4,12 +4,8 @@ import { Calendar, Users, Trophy, Briefcase, Activity } from "lucide-react";
 const teamHistory = [
   {
     role: "Freelance Data Analyst",
-    // Geändert: Stellt klar, dass du als externer Analyst Top-Spieler supportest
     team: "Supporting Tier-1 CRL Pros (Morten & Viiper)",
     period: "May 2026 – Present",
-    // Geändert: Erklärt präzise die Hierarchie (via Coach) und droppt die Orga-Namen elegant
-    description:
-      "Providing analytical support to the coaching staff of SK Gaming and Joblife players. Player-level prep for Solo CRL: battle-log profiling, Game 1 tendencies, and remaining-deck strategies.",
     achievement: "CRL 2026 World Championship track",
     icon: Activity,
     color: "text-green-400",
