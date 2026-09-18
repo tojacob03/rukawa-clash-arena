@@ -10,6 +10,10 @@ const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
 const originCoords: [number, number] = [10.4515, 51.1657]; // Deutschland (Zentrum)
 const destCoords: [number, number] = [121.4737, 31.2304]; // Shanghai
 
+// Flugroute im SVG-Koordinatensystem der Karte (800x600, Mercator, scale 140, center [70,45]).
+// Deutschland projiziert auf ~(254.5, 276.7), Shanghai auf ~(525.8, 341.4) – Bogen nach Norden.
+const flightPath = "M 254.5 276.7 Q 390 230 525.8 341.4";
+
 const ShanghaiRoadmap = () => {
   return (
     <section className="py-14 sm:py-20 px-5 sm:px-6 relative overflow-hidden">
