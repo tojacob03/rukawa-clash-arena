@@ -1,6 +1,7 @@
 import SiteNav from "@/components/portfolio/SiteNav";
 import HeroSection from "@/components/portfolio/HeroSection";
 import LiveStats from "@/components/portfolio/LiveStats";
+import MetaPulse from "@/components/portfolio/MetaPulse";
 import AboutSection from "@/components/portfolio/AboutSection";
 import WorkSection from "@/components/portfolio/WorkSection";
 import CurrentEngagementsSection from "@/components/portfolio/CurrentEngagementsSection";
@@ -19,6 +20,7 @@ const Index = () => {
       <SiteNav />
       <HeroSection />
       <LiveStats />
+      <MetaPulse />
       <AboutSection />
       <WorkSection />
       <CurrentEngagementsSection />
