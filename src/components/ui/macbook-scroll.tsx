@@ -1,75 +1,123 @@
-import { ReactNode, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type MacbookScrollProps = {
-  title?: ReactNode;
-  badge?: ReactNode;
-  src: string;
-  alt?: string;
-  showGradient?: boolean;
-  className?: string;
-};
-
-/**
- * Aceternity-style MacBook scroll preview.
- * It reacts to the page scroll and reveals the laptop as it enters view.
- */
-export function MacbookScroll({
+export const MacbookScroll = ({
+  src,
+  showGradient,
   title,
   badge,
-  src,
-  alt = "Product preview",
-  showGradient = true,
-  className,
-}: MacbookScrollProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+}: {
+  src?: string;
+  showGradient?: boolean;
+  title?: string | React.ReactNode;
+  badge?: React.ReactNode;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "center center"],
+    target: ref,
+    offset: ["start start", "end start"],
   });
 
-  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [35, 12, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.78, 0.9, 1]);
-  const translateY = useTransform(scrollYProgress, [0, 0.5, 1], [120, 30, 0]);
-  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.3], [0, 1, 1]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (window && window.innerWidth < 768) {
+      setIsMobile(true);
+    }
+  }, []);
+
+  const scaleX = useTransform(
+    scrollYProgress,
+    [0, 0.3],
+    [1.2, isMobile ? 1 : 1.5]
+  );
+  const scaleY = useTransform(
+    scrollYProgress,
+    [0, 0.3],
+    [0.6, isMobile ? 1 : 1.5]
+  );
+  const translate = useTransform(scrollYProgress, [0, 1], [0, 1500]);
+  const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
+  const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   return (
-    <div ref={containerRef} className={cn("relative mx-auto w-full max-w-5xl px-4", className)}>
-      {showGradient && (
-        <div className="pointer-events-none absolute inset-x-10 top-16 h-64 rounded-full bg-violet-500/20 blur-3xl" />
-      )}
-
-      {(title || badge) && (
-        <div className="relative z-10 mb-8 flex flex-col items-center justify-center gap-4 text-center">
-          {title && (
-            <div className="max-w-2xl text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              {title}
-            </div>
-          )}
-          {badge}
-        </div>
-      )}
-
-      <motion.div
-        style={{ rotateX, scale, y: translateY, opacity, transformPerspective: 1200 }}
-        className="relative mx-auto origin-bottom [transform-style:preserve-3d]"
+    <div
+      ref={ref}
+      className="min-h-[200vh] flex flex-col items-center py-0 md:py-80 justify-start flex-shrink-0 [perspective:800px] transform md:scale-100 scale-[0.35] sm:scale-50"
+    >
+      <motion.h2
+        style={{
+          translateY: textTransform,
+          opacity: textOpacity,
+        }}
+        className="dark:text-white text-neutral-800 text-3xl pb-20 md:text-5xl font-bold mb-20 text-center"
       >
-        <div className="relative overflow-hidden rounded-t-[1.15rem] border-[10px] border-b-0 border-slate-700/90 bg-slate-950 shadow-2xl shadow-black/50 sm:rounded-t-[1.5rem] sm:border-[14px] sm:border-b-0">
-          <div className="absolute left-1/2 top-1 z-10 h-2.5 w-20 -translate-x-1/2 rounded-b-lg bg-black/80 sm:h-3 sm:w-28" />
-          <div className="aspect-[16/10] overflow-hidden bg-black">
-            <img src={src} alt={alt} className="h-full w-full object-cover object-top" />
-          </div>
+        {title || (
+          <span>
+            This Macbook is built with Tailwindcss. <br /> No kidding.
+          </span>
+        )}
+      </motion.h2>
+      {/* Magic happens here */}
+      <motion.div
+        style={{
+          transformY: translate,
+          rotateX: rotate,
+          scaleX,
+          scaleY,
+        }}
+        className="flex flex-col items-center sticky top-20"
+      >
+        <div className="relative">
+          <Lid src={src} />
         </div>
-
-        <div className="relative h-3 rounded-b-[1.25rem] bg-gradient-to-b from-slate-500 via-slate-300 to-slate-500 shadow-xl sm:h-4 sm:rounded-b-[1.75rem]">
-          <div className="absolute left-1/2 top-0 h-1 w-16 -translate-x-1/2 rounded-b-full bg-slate-700/70 sm:w-24" />
+        <div className="h-[22px] w-[32rem] 32rem bg-[#010101] rounded-2xl overflow-hidden relative -z-10">
+          <div className="h-full w-full bg-gradient-to-b from-[#272729] to-[#010101]" />
         </div>
-
-        <div className="mx-auto h-2 w-[92%] rounded-b-full bg-slate-500/60 blur-[1px] sm:h-3" />
+        <Trackpad />
       </motion.div>
+      {badge && <div className="absolute bottom-4 left-4">{badge}</div>}
     </div>
   );
-}
+};
 
-export default MacbookScroll;
+export const Lid = ({ src }: { src?: string }) => {
+  return (
+    <div className="relative [perspective:800px]">
+      <div
+        style={{
+          transform: "perspective(800px) rotateX(-25deg) translateZ(0px)",
+          transformOrigin: "bottom",
+          transformStyle: "preserve-3d",
+        }}
+        className="h-[12rem] w-[32rem] bg-[#010101] rounded-2xl p-2 relative"
+      >
+        <div className="h-full w-full bg-slate-900 rounded-lg overflow-hidden relative">
+          {src ? (
+            <img
+              src={src}
+              alt="Macbook display"
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+              <span className="text-white font-semibold">Replace me</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const Trackpad = () => {
+  return (
+    <div
+      className="w-[32rem] h-[10rem] bg-gradient-to-b from-[#272729] to-[#010101] rounded-b-3xl relative -z-10 -mt-[2px]"
+    >
+      <div className="w-[10rem] h-[5rem] border border-[#272729] rounded-xl absolute top-2 left-1/2 -translate-x-1/2 bg-[#010101]/20"></div>
+    </div>
+  );
+};
