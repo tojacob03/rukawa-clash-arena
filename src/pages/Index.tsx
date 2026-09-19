@@ -14,8 +14,7 @@ import LanguagesSection from "@/components/portfolio/LanguagesSection";
 import ShanghaiRoadmap from "@/components/portfolio/ShanghaiRoadmap";
 import ContactSection from "@/components/portfolio/ContactSection";
 import Footer from "@/components/portfolio/Footer";
-
-const playerAnalysisScreenshot = new URL("../assets/Image 19.09.26 at 18.45.jpeg", import.meta.url).href;
+import playerAnalysisScreenshot from "@/assets/Image 19.09.26 at 18.45.jpeg";
 
 const Index = () => {
   return (
@@ -34,7 +33,9 @@ const Index = () => {
         <img
           src={playerAnalysisScreenshot}
           alt="Player analysis dashboard screenshot"
-          className="h-full w-full bg-[#0b0f19] object-cover object-center"
+          loading="eager"
+          decoding="async"
+          className="block h-full w-full object-contain object-center"
         />
       </MacbookScrollHero>
 
