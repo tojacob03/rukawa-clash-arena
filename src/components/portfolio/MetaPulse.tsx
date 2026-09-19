@@ -2,6 +2,26 @@ import { motion } from "framer-motion";
 import { Sparkles, Crown } from "lucide-react";
 import { usePublicStats } from "@/hooks/usePublicStats";
 
+type MetaCard = NonNullable<ReturnType<typeof usePublicStats>["data"]>["topMetaDeck"] extends infer Deck
+  ? Deck extends { cards: Array<infer Card> }
+    ? Card
+    : never
+  : never;
+
+const getCardPresentation = (card: MetaCard) => {
+  // Keep the same precedence as the public-stats meta-deck payload: an
+  // evolution image identifies an Evo slot, then a hero image a Hero slot.
+  if (card.evolutionIcon) {
+    return { image: card.evolutionIcon, variant: "evolution" as const, label: "Evo" };
+  }
+
+  if (card.heroIcon) {
+    return { image: card.heroIcon, variant: "hero" as const, label: "Hero" };
+  }
+
+  return { image: card.icon, variant: "standard" as const, label: null };
+};
+
 const MetaPulse = () => {
   const { data, isLoading } = usePublicStats();
   const deck = data?.topMetaDeck;
@@ -38,12 +58,9 @@ const MetaPulse = () => {
                 />
               ))
             : deck.cards.map((card, i) => {
-                // Prefer the special art when the card has one - that's the
-                // form it's actually played in. evolutionIcon/heroIcon are
-                // null for cards with no such form.
-                const isEvo = Boolean(card.evolutionIcon);
-                const isHero = !isEvo && Boolean(card.heroIcon);
-                const src = card.evolutionIcon ?? card.heroIcon ?? card.icon;
+                const presentation = getCardPresentation(card);
+                const isEvo = presentation.variant === "evolution";
+                const isHero = presentation.variant === "hero";
 
                 return (
                   <motion.div
@@ -52,14 +69,19 @@ const MetaPulse = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.04 }}
-                    className="relative"
-                    title={`${card.name}${isEvo ? " (Evolution)" : isHero ? " (Hero)" : ""}`}
+                    className="relative w-10 sm:w-12"
+                    title={`${card.name}${presentation.label ? ` (${presentation.label})` : ""}`}
                   >
                     <img
-                      src={src ?? undefined}
-                      alt={card.name}
+                      src={presentation.image ?? card.icon ?? undefined}
+                      alt={`${card.name}${presentation.label ? ` — ${presentation.label}` : ""}`}
                       loading="lazy"
-                      className={`w-10 h-12 sm:w-12 sm:h-14 rounded-md border bg-background/60 object-cover shadow-sm transition-transform hover:-translate-y-1 ${
+                      onError={(event) => {
+                        if (card.icon && event.currentTarget.src !== card.icon) {
+                          event.currentTarget.src = card.icon;
+                        }
+                      }}
+                      className={`block w-full aspect-[19/28] rounded-md border bg-background/60 object-contain shadow-sm transition-transform hover:-translate-y-1 ${
                         isEvo
                           ? "border-clash-gold ring-1 ring-clash-gold/60"
                           : isHero
@@ -68,13 +90,19 @@ const MetaPulse = () => {
                       }`}
                     />
                     {isEvo && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-gold shadow">
-                        <Sparkles className="h-2.5 w-2.5 text-background" />
+                      <span
+                        className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-gold shadow ring-1 ring-background"
+                        aria-label="Evolution card"
+                      >
+                        <Sparkles className="h-2.5 w-2.5 text-background" aria-hidden="true" />
                       </span>
                     )}
                     {isHero && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-purple shadow">
-                        <Crown className="h-2.5 w-2.5 text-background" />
+                      <span
+                        className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-purple shadow ring-1 ring-background"
+                        aria-label="Hero card"
+                      >
+                        <Crown className="h-2.5 w-2.5 text-background" aria-hidden="true" />
                       </span>
                     )}
                   </motion.div>
