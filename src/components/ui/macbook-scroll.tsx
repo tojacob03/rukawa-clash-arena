@@ -1,29 +1,49 @@
-import { useRef } from "react";
+import { ReactNode, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type MacbookScrollProps = {
+  title?: ReactNode;
+  badge?: ReactNode;
   src: string;
   alt?: string;
+  showGradient?: boolean;
   className?: string;
 };
 
-/** A lightweight Aceternity-inspired MacBook reveal driven by the page scroll. */
-export function MacbookScroll({ src, alt = "Product preview", className }: MacbookScrollProps) {
+/** Aceternity-style MacBook scroll preview with a scroll-driven laptop reveal. */
+export function MacbookScroll({
+  title,
+  badge,
+  src,
+  alt = "Product preview",
+  showGradient = true,
+  className,
+}: MacbookScrollProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "center center"],
   });
 
-  const rotateX = useTransform(scrollYProgress, [0, 1], [38, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [0.82, 1]);
-  const translateY = useTransform(scrollYProgress, [0, 1], [90, 0]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
+  const rotateX = useTransform(scrollYProgress, [0, 1], [35, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.78, 1]);
+  const translateY = useTransform(scrollYProgress, [0, 1], [100, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.18], [0, 1]);
 
   return (
     <div ref={containerRef} className={cn("relative mx-auto w-full max-w-5xl px-4", className)}>
-      <div className="pointer-events-none absolute inset-x-10 bottom-4 h-24 rounded-full bg-clash-purple/20 blur-3xl" />
+      {showGradient && (
+        <div className="pointer-events-none absolute inset-x-10 top-16 h-64 rounded-full bg-clash-purple/20 blur-3xl" />
+      )}
+
+      {(title || badge) && (
+        <div className="relative z-10 mb-8 flex flex-col items-center justify-center gap-4 text-center">
+          {title && <div className="max-w-2xl text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">{title}</div>}
+          {badge}
+        </div>
+      )}
+
       <motion.div
         style={{ rotateX, scale, y: translateY, opacity, transformPerspective: 1200 }}
         className="relative mx-auto origin-bottom [transform-style:preserve-3d]"
