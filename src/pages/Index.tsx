@@ -33,7 +33,7 @@ const Index = () => {
         <img
           src={playerAnalysisScreenshot}
           alt="Player analysis dashboard screenshot"
-          className="h-full w-full object-cover object-top"
+          className="h-full w-full bg-[#0b0f19] object-contain object-center"
         />
       </MacbookScrollHero>
 
