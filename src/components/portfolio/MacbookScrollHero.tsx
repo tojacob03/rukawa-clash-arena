@@ -3,16 +3,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useScroll, useTransform, useReducedMotion, type MotionValue } from "framer-motion";
 
-/**
- * A simplified, theme-adapted take on Aceternity's "Fey.com Macbook Scroll"
- * (https://ui.aceternity.com/components/macbook-scroll). Keeps the actual
- * mechanic - the lid opening as you scroll, via scroll-linked scale/rotate/
- * translate on framer-motion (already a project dependency) - but drops the
- * full decorative keyboard/speaker-grid markup from the original to keep
- * this lean. `children` renders inside the screen, so real content (not a
- * static screenshot) shows through.
- */
-
 interface MacbookScrollHeroProps {
   title?: ReactNode;
   children: ReactNode;
@@ -33,7 +23,6 @@ const Lid = ({
 }) => {
   return (
     <div className="relative [perspective:800px]">
-      {/* closed lid, sits behind the animated screen */}
       <div
         style={{ transform: "perspective(800px) rotateX(-25deg) translateZ(0px)", transformOrigin: "bottom" }}
         className="relative h-[12rem] w-[32rem] rounded-2xl bg-[#0a0a0c] p-2"
@@ -43,7 +32,6 @@ const Lid = ({
         </div>
       </div>
 
-      {/* animated screen */}
       <motion.div
         style={{
           scaleX,
@@ -85,12 +73,12 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
     return () => window.removeEventListener("resize", updateViewport);
   }, []);
 
-  const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.2, isMobile ? 1 : 1.5]);
-  const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.6, isMobile ? 1 : 1.5]);
-  const translate = useTransform(scrollYProgress, [0, 0.45], [0, isMobile ? 48 : 120]);
-  const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
-  const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.35], [1, 0]);
+  const scaleX = useTransform(scrollYProgress, [0, 0.18], [1.05, isMobile ? 1.1 : 1.18]);
+  const scaleY = useTransform(scrollYProgress, [0, 0.18], [0.92, isMobile ? 1.02 : 1.08]);
+  const translate = useTransform(scrollYProgress, [0, 0.18], [0, isMobile ? 20 : 30]);
+  const rotate = useTransform(scrollYProgress, [0, 0.18], [-8, 0]);
+  const textTransform = useTransform(scrollYProgress, [0, 0.2], [0, 32]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 1]);
 
   if (prefersReducedMotion) {
     return (
@@ -106,14 +94,38 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
   return (
     <div
       ref={ref}
-      className="flex min-h-[125vh] shrink-0 flex-col items-center justify-start overflow-hidden py-0 [perspective:800px] sm:scale-50 md:scale-100 md:py-32"
+      className="flex min-h-[110vh] shrink-0 flex-col items-center justify-start overflow-hidden py-0 [perspective:800px] md:py-20"
     >
-      <motion.div style={{ translateY: textTransform, opacity: textOpacity }} className="mb-16 max-w-xl text-center">
+      <motion.div style={{ translateY: textTransform, opacity: textOpacity }} className="mb-12 max-w-xl text-center">
         {title}
       </motion.div>
-      <Lid scaleX={scaleX} scaleY={scaleY} rotate={rotate} translate={translate}>
-        {children}
-      </Lid>
+
+      <div className="relative [perspective:800px]">
+        <div
+          style={{ transform: "perspective(800px) rotateX(-25deg) translateZ(0px)", transformOrigin: "bottom" }}
+          className="relative h-[12rem] w-[32rem] rounded-2xl bg-[#0a0a0c] p-2"
+        >
+          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-[#0a0a0c]">
+            <span className="h-2 w-2 rounded-full bg-white/20" />
+          </div>
+        </div>
+
+        <motion.div
+          style={{
+            scaleX,
+            scaleY,
+            rotateX: rotate,
+            translateY: translate,
+            transformStyle: "preserve-3d",
+            transformOrigin: "top",
+          }}
+          className="absolute inset-0 h-96 w-[32rem] rounded-2xl bg-[#0a0a0c] p-2"
+        >
+          <div className="absolute inset-0 rounded-lg bg-[#1a1a1d]" />
+          <div className="absolute inset-2 overflow-hidden rounded-lg bg-background">{children}</div>
+        </motion.div>
+      </div>
+
       <Base />
     </div>
   );
