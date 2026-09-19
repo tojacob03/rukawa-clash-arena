@@ -7,7 +7,13 @@ export interface PublicStatsPayload {
   topFriendlyPlayer: { tag: string; name: string | null; count: number } | null;
   activeDossiers: number;
   topMetaDeck: {
-    cards: { id: number; name: string; icon: string | null }[];
+    cards: {
+      id: number;
+      name: string;
+      icon: string | null;
+      evolutionIcon: string | null;
+      heroIcon: string | null;
+    }[];
     winRate: number;
     usageRate: number;
     games: number;
