@@ -8,14 +8,13 @@ type MetaCard = NonNullable<ReturnType<typeof usePublicStats>["data"]>["topMetaD
   : never;
 
 const getCardPresentation = (card: MetaCard, slotIndex: number) => {
-  // The first deck position is the Evolution slot and the second is the Hero
-  // slot. The payload also includes optional form images for cards outside
-  // those positions, so those must not determine the displayed form.
-  if (slotIndex === 0 && card.evolutionIcon) {
+  // Deck positions 1 and 2 are Evolution slots; position 3 is the Hero slot.
+  // Optional form images on cards outside those positions are ignored.
+  if (slotIndex < 2 && card.evolutionIcon) {
     return { image: card.evolutionIcon, label: "Evolution" };
   }
 
-  if (slotIndex === 1 && card.heroIcon) {
+  if (slotIndex === 2 && card.heroIcon) {
     return { image: card.heroIcon, label: "Hero" };
   }
 
