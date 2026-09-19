@@ -14,6 +14,7 @@ import LanguagesSection from "@/components/portfolio/LanguagesSection";
 import ShanghaiRoadmap from "@/components/portfolio/ShanghaiRoadmap";
 import ContactSection from "@/components/portfolio/ContactSection";
 import Footer from "@/components/portfolio/Footer";
+import playerAnalysisPdf from "@/assets/player-analysis.pdf";
 
 const Index = () => {
   return (
@@ -29,42 +30,11 @@ const Index = () => {
           </>
         }
       >
-        <div className="flex h-full w-full flex-col p-4 font-mono text-xs sm:p-6 sm:text-sm">
-          <div className="mb-4 flex items-center justify-between text-muted-foreground">
-            <span>PLAYER ANALYSIS</span>
-            <span className="text-clash-gold">INTERNAL</span>
-          </div>
-          <div className="mb-4 rounded-md border border-border/40 bg-secondary/30 p-3">
-            <div className="text-[10px] text-muted-foreground">Player tag</div>
-            <div className="mt-1 tracking-widest text-foreground">#········</div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-md bg-secondary/40 p-3">
-              <strong className="block text-lg">1</strong>
-              <span className="text-[10px] text-muted-foreground">Profile</span>
-            </div>
-            <div className="rounded-md bg-secondary/40 p-3">
-              <strong className="block text-lg text-clash-gold">214</strong>
-              <span className="text-[10px] text-muted-foreground">Battles</span>
-            </div>
-            <div className="rounded-md bg-secondary/40 p-3">
-              <strong className="block text-lg text-clash-blue">12</strong>
-              <span className="text-[10px] text-muted-foreground">Duels</span>
-            </div>
-          </div>
-          <div className="mt-4 flex-1 space-y-2">
-            {[
-              ["Cycle A", "1.00"],
-              ["Beatdown B", "0.81"],
-              ["Control C", "0.62"],
-            ].map(([deck, score], i) => (
-              <div key={deck} className="flex items-center justify-between text-[11px]">
-                <span className="text-muted-foreground">{deck}</span>
-                <span className={i === 0 ? "text-clash-gold" : "text-muted-foreground"}>{score}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <iframe
+          src={`${playerAnalysisPdf}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+          title="Player analysis snapshot"
+          className="h-full w-full border-0 bg-background"
+        />
       </MacbookScrollHero>
 
       <LiveStats />
