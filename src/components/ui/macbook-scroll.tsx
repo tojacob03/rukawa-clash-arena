@@ -1,5 +1,5 @@
 import { ReactNode, useRef } from "react";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type MacbookScrollProps = {
@@ -11,7 +11,10 @@ type MacbookScrollProps = {
   className?: string;
 };
 
-/** Aceternity-style MacBook preview with a scroll-driven laptop reveal. */
+/**
+ * Aceternity-style MacBook scroll preview.
+ * It reacts to the page scroll and reveals the laptop as it enters view.
+ */
 export function MacbookScroll({
   title,
   badge,
@@ -26,21 +29,15 @@ export function MacbookScroll({
     offset: ["start end", "center center"],
   });
 
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 24,
-    mass: 0.25,
-  });
-
-  const rotateX = useTransform(smoothProgress, [0, 1], [35, 0]);
-  const scale = useTransform(smoothProgress, [0, 1], [0.78, 1]);
-  const translateY = useTransform(smoothProgress, [0, 1], [100, 0]);
-  const opacity = useTransform(smoothProgress, [0, 0.18], [0, 1]);
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [35, 12, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.78, 0.9, 1]);
+  const translateY = useTransform(scrollYProgress, [0, 0.5, 1], [120, 30, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.3], [0, 1, 1]);
 
   return (
     <div ref={containerRef} className={cn("relative mx-auto w-full max-w-5xl px-4", className)}>
       {showGradient && (
-        <div className="pointer-events-none absolute inset-x-10 top-16 h-64 rounded-full bg-clash-purple/20 blur-3xl" />
+        <div className="pointer-events-none absolute inset-x-10 top-16 h-64 rounded-full bg-violet-500/20 blur-3xl" />
       )}
 
       {(title || badge) && (
@@ -64,9 +61,11 @@ export function MacbookScroll({
             <img src={src} alt={alt} className="h-full w-full object-cover object-top" />
           </div>
         </div>
+
         <div className="relative h-3 rounded-b-[1.25rem] bg-gradient-to-b from-slate-500 via-slate-300 to-slate-500 shadow-xl sm:h-4 sm:rounded-b-[1.75rem]">
           <div className="absolute left-1/2 top-0 h-1 w-16 -translate-x-1/2 rounded-b-full bg-slate-700/70 sm:w-24" />
         </div>
+
         <div className="mx-auto h-2 w-[92%] rounded-b-full bg-slate-500/60 blur-[1px] sm:h-3" />
       </motion.div>
     </div>
