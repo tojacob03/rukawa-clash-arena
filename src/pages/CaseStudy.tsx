@@ -1,15 +1,19 @@
+import { useMemo } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
+import { marked } from "marked";
 import { ArrowLeft } from "lucide-react";
 import SiteNav from "@/components/portfolio/SiteNav";
 import Footer from "@/components/portfolio/Footer";
-import { caseStudies } from "@/data/caseStudies";
+import { caseStudiesBySlug } from "@/data/caseStudies";
 
 const CaseStudy = () => {
   const { slug } = useParams<{ slug: string }>();
-  const study = slug ? caseStudies[slug] : undefined;
+  const study = slug ? caseStudiesBySlug[slug] : undefined;
+
+  const html = useMemo(() => (study ? marked.parse(study.content, { async: false }) : ""), [study]);
 
   if (!study) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/work" replace />;
   }
 
   return (
@@ -18,25 +22,21 @@ const CaseStudy = () => {
       <article className="px-5 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <Link
-            to="/#work"
+            to="/work"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to overview
+            Back to case studies
           </Link>
 
           <p className="mt-8 text-xs uppercase tracking-[0.22em] text-clash-gold">{study.eyebrow}</p>
           <h1 className="mt-4 text-3xl font-bold sm:text-4xl md:text-5xl">{study.title}</h1>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground">{study.summary}</p>
 
-          <div className="mt-12 space-y-10">
-            {study.sections.map((section) => (
-              <section key={section.heading}>
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl">{section.heading}</h2>
-                <p className="mt-3 leading-relaxed text-muted-foreground">{section.body}</p>
-              </section>
-            ))}
-          </div>
+          <div
+            className="prose prose-invert prose-headings:font-bold prose-headings:text-foreground prose-p:leading-relaxed prose-p:text-muted-foreground prose-a:text-clash-gold mt-12 max-w-none"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
 
           <div className="mt-16 border-t border-border/50 pt-8">
             <Link
