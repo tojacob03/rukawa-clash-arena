@@ -1,5 +1,5 @@
 import { ReactNode, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type MacbookScrollProps = {
@@ -11,7 +11,7 @@ type MacbookScrollProps = {
   className?: string;
 };
 
-/** Aceternity-style MacBook scroll preview with a scroll-driven laptop reveal. */
+/** Aceternity-style MacBook preview with a scroll-driven laptop reveal. */
 export function MacbookScroll({
   title,
   badge,
@@ -23,29 +23,45 @@ export function MacbookScroll({
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "center center"],
+    // Start when the component enters the viewport and finish while it is
+    // centered. Using viewport offsets instead of the element's center makes
+    // the animation work consistently for short and tall parent sections.
+    offset: ["start 90%", "center 35%"],
   });
 
-  const rotateX = useTransform(scrollYProgress, [0, 1], [35, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [0.78, 1]);
-  const translateY = useTransform(scrollYProgress, [0, 1], [100, 0]);
-  const opacity = useTransform(scrollYProgress, [0, 0.18], [0, 1]);
+  const progress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.25,
+  });
+  const rotateX = useTransform(progress, [0, 1], [32, 0]);
+  const scale = useTransform(progress, [0, 1], [0.8, 1]);
+  const translateY = useTransform(progress, [0, 1], [80, 0]);
+  const opacity = useTransform(progress, [0, 0.16], [0, 1]);
 
   return (
-    <div ref={containerRef} className={cn("relative mx-auto w-full max-w-5xl px-4", className)}>
+    <div
+      ref={containerRef}
+      className={cn("relative mx-auto w-full max-w-5xl px-4", className)}
+      style={{ perspective: 1200 }}
+    >
       {showGradient && (
         <div className="pointer-events-none absolute inset-x-10 top-16 h-64 rounded-full bg-clash-purple/20 blur-3xl" />
       )}
 
       {(title || badge) && (
         <div className="relative z-10 mb-8 flex flex-col items-center justify-center gap-4 text-center">
-          {title && <div className="max-w-2xl text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">{title}</div>}
+          {title && (
+            <div className="max-w-2xl text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              {title}
+            </div>
+          )}
           {badge}
         </div>
       )}
 
       <motion.div
-        style={{ rotateX, scale, y: translateY, opacity, transformPerspective: 1200 }}
+        style={{ rotateX, scale, y: translateY, opacity }}
         className="relative mx-auto origin-bottom [transform-style:preserve-3d]"
       >
         <div className="relative overflow-hidden rounded-t-[1.15rem] border-[10px] border-b-0 border-slate-700/90 bg-slate-950 shadow-2xl shadow-black/50 sm:rounded-t-[1.5rem] sm:border-[14px] sm:border-b-0">
