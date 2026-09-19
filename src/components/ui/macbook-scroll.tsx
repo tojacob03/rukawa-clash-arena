@@ -29,66 +29,72 @@ export const MacbookScroll = ({
     }
   }, []);
 
-  // Die originalen Aceternity-Transformationen
+  // Die originalen Aceternity-Transformationen für das "Herauswachsen" des Screens
   const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.2, isMobile ? 1 : 1.5]);
   const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.6, isMobile ? 1 : 1.5]);
-  const translate = useTransform(scrollYProgress, [0, 1], [0, 1500]);
+  
+  // FIX: Wir übersetzen den Laptop nicht mehr um absurde 1500px nach unten. 
+  // Das hat vorher die Platzierung auf dem Monitor ruiniert.
+  const translate = useTransform(scrollYProgress, [0, 1], [0, 800]); 
+  
   const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
   const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   return (
-    // Der 300vh Container sorgt für die Scroll-Länge, während das Innere "sticky" bleibt
+    // FIX: py-80 entfernt. scale-Klassen entfernt. Wir machen das jetzt sauber responsiv.
     <div
       ref={ref}
-      className="min-h-[300vh] flex flex-col items-center py-0 md:py-80 justify-start flex-shrink-0 [perspective:800px] transform md:scale-100 scale-[0.35] sm:scale-50 w-full"
+      className="min-h-[300vh] flex flex-col items-center justify-start flex-shrink-0 w-full"
     >
-      <motion.h2
-        style={{
-          translateY: textTransform,
-          opacity: textOpacity,
-        }}
-        className="dark:text-white text-neutral-800 text-3xl pb-20 md:text-5xl font-bold mb-20 text-center"
-      >
-        {title || (
-          <span>
-            This Macbook is built with Tailwindcss. <br /> No kidding.
-          </span>
-        )}
-      </motion.h2>
-
-      {/*
-        Das Sticky-Element hält den Laptop fest im Blickfeld.
-        WICHTIG: scaleX/scaleY hängen NICHT mehr hier dran, nur noch rotateX
-        (der leichte Gesamt-Tilt der ganzen Gruppe). scaleX/scaleY sitzen jetzt
-        NUR noch auf Lid, damit der Screen sichtbar über die (unskaliert
-        bleibende) Base hinauswachsen kann - das erzeugt den "wächst aus dem
-        Mac heraus"-Effekt. Lids eigene lidRotation bleibt unverändert, damit
-        das Aufklappen (-90°→0°) genauso stark bleibt wie vorher.
+      {/* 
+        FIX: Der Sticky-Container erstreckt sich nun über die gesamte Bildschirmhöhe (h-screen).
+        Das zwingt das MacBook, sich EXAKT in der vertikalen Mitte des Bildschirms auszurichten.
       */}
-      <motion.div
-        style={{
-          transformY: translate,
-          rotateX: rotate,
-        }}
-        className="flex flex-col items-center sticky top-10 md:top-32"
-      >
-        <div className="relative [perspective:800px]">
-          <Lid src={src} scrollYProgress={scrollYProgress} scaleX={scaleX} scaleY={scaleY} />
-        </div>
+      <div className="sticky top-0 flex h-screen w-full flex-col items-center justify-center overflow-hidden">
         
-        {/* The Base (Keyboard Area) - bleibt bewusst unskaliert */}
-        <div className="h-[22px] w-[32rem] bg-[#010101] rounded-2xl overflow-hidden relative -z-10">
-          <div className="h-full w-full bg-gradient-to-b from-[#272729] to-[#010101]" />
-        </div>
-        <Trackpad />
-        
-        {showGradient && (
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent z-50 pointer-events-none" />
-        )}
-      </motion.div>
+        <motion.div
+          style={{
+            translateY: textTransform,
+            opacity: textOpacity,
+          }}
+          className="absolute top-20 z-50 text-3xl md:text-5xl font-bold text-center px-4"
+        >
+          {title || (
+            <span className="text-foreground">
+              This Macbook is built with Tailwindcss. <br /> No kidding.
+            </span>
+          )}
+        </motion.div>
 
-      {badge && <div className="absolute bottom-4 left-4 z-50">{badge}</div>}
+        {/*
+          Das MacBook-Element selbst.
+          FIX: scale-[0.6] auf mobilen Geräten, md:scale-100 auf Desktop.
+        */}
+        <motion.div
+          style={{
+            transformY: translate,
+            rotateX: rotate,
+          }}
+          className="flex flex-col items-center [perspective:800px] scale-[0.6] sm:scale-75 md:scale-100"
+        >
+          <div className="relative [perspective:800px]">
+            <Lid src={src} scrollYProgress={scrollYProgress} scaleX={scaleX} scaleY={scaleY} />
+          </div>
+          
+          {/* The Base (Keyboard Area) - bleibt bewusst unskaliert */}
+          <div className="h-[22px] w-[32rem] bg-[#010101] rounded-2xl overflow-hidden relative -z-10">
+            <div className="h-full w-full bg-gradient-to-b from-[#272729] to-[#010101]" />
+          </div>
+          <Trackpad />
+          
+          {showGradient && (
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent z-50 pointer-events-none" />
+          )}
+        </motion.div>
+
+        {badge && <div className="absolute bottom-4 left-4 z-50">{badge}</div>}
+      </div>
     </div>
   );
 };
@@ -104,7 +110,7 @@ export const Lid = ({
   scaleX: MotionValue<number>;
   scaleY: MotionValue<number>;
 }) => {
-  // Der Deckel klappt von -90 Grad (zu) auf 0 Grad (auf) auf - unverändert wie vorher
+  // Der Deckel klappt von -90 Grad (zu) auf 0 Grad (auf) auf
   const lidRotation = useTransform(scrollYProgress, [0, 0.3], [-90, 0]);
 
   return (
