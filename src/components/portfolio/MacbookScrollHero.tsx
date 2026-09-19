@@ -49,19 +49,25 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
           </motion.div>
         )}
 
-        <div className="relative w-[min(92vw,64rem)] [perspective:1800px]">
+        <div className="relative isolate w-[min(92vw,64rem)] [perspective:1800px]">
           <motion.div
             style={lidStyle}
             className="relative z-10 aspect-[16/10] w-full origin-bottom rounded-[1.35rem] bg-[#07080a] p-[1.15%] shadow-[0_35px_90px_rgba(0,0,0,0.5)] [backface-visibility:hidden]"
           >
             <div className="relative h-full w-full overflow-hidden rounded-[0.95rem] border border-white/10 bg-[#0b0f19]">
-              <div className="absolute inset-x-1/2 top-0 z-10 h-3 w-24 -translate-x-1/2 rounded-b-lg bg-[#050608]" />
-              <div className="absolute inset-0 overflow-hidden rounded-[0.95rem]">
-                <div className="flex h-full w-full items-center justify-center overflow-hidden">
-                  {children}
+              <div className="absolute inset-x-1/2 top-0 z-20 h-3 w-24 -translate-x-1/2 rounded-b-lg bg-[#050608]" />
+
+              {/* min-w-0/min-h-0 are important here: without them, an image's
+                  intrinsic dimensions can force a flex item outside the screen. */}
+              <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden rounded-[0.95rem]">
+                <div className="flex h-full min-h-0 w-full min-w-0 items-center justify-center overflow-hidden p-0">
+                  <div className="flex h-full min-h-0 w-full min-w-0 items-center justify-center [&>img]:block [&>img]:h-auto [&>img]:max-h-full [&>img]:max-w-full [&>img]:w-auto [&>img]:object-contain">
+                    {children}
+                  </div>
                 </div>
               </div>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/10 via-transparent to-white/[0.06]" />
+
+              <div className="pointer-events-none absolute inset-0 z-10 rounded-[0.95rem] bg-gradient-to-tr from-black/10 via-transparent to-white/[0.06]" />
             </div>
           </motion.div>
 
