@@ -16,16 +16,12 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
     offset: ["start end", "end start"],
   });
 
-  // Keep the animation driven by this section's progress rather than the
-  // global page progress, so it also works when the hero is below the fold.
-  const progress = useTransform(scrollYProgress, [0.12, 0.42], [0, 1], {
-    clamp: true,
-  });
-  const rotateX = useTransform(progress, [0, 1], [-72, 0]);
-  const translateY = useTransform(progress, [0, 1], [28, 0]);
-  const scale = useTransform(progress, [0, 1], [0.94, 1]);
-  const titleY = useTransform(progress, [0, 1], [22, 0]);
-  const titleOpacity = useTransform(progress, [0, 0.55], [0, 1]);
+  const progress = useTransform(scrollYProgress, [0.08, 0.48], [0, 1], { clamp: true });
+  const rotateX = useTransform(progress, [0, 1], [-68, 0]);
+  const translateY = useTransform(progress, [0, 1], [24, 0]);
+  const scale = useTransform(progress, [0, 1], [0.96, 1]);
+  const titleY = useTransform(progress, [0, 1], [18, 0]);
+  const titleOpacity = useTransform(progress, [0, 0.45], [0, 1]);
 
   const lidStyle = prefersReducedMotion
     ? undefined
@@ -41,7 +37,7 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
     <section
       ref={sectionRef}
       aria-label="Player analysis preview"
-      className="relative min-h-[140vh] w-full overflow-hidden px-4 pt-16 sm:px-6 sm:pt-24"
+      className="relative min-h-[150vh] w-full px-4 pt-16 sm:px-6 sm:pt-24"
     >
       <div className="sticky top-16 flex min-h-[calc(100vh-4rem)] flex-col items-center sm:top-20 sm:min-h-[calc(100vh-5rem)]">
         {title && (
@@ -60,10 +56,8 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
           >
             <div className="relative h-full w-full overflow-hidden rounded-[0.95rem] border border-white/10 bg-[#0b0f19]">
               <div className="absolute inset-x-1/2 top-0 z-10 h-3 w-24 -translate-x-1/2 rounded-b-lg bg-[#050608]" />
-              {/* The extra absolute wrapper guarantees the screenshot can never
-                  paint outside the display, regardless of its intrinsic size. */}
               <div className="absolute inset-0 overflow-hidden rounded-[0.95rem]">
-                <div className="flex h-full w-full items-center justify-center">
+                <div className="flex h-full w-full items-center justify-center overflow-hidden">
                   {children}
                 </div>
               </div>
