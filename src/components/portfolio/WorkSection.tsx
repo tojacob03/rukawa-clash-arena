@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import SectionIntro from "@/components/portfolio/SectionIntro";
-import MacbookScroll from "@/components/ui/macbook-scroll";
+import { MacbookScroll } from "@/components/ui/macbook-scroll"; // Wichtig: Destructuring-Import
 import analysisPreview from "@/assets/Image 19.09.26 at 18.45.jpeg";
 
 const WorkSection = () => {
@@ -16,12 +16,24 @@ const WorkSection = () => {
           description="A private workflow that moves from raw battle logs to a useful decision before a set. The interface is anonymized; the process is real."
         />
 
-        <div className="mt-10 overflow-hidden rounded-[2rem] border border-border/50 bg-background/30 py-8 shadow-card sm:py-12">
-          <div className="mb-7 text-center sm:mb-10">
+        {/* 
+          WICHTIG: Kein 'overflow-hidden' mehr hier!
+          Das Macbook braucht den echten Fenster-Scroll (window scroll), um die Animation auszulösen.
+          Zudem entfernen wir das Hintergrund-Kästchen hier, da der MacbookScroll-Container 
+          sehr hoch (300vh) ist. Wenn wir hier einen Border drum machen, haben wir ein riesiges
+          leeres Feld auf der Seite.
+        */}
+        <div className="mt-10 w-full">
+          <div className="mb-2 text-center sm:mb-4">
             <p className="text-xs uppercase tracking-[0.22em] text-clash-gold">Scroll to explore</p>
             <p className="mt-2 text-sm text-muted-foreground">The analysis workspace, brought to life.</p>
           </div>
-          <MacbookScroll src={analysisPreview} alt="Rukawa player analysis workspace" />
+          
+          {/* 
+            Der MacbookScroll bringt seinen eigenen 300vh (oder 200vh) Container mit.
+            Er pinnt sich an den Bildschirm, während du weiter nach unten scrollst.
+          */}
+          <MacbookScroll src={analysisPreview} showGradient={true} />
         </div>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-12 lg:grid-rows-[auto_auto]">
