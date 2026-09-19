@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import ClientPortal from "./pages/ClientPortal";
 import AdminPanel from "./pages/AdminPanel";
 import CaseStudy from "./pages/CaseStudy";
+import CaseStudyIndex from "./pages/CaseStudyIndex";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/work" element={<CaseStudyIndex />} />
           <Route path="/work/:slug" element={<CaseStudy />} />
           <Route path="/portal" element={<ClientPortal />} />
           <Route path="/admin" element={<AdminPanel />} />
