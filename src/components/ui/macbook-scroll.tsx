@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export const MacbookScroll = ({
@@ -57,21 +57,27 @@ export const MacbookScroll = ({
         )}
       </motion.h2>
 
-      {/* Das Sticky-Element hält den Laptop fest im Blickfeld */}
+      {/*
+        Das Sticky-Element hält den Laptop fest im Blickfeld.
+        WICHTIG: scaleX/scaleY hängen NICHT mehr hier dran, nur noch rotateX
+        (der leichte Gesamt-Tilt der ganzen Gruppe). scaleX/scaleY sitzen jetzt
+        NUR noch auf Lid, damit der Screen sichtbar über die (unskaliert
+        bleibende) Base hinauswachsen kann - das erzeugt den "wächst aus dem
+        Mac heraus"-Effekt. Lids eigene lidRotation bleibt unverändert, damit
+        das Aufklappen (-90°→0°) genauso stark bleibt wie vorher.
+      */}
       <motion.div
         style={{
           transformY: translate,
           rotateX: rotate,
-          scaleX,
-          scaleY,
         }}
         className="flex flex-col items-center sticky top-10 md:top-32"
       >
         <div className="relative [perspective:800px]">
-          <Lid src={src} scrollYProgress={scrollYProgress} />
+          <Lid src={src} scrollYProgress={scrollYProgress} scaleX={scaleX} scaleY={scaleY} />
         </div>
         
-        {/* The Base (Keyboard Area) */}
+        {/* The Base (Keyboard Area) - bleibt bewusst unskaliert */}
         <div className="h-[22px] w-[32rem] bg-[#010101] rounded-2xl overflow-hidden relative -z-10">
           <div className="h-full w-full bg-gradient-to-b from-[#272729] to-[#010101]" />
         </div>
@@ -87,14 +93,26 @@ export const MacbookScroll = ({
   );
 };
 
-export const Lid = ({ src, scrollYProgress }: { src?: string; scrollYProgress: any }) => {
-  // Der Deckel klappt von -90 Grad (zu) auf 0 Grad (auf) auf
+export const Lid = ({
+  src,
+  scrollYProgress,
+  scaleX,
+  scaleY,
+}: {
+  src?: string;
+  scrollYProgress: any;
+  scaleX: MotionValue<number>;
+  scaleY: MotionValue<number>;
+}) => {
+  // Der Deckel klappt von -90 Grad (zu) auf 0 Grad (auf) auf - unverändert wie vorher
   const lidRotation = useTransform(scrollYProgress, [0, 0.3], [-90, 0]);
 
   return (
     <motion.div
       style={{
         rotateX: lidRotation,
+        scaleX,
+        scaleY,
         transformOrigin: "bottom",
         transformStyle: "preserve-3d",
       }}
