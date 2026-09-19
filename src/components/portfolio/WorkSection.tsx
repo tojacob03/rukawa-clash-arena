@@ -17,14 +17,14 @@ const WorkSection = () => {
         />
 
         {/*
-          overflow-hidden hier ist wichtig und bewusst identisch zur Aceternity-Referenz
-          (dort: <div className="w-full overflow-hidden ..."><MacbookScroll .../></div>).
-          Es clipped nur den eigenen gerenderten 3D-Inhalt dieses Blocks (Perspective +
-          scale-[0.35] können sonst optisch über den Container hinausragen) und hat
-          KEINEN Einfluss auf den Fensterscroll selbst - useScroll() in MacbookScroll
-          trackt den window-Scroll unabhängig davon.
+          KEIN overflow-hidden hier - bewusst so gelassen. overflow-hidden (oder
+          auto/scroll) auf JEDEM Vorfahren eines position:sticky-Elements bricht
+          dessen Sticky-Verhalten (das Element "klebt" dann nur noch innerhalb
+          des geclippten Vorfahren statt am Viewport). MacbookScroll braucht
+          sticky, um während des Scrollens im Bild zu bleiben - das ist
+          wichtiger als das Clipping der 3D-Ränder aus der Referenz.
         */}
-        <div className="mt-10 w-full overflow-hidden">
+        <div className="mt-10 w-full">
           <div className="mb-2 text-center sm:mb-4">
             <p className="text-xs uppercase tracking-[0.22em] text-clash-gold">Scroll to explore</p>
             <p className="mt-2 text-sm text-muted-foreground">The analysis workspace, brought to life.</p>
