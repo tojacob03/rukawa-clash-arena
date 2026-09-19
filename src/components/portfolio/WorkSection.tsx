@@ -16,20 +16,21 @@ const WorkSection = () => {
           description="A private workflow that moves from raw battle logs to a useful decision before a set. The interface is anonymized; the process is real."
         />
 
-        {/* 
-          WICHTIG: Kein 'overflow-hidden' mehr hier!
-          Das Macbook braucht den echten Fenster-Scroll (window scroll), um die Animation auszulösen.
-          Zudem entfernen wir das Hintergrund-Kästchen hier, da der MacbookScroll-Container 
-          sehr hoch (300vh) ist. Wenn wir hier einen Border drum machen, haben wir ein riesiges
-          leeres Feld auf der Seite.
+        {/*
+          overflow-hidden hier ist wichtig und bewusst identisch zur Aceternity-Referenz
+          (dort: <div className="w-full overflow-hidden ..."><MacbookScroll .../></div>).
+          Es clipped nur den eigenen gerenderten 3D-Inhalt dieses Blocks (Perspective +
+          scale-[0.35] können sonst optisch über den Container hinausragen) und hat
+          KEINEN Einfluss auf den Fensterscroll selbst - useScroll() in MacbookScroll
+          trackt den window-Scroll unabhängig davon.
         */}
-        <div className="mt-10 w-full">
+        <div className="mt-10 w-full overflow-hidden">
           <div className="mb-2 text-center sm:mb-4">
             <p className="text-xs uppercase tracking-[0.22em] text-clash-gold">Scroll to explore</p>
             <p className="mt-2 text-sm text-muted-foreground">The analysis workspace, brought to life.</p>
           </div>
-          
-          {/* 
+
+          {/*
             Der MacbookScroll bringt seinen eigenen 300vh (oder 200vh) Container mit.
             Er pinnt sich an den Bildschirm, während du weiter nach unten scrollst.
           */}
