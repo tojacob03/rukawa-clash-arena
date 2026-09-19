@@ -1,5 +1,6 @@
 import SiteNav from "@/components/portfolio/SiteNav";
 import HeroSection from "@/components/portfolio/HeroSection";
+import MacbookScrollHero from "@/components/portfolio/MacbookScrollHero";
 import LiveStats from "@/components/portfolio/LiveStats";
 import MetaPulse from "@/components/portfolio/MetaPulse";
 import AboutSection from "@/components/portfolio/AboutSection";
@@ -19,6 +20,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <SiteNav />
       <HeroSection />
+      <MacbookScrollHero />
       <LiveStats />
       <MetaPulse />
       <AboutSection />
