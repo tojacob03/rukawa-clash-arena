@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Sparkles, Crown } from "lucide-react";
 import { usePublicStats } from "@/hooks/usePublicStats";
 
 type MetaCard = NonNullable<ReturnType<typeof usePublicStats>["data"]>["topMetaDeck"] extends infer Deck
@@ -8,18 +7,19 @@ type MetaCard = NonNullable<ReturnType<typeof usePublicStats>["data"]>["topMetaD
     : never
   : never;
 
-const getCardPresentation = (card: MetaCard) => {
-  // Keep the same precedence as the public-stats meta-deck payload: an
-  // evolution image identifies an Evo slot, then a hero image a Hero slot.
-  if (card.evolutionIcon) {
-    return { image: card.evolutionIcon, variant: "evolution" as const, label: "Evo" };
+const getCardPresentation = (card: MetaCard, slotIndex: number) => {
+  // The first deck position is the Evolution slot and the second is the Hero
+  // slot. The payload also includes optional form images for cards outside
+  // those positions, so those must not determine the displayed form.
+  if (slotIndex === 0 && card.evolutionIcon) {
+    return { image: card.evolutionIcon, label: "Evolution" };
   }
 
-  if (card.heroIcon) {
-    return { image: card.heroIcon, variant: "hero" as const, label: "Hero" };
+  if (slotIndex === 1 && card.heroIcon) {
+    return { image: card.heroIcon, label: "Hero" };
   }
 
-  return { image: card.icon, variant: "standard" as const, label: null };
+  return { image: card.icon, label: null };
 };
 
 const MetaPulse = () => {
@@ -58,9 +58,7 @@ const MetaPulse = () => {
                 />
               ))
             : deck.cards.map((card, i) => {
-                const presentation = getCardPresentation(card);
-                const isEvo = presentation.variant === "evolution";
-                const isHero = presentation.variant === "hero";
+                const presentation = getCardPresentation(card, i);
 
                 return (
                   <motion.div
@@ -81,30 +79,8 @@ const MetaPulse = () => {
                           event.currentTarget.src = card.icon;
                         }
                       }}
-                      className={`block w-full aspect-[19/28] rounded-md border bg-background/60 object-contain shadow-sm transition-transform hover:-translate-y-1 ${
-                        isEvo
-                          ? "border-clash-gold ring-1 ring-clash-gold/60"
-                          : isHero
-                          ? "border-clash-purple ring-1 ring-clash-purple/60"
-                          : "border-border/50"
-                      }`}
+                      className="block w-full aspect-[19/28] rounded-md bg-background/60 object-contain shadow-sm transition-transform hover:-translate-y-1"
                     />
-                    {isEvo && (
-                      <span
-                        className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-gold shadow ring-1 ring-background"
-                        aria-label="Evolution card"
-                      >
-                        <Sparkles className="h-2.5 w-2.5 text-background" aria-hidden="true" />
-                      </span>
-                    )}
-                    {isHero && (
-                      <span
-                        className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-purple shadow ring-1 ring-background"
-                        aria-label="Hero card"
-                      >
-                        <Crown className="h-2.5 w-2.5 text-background" aria-hidden="true" />
-                      </span>
-                    )}
                   </motion.div>
                 );
               })}
