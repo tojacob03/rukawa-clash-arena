@@ -14,7 +14,7 @@ import LanguagesSection from "@/components/portfolio/LanguagesSection";
 import ShanghaiRoadmap from "@/components/portfolio/ShanghaiRoadmap";
 import ContactSection from "@/components/portfolio/ContactSection";
 import Footer from "@/components/portfolio/Footer";
-import playerAnalysisPdf from "@/assets/player-analysis.pdf";
+import playerAnalysisScreenshot from "@/assets/Image 19.09.26 at 18.45.jpeg";
 
 const Index = () => {
   return (
@@ -30,10 +30,10 @@ const Index = () => {
           </>
         }
       >
-        <iframe
-          src={`${playerAnalysisPdf}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-          title="Player analysis snapshot"
-          className="h-full w-full border-0 bg-background"
+        <img
+          src={playerAnalysisScreenshot}
+          alt="Player analysis dashboard screenshot"
+          className="h-full w-full object-cover object-top"
         />
       </MacbookScrollHero>
 

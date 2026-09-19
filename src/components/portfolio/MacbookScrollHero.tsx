@@ -7,8 +7,8 @@ import { motion, useScroll, useTransform, useReducedMotion, type MotionValue } f
  * A simplified, theme-adapted take on Aceternity's "Fey.com Macbook Scroll"
  * (https://ui.aceternity.com/components/macbook-scroll). Keeps the actual
  * mechanic - the lid opening as you scroll, via scroll-linked scale/rotate/
- * translate on framer-motion (already a project dependency) - but drops
- * the full decorative keyboard/speaker-grid markup from the original to keep
+ * translate on framer-motion (already a project dependency) - but drops the
+ * full decorative keyboard/speaker-grid markup from the original to keep
  * this lean. `children` renders inside the screen, so real content (not a
  * static screenshot) shows through.
  */
@@ -87,15 +87,11 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
 
   const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.2, isMobile ? 1 : 1.5]);
   const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.6, isMobile ? 1 : 1.5]);
-  // Keep the screen movement inside this section. The previous 1,500px
-  // translation continued over the following sections on trackpad scroll.
-  const translate = useTransform(scrollYProgress, [0, 0.3], [0, isMobile ? 48 : 120]);
+  const translate = useTransform(scrollYProgress, [0, 0.45], [0, isMobile ? 48 : 120]);
   const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
   const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.35], [1, 0]);
 
-  // Respect the visitor's OS-level motion preference: no scroll-linked 3D
-  // transforms, just the laptop already open with its real content visible.
   if (prefersReducedMotion) {
     return (
       <div className="flex flex-col items-center py-16 sm:py-24">
