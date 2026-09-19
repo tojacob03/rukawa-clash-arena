@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Sparkles, Crown } from "lucide-react";
 import { usePublicStats } from "@/hooks/usePublicStats";
 
 const MetaPulse = () => {
@@ -36,20 +37,49 @@ const MetaPulse = () => {
                   className="w-10 h-12 sm:w-12 sm:h-14 rounded-md bg-muted animate-pulse"
                 />
               ))
-            : deck.cards.map((card, i) => (
-                <motion.img
-                  key={card.id}
-                  src={card.icon ?? undefined}
-                  alt={card.name}
-                  title={card.name}
-                  loading="lazy"
-                  initial={{ opacity: 0, y: 6 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.04 }}
-                  className="w-10 h-12 sm:w-12 sm:h-14 rounded-md border border-border/50 bg-background/60 object-cover shadow-sm transition-transform hover:-translate-y-1"
-                />
-              ))}
+            : deck.cards.map((card, i) => {
+                // Prefer the special art when the card has one - that's the
+                // form it's actually played in. evolutionIcon/heroIcon are
+                // null for cards with no such form.
+                const isEvo = Boolean(card.evolutionIcon);
+                const isHero = !isEvo && Boolean(card.heroIcon);
+                const src = card.evolutionIcon ?? card.heroIcon ?? card.icon;
+
+                return (
+                  <motion.div
+                    key={card.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.04 }}
+                    className="relative"
+                    title={`${card.name}${isEvo ? " (Evolution)" : isHero ? " (Hero)" : ""}`}
+                  >
+                    <img
+                      src={src ?? undefined}
+                      alt={card.name}
+                      loading="lazy"
+                      className={`w-10 h-12 sm:w-12 sm:h-14 rounded-md border bg-background/60 object-cover shadow-sm transition-transform hover:-translate-y-1 ${
+                        isEvo
+                          ? "border-clash-gold ring-1 ring-clash-gold/60"
+                          : isHero
+                          ? "border-clash-purple ring-1 ring-clash-purple/60"
+                          : "border-border/50"
+                      }`}
+                    />
+                    {isEvo && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-gold shadow">
+                        <Sparkles className="h-2.5 w-2.5 text-background" />
+                      </span>
+                    )}
+                    {isHero && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-clash-purple shadow">
+                        <Crown className="h-2.5 w-2.5 text-background" />
+                      </span>
+                    )}
+                  </motion.div>
+                );
+              })}
         </div>
       </div>
     </div>
