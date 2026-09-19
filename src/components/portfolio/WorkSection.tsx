@@ -3,8 +3,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import SectionIntro from "@/components/portfolio/SectionIntro";
-import { MacbookScroll } from "@/components/ui/macbook-scroll"; // Wichtig: Destructuring-Import
-import analysisPreview from "@/assets/Image 19.09.26 at 18.45.jpeg";
 
 const WorkSection = () => {
   return (
@@ -16,27 +14,7 @@ const WorkSection = () => {
           description="A private workflow that moves from raw battle logs to a useful decision before a set. The interface is anonymized; the process is real."
         />
 
-        {/*
-          KEIN overflow-hidden hier - bewusst so gelassen. overflow-hidden (oder
-          auto/scroll) auf JEDEM Vorfahren eines position:sticky-Elements bricht
-          dessen Sticky-Verhalten (das Element "klebt" dann nur noch innerhalb
-          des geclippten Vorfahren statt am Viewport). MacbookScroll braucht
-          sticky, um während des Scrollens im Bild zu bleiben - das ist
-          wichtiger als das Clipping der 3D-Ränder aus der Referenz.
-        */}
-        <div className="mt-10 w-full">
-          <div className="mb-2 text-center sm:mb-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-clash-gold">Scroll to explore</p>
-            <p className="mt-2 text-sm text-muted-foreground">The analysis workspace, brought to life.</p>
-          </div>
-
-          {/*
-            Der MacbookScroll bringt seinen eigenen 300vh (oder 200vh) Container mit.
-            Er pinnt sich an den Bildschirm, während du weiter nach unten scrollst.
-          */}
-          <MacbookScroll src={analysisPreview} showGradient={true} />
-        </div>
-
+        {/* --- PROCESS CARDS --- */}
         <div className="mt-10 grid gap-4 lg:grid-cols-12 lg:grid-rows-[auto_auto]">
           <motion.div className="lg:col-span-5 lg:row-span-2" initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.5 }}>
             <Card className="gradient-card h-full border-border/50 p-6 shadow-card sm:p-8">
