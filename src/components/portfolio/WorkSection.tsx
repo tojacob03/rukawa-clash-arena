@@ -133,10 +133,10 @@ const WorkSection = () => {
 
         <div className="mt-6 flex justify-end">
           <Link
-            to="/work/player-analysis-tooling"
+            to="/work"
             className="inline-flex items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
           >
-            Read the case study
+            Read the case studies
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
