@@ -1,15 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { animate, useInView } from "framer-motion";
 import { Swords, Target, Trophy } from "lucide-react";
-
-const STATS_URL = "https://rudopohqygznwhudyohf.supabase.co/functions/v1/public-stats";
-
-interface StatsPayload {
-  battlesAnalyzed30d: number;
-  topFriendlyPlayer: { tag: string; name: string | null; count: number } | null;
-  activeDossiers: number;
-}
+import { usePublicStats, type PublicStatsPayload } from "@/hooks/usePublicStats";
 
 const AnimatedNumber = ({ value }: { value: number }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
@@ -39,21 +31,9 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 const formatTag = (tag: string) => (tag.startsWith("#") ? tag : `#${tag}`);
 
 const LiveStats = () => {
-  const { data, isLoading, isError } = useQuery<StatsPayload>({
-    queryKey: ["public-stats"],
-    queryFn: async () => {
-      const res = await fetch(STATS_URL, { headers: { accept: "application/json" } });
-      if (!res.ok) throw new Error("Fetch failed");
-      return res.json();
-    },
-    refetchInterval: 10 * 1000,
-    refetchOnWindowFocus: true,
-    staleTime: 10 * 1000,
-    retry: 2,
-    placeholderData: (prev) => prev,
-  });
+  const { data, isLoading, isError } = usePublicStats();
 
-  const lastTop = useRef<StatsPayload["topFriendlyPlayer"]>(null);
+  const lastTop = useRef<PublicStatsPayload["topFriendlyPlayer"]>(null);
   const lastDossiers = useRef(0);
   const lastBattles = useRef(0);
 
