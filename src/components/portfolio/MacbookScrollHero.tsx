@@ -7,8 +7,8 @@ import { motion, useScroll, useTransform, useReducedMotion, type MotionValue } f
  * A simplified, theme-adapted take on Aceternity's "Fey.com Macbook Scroll"
  * (https://ui.aceternity.com/components/macbook-scroll). Keeps the actual
  * mechanic - the lid opening as you scroll, via scroll-linked scale/rotate/
- * translate on framer-motion (already a project dependency) - but drops the
- * full decorative keyboard/speaker-grid markup from the original to keep
+ * translate on framer-motion (already a project dependency) - but drops
+ * the full decorative keyboard/speaker-grid markup from the original to keep
  * this lean. `children` renders inside the screen, so real content (not a
  * static screenshot) shows through.
  */
@@ -79,12 +79,17 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
+    const updateViewport = () => setIsMobile(window.innerWidth < 768);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
   }, []);
 
   const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.2, isMobile ? 1 : 1.5]);
   const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.6, isMobile ? 1 : 1.5]);
-  const translate = useTransform(scrollYProgress, [0, 1], [0, 1500]);
+  // Keep the screen movement inside this section. The previous 1,500px
+  // translation continued over the following sections on trackpad scroll.
+  const translate = useTransform(scrollYProgress, [0, 0.3], [0, isMobile ? 48 : 120]);
   const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
   const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
@@ -105,7 +110,7 @@ const MacbookScrollHero = ({ title, children }: MacbookScrollHeroProps) => {
   return (
     <div
       ref={ref}
-      className="flex min-h-[150vh] shrink-0 scale-[0.35] flex-col items-center justify-start py-0 [perspective:800px] sm:scale-50 md:scale-100 md:py-32"
+      className="flex min-h-[125vh] shrink-0 flex-col items-center justify-start overflow-hidden py-0 [perspective:800px] sm:scale-50 md:scale-100 md:py-32"
     >
       <motion.div style={{ translateY: textTransform, opacity: textOpacity }} className="mb-16 max-w-xl text-center">
         {title}
