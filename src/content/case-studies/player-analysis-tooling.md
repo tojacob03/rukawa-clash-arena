@@ -8,16 +8,16 @@ date: 2026-09-18
 
 ## The problem
 
-Before a set, prep used to mean the same manual routine every time: pull a player's recent battles by hand, scroll through them for patterns, and try to hold deck tendencies in your head while the clock is running. It worked, but it didn't scale past one player at a time, and it fell apart exactly when it mattered most - mid-set, under time pressure, with bans already burning cards.
+Before a set, prep used to mean the same manual routine every time: pull a player's recent battles by hand, scroll through them for patterns, and try to hold deck tendencies in your head while the clock is running. It worked, but it didn't scale past one player at a time, and it fell apart exactly when it mattered most - mid-set, under time pressure. This was around 2021 and I was still with a relatively small German semi-pro team.
 
-## Why matchup self-assessment, not win-rate
+## Taming the raw battle log
 
-The tooling deliberately does not surface historical win-rate comparisons between decks. In Clash Royale, a win-rate number mixes in opponent skill, ladder conditions and sample size noise to the point where it stops being a reliable signal. Instead, the system is built around matchup self-assessment - treating the analyst's own read of a matchup as the primary input, with the data organised to support that read (recent decks, Game 1 habits, remaining cards under bans) rather than replace it with a misleading average.
+The first major step was replacing manual scrolling with an automated aggregation engine. The system pulls up to 1,000 recent battles for a targeted player, handling everything from standard ladder matches to complex multi-round Duels (`quadDeckPick`) and fragmented CRL tournament logs. By grouping rounds into unified sets and generating unique cryptographic hashes for every 8-card array, the app instantly organizes thousands of chaotic logs into a clean, chronological catalog of a player's true arsenal.
 
-## A quiet correctness bug that mattered
+## Temporal tendencies and clutch metrics
 
-Card IDs in the aggregated deck data are stored in ascending sorted order, not the original slot order they were played in. That's invisible until you try to render Evolution or Hero icons correctly - slot-aware icon resolution had to be handled separately (a small dedicated resolver) so a card's evolution state and hero form still line up correctly in the UI even though the underlying array order no longer matches how the deck was actually played.
+A player’s strategy changes depending on the state of the set. To capture this, the analysis engine strictly separates win conditions, spells, and Evolution pairs by their "Duel Slot" (Game 1, Game 2, or Game 3). Does an opponent reliably open G1 with Miner Poison? Do they save a specific Evo combination for match point? The system tracks these slot-based usage rates alongside psychological metrics-like their "Clutch Win Rate" (performance when facing elimination) and history of Reverse Sweeps-creating a behavioral profile rather than just a spreadsheet of average win rates.
 
-## Result
+## Predicting the remaining board
 
-What used to be a manual, per-player routine is now a repeatable pipeline: player tag in, profile and battle history assembled automatically, remaining-deck scoring under bans ready before the pick phase starts. It's the same system behind the live numbers on this page, currently supporting Solo CRL prep for Tier-1 players on the road to the 2026 World Championship.
+The ultimate goal of tracking Game 1 and Game 2 habits is anticipating Game 3. The platform feeds all these historical slot tendencies into a "Remaining Advisor" dashboard. As a live set unfolds, the system automatically removes used cards from the opponent's historical pool and calculates the statistical probability of what they will play next based on their past duels. What used to be a frantic, memory-based guessing game is now a structured, repeatable pipeline—delivering actionable remaining-deck predictions before the final pick phase even begins.
