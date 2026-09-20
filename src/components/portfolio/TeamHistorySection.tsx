@@ -107,38 +107,46 @@ const StationCard = ({
 const TeamHistorySection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const connectorRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     if (!sectionRef.current || !trackRef.current) return;
 
-    // Wir nutzen gsap.matchMedia, um zwischen Desktop und Mobile zu wechseln.
-    // Das ist performanter und sicherer als React-State, wenn sich die Fenstergröße ändert.
+    // gsap.matchMedia handles the Desktop/Mobile switch on resize without
+    // tearing down/rebuilding React state.
     const mm = gsap.matchMedia();
 
     mm.add("(min-width: 768px)", () => {
-      // Desktop Setup (Horizontal Scroll)
       const track = trackRef.current!;
       const distance = track.scrollWidth - window.innerWidth;
-      
+
       if (distance <= 0) return;
 
-      const animation = gsap.to(track, {
-        x: -distance,
-        ease: "none",
+      const connectors = connectorRefs.current.filter((el): el is HTMLDivElement => el !== null);
+
+      const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
           end: () => `+=${distance}`,
-          // scrub: true ist besser, wenn du Lenis verwendest (kein doppeltes Delay)
-          scrub: true, 
+          scrub: true,
           pin: true,
           invalidateOnRefresh: true,
         },
       });
 
+      tl.to(track, { x: -distance, ease: "none" }, 0);
+
+      // The connecting lines travel through their own gradient in sync with
+      // the same scroll - not a separate looping CSS animation, so it reads
+      // as tied to the journey rather than decorative background noise.
+      if (connectors.length) {
+        tl.to(connectors, { backgroundPositionX: "100%", ease: "none" }, 0);
+      }
+
       return () => {
-        // Cleanup beim Wechsel auf Mobile (wird von GSAP automatisch verwaltet)
-        animation.kill();
+        tl.scrollTrigger?.kill();
+        tl.kill();
       };
     });
 
@@ -147,12 +155,6 @@ const TeamHistorySection = () => {
 
   return (
     <>
-      {/* 
-        Das geniale an CSS-Grid/Flexbox: Wir behalten beide Layouts im DOM, 
-        verstecken sie aber via CSS (md:hidden / hidden md:block).
-        Dadurch zerstören wir den GSAP-Kontext beim Resizen nicht.
-      */}
-      
       {/* MOBILE LAYOUT */}
       <section id="experience-mobile" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6 md:hidden">
         <div className="max-w-4xl mx-auto">
@@ -177,30 +179,33 @@ const TeamHistorySection = () => {
       </section>
 
       {/* DESKTOP LAYOUT (GSAP Pinned) */}
-      <section 
-        id="experience" 
-        ref={sectionRef} 
+      <section
+        id="experience"
+        ref={sectionRef}
         className="scroll-mt-20 relative h-screen overflow-hidden hidden md:block"
       >
         <div className="absolute inset-x-0 top-14 z-10 px-6 text-center pointer-events-none">
           <SectionHeader />
-          <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
-            First station → today
-          </p>
+          <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">First station → today</p>
         </div>
 
-        <div
-          ref={trackRef}
-          className="flex h-full items-center pl-[12vw] pr-[12vw]"
-          style={{ width: "max-content" }}
-        >
+        <div ref={trackRef} className="flex h-full items-center pl-[12vw] pr-[12vw]" style={{ width: "max-content" }}>
           {stations.map((item, index) => (
             <div key={index} className="flex items-center">
               <div className="w-[min(60vw,30rem)] shrink-0">
                 <StationCard item={item} isCurrent={index === stations.length - 1} />
               </div>
               {index < stations.length - 1 && (
-                <div className="mx-6 h-0.5 w-16 shrink-0 bg-gradient-to-r from-clash-blue via-clash-gold to-clash-gold sm:w-24" />
+                <div
+                  ref={(el) => (connectorRefs.current[index] = el)}
+                  className="mx-6 h-0.5 w-16 shrink-0 sm:w-24"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, hsl(var(--clash-blue)), hsl(var(--clash-gold)), hsl(var(--clash-blue)))",
+                    backgroundSize: "200% 100%",
+                    backgroundPosition: "0% 0%",
+                  }}
+                />
               )}
             </div>
           ))}
