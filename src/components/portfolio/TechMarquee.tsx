@@ -37,13 +37,22 @@ const TechMarquee = () => {
         WebkitMaskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
       }}
     >
-      <div className="flex w-max animate-marquee items-center gap-16 motion-reduce:animate-none">
+      {/*
+        IMPORTANT: spacing is margin-right on every item, not a flex `gap`.
+        Flex `gap` doesn't add space after the last child, so with 9 icons
+        doubled to 18, one "half" was 944px but the true repeat period
+        (icon+space x9) is 1008px - translateX(-50%) landed 32px short of
+        a full period and produced a visible snap at the loop point.
+        Margin on every item (including the very last, off-screen one)
+        makes each half exactly one period wide, so -50% is exact.
+      */}
+      <div className="flex w-max animate-marquee items-center motion-reduce:animate-none">
         {loopedLogos.map(({ Icon, name, color }, index) => (
           <Icon
             key={`${name}-${index}`}
             title={name}
             style={color ? { color } : undefined}
-            className="h-10 w-10 shrink-0 opacity-90 transition-opacity hover:opacity-100 sm:h-12 sm:w-12"
+            className="h-10 w-10 shrink-0 opacity-90 transition-opacity hover:opacity-100 sm:h-12 sm:w-12 mr-16"
           />
         ))}
       </div>
