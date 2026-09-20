@@ -19,21 +19,25 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				// Satoshi carries body copy, Clash Display carries headlines.
-				// Both fall back to the system stack if Fontshare is unreachable.
-				sans: ['Satoshi', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-				display: ['Clash Display', 'Satoshi', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-				mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+				// Geist (Vercel / Basement Studio, SIL OFL) carries everything.
+				// `display` deliberately points at the same family as `sans`:
+				// hierarchy comes from weight, size and tracking, not from a
+				// second typeface. Falls back to the system stack if Google
+				// Fonts is unreachable.
+				sans: ['Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+				display: ['Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+				mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
 			},
 			fontSize: {
 				// Display scale with tracking + leading baked in. Large type needs
-				// negative tracking and tight leading or it reads as a default
-				// browser render - this is the single biggest "designed vs
-				// generated" tell in big headlines.
-				'display-sm': ['clamp(1.75rem, 3vw, 2.25rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
-				'display-md': ['clamp(2.25rem, 5vw, 3.5rem)', { lineHeight: '1.04', letterSpacing: '-0.03em' }],
-				'display-lg': ['clamp(3rem, 8vw, 5.5rem)', { lineHeight: '0.95', letterSpacing: '-0.04em' }],
-				'display-xl': ['clamp(3.5rem, 12vw, 9rem)', { lineHeight: '0.88', letterSpacing: '-0.05em' }],
+				// negative tracking or it reads as a default browser render - the
+				// single biggest "designed vs generated" tell in big headlines.
+				// Leading stays clear of descenders (several headlines use
+				// bg-clip-text, which crops them if the line box is too tight).
+				'display-sm': ['clamp(1.75rem, 3vw, 2.25rem)', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
+				'display-md': ['clamp(2.25rem, 5vw, 3.5rem)', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
+				'display-lg': ['clamp(3rem, 8vw, 5.5rem)', { lineHeight: '1.02', letterSpacing: '-0.04em' }],
+				'display-xl': ['clamp(3.5rem, 12vw, 9rem)', { lineHeight: '0.95', letterSpacing: '-0.045em' }],
 			},
 			letterSpacing: {
 				label: '0.28em',
