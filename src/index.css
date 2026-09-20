@@ -136,23 +136,46 @@ All colors MUST be HSL.
     text-rendering: optimizeLegibility;
   }
 
-  /* Headings pick up the display face and proper optical tracking globally,
-     so every existing section benefits without per-component edits.
-     Tailwind's default tracking on large text is the classic giveaway. */
-  h1, h2, h3, h4 {
+  /* Headings use the display face everywhere. */
+  h1, h2, h3, h4, h5, h6 {
     @apply font-display;
-    letter-spacing: -0.025em;
+  }
+
+  /*
+    Optical correction scales WITH SIZE, not with tag depth. Negative
+    tracking only helps large type; on 16-20px headings (card titles,
+    footer, list items) it just looks cramped. Leading is kept generous
+    enough that descenders (g, y, p) are never clipped - which matters
+    doubly here because several headings use bg-clip-text, where a tight
+    line box visibly cuts the gradient off mid-letter.
+  */
+  h1 {
+    letter-spacing: -0.03em;
+    line-height: 1.08;
     text-wrap: balance;
   }
 
-  h1 {
-    letter-spacing: -0.04em;
-    line-height: 1;
+  h2 {
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-wrap: balance;
   }
 
-  h2 {
-    letter-spacing: -0.03em;
-    line-height: 1.05;
+  h3 {
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  /* Small headings get no negative tracking at all. */
+  h4, h5, h6 {
+    letter-spacing: 0;
+    line-height: 1.4;
+  }
+
+  /* Gradient headings need a little breathing room below the baseline,
+     otherwise background-clip crops the descenders. */
+  .bg-clip-text {
+    padding-bottom: 0.08em;
   }
 
   /* Tabular figures for stat blocks: numbers keep a constant width, so live
@@ -195,7 +218,9 @@ All colors MUST be HSL.
     transition: var(--transition-smooth);
   }
 
-  /* Small uppercase label, used for eyebrows/technical captions. */
+  /* Small uppercase label, used for eyebrows/technical captions.
+     Positive tracking - uppercase at small sizes needs opening up, the
+     opposite of what large display type needs. */
   .label-caps {
     @apply font-mono text-[10px] uppercase tracking-label;
   }
