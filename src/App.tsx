@@ -38,14 +38,17 @@ const AnimatedRoutes = () => {
     // so the two pages never overlap mid-transition.
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        <Route
-          path="/"
-          element={
-            <PageTransition>
-              <Index />
-            </PageTransition>
-          }
-        />
+        {/*
+          The homepage is deliberately NOT wrapped in PageTransition.
+          It hosts the sticky MacbookScroll and the GSAP-pinned
+          Experience section, both of which rely on `position: fixed` /
+          `position: sticky` resolving against the viewport. Any wrapper
+          framer-motion animates (and the will-change / compositing hints
+          it leaves behind) can re-root those, which rendered the pinned
+          section as an empty black area. Scroll integrity on the main
+          page beats a fade on it.
+        */}
+        <Route path="/" element={<Index />} />
         <Route
           path="/work"
           element={
