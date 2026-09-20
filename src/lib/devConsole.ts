@@ -66,10 +66,12 @@ export function installDevConsole() {
     },
 
     source() {
+      console.log("%cOpening github.com/tojacob03/rukawa-clash-arena…", dim);
       window.open("https://github.com/tojacob03/rukawa-clash-arena", "_blank", "noopener,noreferrer");
     },
 
     hire() {
+      console.log("%cOpening your mail client…", dim);
       window.location.href = "mailto:to_jacob@me.com?subject=Let%27s%20talk";
     },
   };
