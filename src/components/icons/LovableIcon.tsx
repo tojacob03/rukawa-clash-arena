@@ -1,57 +1,34 @@
 import { forwardRef } from "react";
 
 /**
- * Lovable's actual brand mark, sourced from the open-source Dashboard Icons
- * collection (github.com/homarr-labs/dashboard-icons, Apache-2.0 - curated
- * specifically for this kind of "built with" attribution use), since
- * Lovable isn't in Simple Icons / react-icons.
+ * Lovable's heart mark, redrawn as an original vector shape matching their
+ * current brand (verified directly on their official Brand Hub at
+ * lovablebrand.lovable.app/brand/logo: a rounded heart with a blue -> pink
+ * -> orange gradient). Not in Simple Icons / react-icons, so this is a
+ * from-scratch heart path rather than a traced/scraped asset.
  */
 const LovableIcon = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   ({ className, ...props }, ref) => (
     <svg
       ref={ref}
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 121 122"
-      fill="none"
+      viewBox="0 0 24 24"
       className={className}
       {...props}
     >
-      <mask
-        id="lovable-mask"
-        style={{ maskType: "alpha" }}
-        maskUnits="userSpaceOnUse"
-        x="0"
-        y="0"
-        width="121"
-        height="122"
-      >
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M36.0687 0C55.9888 0 72.1373 16.1551 72.1373 36.0835V49.7975H84.141C104.061 49.7975 120.21 65.9526 120.21 85.8809C120.21 105.809 104.061 121.964 84.141 121.964H0V36.0835C0 16.1551 16.1485 0 36.0687 0Z"
-          fill="url(#lovable-gradient)"
-        />
-      </mask>
-      <g mask="url(#lovable-mask)">
-        <ellipse cx="52.7381" cy="65.1011" rx="81.3729" ry="81.1923" fill="#4B73FF" />
-        <ellipse cx="61.6734" cy="20.547" rx="104.216" ry="81.1923" fill="#FF66F4" />
-        <ellipse cx="78.6659" cy="5.26802" rx="81.3729" ry="71.3042" fill="#FF0105" />
-        <ellipse cx="63.121" cy="20.5275" rx="48.9374" ry="48.8288" fill="#FE7B02" />
-      </g>
       <defs>
-        <linearGradient
-          id="lovable-gradient"
-          x1="40.4527"
-          y1="21.4331"
-          x2="76.9327"
-          y2="121.971"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0.025" stopColor="#FF8E63" />
-          <stop offset="0.56" stopColor="#FF7EB0" />
-          <stop offset="0.95" stopColor="#4B73FF" />
+        <linearGradient id="lovable-gradient" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#4C6EF5" />
+          <stop offset="50%" stopColor="#FF5CA8" />
+          <stop offset="100%" stopColor="#FF8A3D" />
         </linearGradient>
       </defs>
+      {/* Standard rounded-heart curve: two lobes meeting at a center dip,
+          tapering to a single bottom point. */}
+      <path
+        fill="url(#lovable-gradient)"
+        d="M12 20.5c-.35 0-.69-.12-.96-.35C7.1 16.7 3.5 13.2 3.5 9.1 3.5 6.28 5.78 4 8.6 4c1.42 0 2.72.65 3.4 1.7.68-1.05 1.98-1.7 3.4-1.7 2.82 0 5.1 2.28 5.1 5.1 0 4.1-3.6 7.6-7.54 11.05-.27.23-.61.35-.96.35Z"
+      />
     </svg>
   )
 );
