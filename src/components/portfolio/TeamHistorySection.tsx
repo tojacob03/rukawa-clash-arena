@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui/card";
@@ -104,57 +104,57 @@ const StationCard = ({
   </Card>
 );
 
-/**
- * Desktop: a GSAP ScrollTrigger-pinned section - vertical scroll drives
- * horizontal movement through the career timeline, oldest station first,
- * ending on the current one. Uses GSAP's own pin mechanism (not CSS
- * position:sticky), so it isn't affected by ancestor `overflow` the way
- * sticky is.
- *
- * Mobile: the original stacked vertical timeline, unchanged - horizontal
- * pinned scroll fights with touch swipe gestures on small screens.
- */
 const TeamHistorySection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
+    if (!sectionRef.current || !trackRef.current) return;
 
-  useEffect(() => {
-    if (!isDesktop || !sectionRef.current || !trackRef.current) return;
+    // Wir nutzen gsap.matchMedia, um zwischen Desktop und Mobile zu wechseln.
+    // Das ist performanter und sicherer als React-State, wenn sich die Fenstergröße ändert.
+    const mm = gsap.matchMedia();
 
-    const ctx = gsap.context(() => {
+    mm.add("(min-width: 768px)", () => {
+      // Desktop Setup (Horizontal Scroll)
       const track = trackRef.current!;
       const distance = track.scrollWidth - window.innerWidth;
+      
       if (distance <= 0) return;
 
-      gsap.to(track, {
+      const animation = gsap.to(track, {
         x: -distance,
         ease: "none",
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
           end: () => `+=${distance}`,
-          scrub: 1,
+          // scrub: true ist besser, wenn du Lenis verwendest (kein doppeltes Delay)
+          scrub: true, 
           pin: true,
           invalidateOnRefresh: true,
         },
       });
-    }, sectionRef);
 
-    return () => ctx.revert();
-  }, [isDesktop]);
+      return () => {
+        // Cleanup beim Wechsel auf Mobile (wird von GSAP automatisch verwaltet)
+        animation.kill();
+      };
+    });
 
-  if (!isDesktop) {
-    return (
-      <section id="experience" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6">
+    return () => mm.revert();
+  }, []);
+
+  return (
+    <>
+      {/* 
+        Das geniale an CSS-Grid/Flexbox: Wir behalten beide Layouts im DOM, 
+        verstecken sie aber via CSS (md:hidden / hidden md:block).
+        Dadurch zerstören wir den GSAP-Kontext beim Resizen nicht.
+      */}
+      
+      {/* MOBILE LAYOUT */}
+      <section id="experience-mobile" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6 md:hidden">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10 sm:mb-16">
             <SectionHeader />
@@ -175,35 +175,38 @@ const TeamHistorySection = () => {
           </div>
         </div>
       </section>
-    );
-  }
 
-  return (
-    <section id="experience" ref={sectionRef} className="scroll-mt-20 relative h-screen overflow-hidden">
-      <div className="absolute inset-x-0 top-14 z-10 px-6 text-center pointer-events-none">
-        <SectionHeader />
-        <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
-          First station → today
-        </p>
-      </div>
-
-      <div
-        ref={trackRef}
-        className="flex h-full items-center pl-[12vw] pr-[12vw]"
-        style={{ width: "max-content" }}
+      {/* DESKTOP LAYOUT (GSAP Pinned) */}
+      <section 
+        id="experience" 
+        ref={sectionRef} 
+        className="scroll-mt-20 relative h-screen overflow-hidden hidden md:block"
       >
-        {stations.map((item, index) => (
-          <div key={index} className="flex items-center">
-            <div className="w-[min(60vw,30rem)] shrink-0">
-              <StationCard item={item} isCurrent={index === stations.length - 1} />
+        <div className="absolute inset-x-0 top-14 z-10 px-6 text-center pointer-events-none">
+          <SectionHeader />
+          <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+            First station → today
+          </p>
+        </div>
+
+        <div
+          ref={trackRef}
+          className="flex h-full items-center pl-[12vw] pr-[12vw]"
+          style={{ width: "max-content" }}
+        >
+          {stations.map((item, index) => (
+            <div key={index} className="flex items-center">
+              <div className="w-[min(60vw,30rem)] shrink-0">
+                <StationCard item={item} isCurrent={index === stations.length - 1} />
+              </div>
+              {index < stations.length - 1 && (
+                <div className="mx-6 h-0.5 w-16 shrink-0 bg-gradient-to-r from-clash-blue via-clash-gold to-clash-gold sm:w-24" />
+              )}
             </div>
-            {index < stations.length - 1 && (
-              <div className="mx-6 h-0.5 w-16 shrink-0 bg-gradient-to-r from-clash-blue via-clash-gold to-clash-gold sm:w-24" />
-            )}
-          </div>
-        ))}
-      </div>
-    </section>
+          ))}
+        </div>
+      </section>
+    </>
   );
 };
 
