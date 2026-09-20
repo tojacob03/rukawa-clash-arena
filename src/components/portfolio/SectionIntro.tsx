@@ -5,17 +5,25 @@ type SectionIntroProps = {
   title: string;
   description?: string;
   align?: "left" | "center";
+  /** Optional editorial index, e.g. "01" - rendered small and dim beside the title. */
+  index?: string;
   titleClassName?: string;
   descriptionClassName?: string;
 };
+
+// Shared easing across the site's motion language (matches --ease-out-expo).
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 const SectionIntro = ({
   eyebrow,
   title,
   description,
   align = "left",
-  titleClassName = "text-3xl font-bold sm:text-4xl md:text-5xl",
-  descriptionClassName = "mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg",
+  index,
+  // Display scale carries its own tracking/leading - no font-bold here, the
+  // display face at 600 reads stronger and cleaner than a faux-bolded 700.
+  titleClassName = "text-display-md font-semibold",
+  descriptionClassName = "mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg",
 }: SectionIntroProps) => {
   const centered = align === "center";
 
@@ -39,7 +47,7 @@ const SectionIntro = ({
           hidden: { scaleX: 0, opacity: 0 },
           visible: { scaleX: 1, opacity: 1 },
         }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
+        transition={{ duration: 0.55, ease: EASE }}
         className={`mb-4 h-px w-20 origin-left bg-gradient-to-r from-clash-gold via-clash-gold to-clash-blue ${
           centered ? "mx-auto origin-center" : ""
         }`}
@@ -51,20 +59,25 @@ const SectionIntro = ({
           visible: { opacity: 1, y: 0 },
         }}
         transition={{ duration: 0.35 }}
-        className="text-[10px] uppercase tracking-[0.28em] text-clash-gold"
+        className="label-caps text-clash-gold"
       >
         {eyebrow}
       </motion.p>
 
       <motion.h2
         variants={{
-          hidden: { opacity: 0, y: 12 },
-          visible: { opacity: 1, y: 0 },
+          hidden: { opacity: 0, y: 14, filter: "blur(6px)" },
+          visible: { opacity: 1, y: 0, filter: "blur(0px)" },
         }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-        className={`${titleClassName} ${centered ? "mx-auto" : ""}`}
+        transition={{ duration: 0.65, ease: EASE }}
+        className={`mt-3 ${titleClassName} ${centered ? "mx-auto" : ""} ${
+          index ? "flex items-baseline gap-4" : ""
+        } ${centered && index ? "justify-center" : ""}`}
       >
-        {title}
+        {index && (
+          <span className="font-mono text-sm font-normal tracking-normal text-muted-foreground/40">{index}</span>
+        )}
+        <span>{title}</span>
       </motion.h2>
 
       {description && (
@@ -73,7 +86,7 @@ const SectionIntro = ({
             hidden: { opacity: 0, y: 10 },
             visible: { opacity: 1, y: 0 },
           }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.5, ease: EASE }}
           className={`${descriptionClassName} ${centered ? "mx-auto" : ""}`}
         >
           {description}
