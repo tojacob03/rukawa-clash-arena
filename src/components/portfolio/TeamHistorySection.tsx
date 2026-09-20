@@ -189,10 +189,20 @@ const TeamHistorySection = () => {
           <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">First station → today</p>
         </div>
 
-        <div ref={trackRef} className="flex h-full items-center pl-[12vw] pr-[12vw]" style={{ width: "max-content" }}>
+        {/*
+          2xl: padding shrinks (12vw -> 8vw) and the card cap grows (30rem ->
+          36rem) - on very wide 16:10 screens this lets neighboring cards
+          peek in at the edges instead of leaving one card floating alone in
+          a lot of empty space, and reinforces the horizontal pull.
+        */}
+        <div
+          ref={trackRef}
+          className="flex h-full items-center pl-[12vw] pr-[12vw] 2xl:pl-[8vw] 2xl:pr-[8vw]"
+          style={{ width: "max-content" }}
+        >
           {stations.map((item, index) => (
             <div key={index} className="flex items-center">
-              <div className="w-[min(60vw,30rem)] shrink-0">
+              <div className="w-[min(60vw,30rem)] shrink-0 2xl:w-[min(45vw,36rem)]">
                 <StationCard item={item} isCurrent={index === stations.length - 1} />
               </div>
               {index < stations.length - 1 && (
