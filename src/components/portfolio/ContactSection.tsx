@@ -3,11 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, X, Send, Linkedin, Copy } from "lucide-react";
+import { Mail, X, Send, Linkedin, Copy, CalendarDays } from "lucide-react";
 import DiscordIcon from "@/components/icons/DiscordIcon";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getCalApi } from "@calcom/embed-react";
+
+const CAL_LINK = "tilloscar";
+const CAL_NAMESPACE = "contact-section";
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +21,21 @@ const ContactSection = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // Initializes the Cal.com embed script once on mount and sets the popup's
+  // theme to match the site (dark, primary-purple accents) instead of
+  // Cal.com's default light styling.
+  useEffect(() => {
+    (async function initCal() {
+      const cal = await getCalApi({ namespace: CAL_NAMESPACE });
+      cal("ui", {
+        theme: "dark",
+        styles: { branding: { brandColor: "#7539EF" } },
+        hideEventTypeDetails: false,
+        layout: "month_view",
+      });
+    })();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +150,29 @@ const ContactSection = () => {
             Recruiter, org, coach or player - if you want to talk about Solo CRL analysis or the tooling behind it.
           </p>
         </div>
+
+        {/* Book a call - opens the Cal.com popup, no page navigation */}
+        <Card className="gradient-card shadow-card border-border/50 p-6 sm:p-8 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-secondary/50 text-clash-gold">
+              <CalendarDays className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">Prefer to just talk?</h3>
+              <p className="text-muted-foreground text-sm">Grab a slot directly - no back-and-forth over email.</p>
+            </div>
+          </div>
+          <Button
+            variant="hero"
+            className="w-full sm:w-auto shrink-0"
+            data-cal-namespace={CAL_NAMESPACE}
+            data-cal-link={CAL_LINK}
+            data-cal-config={JSON.stringify({ layout: "month_view" })}
+          >
+            Book a call
+            <CalendarDays className="w-4 h-4 ml-2" />
+          </Button>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Methods */}
