@@ -61,6 +61,11 @@ All colors MUST be HSL.
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
+    /* One shared easing curve for the whole site, so every reveal and page
+       transition shares the same "handwriting" instead of each section
+       inventing its own feel. */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -123,7 +128,38 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    /* Crisper rendering for light text on a dark background - without this,
+       Satoshi looks noticeably heavier/blurrier than intended. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings pick up the display face and proper optical tracking globally,
+     so every existing section benefits without per-component edits.
+     Tailwind's default tracking on large text is the classic giveaway. */
+  h1, h2, h3, h4 {
+    @apply font-display;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  h1 {
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  h2 {
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  /* Tabular figures for stat blocks: numbers keep a constant width, so live
+     counters don't jitter their layout while animating. */
+  .tabular-stat {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 
   /* Utility classes */
@@ -159,6 +195,11 @@ All colors MUST be HSL.
     transition: var(--transition-smooth);
   }
 
+  /* Small uppercase label, used for eyebrows/technical captions. */
+  .label-caps {
+    @apply font-mono text-[10px] uppercase tracking-label;
+  }
+
   /* Animations */
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
@@ -191,5 +232,13 @@ All colors MUST be HSL.
 
   .animate-slide-in-up {
     animation: slideInUp 0.6s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-glow,
+    .animate-slide-in-up {
+      animation: none;
+    }
   }
 }
