@@ -8,6 +8,7 @@ import WorkSection from "@/components/portfolio/WorkSection";
 import CurrentEngagementsSection from "@/components/portfolio/CurrentEngagementsSection";
 import SkillsSection from "@/components/portfolio/SkillsSection";
 import TechStackSection from "@/components/portfolio/TechStackSection";
+import TechMarquee from "@/components/portfolio/TechMarquee";
 import TeamHistorySection from "@/components/portfolio/TeamHistorySection";
 import AchievementsSection from "@/components/portfolio/AchievementsSection";
 import LanguagesSection from "@/components/portfolio/LanguagesSection";
@@ -41,6 +42,7 @@ const Index = () => {
       <CurrentEngagementsSection />
       <SkillsSection />
       <TechStackSection />
+      <TechMarquee />
       <TeamHistorySection />
       <AchievementsSection />
       <LanguagesSection />
