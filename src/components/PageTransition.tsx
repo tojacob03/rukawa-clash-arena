@@ -6,23 +6,33 @@ import { motion } from "framer-motion";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 /**
- * Wraps a route's content so it fades/blurs in on enter and out on exit.
- * Paired with <AnimatePresence mode="wait"> in App.tsx, which holds the
- * outgoing page until its exit finishes before mounting the next one -
- * without "wait", both pages would be in the DOM at once and the layout
- * would visibly jump.
+ * Wraps a route's content so it cross-fades on navigation. Paired with
+ * <AnimatePresence mode="wait"> in App.tsx, which holds the outgoing page
+ * until its exit finishes before mounting the next one.
+ *
+ * DELIBERATELY OPACITY-ONLY - do not add transform/filter/blur here.
+ * Any element with a `transform` or `filter` becomes the containing block
+ * for `position: fixed` descendants, which is exactly what GSAP
+ * ScrollTrigger uses to pin sections (TeamHistorySection's horizontal
+ * scroll). And framer-motion leaves `filter: blur(0px)` on the node after
+ * the animation settles - still a filter value, still a containing block -
+ * so the pin stays broken, not just during the transition. That rendered
+ * the pinned section as an empty black area.
+ *
+ * `opacity` creates a stacking context but NOT a containing block for
+ * fixed positioning, so it is safe to animate here.
  */
 const PageTransition = ({ children }: { children: ReactNode }) => (
   <motion.div
-    initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
-    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-    exit={{ opacity: 0, y: -8, filter: "blur(8px)" }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
     transition={{
-      duration: 0.5,
+      duration: 0.45,
       ease: EASE,
-      // Exit is deliberately quicker than enter: a slow fade-out feels
-      // sluggish, a slow fade-in feels considered.
-      exit: { duration: 0.28, ease: "easeIn" },
+      // Exit is quicker than enter: a slow fade-out feels sluggish, a slow
+      // fade-in feels considered.
+      exit: { duration: 0.25, ease: "easeIn" },
     }}
   >
     {children}
