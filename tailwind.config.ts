@@ -18,6 +18,26 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				// Satoshi carries body copy, Clash Display carries headlines.
+				// Both fall back to the system stack if Fontshare is unreachable.
+				sans: ['Satoshi', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+				display: ['Clash Display', 'Satoshi', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+			},
+			fontSize: {
+				// Display scale with tracking + leading baked in. Large type needs
+				// negative tracking and tight leading or it reads as a default
+				// browser render - this is the single biggest "designed vs
+				// generated" tell in big headlines.
+				'display-sm': ['clamp(1.75rem, 3vw, 2.25rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+				'display-md': ['clamp(2.25rem, 5vw, 3.5rem)', { lineHeight: '1.04', letterSpacing: '-0.03em' }],
+				'display-lg': ['clamp(3rem, 8vw, 5.5rem)', { lineHeight: '0.95', letterSpacing: '-0.04em' }],
+				'display-xl': ['clamp(3.5rem, 12vw, 9rem)', { lineHeight: '0.88', letterSpacing: '-0.05em' }],
+			},
+			letterSpacing: {
+				label: '0.28em',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -95,12 +115,17 @@ export default {
 				marquee: {
 					from: { transform: 'translateX(0)' },
 					to: { transform: 'translateX(-50%)' }
+				},
+				caret: {
+					'0%, 49%': { opacity: '1' },
+					'50%, 100%': { opacity: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				marquee: 'marquee 28s linear infinite'
+				marquee: 'marquee 28s linear infinite',
+				caret: 'caret 1.1s step-end infinite'
 			}
 		}
 	},
