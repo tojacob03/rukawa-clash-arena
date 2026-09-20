@@ -35,8 +35,11 @@ const logos: Logo[] = [
   { kind: "custom", Icon: LovableIcon, name: "Lovable" },
 ];
 
-// Doubled so the 0%->-50% translateX loop is seamless.
-const loopedLogos = [...logos, ...logos];
+// The animation moves by 50% of the track, so both halves must be identical.
+// Four sets keep one complete half wider than typical desktop viewports;
+// otherwise the second half can end before the viewport and reveal a blank
+// area at the end of the loop.
+const loopedLogos = [...logos, ...logos, ...logos, ...logos];
 
 const iconClass = "h-10 w-10 shrink-0 opacity-90 transition-opacity hover:opacity-100 sm:h-12 sm:w-12 mr-16";
 
@@ -49,11 +52,6 @@ const TechMarquee = () => {
         WebkitMaskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
       }}
     >
-      {/*
-        Spacing is margin-right on every item (not flex `gap`, which skips
-        the trailing edge) so each doubled half is exactly one repeat
-        period wide and translateX(-50%) loops without a snap.
-      */}
       <div className="flex w-max animate-marquee items-center motion-reduce:animate-none">
         {loopedLogos.map((logo, index) => {
           const key = `${logo.name}-${index}`;
