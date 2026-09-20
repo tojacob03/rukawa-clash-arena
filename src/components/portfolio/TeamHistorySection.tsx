@@ -1,6 +1,13 @@
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui/card";
 import { Calendar, Users, Trophy, Briefcase, Activity } from "lucide-react";
 
+gsap.registerPlugin(ScrollTrigger);
+
+// Newest first - kept in this order because it also drives the mobile
+// vertical timeline (newest-on-top reads better as a stacked list).
 const teamHistory = [
   {
     role: "Freelance Data Analyst",
@@ -43,55 +50,158 @@ const teamHistory = [
   },
 ];
 
-const TeamHistorySection = () => {
-  return (
-    <section id="experience" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
-            Experience
-          </h2>
-          <div className="w-24 h-1 gradient-accent mx-auto rounded-full" />
+// Oldest -> newest, for the horizontal "journey" scroll on desktop.
+const stations = [...teamHistory].reverse();
+
+const SectionHeader = () => (
+  <>
+    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
+      Experience
+    </h2>
+    <div className="w-24 h-1 gradient-accent mx-auto rounded-full" />
+  </>
+);
+
+const StationCard = ({
+  item,
+  isCurrent,
+}: {
+  item: (typeof stations)[number];
+  isCurrent: boolean;
+}) => (
+  <Card
+    className={`gradient-card shadow-card p-6 sm:p-8 ${
+      isCurrent ? "border-green-400/60 ring-1 ring-green-400/30" : "border-border/50"
+    }`}
+  >
+    <div className="flex items-start gap-4">
+      <div className={`p-4 rounded-xl bg-secondary/50 ${item.color}`}>
+        <item.icon className="w-8 h-8" />
+      </div>
+      <div className="flex-1">
+        <div className="mb-2 flex items-center gap-2 text-muted-foreground">
+          <Calendar className="w-4 h-4" />
+          <span className="text-sm">{item.period}</span>
+          {isCurrent && (
+            <span className="ml-1 rounded-full bg-green-400/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-400">
+              Present
+            </span>
+          )}
         </div>
+        <h3 className="text-xl sm:text-2xl font-bold text-foreground">{item.role}</h3>
+        <p className="mb-2 text-lg font-semibold text-clash-blue">{item.team}</p>
+        {item.description && (
+          <p className="mb-3 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+        )}
+        {item.achievement && (
+          <div className="inline-flex items-center gap-2 rounded-full gradient-accent px-3 py-1 text-sm font-medium text-accent-foreground">
+            <Trophy className="w-4 h-4" />
+            {item.achievement}
+          </div>
+        )}
+      </div>
+    </div>
+  </Card>
+);
 
-        <div className="relative">
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-clash-blue to-clash-gold hidden md:block" />
+/**
+ * Desktop: a GSAP ScrollTrigger-pinned section - vertical scroll drives
+ * horizontal movement through the career timeline, oldest station first,
+ * ending on the current one. Uses GSAP's own pin mechanism (not CSS
+ * position:sticky), so it isn't affected by ancestor `overflow` the way
+ * sticky is.
+ *
+ * Mobile: the original stacked vertical timeline, unchanged - horizontal
+ * pinned scroll fights with touch swipe gestures on small screens.
+ */
+const TeamHistorySection = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
 
-          <div className="space-y-8">
-            {teamHistory.map((item, index) => (
-              <div key={index} className="relative">
-                <div className="absolute left-6 w-4 h-4 gradient-primary rounded-full hidden md:block" />
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
-                <Card className="ml-0 md:ml-20 gradient-card shadow-card border-border/50 p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-lg bg-secondary/50 ${item.color}`}>
-                      <item.icon className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                        <h3 className="text-xl font-bold text-foreground">{item.role}</h3>
-                        <div className="flex items-center gap-2 text-muted-foreground mt-1 sm:mt-0">
-                          <Calendar className="w-4 h-4" />
-                          <span className="text-sm">{item.period}</span>
-                        </div>
-                      </div>
-                      <p className="text-lg text-clash-blue font-semibold mb-2">{item.team}</p>
-                      {item.description && (
-                        <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{item.description}</p>
-                      )}
-                      {item.achievement && (
-                        <div className="inline-flex items-center gap-2 px-3 py-1 gradient-accent rounded-full text-accent-foreground text-sm font-medium">
-                          <Trophy className="w-4 h-4" />
-                          {item.achievement}
-                        </div>
-                      )}
-                    </div>
+  useEffect(() => {
+    if (!isDesktop || !sectionRef.current || !trackRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const track = trackRef.current!;
+      const distance = track.scrollWidth - window.innerWidth;
+      if (distance <= 0) return;
+
+      gsap.to(track, {
+        x: -distance,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: () => `+=${distance}`,
+          scrub: 1,
+          pin: true,
+          invalidateOnRefresh: true,
+        },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [isDesktop]);
+
+  if (!isDesktop) {
+    return (
+      <section id="experience" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10 sm:mb-16">
+            <SectionHeader />
+          </div>
+
+          <div className="relative">
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-clash-blue to-clash-gold hidden md:block" />
+            <div className="space-y-8">
+              {teamHistory.map((item, index) => (
+                <div key={index} className="relative">
+                  <div className="absolute left-6 w-4 h-4 gradient-primary rounded-full hidden md:block" />
+                  <div className="ml-0 md:ml-20">
+                    <StationCard item={item} isCurrent={index === 0} />
                   </div>
-                </Card>
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+      </section>
+    );
+  }
+
+  return (
+    <section id="experience" ref={sectionRef} className="scroll-mt-20 relative h-screen overflow-hidden">
+      <div className="absolute inset-x-0 top-14 z-10 px-6 text-center pointer-events-none">
+        <SectionHeader />
+        <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+          First station → today
+        </p>
+      </div>
+
+      <div
+        ref={trackRef}
+        className="flex h-full items-center pl-[12vw] pr-[12vw]"
+        style={{ width: "max-content" }}
+      >
+        {stations.map((item, index) => (
+          <div key={index} className="flex items-center">
+            <div className="w-[min(60vw,30rem)] shrink-0">
+              <StationCard item={item} isCurrent={index === stations.length - 1} />
+            </div>
+            {index < stations.length - 1 && (
+              <div className="mx-6 h-0.5 w-16 shrink-0 bg-gradient-to-r from-clash-blue via-clash-gold to-clash-gold sm:w-24" />
+            )}
+          </div>
+        ))}
       </div>
     </section>
   );
