@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const links = [
   { id: "work", label: "Work" },
@@ -9,21 +10,35 @@ const links = [
 
 const SiteNav = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  // Section ids only exist on the homepage. From any other route (e.g. a
+  // case study), scrollIntoView finds nothing and silently does nothing -
+  // navigate home with the target hash instead, and let Index.tsx's
+  // hash-scroll effect handle scrolling once it has mounted.
+  const goToSection = (id: string) => {
     setOpen(false);
+    if (location.pathname === "/") {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(`/#${id}`);
+    }
+  };
+
+  const goHome = () => {
+    setOpen(false);
+    if (location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
   };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-md">
-      {/* Hier ist die Änderung: max-w-6xl und mx-auto wurden durch w-full und dynamisches Padding ersetzt */}
       <div className="w-full px-5 sm:px-8 lg:px-12 xl:px-16 h-14 flex items-center justify-between gap-4">
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="text-lg font-bold text-foreground"
-        >
+        <button type="button" onClick={goHome} className="text-lg font-bold text-foreground">
           Rukawa
         </button>
         <div className="hidden sm:flex items-center gap-6">
@@ -31,7 +46,7 @@ const SiteNav = () => {
             <button
               key={link.id}
               type="button"
-              onClick={() => scrollTo(link.id)}
+              onClick={() => goToSection(link.id)}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {link.label}
@@ -54,7 +69,7 @@ const SiteNav = () => {
             <button
               key={link.id}
               type="button"
-              onClick={() => scrollTo(link.id)}
+              onClick={() => goToSection(link.id)}
               className="text-left text-sm text-muted-foreground"
             >
               {link.label}
