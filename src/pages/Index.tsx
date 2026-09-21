@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scrollToSection } from "@/lib/smoothScroll";
 import SiteNav from "@/components/portfolio/SiteNav";
 import HeroSection from "@/components/portfolio/HeroSection";
 import LiveStats from "@/components/portfolio/LiveStats";
@@ -17,17 +19,20 @@ import ContactSection from "@/components/portfolio/ContactSection";
 import Footer from "@/components/portfolio/Footer";
 
 const Index = () => {
-  // Handles arriving here as /#section-id (e.g. from SiteNav when the user
-  // was on a case study page). document.getElementById only exists once
-  // Index has actually mounted, so this can't be done from the link itself.
-  // The extra delay gives layout-affecting effects (GSAP pin spacers in
-  // TeamHistorySection, etc.) a moment to settle before we measure position.
+  // Handles arriving here as /#section-id (e.g. from SiteNav on a case study
+  // page). The section only exists once Index has mounted.
+  //
+  // Order matters: the GSAP pin spacer in TeamHistorySection adds page
+  // height, which shifts every section below it (Contact included). So
+  // refresh ScrollTrigger FIRST, then measure and scroll - otherwise the
+  // jump lands on a stale position computed before the spacer existed.
   useEffect(() => {
     const hash = window.location.hash?.replace("#", "");
     if (!hash) return;
     const timer = setTimeout(() => {
-      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
-    }, 120);
+      ScrollTrigger.refresh();
+      scrollToSection(hash);
+    }, 350);
     return () => clearTimeout(timer);
   }, []);
 
