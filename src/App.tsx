@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import PageTransition from "@/components/PageTransition";
+import SmoothScroll from "@/components/SmoothScroll";
+import { resetScroll } from "@/lib/smoothScroll";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ClientPortal from "./pages/ClientPortal";
@@ -21,9 +23,11 @@ const AnimatedRoutes = () => {
 
   useEffect(() => {
     // Land at the top of a newly opened page - but never fight Index's own
-    // hash-scroll (e.g. arriving at /#contact from a case study).
+    // hash-scroll (e.g. arriving at /#contact from a case study). Goes
+    // through Lenis, otherwise Lenis would keep interpolating toward the
+    // previous page's scroll position.
     if (!location.hash) {
-      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+      resetScroll();
     }
 
     // Pinned GSAP sections measure page height on creation. After a route
@@ -100,6 +104,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <SmoothScroll />
       <BrowserRouter>
         <AnimatedRoutes />
       </BrowserRouter>
