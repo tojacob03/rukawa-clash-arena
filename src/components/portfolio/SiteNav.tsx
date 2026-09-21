@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { scrollToSection, scrollToTop } from "@/lib/smoothScroll";
 
 const links = [
   { id: "work", label: "Work" },
@@ -14,13 +15,15 @@ const SiteNav = () => {
   const location = useLocation();
 
   // Section ids only exist on the homepage. From any other route (e.g. a
-  // case study), scrollIntoView finds nothing and silently does nothing -
-  // navigate home with the target hash instead, and let Index.tsx's
-  // hash-scroll effect handle scrolling once it has mounted.
+  // case study), navigate home with the target hash instead, and let
+  // Index.tsx's hash-scroll effect handle scrolling once it has mounted.
+  // On the homepage, scrolling goes through Lenis (scrollToSection) so it
+  // uses the same smooth motion as wheel scrolling instead of the browser's
+  // own smooth-scroll, which would fight Lenis' interpolation.
   const goToSection = (id: string) => {
     setOpen(false);
     if (location.pathname === "/") {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+      scrollToSection(id);
     } else {
       navigate(`/#${id}`);
     }
@@ -29,7 +32,7 @@ const SiteNav = () => {
   const goHome = () => {
     setOpen(false);
     if (location.pathname === "/") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
     } else {
       navigate("/");
     }
