@@ -6,7 +6,7 @@ summary: Why I built a private analysis platform instead of doing prep by hand -
 date: 2026-09-18
 metric: 1,000
 metricLabel: recent battles aggregated per player
-stats: 3 | duel slots profiled separately; 8 | cards hashed into one deck identity
+stats: Up to 5 | duel slots profiled separately; 8 | cards hashed into one deck identity
 role: Design, build & analysis
 stack: React, TypeScript, Supabase, Postgres
 ---
