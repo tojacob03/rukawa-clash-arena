@@ -122,6 +122,34 @@ All colors MUST be HSL.
   }
 }
 
+/*
+  Lenis base styles (equivalent to lenis/dist/lenis.css, inlined so there's
+  no import path to keep in sync with the package version).
+  The key rule is scroll-behavior: auto while Lenis is active - the
+  browser's own smooth scrolling would otherwise run on top of Lenis'
+  interpolation and the two would fight each other.
+*/
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -129,8 +157,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-sans;
-    /* Crisper rendering for light text on a dark background - without this,
-       Satoshi looks noticeably heavier/blurrier than intended. */
+    /* Crisper rendering for light text on a dark background. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
