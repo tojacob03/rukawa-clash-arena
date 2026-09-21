@@ -4,6 +4,11 @@ eyebrow: Featured system
 title: From Battle Log to Set Decision
 summary: Why I built a private analysis platform instead of doing prep by hand - and the decisions that made it actually trustworthy under set pressure.
 date: 2026-09-18
+metric: 1,000
+metricLabel: recent battles aggregated per player
+stats: 3 | duel slots profiled separately; 8 | cards hashed into one deck identity
+role: Design, build & analysis
+stack: React, TypeScript, Supabase, Postgres
 ---
 
 ## The problem
