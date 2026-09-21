@@ -150,8 +150,13 @@ const Terminal = () => {
                 </button>
               </div>
 
-              {/* Output */}
-              <div ref={scrollRef} className="h-64 space-y-0.5 overflow-y-auto px-4 py-3 font-mono text-xs leading-relaxed">
+              {/* Output - data-lenis-prevent lets the wheel scroll this box
+                  natively instead of Lenis hijacking it to scroll the page. */}
+              <div
+                ref={scrollRef}
+                data-lenis-prevent
+                className="h-64 space-y-0.5 overflow-y-auto overscroll-contain px-4 py-3 font-mono text-xs leading-relaxed"
+              >
                 {lines.map((line, i) => (
                   <div
                     key={i}
