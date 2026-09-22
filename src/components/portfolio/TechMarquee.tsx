@@ -52,7 +52,9 @@ const TechMarquee = () => {
         WebkitMaskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
       }}
     >
-      <div className="flex w-max animate-marquee items-center motion-reduce:animate-none">
+      <div
+  className="flex w-max animate-marquee items-center motion-reduce:animate-none"
+  style={{ willChange: "transform", transform: "translateZ(0)" }}
         {loopedLogos.map((logo, index) => {
           const key = `${logo.name}-${index}`;
           if (logo.kind === "image") {
