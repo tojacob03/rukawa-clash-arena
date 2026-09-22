@@ -73,7 +73,7 @@ export const MacbookScroll = ({
         */}
         <motion.div
           style={{
-            transformY: translate,
+            y: translate,
             rotateX: rotate,
           }}
           className="flex flex-col items-center [perspective:800px] scale-[0.6] sm:scale-75 md:scale-100"

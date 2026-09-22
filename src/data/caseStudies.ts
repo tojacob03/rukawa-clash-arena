@@ -100,7 +100,7 @@ export const caseStudies: CaseStudy[] = Object.values(files)
       content,
     };
   })
-  .filter((s): s is CaseStudy => s !== null)
+  .filter((s): s is NonNullable<typeof s> => s !== null)
   .sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
 
 export const caseStudiesBySlug: Record<string, CaseStudy> = Object.fromEntries(

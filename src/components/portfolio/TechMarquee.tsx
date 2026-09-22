@@ -66,7 +66,7 @@ const TechMarquee = () => {
               <logo.Icon key={key} title={logo.name} style={{ color: logo.color }} className={iconClass} />
             );
           }
-          return <logo.Icon key={key} title={logo.name} className={iconClass} />;
+          return <logo.Icon key={key} aria-label={logo.name} className={iconClass} />;
         })}
       </div>
     </div>
