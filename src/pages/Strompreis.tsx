@@ -68,7 +68,15 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
   const hasTomorrow = data.days.some((d) => d.date !== today);
   const [dayKey, setDayKey] = useState<"heute" | "morgen">(hasTomorrow ? "morgen" : "heute");
   const [hours, setHours] = useState<(typeof DURATIONS)[number]>(2);
-  const [kwh, setKwh] = useState(10);
+  // Kept as text so the field can be empty while typing (a number state
+  // would turn an empty field into 0). German decimal comma is accepted.
+  const [kwhInput, setKwhInput] = useState("10");
+  const parsedKwh = Number.parseFloat(kwhInput.replace(",", "."));
+  const kwh = Number.isFinite(parsedKwh) && parsedKwh > 0 ? parsedKwh : 0;
+  const stepKwh = (delta: number) => {
+    const next = Math.max(0, Math.round(kwh) + delta);
+    setKwhInput(String(next));
+  };
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -89,7 +97,8 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
 
   const dayWord = isToday ? "Heute" : "Morgen";
   const savingsCt = priciest && cheapest ? toCentPerKwh(priciest.avg - cheapest.avg) : 0;
-  const costAt = (eurPerMwh: number) => (kwh * eurPerMwh) / 1000;
+  // Rounded to cents; "|| 0" turns -0 into 0 so an empty field never shows "−0,00 €".
+  const costAt = (eurPerMwh: number) => Math.round((kwh * eurPerMwh) / 10) / 100 || 0;
   const s365 = data.summary_365;
 
   return (
@@ -184,17 +193,48 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
           Strommenge in kWh
           <span className="mt-1 block text-xs">z. B. 10 kWh für eine Autoladung im Alltag, 1 kWh für eine Waschmaschine</span>
         </label>
-        <input
-          id="kwh"
-          type="number"
-          min={0}
-          step={1}
-          inputMode="decimal"
-          value={Number.isFinite(kwh) ? kwh : ""}
-          onChange={(e) => setKwh(Math.max(0, Number(e.target.value)))}
-          className="mt-3 w-32 rounded-md border border-border bg-secondary/40 px-3 py-2 text-lg text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(45_100%_60%)]"
-          style={tabular}
-        />
+        <div className="mt-3 inline-flex items-stretch overflow-hidden rounded-md border border-border bg-secondary/40">
+          <button
+            type="button"
+            onClick={() => stepKwh(-1)}
+            disabled={kwh <= 0}
+            aria-label="1 kWh weniger"
+            className="px-3.5 text-xl text-foreground transition-colors hover:bg-secondary disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[hsl(45_100%_60%)]"
+          >
+            −
+          </button>
+          <input
+            id="kwh"
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
+            value={kwhInput}
+            onChange={(e) => {
+              const v = e.target.value.replace(/[^0-9.,]/g, "");
+              if (/^\d{0,5}([.,]\d{0,2})?$/.test(v)) setKwhInput(v);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                stepKwh(1);
+              } else if (e.key === "ArrowDown") {
+                e.preventDefault();
+                stepKwh(-1);
+              }
+            }}
+            placeholder="0"
+            className="w-20 border-x border-border bg-transparent px-2 py-2 text-center text-lg text-foreground placeholder:text-muted-foreground/60 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[hsl(45_100%_60%)]"
+            style={tabular}
+          />
+          <button
+            type="button"
+            onClick={() => stepKwh(1)}
+            aria-label="1 kWh mehr"
+            className="px-3.5 text-xl text-foreground transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[hsl(45_100%_60%)]"
+          >
+            +
+          </button>
+        </div>
 
         {cheapest && priciest ? (
           <table className="mt-8 w-full max-w-lg text-left text-sm" style={tabular}>
