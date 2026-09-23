@@ -432,6 +432,7 @@ export type Database = {
         }[]
       }
       is_admin: { Args: { user_id: string }; Returns: boolean }
+      privacy_retention_cleanup: { Args: never; Returns: undefined }
       security_maintenance: { Args: never; Returns: undefined }
       submit_contact_form_secure: {
         Args: {
