@@ -8,17 +8,9 @@
 
     <!--
       Typeface: Geist + Geist Mono (Vercel / Basement Studio, SIL OFL).
-      One neutral Swiss grotesk carries headlines AND body copy, with
-      hierarchy coming from weight, size and tracking rather than from
-      mixing display faces - the restrained approach Vercel, Stripe and
-      Linear all use. Single CDN keeps the critical path short.
+      Self-hosted via @fontsource (imported in src/main.tsx) instead of the
+      Google Fonts CDN, so page views don't hand visitor IPs to Google.
     -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
 
     <title>Rukawa Analytics | Clash Royale Analyst — Solo CRL Player Analysis</title>
     <meta

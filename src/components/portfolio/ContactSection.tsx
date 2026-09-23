@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, X, Send, Linkedin, Copy, CalendarDays } from "lucide-react";
 import DiscordIcon from "@/components/icons/DiscordIcon";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCalApi } from "@calcom/embed-react";
@@ -22,11 +22,13 @@ const ContactSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  // Initializes the Cal.com embed script once on mount and sets the popup's
-  // theme to match the site (dark, primary-purple accents) instead of
-  // Cal.com's default light styling.
-  useEffect(() => {
-    (async function initCal() {
+  // Cal.com is loaded only when the visitor actually clicks "Book a call".
+  // Loading the embed script on mount would contact Cal.com (a US third
+  // party) on every page view - privacy-wise that should be opt-in.
+  const [calLoading, setCalLoading] = useState(false);
+  const openCal = async () => {
+    setCalLoading(true);
+    try {
       const cal = await getCalApi({ namespace: CAL_NAMESPACE });
       cal("ui", {
         theme: "dark",
@@ -34,8 +36,18 @@ const ContactSection = () => {
         hideEventTypeDetails: false,
         layout: "month_view",
       });
-    })();
-  }, []);
+      cal("modal", { calLink: CAL_LINK, config: { layout: "month_view" } });
+    } catch (err) {
+      console.error("Cal.com failed to load:", err);
+      toast({
+        title: "Couldn't open the calendar",
+        description: "Please use the contact form or email instead.",
+        variant: "destructive",
+      });
+    } finally {
+      setCalLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,16 +172,16 @@ const ContactSection = () => {
             <div>
               <h3 className="font-semibold text-foreground">Prefer to just talk?</h3>
               <p className="text-muted-foreground text-sm">Grab a slot directly - no back-and-forth over email.</p>
+              <p className="text-muted-foreground/70 text-xs mt-1">Opens the Cal.com scheduler (third-party service).</p>
             </div>
           </div>
           <Button
             variant="hero"
             className="w-full sm:w-auto shrink-0"
-            data-cal-namespace={CAL_NAMESPACE}
-            data-cal-link={CAL_LINK}
-            data-cal-config={JSON.stringify({ layout: "month_view" })}
+            onClick={openCal}
+            disabled={calLoading}
           >
-            Book a call
+            {calLoading ? "Loading…" : "Book a call"}
             <CalendarDays className="w-4 h-4 ml-2" />
           </Button>
         </Card>
