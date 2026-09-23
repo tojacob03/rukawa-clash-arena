@@ -1,73 +1,65 @@
-# Welcome to your Lovable project
+# Rukawa Analytics
 
-## Project info
+**Live:** [rukawaanalytics.com](https://rukawaanalytics.com)
 
-**URL**: https://lovable.dev/projects/f35d119a-e38b-478a-be9d-8ded6dd1ee74
+Portfolio and client platform of **Till Oscar Jacob ("Rukawa")**, a Clash Royale esports analyst focused on Solo CRL player preparation. The site presents the analysis method, publishes case studies, shows live numbers from my analysis pipeline, and gives players and teams a private portal for their prep material.
 
-## How can I edit this code?
+> Short version: I turn a player's battle log into set decisions — and I built the tooling that does it.
 
-There are several ways of editing your application.
+## What's in this repo
 
-**Use Lovable**
+| Area | What it does |
+|---|---|
+| **Portfolio** (`/`) | Method, current engagements, results, team history, contact |
+| **Case studies** (`/work`, `/work/:slug`) | Written as Markdown in `src/content/case-studies/`, rendered in the app |
+| **Live stats** | Pulls aggregated, public numbers from my separate analysis pipeline (private repo) |
+| **Client portal** (`/portal`) | Players see their deck sets, teams see opponent analyses — access via personal login code |
+| **Admin panel** (`/admin`) | Manage clients, deck sets and analysis files |
+| **Contact** | Contact form (stored in Supabase) and optional call booking |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f35d119a-e38b-478a-be9d-8ded6dd1ee74) and start prompting.
+Featured case study: [From Battle Log to Set Decision](src/content/case-studies/player-analysis-tooling.md) — how up to 1,000 recent battles per player become slot-based tendencies (Game 1/2/3) and remaining-deck predictions.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Architecture
 
-**Use your preferred IDE**
+```mermaid
+flowchart LR
+    V[Visitor] --> S[React app<br/>hosted via Lovable]
+    S -->|contact form, portal login| DB[(Supabase Postgres<br/>EU · Frankfurt)]
+    S -->|public stats| P[Analysis pipeline<br/>Supabase Edge Functions]
+    P -->|battle logs| API[Clash Royale API]
+    C[Client] -->|login code| S
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion, GSAP
+- **Backend:** Supabase (Postgres, Row Level Security, Edge Functions), both projects hosted in the EU (Frankfurt)
+- **Analysis pipeline:** separate private project — scheduled collection of battle logs, duel/set detection, deck hashing, meta aggregation, self-healing tracking
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Security & privacy decisions
 
-Follow these steps:
+- Client data is only reachable through `SECURITY DEFINER` database functions (`*_secure`) with session tokens — no direct table access from the browser.
+- Portal logins and the contact form are rate-limited.
+- The key in `.env` is Supabase's **publishable (anon) key**, which is meant to be public; access control lives in RLS policies and the secure functions.
+- Fonts and map data are bundled with the site instead of loaded from third-party CDNs; the Cal.com scheduler only loads after a visitor clicks "Book a call".
+
+## How it was built
+
+I designed the product, data model and analysis logic; the code was written AI-assisted using [Lovable](https://lovable.dev) and other AI tools. I operate and maintain the system myself. Changes made in Lovable are committed to this repo automatically.
+
+### Run locally
+
+Requires Node.js 18+.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone https://github.com/tojacob03/rukawa-clash-arena.git
+cd rukawa-clash-arena
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Contact
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+[Website](https://rukawaanalytics.com/#contact) · [LinkedIn](https://www.linkedin.com/in/till-oscar-jacob-846403358) · [X / Twitter](https://twitter.com/RukawaAnalyst)
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f35d119a-e38b-478a-be9d-8ded6dd1ee74) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This material is unofficial and is not endorsed by Supercell. For more information see [Supercell's Fan Content Policy](https://www.supercell.com/fan-content-policy).

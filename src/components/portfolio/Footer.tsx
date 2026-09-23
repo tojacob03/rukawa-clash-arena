@@ -77,6 +77,21 @@ const Footer = () => {
           </div>
         </div>
 
+        <div className="mt-8 pt-6 border-t border-border/40 space-y-2 text-center md:text-left">
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            This material is unofficial and is not endorsed by Supercell. For more information see{" "}
+            <a
+              href="https://www.supercell.com/fan-content-policy"
+              className="underline underline-offset-2 hover:text-foreground"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Supercell&apos;s Fan Content Policy
+            </a>
+            .
+          </p>
+        </div>
+
         <Terminal />
       </div>
     </footer>

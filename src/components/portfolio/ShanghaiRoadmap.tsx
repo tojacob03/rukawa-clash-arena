@@ -3,8 +3,9 @@ import { MapPin, Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 
-// Die GeoJSON-Daten für die Weltkarte (Vektoren)
-const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
+// Weltkarten-Daten (TopoJSON) lokal gebündelt statt von unpkg geladen -
+// kein Drittanbieter-Request beim Seitenaufruf.
+import geoUrl from "world-atlas/countries-110m.json";
 
 // Koordinaten
 const originCoords: [number, number] = [10.4515, 51.1657]; // Deutschland (Zentrum)
