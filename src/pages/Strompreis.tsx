@@ -98,7 +98,7 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
       <section className="pb-14 pt-10 sm:pb-16 sm:pt-14">
         <div className="flex flex-wrap items-center gap-3">
           {hasTomorrow && (
-            <Segmented<"heute" | "morgen">
+            <Segmented
               label="Tag"
               options={["heute", "morgen"] as const}
               value={dayKey}
@@ -106,7 +106,7 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
               render={(v) => (v === "heute" ? "Heute" : "Morgen")}
             />
           )}
-          <Segmented<(typeof DURATIONS)[number]> label="Dauer" options={DURATIONS} value={hours} onChange={setHours} render={(v) => `${v} Std.`} />
+          <Segmented label="Dauer" options={DURATIONS} value={hours} onChange={setHours} render={(v) => `${v} Std.`} />
         </div>
 
         {cheapest ? (
