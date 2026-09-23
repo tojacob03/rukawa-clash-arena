@@ -18,7 +18,7 @@ Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Mein berechtigtes Interesse lieg
 
 ## 4. Datenbank und Backend (Supabase)
 
-Für Kontaktformular, Client Portal und Live-Statistiken nutze ich Supabase (Supabase Inc., USA). Die Datenbanken befinden sich in einem Rechenzentrum in Frankfurt am Main (EU). Mit Supabase besteht ein Vertrag über die Auftragsverarbeitung nach Art. 28 DSGVO. Soweit im Einzelfall Daten in die USA übermittelt werden, erfolgt dies auf Grundlage der EU-Standardvertragsklauseln. Weitere Informationen: [supabase.com/privacy](https://supabase.com/privacy).
+Für Kontaktformular, Client Portal und Live-Statistiken nutze ich Supabase (Vertragspartner: Supabase Pte. Ltd., Singapur). Die Datenbanken befinden sich in einem Rechenzentrum in Frankfurt am Main (EU). Mit Supabase besteht ein Vertrag über die Auftragsverarbeitung nach Art. 28 DSGVO. Soweit im Einzelfall Daten in Länder außerhalb der EU übermittelt werden (z. B. an Supabase in Singapur oder an Unterauftragnehmer in den USA), erfolgt dies auf Grundlage der EU-Standardvertragsklauseln. Weitere Informationen: [supabase.com/privacy](https://supabase.com/privacy).
 
 ## 5. Live-Statistiken
 
@@ -28,7 +28,7 @@ Auf der Startseite werden aggregierte, öffentliche Kennzahlen aus meiner Analys
 
 Wenn Sie das Kontaktformular nutzen, verarbeite ich Ihren Namen, Ihre E-Mail-Adresse und Ihre Nachricht, um Ihre Anfrage zu beantworten. Zum Schutz vor Spam und Missbrauch wird beim Absenden zusätzlich Ihre IP-Adresse über den Dienst ipify (api.ipify.org) ermittelt und für eine Begrenzung der Anzahl von Nachrichten gespeichert.
 
-Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, soweit Ihre Anfrage auf eine Zusammenarbeit zielt, im Übrigen Art. 6 Abs. 1 lit. f DSGVO (Interesse an der Beantwortung von Anfragen und am Schutz vor Missbrauch). Anfragen werden gelöscht, sobald sie erledigt sind, spätestens nach 12 Monaten, sofern keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Gespeicherte IP-Adressen werden spätestens nach 30 Tagen gelöscht.
+Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, soweit Ihre Anfrage auf eine Zusammenarbeit zielt, im Übrigen Art. 6 Abs. 1 lit. f DSGVO (Interesse an der Beantwortung von Anfragen und am Schutz vor Missbrauch). Anfragen werden nach 12 Monaten automatisch gelöscht, auf Wunsch auch früher, sofern keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Die für die Begrenzung gespeicherten IP-Adressen werden nach 24 Stunden automatisch gelöscht.
 
 ## 7. Kontakt per E-Mail und soziale Netzwerke
 
@@ -42,7 +42,7 @@ Rechtsgrundlage ist Ihre Einwilligung durch Klick auf den Button (Art. 6 Abs. 1 
 
 ## 9. Client Portal
 
-Das Client Portal steht nur meinen Kund:innen zur Verfügung. Bei der Anmeldung verarbeite ich den persönlichen Login-Code, Zeitpunkt und Ergebnis des Anmeldeversuchs sowie die Browserkennung (User-Agent). Nach erfolgreicher Anmeldung wird ein Sitzungstoken erzeugt, das 24 Stunden gültig ist und nur für die Dauer der Browsersitzung gespeichert wird. Im Portal werden Kartengrafiken von Servern von Supercell (api-assets.clashroyale.com) und RoyaleAPI über GitHub (raw.githubusercontent.com, royaleapi.github.io) geladen, wobei Ihre IP-Adresse an diese Anbieter übertragen wird.
+Das Client Portal steht nur meinen Kund:innen zur Verfügung. Bei der Anmeldung verarbeite ich den persönlichen Login-Code, Zeitpunkt und Ergebnis des Anmeldeversuchs sowie die Browserkennung (User-Agent). Nach erfolgreicher Anmeldung wird ein Sitzungstoken erzeugt, das 24 Stunden gültig ist und nur für die Dauer der Browsersitzung gespeichert wird. Anmeldeversuche werden nach 30 Tagen, abgelaufene Sitzungen 7 Tage nach Ablauf automatisch gelöscht. Im Portal werden Kartengrafiken von Servern von Supercell (api-assets.clashroyale.com) und RoyaleAPI über GitHub (raw.githubusercontent.com, royaleapi.github.io) geladen, wobei Ihre IP-Adresse an diese Anbieter übertragen wird.
 
 Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Erbringung der vereinbarten Leistung) sowie Art. 6 Abs. 1 lit. f DSGVO (Schutz vor unbefugtem Zugriff).
 
