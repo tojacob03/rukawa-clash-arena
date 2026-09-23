@@ -102,11 +102,17 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
               label="Tag"
               options={["heute", "morgen"] as const}
               value={dayKey}
-              onChange={setDayKey}
+              onChange={(v) => setDayKey(v as "heute" | "morgen")}
               render={(v) => (v === "heute" ? "Heute" : "Morgen")}
             />
           )}
-          <Segmented label="Dauer" options={DURATIONS} value={hours} onChange={setHours} render={(v) => `${v} Std.`} />
+          <Segmented
+            label="Dauer"
+            options={DURATIONS}
+            value={hours}
+            onChange={(v) => setHours(v as (typeof DURATIONS)[number])}
+            render={(v) => `${v} Std.`}
+          />
         </div>
 
         {cheapest ? (
