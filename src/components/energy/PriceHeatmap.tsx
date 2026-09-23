@@ -66,6 +66,11 @@ const PriceHeatmap = ({ cells }: PriceHeatmapProps) => {
           }}
         />
         <span>{fmtNumber(max, 0)} €/MWh</span>
+        {min < 0 && (
+          <span className="ml-3 inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ background: ENERGY_COLORS.negative }} /> im Schnitt negativ
+          </span>
+        )}
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import MetaPulse from "@/components/portfolio/MetaPulse";
 import AboutSection from "@/components/portfolio/AboutSection";
 import WorkSection from "@/components/portfolio/WorkSection";
 import CurrentEngagementsSection from "@/components/portfolio/CurrentEngagementsSection";
+import SideProjectSection from "@/components/portfolio/SideProjectSection";
 import SkillsSection from "@/components/portfolio/SkillsSection";
 import TechStackSection from "@/components/portfolio/TechStackSection";
 import TechMarquee from "@/components/portfolio/TechMarquee";
@@ -45,6 +46,7 @@ const Index = () => {
       <AboutSection />
       <WorkSection />
       <CurrentEngagementsSection />
+      <SideProjectSection />
       <SkillsSection />
       <TechStackSection />
       <TechMarquee />
