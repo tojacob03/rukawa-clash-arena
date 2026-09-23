@@ -16,6 +16,7 @@ import AdminPanel from "./pages/AdminPanel";
 import CaseStudy from "./pages/CaseStudy";
 import CaseStudyIndex from "./pages/CaseStudyIndex";
 import LegalPage from "./pages/LegalPage";
+import Strompreis from "./pages/Strompreis";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,14 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <LegalPage page="datenschutz" />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/strompreis"
+          element={
+            <PageTransition>
+              <Strompreis />
             </PageTransition>
           }
         />
