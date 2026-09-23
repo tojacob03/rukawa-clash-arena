@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Mail, Crown, Linkedin, X } from "lucide-react";
 import DiscordIcon from "@/components/icons/DiscordIcon";
 import Terminal from "@/components/portfolio/Terminal";
@@ -89,6 +90,15 @@ const Footer = () => {
               Supercell&apos;s Fan Content Policy
             </a>
             .
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <Link to="/impressum" className="underline underline-offset-2 hover:text-foreground">
+              Impressum
+            </Link>
+            <span className="mx-2 text-muted-foreground/50">·</span>
+            <Link to="/datenschutz" className="underline underline-offset-2 hover:text-foreground">
+              Datenschutz / Privacy
+            </Link>
           </p>
         </div>
 

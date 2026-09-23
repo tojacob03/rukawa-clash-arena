@@ -15,6 +15,7 @@ import ClientPortal from "./pages/ClientPortal";
 import AdminPanel from "./pages/AdminPanel";
 import CaseStudy from "./pages/CaseStudy";
 import CaseStudyIndex from "./pages/CaseStudyIndex";
+import LegalPage from "./pages/LegalPage";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,22 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <AdminPanel />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/impressum"
+          element={
+            <PageTransition>
+              <LegalPage page="impressum" />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/datenschutz"
+          element={
+            <PageTransition>
+              <LegalPage page="datenschutz" />
             </PageTransition>
           }
         />

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, X, Send, Linkedin, Copy, CalendarDays } from "lucide-react";
 import DiscordIcon from "@/components/icons/DiscordIcon";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCalApi } from "@calcom/embed-react";
@@ -172,7 +173,13 @@ const ContactSection = () => {
             <div>
               <h3 className="font-semibold text-foreground">Prefer to just talk?</h3>
               <p className="text-muted-foreground text-sm">Grab a slot directly - no back-and-forth over email.</p>
-              <p className="text-muted-foreground/70 text-xs mt-1">Opens the Cal.com scheduler (third-party service).</p>
+              <p className="text-muted-foreground/70 text-xs mt-1">
+                Opens the Cal.com scheduler (third-party service, see{" "}
+                <Link to="/datenschutz" className="underline underline-offset-2 hover:text-foreground">
+                  privacy policy
+                </Link>
+                ).
+              </p>
             </div>
           </div>
           <Button
@@ -281,6 +288,13 @@ const ContactSection = () => {
                 {isSubmitting ? "Sending..." : "Send Message"}
                 <Send className="w-4 h-4 ml-2" />
               </Button>
+              <p className="text-xs text-muted-foreground">
+                Your name, email and message are stored to answer your request. Details in the{" "}
+                <Link to="/datenschutz" className="underline underline-offset-2 hover:text-foreground">
+                  privacy policy
+                </Link>{" "}
+                (German).
+              </p>
             </form>
           </Card>
         </div>
