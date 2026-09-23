@@ -21,7 +21,7 @@ const DURATIONS = [1, 2, 3, 4] as const;
 
 const tabular = { fontVariantNumeric: "tabular-nums" } as const;
 
-const Segmented = <T extends string | number>({
+const Segmented = <const T extends string | number>({
   label,
   options,
   value,
@@ -98,15 +98,21 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
       <section className="pb-14 pt-10 sm:pb-16 sm:pt-14">
         <div className="flex flex-wrap items-center gap-3">
           {hasTomorrow && (
-            <Segmented<"heute" | "morgen">
+            <Segmented
               label="Tag"
               options={["heute", "morgen"] as const}
               value={dayKey}
-              onChange={setDayKey}
+              onChange={(v) => setDayKey(v as "heute" | "morgen")}
               render={(v) => (v === "heute" ? "Heute" : "Morgen")}
             />
           )}
-          <Segmented<(typeof DURATIONS)[number]> label="Dauer" options={DURATIONS} value={hours} onChange={setHours} render={(v) => `${v} Std.`} />
+          <Segmented
+            label="Dauer"
+            options={DURATIONS}
+            value={hours}
+            onChange={(v) => setHours(v as (typeof DURATIONS)[number])}
+            render={(v) => `${v} Std.`}
+          />
         </div>
 
         {cheapest ? (

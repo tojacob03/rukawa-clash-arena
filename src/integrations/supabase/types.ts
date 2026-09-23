@@ -374,6 +374,7 @@ export type Database = {
         }[]
       }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
+      energy_dashboard: { Args: never; Returns: Json }
       generate_secure_login_code: { Args: never; Returns: string }
       get_admin_role: {
         Args: { user_id: string }
