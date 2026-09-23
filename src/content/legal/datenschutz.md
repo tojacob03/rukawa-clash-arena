@@ -18,7 +18,7 @@ Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Mein berechtigtes Interesse lieg
 
 ## 4. Datenbank und Backend (Supabase)
 
-Für Kontaktformular, Client Portal und Live-Statistiken nutze ich Supabase (Vertragspartner: Supabase Pte. Ltd., Singapur). Die Datenbanken befinden sich in einem Rechenzentrum in Frankfurt am Main (EU). Mit Supabase besteht ein Vertrag über die Auftragsverarbeitung nach Art. 28 DSGVO. Soweit im Einzelfall Daten in Länder außerhalb der EU übermittelt werden (z. B. an Supabase in Singapur oder an Unterauftragnehmer in den USA), erfolgt dies auf Grundlage der EU-Standardvertragsklauseln. Weitere Informationen: [supabase.com/privacy](https://supabase.com/privacy).
+Für Kontaktformular, Client Portal, Live-Statistiken und den Strompreis-Kompass nutze ich Supabase (Vertragspartner: Supabase Pte. Ltd., Singapur). Die Datenbanken befinden sich in einem Rechenzentrum in Frankfurt am Main (EU). Mit Supabase besteht ein Vertrag über die Auftragsverarbeitung nach Art. 28 DSGVO. Soweit im Einzelfall Daten in Länder außerhalb der EU übermittelt werden (z. B. an Supabase in Singapur oder an Unterauftragnehmer in den USA), erfolgt dies auf Grundlage der EU-Standardvertragsklauseln. Weitere Informationen: [supabase.com/privacy](https://supabase.com/privacy).
 
 ## 5. Live-Statistiken
 
