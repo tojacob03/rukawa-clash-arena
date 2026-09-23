@@ -21,7 +21,7 @@ const DURATIONS = [1, 2, 3, 4] as const;
 
 const tabular = { fontVariantNumeric: "tabular-nums" } as const;
 
-const Segmented = <T extends string | number>({
+const Segmented = <const T extends string | number>({
   label,
   options,
   value,
