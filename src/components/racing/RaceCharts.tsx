@@ -105,7 +105,7 @@ export const PaceBars = ({ drivers }: { drivers: RaceDriver[] }) => {
 
 /** Median stationary pit stop time per team (season). */
 export const PitCrewBars = ({ crews }: { crews: SeasonPayload["pit_crews"] }) => {
-  if (!crews.length) return <p className="text-sm text-muted-foreground">No pit stop data yet.</p>;
+  if (!crews.length) return <p className="text-sm text-muted-foreground">Stationary pit stop times are not available for this season.</p>;
   const max = Math.max(...crews.map((c) => c.median_stop));
   const min = Math.min(...crews.map((c) => c.median_stop));
   const floor = Math.max(0, min - 0.6);
