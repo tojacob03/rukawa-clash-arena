@@ -16,7 +16,7 @@ import { usePublicStats } from "@/hooks/usePublicStats";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // The last word of the headline cycles through what the analysis produces.
-const OUTCOMES = ["set decisions.", "Game 1 reads.", "ban plans.", "Game 3 calls."];
+const OUTCOMES = ["set decisions.", "Game 1 reads.", "deck orders.", "Game 3 calls."];
 
 const MARQUEE = "Battle logs · Duel detection · Game 1 tendencies · Remaining decks · Solo CRL · ";
 
