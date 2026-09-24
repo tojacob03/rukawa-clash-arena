@@ -22,7 +22,7 @@ const MARQUEE = "Battle logs · Duel detection · Game 1 tendencies · Remaining
 
 // Proof first, decoration second: these carry the hero, not artwork.
 const PROOF = [
-  { value: "Top 2, 3 & 4", label: "CRL Monthly Finals results of players I prepared" },
+  { value: "Top 2, 3 & 4", label: "CRL Monthly Finals results of players I prepared, 2025-26" },
   { value: "2 players", label: "qualified for the CRL World Finals 2026" },
   { value: "Since 2019", label: "analyst for teams, a national team and players" },
 ];
