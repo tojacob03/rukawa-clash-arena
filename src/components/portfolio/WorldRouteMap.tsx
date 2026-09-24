@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { motion, useMotionValueEvent, type MotionValue } from "framer-motion";
 import { MapPin, Plane } from "lucide-react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
@@ -25,15 +25,30 @@ type Point = { x: number; y: number };
  * `progress` (0-1) places the plane on the route and fills the gold trail
  * behind it; `stations` are fractions along the route where the season's
  * milestones sit. Everything is written straight to the SVG on change, so
- * scrolling never re-renders the map.
+ * scrolling never re-renders the map. `viewBox` crops the map; the route
+ * coordinates stay the same.
  */
-const WorldRouteMap = ({ progress, stations }: { progress: MotionValue<number>; stations: number[] }) => {
+const WorldRouteMap = ({
+  progress,
+  stations,
+  viewBox,
+}: {
+  progress: MotionValue<number>;
+  stations: number[];
+  /** Crop of the 800x600 map, e.g. just the route on narrow screens */
+  viewBox?: string;
+}) => {
   const pathRef = useRef<SVGPathElement>(null);
   const trailRef = useRef<SVGPathElement>(null);
   const planeRef = useRef<SVGGElement>(null);
   const [length, setLength] = useState(0);
   const [points, setPoints] = useState<Point[]>([]);
   const [reached, setReached] = useState(-1);
+  // Glows are SVG filters, not CSS drop-shadow(): WebKit doesn't repaint SVG
+  // elements carrying a CSS filter when their attributes change, which froze
+  // the trail and the plane in Safari. Unique ids: phone and desktop layouts
+  // can both mount a map.
+  const glow = `route-glow-${useId().replace(/:/g, "")}`;
 
   const place = (p: number) => {
     const path = pathRef.current;
@@ -72,7 +87,20 @@ const WorldRouteMap = ({ progress, stations }: { progress: MotionValue<number>; 
         projection="geoMercator"
         projectionConfig={{ scale: 140, center: [70, 45] }}
         className="h-full w-full"
+        viewBox={viewBox}
       >
+        <defs>
+          <filter id={glow} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+            <feFlood floodColor={GOLD} floodOpacity="0.85" />
+            <feComposite in2="blur" operator="in" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => (
@@ -109,7 +137,7 @@ const WorldRouteMap = ({ progress, stations }: { progress: MotionValue<number>; 
           strokeLinecap="round"
           strokeDasharray={length || 1}
           strokeDashoffset={length || 1}
-          style={{ filter: "drop-shadow(0 0 4px rgba(245,197,66,0.8))" }}
+          filter={`url(#${glow})`}
         />
 
         {/* Season milestones on the way */}
@@ -150,20 +178,22 @@ const WorldRouteMap = ({ progress, stations }: { progress: MotionValue<number>; 
               animate={{ r: [8, 26], opacity: [0, 0.4, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <MapPin className="h-6 w-6 text-clash-gold drop-shadow-[0_0_8px_rgba(245,197,66,0.8)]" />
+            <g filter={`url(#${glow})`}>
+              <MapPin width={24} height={24} className="text-clash-gold" />
+            </g>
           </g>
         </Marker>
 
         {/* The plane, positioned by `place` */}
         <g ref={planeRef} className="pointer-events-none">
-          <g transform="rotate(45)">
+          <g transform="rotate(45)" filter={`url(#${glow})`}>
             <Plane
               width={22}
               height={22}
               x={-11}
               y={-11}
               fill="currentColor"
-              className="text-white drop-shadow-[0_0_8px_rgba(245,197,66,1)]"
+              className="text-white"
             />
           </g>
         </g>
