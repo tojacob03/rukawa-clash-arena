@@ -153,7 +153,7 @@ const ContactSection = () => {
   ];
 
   return (
-    <section id="contact" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6">
+    <section id="contact" className="scroll-mt-14 py-14 sm:py-20 px-5 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">

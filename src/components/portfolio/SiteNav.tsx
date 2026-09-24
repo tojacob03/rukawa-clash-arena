@@ -24,7 +24,10 @@ const SiteNav = () => {
   const goToSection = (id: string) => {
     setOpen(false);
     if (location.pathname === "/") {
-      scrollToSection(id);
+      // The open mobile menu sits in the sticky nav and pushes the page
+      // down; measuring the target while it's still open made every jump
+      // land short by the menu's height. Scroll once it has closed.
+      requestAnimationFrame(() => requestAnimationFrame(() => scrollToSection(id)));
     } else {
       navigate(`/#${id}`);
     }

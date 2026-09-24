@@ -177,7 +177,7 @@ const ShanghaiRoadmap = () => {
   );
 
   return (
-    <section id="worlds" className="scroll-mt-20">
+    <section id="worlds" className="scroll-mt-14 lg:scroll-mt-0">
       {/* Desktop */}
       <div ref={desktopRef} className="relative hidden h-[250vh] lg:block">
         <div className="sticky top-0 flex h-screen items-center">

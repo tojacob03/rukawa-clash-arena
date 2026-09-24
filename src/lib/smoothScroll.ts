@@ -17,17 +17,24 @@ export const setLenis = (lenis: Lenis | null) => {
 
 export const getLenis = () => instance;
 
-// Matches the sticky nav height (scroll-mt-20 = 80px on sections). Lenis'
-// scrollTo doesn't honour CSS scroll-margin, so the offset is explicit.
-const NAV_OFFSET = -80;
-
-/** Smoothly scroll to a section by id, falling back to native scrolling. */
+/**
+ * Smoothly scroll to a section by id, falling back to native scrolling.
+ *
+ * The distance to the sticky nav comes from each section's CSS
+ * scroll-margin (scroll-mt-14 = the 56px nav; lg:scroll-mt-0 on sections
+ * that stick or pin, which fill the viewport from their very top). Lenis
+ * honours scroll-margin, so no extra offset here - the old hard-coded
+ * -80px was added on top of it and made every jump land off-centre.
+ */
 export function scrollToSection(id: string) {
-  const el = document.getElementById(id);
+  let el = document.getElementById(id);
+  // Sections with separate mobile markup (e.g. Experience) hide the desktop
+  // element below their breakpoint; jump to the visible "<id>-mobile" then.
+  if (el && el.getClientRects().length === 0) el = document.getElementById(`${id}-mobile`) ?? el;
   if (!el) return;
 
   if (instance) {
-    instance.scrollTo(el, { offset: NAV_OFFSET, duration: 1.2 });
+    instance.scrollTo(el, { duration: 1.2 });
   } else {
     el.scrollIntoView({ behavior: "smooth" });
   }

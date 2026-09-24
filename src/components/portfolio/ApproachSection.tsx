@@ -39,7 +39,7 @@ const STACK = [
 ];
 
 const ApproachSection = () => (
-  <section id="method" className="scroll-mt-20 px-5 py-20 sm:px-6 sm:py-28">
+  <section id="method" className="scroll-mt-14 px-5 py-20 sm:px-6 sm:py-28">
     <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-12">
       <div className="lg:col-span-5">
         <SectionIntro
