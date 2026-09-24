@@ -141,8 +141,8 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
               <b>1</b> Check-in <small>1 Tipp</small>
             </legend>
             <div className="row wrap">
-              <Seg<Format> label="Trainingsart" value={draft.format} onChange={(v) => set({ format: v })} options={[{ v: "class", label: "Kurs" }, { v: "open", label: "Open Mat" }]} />
-              <Seg<Attire> label="Gi oder No-Gi" value={draft.attire} onChange={(v) => set({ attire: v })} options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
+              <Seg label="Trainingsart" value={draft.format} onChange={(v) => set({ format: v })} options={[{ v: "class", label: "Kurs" }, { v: "open", label: "Open Mat" }]} />
+              <Seg label="Gi oder No-Gi" value={draft.attire} onChange={(v) => set({ attire: v })} options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
             </div>
             <label className="field">
               <span className="fl">Heute im Kurs gezeigt (optional)</span>
@@ -179,7 +179,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
                   </div>
                   <div className="field">
                     <span className="fl">Größe</span>
-                    <Seg<Size> label={`Größe Partner Roll ${i + 1}`} value={r.size} onChange={(v) => setRoll(i, { size: v })} options={SIZES} />
+                    <Seg label={`Größe Partner Roll ${i + 1}`} value={r.size} onChange={(v) => setRoll(i, { size: v })} options={SIZES} />
                   </div>
                   <div className="field">
                     <span className="fl">Subs ich</span>
@@ -191,7 +191,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
                   </div>
                   <div className="field">
                     <span className="fl">Kontrolle</span>
-                    <Seg<Control> label={`Kontrolle Roll ${i + 1}`} value={r.c} onChange={(v) => setRoll(i, { c: v })} options={CTRL} />
+                    <Seg label={`Kontrolle Roll ${i + 1}`} value={r.c} onChange={(v) => setRoll(i, { c: v })} options={CTRL} />
                   </div>
                 </div>
               ))}

@@ -74,10 +74,10 @@ export default function Held({ data, st, today }: { data: ArcData; st: ArcState;
         <section className="panel">
           <div className="row wrap between">
             <h2 className="h3">Hexagon</h2>
-            <Seg<View>
+            <Seg
               label="Vergleich"
               value={view}
-              onChange={setView}
+              onChange={(v) => setView(v)}
               options={[
                 { v: "zeit", label: "vor 8 Wochen" },
                 { v: "gi", label: "Gi / No-Gi" },

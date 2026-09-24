@@ -77,7 +77,7 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
       <div className="row wrap between">
         <div className="row">
           <span className="fl">Heute trainiere ich</span>
-          <Seg<Attire> value={attire} onChange={(v) => setTodayAttire(today, v)} label="Gi oder No-Gi" options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
+          <Seg value={attire} onChange={(v) => setTodayAttire(today, v)} label="Gi oder No-Gi" options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
         </div>
         <button type="button" className="btn ghost small" disabled={rerolled} onClick={() => markReroll(today)}>
           <RefreshCw size={14} aria-hidden="true" /> <span>{rerolled ? "Heute neu gezogen" : "Neu ziehen · 1× pro Tag"}</span>
