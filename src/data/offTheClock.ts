@@ -22,7 +22,7 @@ const GYMS: Gym[] = [
   { name: "MT Gym23", city: "Vienna", country: "Austria" },
   { name: "Hiro Gym", city: "Vienna", country: "Austria" },
   { name: "BJJ Prishtina", city: "Prishtina", country: "Kosovo" },
-  { name: "038 Fightclub" city: "Prishtina", country: "Kosovo" },
+  { name: "038 Fightclub", city: "Prishtina", country: "Kosovo" },
 ];
 
 export const BJJ = {
