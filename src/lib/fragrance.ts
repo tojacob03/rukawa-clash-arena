@@ -5,13 +5,28 @@ import { supabase } from "@/integrations/supabase/client";
 // writing needs the personal token (public.log_fragrance) and happens on the
 // unlisted page /off-the-clock/log.
 
+export interface Fragrance {
+  id: number;
+  name: string;
+  house: string | null;
+  /** "Eau de Parfum", "Perfume Oil", ... (null when unknown) */
+  concentration?: string | null;
+  worn_total: number;
+  worn_recent: number;
+  last_worn?: string | null;
+}
+
 export interface FragranceStatus {
   today: string; // YYYY-MM-DD, German local date
   latest: { worn_on: string; id: number; name: string; house: string | null } | null;
   /** [date, fragrance id] for the last 35 days */
   recent: [string, number][];
-  collection: { id: number; name: string; house: string | null; worn_total: number; worn_recent: number }[];
+  /** The whole shelf, most worn (last 35 days, then overall) first */
+  collection: Fragrance[];
   days_logged: number;
+  /** [date, fragrance id, daily mean °C, rain mm] for every logged day with weather */
+  weather?: [string, number, number, number | null][];
+  weather_place?: string;
 }
 
 type UntypedRpc = (
@@ -43,9 +58,25 @@ export const logFragrance = async (token: string, name: string, house?: string) 
   return data as FragranceStatus;
 };
 
-// Muted, distinguishable colours; a fragrance keeps its colour via its id.
-const PALETTE = ["#E0B04A", "#6FA8DC", "#C27BA0", "#7FBF7F", "#E07B5A", "#9A8CF0", "#5BC0BE", "#D9D27E"];
-export const fragranceColor = (id: number) => PALETTE[(id - 1 + PALETTE.length) % PALETTE.length];
+// In the calendar any two colours can sit side by side, so every pair has to
+// stay tellable apart - including with colour-vision deficiency. On the dark
+// surface only four hues pass that check together (validated all-pairs:
+// normal-vision ΔE >= 19, CVD ΔE >= 6.9 with hover/legend as second cue).
+// The four most-worn scents of the window get one; everything else is
+// "Other" grey and still identifiable by hover, title and legend.
+const PALETTE = ["#3987e5", "#d55181", "#c98500", "#008300"];
+export const OTHER_COLOR = "#6b7382";
+
+/** id -> colour for the current window. `collection` arrives most-worn first. */
+export const fragranceColors = (collection: Fragrance[]) =>
+  new Map(
+    collection
+      .filter((f) => f.worn_recent > 0)
+      .slice(0, PALETTE.length)
+      .map((f, i) => [f.id, PALETTE[i]] as const),
+  );
+
+export const colorOf = (colors: Map<number, string>, id: number) => colors.get(id) ?? OTHER_COLOR;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 export const addDays = (isoDate: string, days: number) =>

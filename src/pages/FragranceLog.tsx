@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FRAGRANCE_QUERY_KEY, fragranceColor, logFragrance, useFragranceStatus } from "@/lib/fragrance";
+import { colorOf, FRAGRANCE_QUERY_KEY, fragranceColors, logFragrance, useFragranceStatus } from "@/lib/fragrance";
 
 // Unlisted: /off-the-clock/log. Save it to the phone's home screen, enter the
 // token once, then log the day's fragrance with one tap. The token is checked
 // in the database (public.log_fragrance); the page itself holds no secrets.
 const TOKEN_KEY = "rukawa:fragrance-token";
+
+// Search by name or house, accents optional ("hermes" finds Hermès).
+const fold = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const readToken = () => {
   try {
@@ -26,6 +29,14 @@ const FragranceLog = () => {
   const [house, setHouse] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [query, setQuery] = useState("");
+  const colors = useMemo(() => fragranceColors(data?.collection ?? []), [data]);
+
+  const shown = useMemo(() => {
+    const q = fold(query.trim());
+    const all = data?.collection ?? [];
+    return q ? all.filter((f) => fold(`${f.name} ${f.house ?? ""}`).includes(q)) : all;
+  }, [data, query]);
 
   useEffect(() => {
     const previous = document.title;
@@ -91,8 +102,19 @@ const FragranceLog = () => {
       />
 
       {data && data.collection.length > 0 && (
-        <ul className="mt-8 grid gap-2">
-          {data.collection.map((f) => (
+        <Input
+          type="search"
+          placeholder={`Search ${data.collection.length} bottles`}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="mt-8"
+          aria-label="Search the shelf"
+        />
+      )}
+
+      {data && data.collection.length > 0 && (
+        <ul className="mt-3 grid gap-2">
+          {shown.map((f) => (
             <li key={f.id}>
               <button
                 type="button"
@@ -102,7 +124,7 @@ const FragranceLog = () => {
                   wornToday === f.name ? "border-clash-gold/70 bg-clash-gold/10" : "border-border hover:bg-secondary/50"
                 }`}
               >
-                <span className="h-3 w-3 shrink-0 rounded-sm" style={{ background: fragranceColor(f.id) }} />
+                <span className="h-3 w-3 shrink-0 rounded-sm" style={{ background: colorOf(colors, f.id) }} />
                 <span className="flex-1">
                   <span className="block text-foreground">{f.name}</span>
                   {f.house && <span className="block text-xs text-muted-foreground">{f.house}</span>}

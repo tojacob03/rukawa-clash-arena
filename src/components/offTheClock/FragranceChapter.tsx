@@ -2,13 +2,16 @@ import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   addDays,
+  colorOf,
   fmtShortDate,
   fmtWeekday,
-  fragranceColor,
+  fragranceColors,
   isoWeekday,
   useFragranceStatus,
   type FragranceStatus,
 } from "@/lib/fragrance";
+import FragranceShelf from "./FragranceShelf";
+import FragranceWeather from "./FragranceWeather";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -59,7 +62,10 @@ const FragranceChapter = () => {
   const weeks = useMemo(() => (data ? buildWeeks(data) : []), [data]);
   const names = useMemo(() => new Map(data?.collection.map((f) => [f.id, f]) ?? []), [data]);
   const stats = useMemo(() => (data ? rotationStats(data) : null), [data]);
-  // Hovering a day or a name lights up every day that scent was worn.
+  const colors = useMemo(() => fragranceColors(data?.collection ?? []), [data]);
+  const tempOn = useMemo(() => new Map((data?.weather ?? []).map(([date, , temp]) => [date, Number(temp)])), [data]);
+  // Hovering a day, a name, a bottle or a weather row lights up every day
+  // that scent was worn - calendar, shelf and chart share one focus.
   const [focus, setFocus] = useState<number | null>(null);
   const reduceMotion = useReducedMotion();
 
@@ -117,7 +123,11 @@ const FragranceChapter = () => {
                 return (
                   <motion.span
                     key={cell.date}
-                    title={f ? `${fmtShortDate(cell.date)}: ${f.name}` : fmtShortDate(cell.date)}
+                    title={
+                      f
+                        ? `${fmtShortDate(cell.date)}: ${f.name}${tempOn.has(cell.date) ? `, ${tempOn.get(cell.date)} °C` : ""}`
+                        : fmtShortDate(cell.date)
+                    }
                     onPointerEnter={() => setFocus(f ? f.id : null)}
                     initial={reduceMotion ? false : { opacity: 0, scale: 0.4 }}
                     whileInView={{ opacity: 1, scale: 1 }}
@@ -129,7 +139,7 @@ const FragranceChapter = () => {
                     } ${cell.date === data.today ? "ring-1 ring-foreground/60 ring-offset-2 ring-offset-background" : ""} ${
                       dimmed ? "!opacity-20" : ""
                     } ${focus !== null && !dimmed ? "brightness-110" : ""}`}
-                    style={f ? { background: fragranceColor(f.id) } : undefined}
+                    style={f ? { background: colorOf(colors, f.id) } : undefined}
                   />
                 );
               })}
@@ -151,7 +161,7 @@ const FragranceChapter = () => {
                     focus !== null && focus !== f.id ? "opacity-40" : ""
                   }`}
                 >
-                  <span className="h-2.5 w-2.5 rounded-sm" style={{ background: fragranceColor(f.id) }} />
+                  <span className="h-2.5 w-2.5 rounded-sm" style={{ background: colorOf(colors, f.id) }} />
                   <span className="text-foreground">{f.name}</span>
                   <span style={{ fontVariantNumeric: "tabular-nums" }}>{f.worn_recent}×</span>
                 </button>
@@ -161,9 +171,13 @@ const FragranceChapter = () => {
           <p>
             The last five weeks, one square per day.
             {top && top.worn_recent > 1 ? ` Most worn: ${top.name}, ${top.worn_recent} days.` : ""}
+            {worn.length > colors.size ? " The four most worn get a colour, the rest are grey." : ""}
           </p>
         </figcaption>
       </figure>
+
+      <FragranceShelf collection={data.collection} colors={colors} focus={focus} onFocus={setFocus} />
+      <FragranceWeather status={data} colors={colors} focus={focus} onFocus={setFocus} />
     </>
   );
 };
