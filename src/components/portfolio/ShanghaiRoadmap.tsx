@@ -21,6 +21,10 @@ const WorldRouteMap = lazy(() => import("@/components/portfolio/WorldRouteMap"))
 // On phones and tablets the whole world leaves the route as a short line
 // in a big empty map: crop to Europe - East Asia (16:10, same as the box).
 const ROUTE_CROP = "160 150 480 300";
+// Desktop: the same idea at 16:9, shifted down so the route runs through the
+// upper half - the countdown card sits bottom-left and must not cover
+// Germany or the plane.
+const DESKTOP_CROP = "150 190 480 270";
 
 // Where the milestones sit along the route (0 = Germany, 1 = Shanghai).
 const STATIONS = MILESTONES.map((_, i) => (i + 1) / (MILESTONES.length + 1));
@@ -259,7 +263,7 @@ const ShanghaiRoadmap = () => {
               </div>
             </div>
             <div className="relative col-span-8">
-              <MapBox progress={desktopProgress} near={near} className="h-[460px]" />
+              <MapBox progress={desktopProgress} near={near} crop={DESKTOP_CROP} className="aspect-[16/9]" />
               <div className="absolute bottom-5 left-5 max-w-sm">
                 <StatusCard />
               </div>
