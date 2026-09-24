@@ -11,7 +11,7 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, RotateCcw } from "lucide-react";
 import SectionIntro from "@/components/portfolio/SectionIntro";
 import { MILESTONES, WORLDS, worldsPhase, type Milestone } from "@/data/roadToWorlds";
 
@@ -126,19 +126,24 @@ const MapBox = ({
   near,
   crop,
   className,
+  onReady,
+  children,
 }: {
   progress: MotionValue<number>;
   near: boolean;
   crop?: string;
   className: string;
+  onReady?: () => void;
+  children?: React.ReactNode;
 }) => (
   <div className={`relative w-full overflow-hidden rounded-2xl border border-border/60 bg-card/40 ${className}`}>
     <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
     {near && (
       <Suspense fallback={null}>
-        <WorldRouteMap progress={progress} stations={STATIONS} viewBox={crop} />
+        <WorldRouteMap progress={progress} stations={STATIONS} viewBox={crop} onReady={onReady} />
       </Suspense>
     )}
+    {children}
   </div>
 );
 
@@ -160,12 +165,25 @@ const ShanghaiRoadmap = () => {
   const desktopProgress = useTransform(flown, (v) => (reduce ? 1 : v));
 
   // Mobile: no sticky scroll; the flight plays once when the map is in view.
+  // It waits for the map itself: the map is its own chunk, and on a slow
+  // connection (or after jumping here from the menu) a flight started on
+  // "in view" alone was over before the map appeared - a still of Shanghai.
   const mobileProgress = useMotionValue(reduce ? 1 : 0);
+  const [mapReady, setMapReady] = useState(false);
+  const fly = () => animate(mobileProgress, 1, { duration: 4, ease: [0.45, 0, 0.2, 1] });
   useEffect(() => {
-    if (!mobileInView || reduce) return;
-    const controls = animate(mobileProgress, 1, { duration: 4, ease: [0.45, 0, 0.2, 1] });
+    if (!mobileInView || !mapReady || reduce) return;
+    mobileProgress.set(0);
+    const controls = fly();
     return () => controls.stop();
-  }, [mobileInView, reduce, mobileProgress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mobileInView, mapReady, reduce]);
+  // Replay on request - a tap is a deliberate choice, so this also plays
+  // with reduced motion switched on.
+  const replay = () => {
+    mobileProgress.set(0);
+    fly();
+  };
 
   const toReached = (p: number) => {
     let n = -1;
@@ -216,7 +234,21 @@ const ShanghaiRoadmap = () => {
       <div className="px-5 py-20 sm:px-6 lg:hidden">
         {intro}
         <div ref={mobileRef} className="mt-10">
-          <MapBox progress={mobileProgress} near={nearMobile} crop={ROUTE_CROP} className="aspect-[16/10]" />
+          <MapBox
+            progress={mobileProgress}
+            near={nearMobile}
+            crop={ROUTE_CROP}
+            className="aspect-[16/10]"
+            onReady={() => setMapReady(true)}
+          >
+            <button
+              type="button"
+              onClick={replay}
+              className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Replay
+            </button>
+          </MapBox>
         </div>
         <div className="mt-6">
           <StatusCard />
