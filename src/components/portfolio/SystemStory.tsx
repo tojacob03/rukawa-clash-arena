@@ -21,8 +21,8 @@ const STEPS = [
   },
   {
     tag: "03 · Decision",
-    title: "Remaining decks under bans",
-    body: "Once cards and slots are burned mid-set, a compact ranking shows what the opponent most likely still has.",
+    title: "Remaining decks after burned cards",
+    body: "In a duel no card can be played twice across the Bo3 or Bo5. After each game, a ranking shows which decks the opponent can still build from the cards they have left.",
   },
 ];
 
