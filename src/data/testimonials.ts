@@ -19,7 +19,7 @@ export const TESTIMONIALS: Testimonial[] = [
     name: "Viiper",
     role: "CRL pro, Joblife Esports",
     context: "Qualified for the CRL World Finals 2026",
-    // Waiting for Viiper's OK on the tightened wording and the name line.
-    approved: false,
+    // Wording and name line confirmed by Viiper.
+    approved: true,
   },
 ];
