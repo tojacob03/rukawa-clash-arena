@@ -6,6 +6,7 @@
 
 import type {
   ArcData,
+  ClassId,
   ArcState,
   Attire,
   Attr,
@@ -21,7 +22,8 @@ import type {
   Technique,
 } from "./types.ts";
 import { COMBOS, NEIGH, SECTORS, TECH, TECHS, baseOf } from "./techniques.ts";
-import { CLASS_ALL, CLASS_BY_SECTOR, EPITHET, SEALS } from "./lore.ts";
+import { EPITHET, SEALS } from "./lore.ts";
+import { CLASS, CLASSES, classXp } from "./classes.ts";
 
 export const BELT_R: Record<Belt, number> = { weiss: 1000, blau: 1150, lila: 1300, braun: 1420, schwarz: 1520 };
 export const SIZE_R: Record<Size, number> = { leichter: -60, gleich: 0, schwerer: 60 };
@@ -76,7 +78,18 @@ interface Ev {
   lastAny: number | null;
 }
 
-export function questShape(x: Technique, st: Pick<NodeState, "level" | "rust">, forceTry = false): { node: string; kind: QuestKind; xp: number } {
+/** Level you start on from belt and stripes: the time before the app counts. */
+export const PROLOG_LEVEL: Record<Belt, number> = { weiss: 1, blau: 8, lila: 14, braun: 19, schwarz: 24 };
+export const prologXp = (belt: Belt, stripes = 0) => 40 * (PROLOG_LEVEL[belt] + Math.min(4, Math.max(0, stripes)) - 1) ** 2;
+/** Mastery a self-assessed technique counts with in the tree value until data confirms it. */
+const CLAIM_M: Record<number, number> = { 3: 25, 4: 45 };
+
+export function questShape(
+  x: Technique,
+  st: Pick<NodeState, "level" | "rust">,
+  forceTry = false,
+  cls?: ClassId,
+): { node: string; kind: QuestKind; xp: number } {
   const survive = x.kind === "escape" || x.kind === "defense";
   const kind: QuestKind = forceTry
     ? survive
@@ -90,7 +103,7 @@ export function questShape(x: Technique, st: Pick<NodeState, "level" | "rust">, 
           ? "stand"
           : "jagd";
   const xp = { kata: 30, jagd: 30 + 10 * st.level, stand: 40 + 10 * st.level, schmiede: 60 }[kind];
-  return { node: x.id, kind, xp };
+  return { node: x.id, kind, xp: classXp(xp, x, cls) };
 }
 
 export function sessionXp(s: Session) {
@@ -98,7 +111,7 @@ export function sessionXp(s: Session) {
   const q = s.quest;
   if (q && (q.kind === "kata" ? q.done : q.att > 0)) g += q.xp + Math.min(50, 5 * (q.succ || 0));
   if (s.worked || s.stuck) g += 15;
-  return g;
+  return g + (s.bonus ?? 0);
 }
 
 export const levelXp = (level: number) => {
@@ -118,7 +131,10 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
   const onb = data.onboarding ? dayNum(data.onboarding.date) : null;
 
   // Ki: an Elo rating over every roll card.
-  let ru = BELT_R[profile?.startBelt ?? "weiss"];
+  const startBelt = profile?.startBelt ?? "weiss";
+  const startStripes = profile?.startStripes ?? 0;
+  let ru = BELT_R[startBelt] + 20 * startStripes;
+  const claims = data.onboarding?.claims ?? {};
   const ruSeries = [{ d: onb ?? (sess[0] ? dayNum(sess[0].date) : asOf), r: ru }];
   const der = sess.map((s) => {
     const rolls = s.rolls.map((r) => {
@@ -207,7 +223,11 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     if (level === 2 && e.rawAtt >= 5) level = 3;
     if (level === 3 && e.nw >= 8 && pw.lb >= b) level = 4;
     if (level === 4 && e.nw >= 25 && pw.lb >= 1.5 * b && e.sStrong >= 3) level = 5;
-    const prog = [
+    const claim = onb !== null && onb <= asOf ? Math.min(4, claims[x.id] ?? 0) : 0;
+    const claimed = claim > level;
+    // Progress toward confirming a self-assessment, or toward the next level.
+    const confirmProg = claim === 3 ? Math.min(1, e.rawAtt / 5) : 0.5 * Math.min(1, e.nw / 8) + 0.5 * Math.min(1, pw.lb / b);
+    const prog = claimed ? confirmProg : [
       0,
       Math.max(Math.min(1, e.exp / 3), Math.min(1, e.rawAtt / 5)),
       Math.min(1, e.rawAtt / 5),
@@ -216,7 +236,9 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
       1,
     ][level];
     nodes[x.id] = {
-      level,
+      level: Math.max(level, claim),
+      dataLevel: level,
+      claim,
       prog,
       M: 100 * (0.25 * K + 0.75 * A) * fresh,
       K,
@@ -234,7 +256,7 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
       dLast,
       dAny,
       rust: level >= 3 && dAny !== null && dAny > 60,
-      prov: level === 2 && e.exp - e.expOnb < 3 && e.rawAtt < 5,
+      prov: claimed || (level === 2 && e.exp - e.expOnb < 3 && e.rawAtt < 5),
       fog: false,
     };
   }
@@ -251,7 +273,13 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     // Tree value: depth (your five best techniques) and breadth (share of the
     // sector you can use live). A plain average over 20-40 techniques would
     // bury a blue belt near zero.
-    const top = ns.map((x) => nodes[x.id].M).sort((a, b) => b - a);
+    // Unconfirmed self-assessments count with a fixed value until data takes over.
+    const mx = (id: string) => {
+      const n = nodes[id];
+      return n.claim > n.dataLevel ? Math.max(n.M, CLAIM_M[n.claim] ?? 0) : n.M;
+    };
+    const claimed = ns.some((x) => nodes[x.id].claim > nodes[x.id].dataLevel);
+    const top = ns.map((x) => mx(x.id)).sort((a, b) => b - a);
     const depth = (top[0] + top[1] + top[2] + top[3] + top[4]) / 5;
     const breadth = (100 * ns.filter((x) => nodes[x.id].level >= 3).length) / ns.length;
     const baum = 0.6 * depth + 0.4 * breadth;
@@ -277,11 +305,12 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
         form = 100 * Math.min(1, posterior(b, nn, ss).lb / (1.5 * b)) * (nn / (nn + 5));
       }
     }
-    attrs[sct.id] = { baum, form, val: form === null ? baum : 0.65 * baum + 0.35 * form };
+    attrs[sct.id] = { claimed, baum, form, val: form === null ? baum : 0.65 * baum + 0.35 * form };
   }
 
   // XP, level, weekly flame.
-  let xp = 0;
+  const prolog = profile ? prologXp(startBelt, startStripes) : 0;
+  let xp = prolog;
   const wk = new Map<number, number>();
   for (const { s, day } of der) {
     xp += sessionXp(s);
@@ -289,7 +318,7 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     wk.set(w, (wk.get(w) ?? 0) + 1);
   }
   for (const c of wk.values()) if (c >= goal) xp += 100;
-  for (const x of TECHS) xp += levelXp(nodes[x.id].level);
+  for (const x of TECHS) xp += levelXp(nodes[x.id].dataLevel);
   const lvl = Math.floor(Math.sqrt(xp / 40)) + 1;
   const lo = 40 * (lvl - 1) ** 2;
   const hi = 40 * lvl ** 2;
@@ -311,9 +340,22 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
   }
 
   // Class and title.
-  const ranked = SECTORS.map((s) => [s.id, attrs[s.id].val] as const).sort((a, b) => b[1] - a[1]);
-  const cls = ranked[0][1] - ranked[1][1] < 2 ? CLASS_ALL : CLASS_BY_SECTOR[ranked[0][0]];
-  const tokui = TECHS.filter((x) => nodes[x.id].level === 5)
+  // Detected class: the style whose techniques you master best (top five).
+  const classScore = (c: (typeof CLASSES)[number]) => {
+    const ms = TECHS.filter((x) => x.sector !== "fund" && c.match(x))
+      .map((x) => {
+        const n = nodes[x.id];
+        return n.claim > n.dataLevel ? Math.max(n.M, CLAIM_M[n.claim] ?? 0) : n.M;
+      })
+      .sort((a, b) => b - a);
+    return (ms[0] ?? 0) + (ms[1] ?? 0) + (ms[2] ?? 0) + (ms[3] ?? 0) + (ms[4] ?? 0);
+  };
+  const ranked = CLASSES.filter((c) => c.id !== "wandler")
+    .map((c) => [c.id, classScore(c)] as const)
+    .sort((a, b) => b[1] - a[1]);
+  const clsDetected: ClassId = ranked[0][1] - ranked[1][1] < 10 ? "wandler" : ranked[0][0];
+  const cls = CLASS[clsDetected].name;
+  const tokui = TECHS.filter((x) => nodes[x.id].dataLevel === 5)
     .sort((a, b) => nodes[b.id].M - nodes[a.id].M)
     .map((x) => x.id);
   const title = tokui.length ? EPITHET[tokui[0]] ?? `Meister: ${TECH[tokui[0]].name}` : "Noch ohne Tokui-Waza";
@@ -352,19 +394,20 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
       weak: x.sector === "fund" ? 0.2 : (0.8 * (100 - attrV)) / 100,
       taught: taught7.has(x.id) ? 0.9 : 0,
       explore: st.level <= 1 ? 0.35 : 0,
+      prove: st.claim > st.dataLevel ? 0.8 : 0,
     };
-    let P = c.prog + c.unc + c.rust + c.weak + c.taught + c.explore;
+    let P = c.prog + c.unc + c.rust + c.weak + c.taught + c.explore + c.prove;
     if (recentQ.includes(x.id)) P -= 1.5;
     if (st.level === 5) P -= 0.8;
     const reason = (Object.entries(c) as [ReasonKey, number][]).sort((a, b) => b[1] - a[1])[0][0];
-    offers.push({ ...questShape(x, st), P, reason });
+    offers.push({ ...questShape(x, st, false, profile?.cls), P, reason });
   }
   offers.sort((a, b) => b.P - a.P || (a.node < b.node ? -1 : 1));
 
-  const combosActive = COMBOS.filter(([a, b]) => nodes[a].level >= 3 && nodes[b].level >= 3).length;
+  const combosActive = COMBOS.filter(([a, b]) => nodes[a].dataLevel >= 3 && nodes[b].dataLevel >= 3).length;
   const discovered = TECHS.filter((x) => nodes[x.id].level >= 1).length;
   const rollsTotal = der.reduce((a, x) => a + x.rolls.length, 0);
-  const levelsAt = (l: number) => TECHS.some((x) => nodes[x.id].level >= l);
+  const levelsAt = (l: number) => TECHS.some((x) => nodes[x.id].dataLevel >= l);
   const sStrongTotal = TECHS.reduce((a, x) => a + nodes[x.id].sStrong, 0);
   const giN = all.filter((s) => s.attire === "gi").length;
   const noGiN = all.length - giN;
@@ -380,7 +423,8 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     flame12: longest >= 12,
     boss: bossBeaten,
     strong: sStrongTotal >= 3,
-    map50: discovered >= 50,
+    // Only stars reached on the mat count, not the ones marked at the start.
+    map50: TECHS.filter((x) => nodes[x.id].exp > nodes[x.id].expOnb || nodes[x.id].rawAtt > 0).length >= 50,
     both: giN >= 5 && noGiN >= 5,
   };
 
@@ -394,6 +438,7 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     nodes,
     attrs,
     xp,
+    prologXp: prolog,
     lvl,
     lo,
     hi,
@@ -401,6 +446,7 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     weekNow: wk.get(cw) ?? 0,
     weekGoal: goal,
     paused: data.pauses.includes(cw),
+    clsDetected,
     cls,
     title,
     tokui,
@@ -445,6 +491,10 @@ export interface Diff {
   weekGoal: boolean;
   ki: number;
   levels: { id: string; from: number; to: number }[];
+  /** Changes of the data level, which is what earns XP. */
+  dataLevels: { id: string; from: number; to: number }[];
+  /** Self-assessments that the data has now confirmed. */
+  confirmed: string[];
   mastery: { id: string; d: number }[];
   attrs: Record<SectorId, number>;
   seals: string[];
@@ -456,6 +506,12 @@ export function diff(a: ArcState, b: ArcState): Diff {
     from: a.nodes[x.id].level,
     to: b.nodes[x.id].level,
   }));
+  const dataLevels = TECHS.filter((x) => b.nodes[x.id].dataLevel !== a.nodes[x.id].dataLevel).map((x) => ({
+    id: x.id,
+    from: a.nodes[x.id].dataLevel,
+    to: b.nodes[x.id].dataLevel,
+  }));
+  const confirmed = TECHS.filter((x) => a.nodes[x.id].claim > a.nodes[x.id].dataLevel && b.nodes[x.id].dataLevel >= b.nodes[x.id].claim).map((x) => x.id);
   const mastery = TECHS.map((x) => ({ id: x.id, d: b.nodes[x.id].M - a.nodes[x.id].M }))
     .filter((x) => Math.abs(x.d) >= 0.3)
     .sort((p, q) => Math.abs(q.d) - Math.abs(p.d))
@@ -469,6 +525,8 @@ export function diff(a: ArcState, b: ArcState): Diff {
     weekGoal: a.weekNow < a.weekGoal && b.weekNow >= b.weekGoal,
     ki: Math.round(b.ru * 10) - Math.round(a.ru * 10),
     levels,
+    dataLevels,
+    confirmed,
     mastery,
     attrs: Object.fromEntries(SECTORS.map((s) => [s.id, b.attrs[s.id].val - a.attrs[s.id].val])) as Record<SectorId, number>,
     seals: b.seals.filter((s, i) => s.got && !a.seals[i].got).map((s) => s.id),
@@ -485,8 +543,9 @@ export function xpParts(s: Session, D: Diff): [string, number][] {
     if (q.succ) parts.push([`${q.succ} Treffer`, Math.min(50, 5 * q.succ)]);
   }
   if (s.worked || s.stuck) parts.push(["Notiz", 15]);
+  if (s.bonus) parts.push(["Talisman", s.bonus]);
   if (D.weekGoal) parts.push(["Wochenziel", 100]);
-  const lv = D.levels.reduce((a, x) => a + levelXp(x.to) - levelXp(x.from), 0);
+  const lv = D.dataLevels.reduce((a, x) => a + levelXp(x.to) - levelXp(x.from), 0);
   if (lv) parts.push(["Stufenaufstieg", lv]);
   return parts;
 }

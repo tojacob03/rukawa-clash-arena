@@ -47,7 +47,8 @@ export default function MapPage({ data, st, today, arg }: { data: ArcData; st: A
               acceptedNode={accepted}
               onSelect={select}
               onClose={() => go("karte")}
-              onAccept={(id) => acceptQuest(today, questShape(TECH[id], st.nodes[id]))}
+              cls={data.profile?.cls}
+              onAccept={(id) => acceptQuest(today, questShape(TECH[id], st.nodes[id], false, data.profile?.cls))}
             />
           ) : (
             <div className="sheet-body empty">
@@ -63,7 +64,7 @@ export default function MapPage({ data, st, today, arg }: { data: ArcData; st: A
                   <Star level={2} /> Gedrillt
                 </li>
                 <li>
-                  <Star level={2} prov /> Vorläufig, aus dem Onboarding
+                  <Star level={3} prov /> Vorläufig: deine Einschätzung vom Start, noch nicht im Roll bestätigt
                 </li>
                 <li>
                   <Star level={3} /> Erprobt

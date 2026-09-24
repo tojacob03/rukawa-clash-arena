@@ -20,14 +20,32 @@ create table arc.profiles (
   belt         text not null check (belt in ('weiss', 'blau', 'lila', 'braun', 'schwarz')),
   stripes      smallint not null default 0 check (stripes between 0 and 4),
   start_belt   text not null check (start_belt in ('weiss', 'blau', 'lila', 'braun', 'schwarz')),
+  start_stripes smallint not null default 0 check (start_stripes between 0 and 4),
   weekly_goal  smallint not null default 2 check (weekly_goal between 1 and 7),
+  -- Steckbrief, alles optional
+  countries    text[] not null default '{}' check (cardinality(countries) <= 4),
+  birth_year   smallint check (birth_year between 1900 and 2100),
+  weight_kg    numeric(4, 1) check (weight_kg between 30 and 200),
+  training_since text check (training_since ~ '^[0-9]{4}-[0-9]{2}$'),
+  cls          text check (cls in ('netzweber', 'druckwalze', 'anker', 'schatten', 'jaeger', 'ferse', 'sturm', 'festung', 'wandler')),
   created_at   date not null default current_date
 );
 
 create table arc.onboarding (
   user_id  uuid primary key references auth.users (id) on delete cascade,
   date     date not null,
-  known    text[] not null default '{}'
+  known    text[] not null default '{}',
+  -- Selbsteinschätzung: { technique_id: 3 | 4 }, 3 = klappt im Roll, 4 = Stärke (höchstens 5)
+  claims   jsonb not null default '{}' check (jsonb_typeof(claims) = 'object')
+);
+
+-- Aussehen und Ausrüstung. Das Inventar wird nicht gespeichert, es folgt aus den Daten.
+create table arc.characters (
+  user_id  uuid primary key references auth.users (id) on delete cascade,
+  look     jsonb not null default '{}' check (jsonb_typeof(look) = 'object'),
+  equipped jsonb not null default '{}' check (jsonb_typeof(equipped) = 'object'),
+  mode     text not null default 'gi' check (mode in ('gi', 'nogi')),
+  seen     text[] not null default '{}'
 );
 
 create table arc.sessions (
@@ -43,6 +61,8 @@ create table arc.sessions (
   quest       jsonb check (quest is null or jsonb_typeof(quest) = 'object'),
   worked      text,
   stuck       text,
+  -- XP vom Talisman, beim Speichern festgeschrieben
+  bonus       smallint not null default 0 check (bonus between 0 and 500),
   created_at  timestamptz not null default now()
 );
 create index sessions_user_date on arc.sessions (user_id, date);
@@ -65,7 +85,7 @@ create table arc.promotions (
 do $$
 declare t text;
 begin
-  foreach t in array array['profiles', 'onboarding', 'sessions', 'pauses', 'promotions'] loop
+  foreach t in array array['profiles', 'onboarding', 'characters', 'sessions', 'pauses', 'promotions'] loop
     execute format('alter table arc.%I enable row level security', t);
     execute format('revoke all on arc.%I from public, anon', t);
     execute format('grant select, insert, update, delete on arc.%I to authenticated', t);

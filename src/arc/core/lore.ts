@@ -2,7 +2,7 @@
 // martial-arts vocabulary (waza, kata, dojo, shoden ... hiden, tokui-waza),
 // no terms owned by any anime or game.
 
-import type { QuestKind, SectorId } from "./types.ts";
+import type { QuestKind } from "./types.ts";
 
 export const APP_NAME = "Waza Arc";
 
@@ -30,26 +30,6 @@ export const QUEST: Record<QuestKind, { name: string; sub: string; kanji: string
   jagd: { name: "Jagd", sub: "Im Roll versuchen", kanji: "狩" },
   stand: { name: "Standhalten", sub: "Aus der Klemme", kanji: "耐" },
   schmiede: { name: "Schmiede", sub: "Rost abschlagen", kanji: "鍛" },
-};
-
-export const CLASS_BY_SECTOR: Record<SectorId, string> = {
-  guard: "Netzweber",
-  sub: "Jäger",
-  ctrl: "Anker",
-  pass: "Druckwalze",
-  stand: "Sturmbrecher",
-  def: "Festung",
-};
-export const CLASS_ALL = "Wandler";
-
-export const CLASS_HINT: Record<string, string> = {
-  Netzweber: "Stärkste Achse Guard: Du fängst Gegner von unten.",
-  Jäger: "Stärkste Achse Submission: Du beendest Rolls.",
-  Anker: "Stärkste Achse Kontrolle: Wer unter dir liegt, bleibt dort.",
-  Druckwalze: "Stärkste Achse Passing: Guards halten dich nicht lange auf.",
-  Sturmbrecher: "Stärkste Achse Stand: Der Kampf beginnt bei dir im Stehen.",
-  Festung: "Stärkste Achse Verteidigung: Dich zu beenden kostet Kraft.",
-  Wandler: "Zwei Achsen liegen gleichauf: Du passt dich an.",
 };
 
 /** Titles for a technique that reached Tokui-Waza. */
@@ -137,6 +117,6 @@ export const SEALS: { id: string; name: string; desc: string }[] = [
   { id: "flame12", name: "Flamme XII", desc: "Zwölf Wochen in Folge das Wochenziel erreicht." },
   { id: "boss", name: "Boss besiegt", desc: "Eine Position, in der du festhingst, halbiert." },
   { id: "strong", name: "Gegen den Strom", desc: "Drei Quest-Treffer in Trainings gegen stärkere Partner." },
-  { id: "map50", name: "Kartograf", desc: "50 Sterne aufgedeckt." },
+  { id: "map50", name: "Kartograf", desc: "50 Sterne im Training erreicht." },
   { id: "both", name: "Beide Welten", desc: "Je fünf Trainings im Gi und im No-Gi." },
 ];

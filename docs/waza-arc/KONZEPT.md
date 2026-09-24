@@ -45,17 +45,19 @@ Bewusst **nicht** geloggt: jede einzelne Technik pro Roll, Zeit in Positionen, V
 Alle Tabellen liegen im Schema `arc` des bestehenden Portfolio-Projekts (Abschnitt 8.2).
 
 ```text
-profiles        id, belt, stripes, weight_class, bjj_since, gym_id, weekly_goal (Standard 2)
+profiles        id, name, belt, stripes, start_belt, start_stripes, weekly_goal (Standard 2),
+                countries[], birth_year, weight_kg, training_since, class, gym_id
+characters      user_id, look (jsonb), equipped (jsonb), mode (gi | nogi), seen[]   -- Inventar wird nicht gespeichert
 gyms            id, name, schedule (jsonb)
 positions       id, name, side (top | bottom | neutral)          -- für Wochenboss und später die Weltkarte
 techniques      id, name_de, name_en, sector, ring (0–4), category, gi, nogi, from_position, to_position
 technique_edges parent_id, child_id, kind (prereq | combo), combo_name
-sessions        id, user_id, date, format (class | open_mat), attire (gi | nogi), duration_min, taught_technique_id, logged_at
+sessions        id, user_id, date, format (class | open_mat), attire (gi | nogi), duration_min, taught_technique_id, talisman_bonus, logged_at
 rolls           id, session_id, idx, partner_belt, partner_size, subs_for, subs_against, control (0 | 0.5 | 1)
 quests          id, user_id, date, technique_id, kind (drill | try | survive | rust), xp, reason
 quest_results   quest_id, session_id, attempts, successes, done
 session_notes   session_id, worked_technique_id, stuck_position_id
-onboarding      user_id, technique_id, self_rating (kenne ich)
+onboarding      user_id, technique_id, self_rating (kenne ich | klappt im Roll | Stärke)
 pauses          user_id, week_start                              -- ohne Grund, siehe Datenschutz
 promotions      user_id, date, belt, stripes                     -- Ground Truth für die Validierung
 skill_snapshots user_id, date, technique_id, level, mastery      -- wöchentlich materialisiert, für Verläufe
@@ -150,7 +152,7 @@ Stufen sind feste Schwellen, damit jeder Aufstieg erklärbar ist. Sie verwenden 
 
 Dazu kommen zwei Zustände:
 
-- **Vorläufig:** Stufe 2 nur durch das Onboarding erreicht. Wird im Baum gestrichelt gezeigt.
+- **Vorläufig:** Stufe 2 nur durch das Onboarding erreicht, oder Stufe 3/4 aus der Selbsteinschätzung (4.8), die die Daten noch nicht bestätigt haben. Wird im Baum gestrichelt gezeigt.
 - **Rost:** Stufe ≥ 3 und seit 60 Tagen nicht trainiert (kein Kurs, kein Drill, keine Quest, keine Notiz). Der Stern verfärbt sich, die Meisterung sinkt über die Frische, die Stufe bleibt.
 
 ### 4.5 Attribute (Hexagon)
@@ -183,7 +185,10 @@ Quest erledigt                Drill 30 · Versuch 30 + 10·Stufe · Überleben 4
 je Treffer / Escape            5 (höchstens 50)
 Notiz                         15
 Wochenziel erreicht          100   (Standard: 2 Trainings pro Woche)
-Stufe 3 / 4 / 5 erreicht      75 / 100 / 125 pro Technik
+Stufe 3 / 4 / 5 erreicht      75 / 100 / 125 pro Technik (nur durch Daten, nicht durch Selbsteinschätzung)
+Klassen-Bonus                 +20 % Quest-XP auf Techniken der gewählten Klasse (Wandler +8 % auf alles)
+Talisman                      je nach Talisman, beim Speichern festgeschrieben (6.5)
+Prolog                        40 · (L₀ − 1)² mit L₀ = Startlevel aus Gürtel und Streifen (4.8)
 
 Level L ab 40 · (L − 1)² XP
 ```
@@ -198,6 +203,16 @@ Level L ab 40 · (L − 1)² XP
 - **Hexagon:** Gi und No-Gi übereinandergelegt, jeweils mit `compute(…, { attire })` berechnet.
 - **Ki:** zwei zusätzliche Verläufe mit demselben Elo, einmal nur über Gi-Rolls, einmal nur über No-Gi-Rolls, beide ab demselben Startwert. Die Hauptzahl bleibt die gemeinsame.
 - **Pro Technik:** Quote und Untergrenze je Seite, sobald je Seite mindestens 5 Versuche vorliegen. Im Detailfeld als zwei Balken.
+
+### 4.8 Einstieg mit Vorerfahrung
+
+Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand ab, ohne die Messung zu verfälschen.
+
+- **Prolog:** Gürtel und Streifen beim Start setzen das Startlevel. Weiß 1, Blau 8, Lila 14, Braun 19, Schwarz 24, plus ein Level pro Streifen. Die XP dafür stehen als eigener Posten „Prolog“ im Charakter. Ki startet bei Gürtel-Rating plus 20 pro Streifen (Ki ×10 angezeigt).
+- **Technik-Stand in drei Stufen:** „Kenne ich“ (gesehen, gedrillt: Stufe 2), „Klappt im Roll“ (Stufe 3) und „Stärke“ (Stufe 4, höchstens fünf). Ein Vorschlag nach Gürtel füllt „Kenne ich“ vor: Weiß nur Fundament (ab 2 Streifen plus Shoden), Blau bis Shoden (ab 2 Streifen bis Chūden), Lila bis Chūden, Braun und Schwarz bis Okuden.
+- **Selbsteinschätzung zählt vorläufig:** Die Karte zeigt die eingeschätzte Stufe gestrichelt, im Baum-Wert zählt sie mit einer vorläufigen Meisterung von 25 (Stufe 3) bzw. 45 (Stufe 4). Das Hexagon markiert Achsen mit Einschätzung. XP, Siegel, Kombos und Titel hängen nur an der Daten-Stufe.
+- **Bestätigen:** Die Tagesquest bevorzugt eingeschätzte Techniken („Beweise deine Einschätzung“, P + 0,8). Erreichen die Daten die Stufe, gibt es die Stufen-XP und im Ergebnis „Einschätzung bestätigt“.
+- **Steckbrief:** Name, Länder (bis zu vier, als Flaggen-Aufnäher), Geburtsjahr (ergibt die IBJJF-Altersklasse: Adult 18–29, Master 1 30–35, dann Fünfjahresstufen bis Master 7 ab 61), Gewicht (ergibt die Statur des Charakters), „trainiert seit“. Alles optional außer dem Namen.
 - **Auffällige Unterschiede als Satz**, z. B. „Dein Triangle trifft im Gi deutlich öfter als im No-Gi“. Nur wenn sich die 80-%-Bereiche beider Seiten nicht überschneiden, sonst kein Satz.
 - **Bibliothek:** Jede Technik hat die Flags `gi` und `nogi`. Reine Gi-Techniken (Cross Collar Choke, Bow & Arrow) sind in der No-Gi-Ansicht ausgegraut. Im gemeinsamen Modell zählen sie normal.
 
@@ -211,7 +226,7 @@ Level L ab 40 · (L − 1)² XP
 - **Zustände:** Die Größe, Füllung und das Leuchten eines Sterns zeigen die Stufe. Ein Fortschrittsring zeigt den Weg zur nächsten Stufe. Gold heißt Tokui-Waza, Rostfarbe heißt Rost, gestrichelt heißt vorläufig.
 - **Nebel:** Sterne ohne gesehenen Nachbarn sind nur Punkte ohne Namen. Die Karte deckt sich beim Lernen auf.
 - **Hexagon als Schatten:** Hinter der Karte liegt das Attribut-Hexagon, auf dieselben sechs Achsen ausgerichtet. Der Baum und der Charakterbogen sind damit visuell dasselbe Objekt.
-- **Onboarding-Kalibrierung:** Beim Start markiert man, was man schon kennt. Das hebt Techniken höchstens auf Stufe 2, vorläufig. Ab Stufe 3 zählen nur Daten.
+- **Onboarding-Kalibrierung:** Beim Start markiert man, was man kennt, was im Roll klappt und bis zu fünf Stärken (4.8). Selbsteinschätzungen sind vorläufig, bis die Daten sie bestätigen.
 - **Detailfeld pro Stern:** Stufe, Meisterung, Bedingungen für die nächste Stufe mit aktuellem Stand, Versuche roh und gewichtet, geglättete Quote, Untergrenze gegen die Basisquote, zuletzt live, Voraussetzungen, freigeschaltete Techniken und Kombos.
 - **Wachstum:** Die Bibliothek darf wachsen. Das Layout trägt bis zu vier Sterne pro Ring und Sektor im Kern und fünf in den äußeren Ringen. Darüber hinaus rücken die Sterne enger oder es kommt ein sechster Ring dazu.
 - **Filter:** Gi/No-Gi-Ansicht (Abschnitt 4.7), später nur Kombos und nur Rost.
@@ -234,6 +249,7 @@ P =  1,2 · Fortschritt zur nächsten Stufe        (Stufe 2–4)
    + 0,8 · (100 − Achsenwert) / 100              (schwache Achse)
    + 0,9 · diese Woche im Kurs
    + 0,35 · neu                                  (Stufe 0–1)
+   + 0,8 · offene Selbsteinschätzung             (4.8)
    − 1,5 · in den letzten 3 Trainings schon Quest
    − 0,8 · schon Tokui-Waza
 ```
@@ -257,13 +273,22 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 
 ### 6.4 Klasse, Titel, Achievements
 
-- **Klasse** = stärkste Achse: Netzweber (Guard), Jäger (Submission), Anker (Kontrolle), Druckwalze (Passing), Sturmbrecher (Stand), Festung (Verteidigung). Liegen die zwei stärksten Achsen weniger als 2 Punkte auseinander, heißt sie Wandler.
+- **Klasse** = Spielstil. Man wählt sie beim Start, die Daten zeigen daneben, wofür das eigene Spiel spricht. Neun Klassen: Netzweber (Guard), Druckwalze (Passing), Anker (Pins und Mount), Schattenläufer (Rücken und Rückennahmen), Jäger (Submissions ohne Beinhebel), Fersenjäger (Beinhebel und Beinverknotungen wie Ashi Garami, 50/50, Saddle), Sturmbrecher (Stand), Festung (Escapes und Abwehr), Wandler (Allrounder). Die gewählte Klasse gibt +20 % Quest-XP auf ihre Techniken (Wandler +8 % auf alles). Die erkannte Klasse ist die mit der höchsten Summe der fünf besten Meisterungen ihrer Techniken; liegen die zwei besten weniger als 10 Punkte auseinander, heißt sie Wandler.
 - **Rang** nach Level: Mattenneuling, Schüler des Dōjō, Wanderer der Matte, Techniksucher, Rollkrieger, Klingenschmied, Dōjō-Veteran, Legende der Matte.
 - **Titel** = beste Tokui-Waza als Beiname, z. B. Triangle → „Die Dreiecksfalle“, Knee Cut → „Die Knieklinge“.
 - **Gürtelprüfung** = Klassenwechsel-Event mit eigener Animation. Das Datum wird als Ground Truth gespeichert.
-- **Siegel** (13 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3, 4 und 5, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 Sterne aufgedeckt, je fünf Trainings in Gi und No-Gi.
+- **Siegel** (13 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3, 4 und 5, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 im Training erreichte Sterne (ohne die vom Start), je fünf Trainings in Gi und No-Gi.
 
-### 6.5 Gym-Modus (später)
+### 6.5 Charakter und Ausrüstung
+
+- **Charakter:** eine eigene Chibi-Figur als SVG, frei gestaltbar: Hautton, Frisur, Haar- und Augenfarbe, Gesicht, Bart. Das Gewicht aus dem Steckbrief bestimmt die Statur, der Gürtel samt Streifen sitzt am Gi. Vorschau in Gi oder No-Gi.
+- **Plätze:** Gi, Oberteil und Unterteil (No-Gi), Kopf, Accessoire, Merkmal, Talisman, Aura und drei Aufnäher (Schulter, Brust, Bein).
+- **Items:** rund 60 in vier Seltenheiten (gewöhnlich, selten, episch, legendär). Quellen: Startausrüstung, Meilensteine (Level, Trainings, Rolls, Siegel, Arcs), Länder aus dem Steckbrief (Flaggen-Aufnäher), Tokui-Waza (eigener Aufnäher pro Technik) und Zufallsbeute nach dem Training.
+- **Beute:** Das Inventar wird nicht gespeichert, sondern aus den Daten berechnet. Ob ein Training etwas abwirft, entscheidet ein Hash aus Datum und Position des Trainings am Tag: gleiche Daten, gleiche Beute, und Löschen und neu Speichern würfelt nicht neu. Chance 12 %, mehr bei Quest-Treffern (+13 %), erledigter Kata (+8 %) und Notiz (+4 %). Seltenheit: 3 % legendär, 12 % episch, 30 % selten, 55 % gewöhnlich. Duplikate bringen nichts, dadurch bleiben seltene Stücke selten.
+- **Talismane** geben nur XP für Einsatz, nie Meisterung, z. B. +10 XP pro Training, +50 % auf Kata-Quests oder +3 XP pro Roll-Karte. Der Bonus wird beim Speichern festgeschrieben, damit ein späterer Wechsel die Vergangenheit nicht umschreibt.
+- **Flaggen:** 55 Länder plus England und Schottland. Flaggen mit Wappen oder feinen Emblemen sind vereinfacht, wo es eine Zivilflagge gibt, wird sie verwendet.
+
+### 6.6 Gym-Modus (später)
 
 - Der Coach pflegt den Kursplan, dann entfällt Schritt 2 für alle.
 - Der Coach kann Techniken „siegeln“, als externe Bestätigung von Stufe 4 oder 5.
@@ -278,10 +303,10 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 1. **Heute:** drei Quest-Karten, Wochenboss, Wochenziel, Knopf „Training loggen“.
 2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach ein Ergebnis-Screen mit XP-Aufschlüsselung, Stufenaufstiegen, Ki-Änderung und pulsierenden Sternen.
 3. **Sternkarte:** zoombar, Sektor-Fokus, Detailfeld.
-4. **Charakter:** Hexagon jetzt und vor 8 Wochen, Klasse, Titel, Ki-Verlauf, Gürtel-Zeitleiste.
+4. **Charakter:** vier Reiter. Übersicht (Figur, Steckbrief, gewählte und erkannte Klasse, Hexagon, Ki-Verlauf, Siegel), Aussehen (Editor), Ausrüstung (Plätze, Inventar, gesperrte Items mit Freischalt-Bedingung) und Steckbrief (Name, Länder, Geburtsjahr, Gewicht, Klasse).
 5. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
 
-Der Prototyp zeigt Heute, Log-Flow mit Live-Vorschau, Sternkarte und Charakter.
+Die App zeigt Heute, Log-Flow mit Live-Vorschau und Beute, Sternkarte, Codex und Charakter. Der Einstieg führt in fünf Schritten durch Steckbrief, Rang, Klasse, Aussehen und Technik-Stand.
 
 ---
 
@@ -338,6 +363,7 @@ Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `au
 ## 9. Datenschutz
 
 - Nur, was die Rechnung braucht. Keine Verletzungsdaten. Der Heilungsmodus speichert nur „Pause“ ohne Grund.
+- Geburtsjahr und Gewicht sind freiwillig und dienen nur der Altersklasse und der Figur. Gespeichert wird das Geburtsjahr, kein Datum.
 - Trainingspartner werden nicht namentlich erfasst, nur Gürtel und Größe.
 - Hosting in der EU (Supabase Frankfurt), Export und Löschung aller Daten per Knopf.
 - Für den Gym-Modus: Coaches sehen Anwesenheit und gesiegelte Techniken, nicht die Roll-Karten.
@@ -380,6 +406,9 @@ Entschieden:
 - **Mindestens 72 Techniken** schon in der ersten Version. Umgesetzt sind 178.
 - **Name:** Waza Arc statt Tatami Arc (Markenkonflikt mit Tatami Fightwear). Vor einem öffentlichen Start noch eine Markenrecherche beim DPMA und EUIPO machen.
 - **Im Portfolio** mit eigenem Frontend unter `/arc/` und demselben Supabase-Projekt (Abschnitt 8).
+- **Einstieg mit Vorerfahrung:** Prolog-XP aus dem Gürtel, Selbsteinschätzung bis Stufe 4, aber vorläufig und ohne XP, bis die Rolls sie bestätigen (4.8).
+- **Klassen** wählt man selbst, die Daten zeigen daneben die erkannte Klasse (6.4).
+- **Ausrüstung** beeinflusst nur XP und Aussehen, nie Meisterung, Stufen oder Ki (6.5).
 
 Offen:
 

@@ -135,7 +135,8 @@ export default function Codex({ data, st, today }: { data: ArcData; st: ArcState
               acceptedNode={accepted}
               onSelect={setOpen}
               onClose={() => setOpen(null)}
-              onAccept={(id) => acceptQuest(today, questShape(TECH[id], st.nodes[id]))}
+              cls={data.profile?.cls}
+              onAccept={(id) => acceptQuest(today, questShape(TECH[id], st.nodes[id], false, data.profile?.cls))}
             />
             <button type="button" className="btn ghost wide" onClick={() => go("karte", open)}>
               <MapIcon size={16} aria-hidden="true" /> <span>Auf der Sternkarte zeigen</span>

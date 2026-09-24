@@ -1,4 +1,6 @@
-import type { ArcData, Attire, Belt, Profile, QuestKind, Session } from "./core/types.ts";
+import type { ArcData, Attire, Belt, Character, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import { getCharacter } from "./character.ts";
+import { ITEMS } from "./core/items.ts";
 import { TECH } from "./core/techniques.ts";
 import { buildDemo } from "./core/demo.ts";
 import { dayNum, weekOf } from "./core/model.ts";
@@ -28,15 +30,23 @@ export function deleteSession(id: string) {
   arcStore.set((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== id) }));
 }
 
-export function createProfile(p: Omit<Profile, "startBelt" | "createdAt">, today: string, known: string[]) {
+export function createProfile(
+  p: Omit<Profile, "startBelt" | "startStripes" | "createdAt">,
+  today: string,
+  known: string[],
+  claims: Record<string, number>,
+  look: Look,
+) {
   arcStore.set({
     ...emptyData(),
-    profile: { ...p, startBelt: p.belt, createdAt: today },
-    onboarding: { date: today, known },
+    profile: { ...p, startBelt: p.belt, startStripes: p.stripes, createdAt: today },
+    onboarding: { date: today, known, claims },
+    // Start gear and flags are not "new"; only what you find later is.
+    character: { ...getCharacter(emptyData()), look, seen: [...ITEMS.filter((x) => x.src.t === "start").map((x) => x.id), ...(p.countries ?? []).map((c) => `flag:${c}`)] },
   });
 }
 
-export function updateProfile(patch: Partial<Pick<Profile, "name" | "weeklyGoal">>) {
+export function updateProfile(patch: Partial<Omit<Profile, "startBelt" | "startStripes" | "createdAt">>) {
   arcStore.set((d) => (d.profile ? { ...d, profile: { ...d.profile, ...patch } } : d));
 }
 
@@ -82,3 +92,16 @@ export async function importJson(file: File): Promise<string | null> {
     return "Die Datei konnte nicht gelesen werden.";
   }
 }
+
+function setCharacter(fn: (c: Character) => Character) {
+  arcStore.set((d) => ({ ...d, character: fn(getCharacter(d)) }));
+}
+
+export const setLook = (look: Look) => setCharacter((c) => ({ ...c, look }));
+export const setMode = (mode: Attire) => setCharacter((c) => ({ ...c, mode }));
+export const equip = (slot: Slot, id: string | null) =>
+  setCharacter((c) => {
+    // "" means: deliberately empty, do not fall back to the default item.
+    return { ...c, equipped: { ...c.equipped, [slot]: id ?? "" } };
+  });
+export const markSeen = (ids: string[]) => setCharacter((c) => ({ ...c, seen: [...new Set([...c.seen, ...ids])] }));
