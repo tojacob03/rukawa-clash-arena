@@ -22,7 +22,7 @@ Klickbarer Prototyp mit simulierten Daten: [`prototyp.html`](prototyp.html). Die
 
 | Schritt | Eingabe | Tipps | Zeit | Wofür |
 |---|---|---|---|---|
-| 1 Check-in | Trainingsart (Gi, No-Gi, Open Mat). Datum und Dauer kommen aus dem Kursplan | 1 | 2 s | XP, Wochenserie, Mattenzeit |
+| 1 Check-in | Kurs oder Open Mat, Gi oder No-Gi. Aus dem Kursplan vorausgewählt, Datum und Dauer ebenfalls | 1 | 2 s | XP, Wochenserie, Mattenzeit, Gi/No-Gi-Vergleich |
 | 2 Heute im Kurs | Technik aus der Liste, zuletzt genutzte oben. Im Gym-Modus trägt der Coach sie ein, dann 0 Tipps | 0–2 | 2 s | Wissen |
 | 3 Roll-Karten | Pro Roll: Gürtel des Partners, Größe (leichter/gleich/schwerer), Subs ich, Subs Partner, Kontrolle (Partner/gleich/ich). Standardwerte: gleich groß, 0, 0, gleich | 2–4 pro Roll | 4 s pro Roll | Kampfkraft, Form, Partnergewicht |
 | 4 Quest-Zähler | Versuche und Treffer (bei Überleben: Escapes, bei Drill: erledigt) | 2–6 | 5 s | Meisterung |
@@ -40,24 +40,26 @@ Bewusst **nicht** geloggt: jede einzelne Technik pro Roll, Zeit in Positionen, V
 
 ## 3. Datenmodell (Supabase / Postgres)
 
+Alle Tabellen liegen im Schema `arc` des bestehenden Portfolio-Projekts (Abschnitt 8.2).
+
 ```text
 profiles        id, belt, stripes, weight_class, bjj_since, gym_id, weekly_goal (Standard 2)
 gyms            id, name, schedule (jsonb)
 positions       id, name, side (top | bottom | neutral)          -- für Wochenboss und später die Weltkarte
 techniques      id, name_de, name_en, sector, ring (0–4), category, gi, nogi, from_position, to_position
 technique_edges parent_id, child_id, kind (prereq | combo), combo_name
-sessions        id, user_id, date, type (gi | nogi | open), duration_min, taught_technique_id, logged_at
+sessions        id, user_id, date, format (class | open_mat), attire (gi | nogi), duration_min, taught_technique_id, logged_at
 rolls           id, session_id, idx, partner_belt, partner_size, subs_for, subs_against, control (0 | 0.5 | 1)
 quests          id, user_id, date, technique_id, kind (drill | try | survive | rust), xp, reason
 quest_results   quest_id, session_id, attempts, successes, done
 session_notes   session_id, worked_technique_id, stuck_position_id
 onboarding      user_id, technique_id, self_rating (kenne ich)
-pauses          user_id, week_start, reason (verletzung | urlaub)
+pauses          user_id, week_start                              -- ohne Grund, siehe Datenschutz
 promotions      user_id, date, belt, stripes                     -- Ground Truth für die Validierung
 skill_snapshots user_id, date, technique_id, level, mastery      -- wöchentlich materialisiert, für Verläufe
 ```
 
-Alle Kennzahlen lassen sich aus `sessions`, `rolls`, `quest_results`, `session_notes` und `onboarding` neu berechnen. Die Rechenlogik liegt als reine TypeScript-Funktion `compute(history, asOf)` vor, mit Unit-Tests. So kann sie im Client (offline) und in einer Edge Function (nächtliche Snapshots) identisch laufen.
+Alle Kennzahlen lassen sich aus `sessions`, `rolls`, `quest_results`, `session_notes` und `onboarding` neu berechnen. Die Rechenlogik liegt als reine TypeScript-Funktion `compute(history, asOf, filter?)` vor, mit Unit-Tests. Der optionale Filter (z. B. nur Gi) liefert den Gi/No-Gi-Vergleich aus demselben Rechenkern.
 
 ---
 
@@ -185,18 +187,30 @@ Level L ab 40 · (L − 1)² XP
 
 **Wochenserie:** aufeinanderfolgende Wochen mit erreichtem Wochenziel. Die laufende Woche zählt erst, wenn das Ziel erreicht ist, bricht die Serie aber vorher nicht. Wochen im Heilungsmodus werden übersprungen, ohne die Serie zu brechen.
 
+### 4.7 Gi und No-Gi
+
+**Grundsatz: Alles wird zusammen gerechnet.** Kampfkraft, Meisterung, Stufen, Hexagon, Quests und XP beruhen auf allen Trainings. Jede Session trägt aber `attire` (Gi oder No-Gi), deshalb lässt sich jederzeit ein Vergleich berechnen, ohne ein zweites Modell zu pflegen.
+
+- **Vergleichsansicht:** erscheint, sobald beide Seiten genug Daten haben, also mindestens 20 Rolls je Seite in den letzten 8 Wochen. Darunter zeigt die App „Noch zu wenig Daten für einen Vergleich“ statt wackliger Zahlen.
+- **Hexagon:** Gi und No-Gi übereinandergelegt, jeweils mit `compute(…, { attire })` berechnet.
+- **Kampfkraft:** zwei zusätzliche Verläufe mit demselben Elo, einmal nur über Gi-Rolls, einmal nur über No-Gi-Rolls, beide ab demselben Startwert. Die Hauptzahl bleibt die gemeinsame.
+- **Pro Technik:** Quote und Untergrenze je Seite, sobald je Seite mindestens 5 Versuche vorliegen. Im Detailfeld als zwei Balken.
+- **Auffällige Unterschiede als Satz**, z. B. „Dein Triangle trifft im Gi deutlich öfter als im No-Gi“. Nur wenn sich die 80-%-Bereiche beider Seiten nicht überschneiden, sonst kein Satz.
+- **Bibliothek:** Jede Technik hat die Flags `gi` und `nogi`. Reine Gi-Techniken (Cross Collar Choke, Bow & Arrow) sind in der No-Gi-Ansicht ausgegraut. Im gemeinsamen Modell zählen sie normal.
+
 ---
 
 ## 5. Sternkarte (Skilltree)
 
-- **Aufbau:** 72 Techniken auf fünf Ringen: Fundament, Basis, Kern, Aufbau, Meisterschaft. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
+- **Aufbau:** mindestens 72 Techniken auf fünf Ringen: Fundament, Basis, Kern, Aufbau, Meisterschaft. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
 - **Kanten:** Voraussetzungs-Kanten innerhalb eines Sektors. Dazu Kombo-Kanten quer über Sektoren, z. B. Scissor Sweep → Mount → Armbar oder Snap Down → Rücken. Eine Kombo leuchtet auf, sobald beide Enden Stufe 3 haben.
 - **Zustände:** Die Größe, Füllung und das Leuchten eines Sterns zeigen die Stufe. Ein Fortschrittsring zeigt den Weg zur nächsten Stufe. Gold heißt Signature, Rostfarbe heißt Rost, gestrichelt heißt vorläufig.
 - **Nebel:** Sterne ohne gesehenen Nachbarn sind nur Punkte ohne Namen. Die Karte deckt sich beim Lernen auf.
 - **Hexagon als Schatten:** Hinter der Karte liegt das Attribut-Hexagon, auf dieselben sechs Achsen ausgerichtet. Der Baum und der Charakterbogen sind damit visuell dasselbe Objekt.
 - **Onboarding-Kalibrierung:** Beim Start markiert man, was man schon kennt. Das hebt Techniken höchstens auf Stufe 2, vorläufig. Ab Stufe 3 zählen nur Daten.
 - **Detailfeld pro Stern:** Stufe, Meisterung, Bedingungen für die nächste Stufe mit aktuellem Stand, Versuche roh und gewichtet, geglättete Quote, Untergrenze gegen die Basisquote, zuletzt live, Voraussetzungen, freigeschaltete Techniken und Kombos.
-- **Filter (später):** Gi/No-Gi, nur Kombos, nur Rost.
+- **Wachstum:** Die Bibliothek darf wachsen. Das Layout trägt bis zu vier Sterne pro Ring und Sektor im Kern und fünf in den äußeren Ringen. Darüber hinaus rücken die Sterne enger oder es kommt ein sechster Ring dazu.
+- **Filter:** Gi/No-Gi-Ansicht (Abschnitt 4.7), später nur Kombos und nur Rost.
 - **Später:** eine Weltkarte der Positionen. Positionen sind Orte, Techniken die Wege dazwischen. Daraus entsteht eine Übergangsanalyse: Wo verlierst du Rolls?
 
 ---
@@ -266,13 +280,51 @@ Der Prototyp zeigt Heute, Log-Flow mit Live-Vorschau, Sternkarte und Charakter.
 
 ---
 
-## 8. Technik
+## 8. Technik und Architektur
 
-- **Stack:** React, TypeScript, Vite, Tailwind, Framer Motion (wie im Portfolio). Supabase mit Row Level Security pro Nutzer.
-- **Plattform:** mobile-first PWA, installierbar, offline-fähig (IndexedDB-Queue, Sync bei Netz). Push über Web Push.
-- **Rechenkern:** `compute(history, asOf)` als reine Funktion in einem eigenen Paket, mit Unit-Tests für jede Formel und jede Stufenschwelle. Der Client rechnet sofort, eine nächtliche Edge Function schreibt `skill_snapshots`.
+Tatami Arc bleibt im Portfolio-Repo und nutzt das bestehende Supabase-Projekt. Nach außen ist es trotzdem eine eigene App mit eigenem Frontend.
+
+### 8.1 Frontend: eigener Einstiegspunkt im selben Vite-Projekt
+
+Vite kann mehrere HTML-Einstiegspunkte bauen (Multi-Page-Build, `build.rollupOptions.input`). Tatami Arc bekommt einen eigenen:
+
+```text
+index.html               → src/main.tsx        Portfolio, unverändert
+arc/index.html           → src/arc/main.tsx    Tatami Arc
+src/arc/                 eigene App: Seiten, Komponenten, Styles, Supabase-Client
+src/arc/core/            Rechenkern compute(), reine Funktionen, mit Tests
+src/arc/data/            Technik-Bibliothek als versioniertes JSON
+public/arc/              manifest.webmanifest, Icons, Service Worker (Scope /arc/)
+```
+
+- **Aufruf:** `rukawaanalytics.com/arc/`. Die App hat eine eigene `index.html` mit eigenem Titel, Meta- und OG-Tags, Favicon und PWA-Manifest. Auf dem Handy lässt sie sich als eigene App installieren.
+- **Eigenes Bundle:** Vom Portfolio wird nichts geladen, kein GSAP, kein Lenis, keine Seitenübergänge, keine Portfolio-Fonts. Umgekehrt lädt das Portfolio nichts von Arc.
+- **Eigenes Design:** eigene CSS-Tokens (die Nachtdojo-Palette aus dem Prototyp). Die Portfolio-`index.css` wird nicht importiert. Tailwind geht mit eigener Konfiguration für `src/arc`, schlichtes CSS auch. Fonts werden wie im Portfolio selbst gehostet (@fontsource), nicht von Google geladen.
+- **Geteilt wird nur Unsichtbares:** Build, CI (Lint, Typecheck, Build), Deployment über Lovable, Supabase-Typen.
+- **Routing per Hash** (`/arc/#/karte`), damit der Hoster keine Deep Links auf `arc/index.html` umleiten muss.
+- **Der eine offene Punkt:** Ein Test-Deployment muss zeigen, dass Lovable `/arc/` wirklich mit `arc/index.html` beantwortet und nicht mit der Rückfallseite des Portfolios. Plan B, falls nicht: dieselbe Ordnerstruktur, aber als eigenes Deployment auf `arc.rukawaanalytics.com` (z. B. Cloudflare Pages, kostenlos). Das Backend bleibt dabei gleich.
+
+### 8.2 Backend: dasselbe Supabase-Projekt, eigenes Schema
+
+Das Projekt „Rukawa Portfolio“ bekommt ein Schema `arc`, so wie es schon `energy`, `racing` und `personal` gibt. Der Free-Plan erlaubt zwei aktive Projekte, und beide sind mit Portfolio und CR-Analyse belegt. Ein drittes würde also Geld kosten. Die Datenmenge ist klein, ein Training ergibt eine Handvoll Zeilen.
+
+- **Tabellen** aus Abschnitt 3 im Schema `arc`, jede mit `user_id uuid references auth.users on delete cascade` und Row Level Security `user_id = auth.uid()`. Die Technik-Bibliothek ist nur lesbar.
+- **Rechte:** `grant usage on schema arc to authenticated`, **nicht** an `anon`. Wer nicht angemeldet ist, sieht nichts. Das Schema wird in den API-Einstellungen als „Exposed schema“ freigeschaltet, die App greift mit `supabase.schema('arc')` zu.
+- **Anmeldung** über Supabase Auth mit Magic Link oder Google. Das ist neu für das Projekt, bisher meldet sich dort nur der Admin an. Voraussetzung siehe 8.3.
+- **Eigener Supabase-Client** in `src/arc` mit eigenem `storageKey`. Portfolio und Arc liegen auf derselben Domain und würden sich sonst die Sitzung im Browser teilen: Ein Admin-Login im Portfolio wäre dann auch in Arc aktiv und umgekehrt.
+- **Snapshots:** `skill_snapshots` schreibt der Client nach jedem Log, weil er ohnehin rechnet. Eine Edge Function braucht es erst im Gym-Modus.
+- **Migrationen** wie bisher unter `supabase/migrations`, mit `arc_` im Dateinamen.
+
+### 8.3 Voraussetzung vor der ersten Registrierung
+
+Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `authenticated`. Vorher müssen alle bestehenden Regeln geprüft werden, die „angemeldet“ mit „Admin“ gleichsetzen. Dazu gehören Policies, die nur `auth.uid() is not null` oder `to authenticated` ohne Admin-Prüfung verwenden. Sie werden auf `is_admin(auth.uid())` umgestellt. Erst danach wird die Registrierung eingeschaltet.
+
+### 8.4 Weitere Technik
+
+- **Stack:** React, TypeScript, Vite, Framer Motion für die wenigen Animationen.
+- **Plattform:** mobile-first PWA, offline-fähig (IndexedDB-Queue, Sync bei Netz), Web Push für die Erinnerung zum Kursende.
+- **Rechenkern:** `compute(history, asOf, filter?)` als reine Funktionen mit Unit-Tests für jede Formel und jede Stufenschwelle.
 - **Sternkarte:** SVG mit festem radialem Layout (Ring × Sektor), berechnet aus `techniques.ring` und der Reihenfolge im Sektor. Kein Force-Layout, damit die Karte stabil bleibt.
-- **Technik-Bibliothek:** als versionierte Seed-Datei (JSON) im Repo, damit Änderungen am Baum nachvollziehbar sind.
 
 ---
 
@@ -304,17 +356,24 @@ Daraus wird die Case Study: „Kann man BJJ-Fortschritt messen? Acht Wochen, zeh
 
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
-| 1 Eigenversuch | Log-Flow, 72 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
+| 0 Fundament | Rechte aufräumen (8.3), Multi-Page-Setup mit leerer Arc-Seite, Test-Deployment auf `/arc/`, Schema `arc` mit Auth | Die Architektur steht, bevor Features gebaut werden |
+| 1 Eigenversuch | Log-Flow, alle 72 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
 | 2 Spielsysteme | Sternkarte mit Nebel und Kombos, Drei-Karten-Draft, Wochenboss, Klasse und Titel, Rückblick-Karte | Die App macht Spaß, nicht nur Sinn |
 | 3 Gym-Pilot | 5 bis 10 Leute, Kursplan vom Coach, Coach-Bewertung als Ground Truth | 8 Wochen Daten mehrerer Personen |
 | 4 Auswertung | Validierung (Abschnitt 10), Kalibrierung der Parameter, Case Study im Portfolio | Belegbare Modellgüte und eine Geschichte dazu |
 
 ---
 
-## 12. Offene Fragen
+## 12. Entscheidungen und offene Fragen
 
-- Reicht „Kontrolle: Partner / gleich / ich“ als einzige Positionsangabe, oder braucht es „oben / unten“ für Guard-Spieler?
+Entschieden:
+
+- **Kontrolle** bleibt „Partner / gleich / ich“, ohne oben/unten.
+- **Gi und No-Gi** werden zusammen gerechnet, mit Vergleichsansicht, sobald beide Seiten genug Daten haben (4.7).
+- **Mindestens 72 Techniken** schon in der ersten Version.
+- **Im Portfolio** mit eigenem Frontend unter `/arc/` und demselben Supabase-Projekt (Abschnitt 8).
+
+Offen:
+
 - Positional Sparring (Start in einer Position) als eigener Roll-Typ, der nicht in die Kampfkraft eingeht?
-- Getrennte Kampfkraft und Meisterung für Gi und No-Gi?
-- Wie viele Techniken braucht die erste Version wirklich? 72 wirken umfangreich, vielleicht reichen 40 für Phase 1.
-- Name: Tatami Arc, MatQuest oder etwas ganz anderes.
+- Name: Tatami Arc, MatQuest oder etwas ganz anderes. Der Pfad `/arc/` passt zu Tatami Arc.
