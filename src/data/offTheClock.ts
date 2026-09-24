@@ -13,16 +13,16 @@ export type Gym = {
 // Leave city/country out when unknown - the page handles it.
 const GYMS: Gym[] = [
   { name: "Checkmat Oldenburg", city: "Oldenburg", country: "Germany", home: true },
-  { name: "Elevate Gym" },
-  { name: "UFD Gym" },
+  { name: "Elevate Gym", city: "Bremen", country; "Germany" },
+  { name: "UFD Gym", city: "Düsseldorf", country: "Germany" },
   { name: "Rhodes Knights BJJ", city: "Rhodes", country: "Greece" },
   { name: "Jiujitsu Squad Venezia", city: "Venice", country: "Italy" },
   { name: "Warszawskie Centrum Atletyki", city: "Warsaw", country: "Poland" },
   { name: "BJJ Brotherhood Tirana", city: "Tirana", country: "Albania" },
-  { name: "MT Gym23" },
-  { name: "Hiro Gym" },
+  { name: "MT Gym23", city: "Vienna", country: "Austria" },
+  { name: "Hiro Gym", city: "Vienna", country: "Austria" },
   { name: "BJJ Prishtina", city: "Prishtina", country: "Kosovo" },
-  { name: "038 Fightclub" },
+  { name: "038 Fightclub" city: "Prishtina", country: "Kosovo" },
 ];
 
 export const BJJ = {
@@ -39,7 +39,7 @@ export const BJJ = {
 
 export const COFFEE = {
   method: "Espresso",
-  bean: "Jamaican Blue",
+  bean: "Jamaican Blue Mountain",
   roaster: "Fa-Kafë",
   from: "Prishtina",
   note: "Brought back from a trip.",
