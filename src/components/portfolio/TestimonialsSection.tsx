@@ -6,53 +6,70 @@ import { TESTIMONIALS, type Testimonial } from "@/data/testimonials";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/** A word of the quote; `parts` split it where the gold highlight starts or ends. */
+/**
+ * A word of the quote - or, for the highlighted phrase, the whole phrase as
+ * one token so its underline runs through. `parts` separate gold from plain
+ * text (a comma right after the phrase stays attached, but not gold).
+ */
 type Token = { parts: { text: string; gold: boolean }[] };
 
-/**
- * The quote as words, split on whitespace only - punctuation stays on its
- * word ("data," not "data ,"). Characters inside the highlighted phrase are
- * marked gold, even when the phrase ends mid-word before a comma.
- */
 const tokenize = (quote: string, highlight?: string): Token[] => {
   const start = highlight ? quote.indexOf(highlight) : -1;
   const end = start < 0 ? -1 : start + (highlight as string).length;
   const tokens: Token[] = [];
+  let phrase: Token | null = null;
+
+  const push = (token: Token, text: string, gold: boolean) => {
+    const last = token.parts[token.parts.length - 1];
+    if (last && last.gold === gold) last.text += text;
+    else token.parts.push({ text, gold });
+  };
+
+  // Split on whitespace only, so punctuation stays on its word.
   for (const m of quote.matchAll(/\S+/g)) {
     const from = m.index ?? 0;
     const word = m[0];
-    const parts: Token["parts"] = [];
-    for (let i = 0; i < word.length; i++) {
-      const gold = from + i >= start && from + i < end;
-      const last = parts[parts.length - 1];
-      if (last && last.gold === gold) last.text += word[i];
-      else parts.push({ text: word[i], gold });
-    }
-    tokens.push({ parts });
+    const inPhrase = start >= 0 && from < end && from + word.length > start;
+    const token: Token = inPhrase && phrase ? phrase : { parts: [] };
+    if (inPhrase && phrase) push(token, " ", true);
+    for (let i = 0; i < word.length; i++) push(token, word[i], from + i >= start && from + i < end);
+    if (token !== phrase) tokens.push(token);
+    phrase = inPhrase ? token : null;
   }
   return tokens;
 };
 
-const Parts = ({ token }: { token: Token }) => (
-  <>
-    {token.parts.map((part, i) =>
-      part.gold ? (
-        <span key={i} className="text-clash-gold">
-          {part.text}
-        </span>
-      ) : (
-        part.text
-      ),
-    )}
-  </>
-);
-
-/** One word that brightens as the reader scrolls past its share of the quote. */
+/**
+ * One token that brightens as the reader scrolls past its share of the
+ * quote. Opacity only - nothing moves, and it follows the reader's own
+ * scrolling, so it stays on with reduced motion too. The highlighted phrase
+ * also draws a gold underline as it is reached.
+ */
 const Word = ({ token, progress, range }: { token: Token; progress: MotionValue<number>; range: [number, number] }) => {
-  const opacity = useTransform(progress, range, [0.18, 1]);
+  const opacity = useTransform(progress, range, [0.16, 1]);
+  const underline = useTransform(progress, [range[0], Math.min(1, range[1] + 0.08)], ["0% 2px", "100% 2px"]);
   return (
     <motion.span style={{ opacity }}>
-      <Parts token={token} />
+      {token.parts.map((part, i) =>
+        part.gold ? (
+          <motion.span
+            key={i}
+            className="text-clash-gold"
+            style={{
+              backgroundImage: "linear-gradient(currentColor, currentColor)",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "0 95%",
+              backgroundSize: underline,
+              WebkitBoxDecorationBreak: "clone",
+              boxDecorationBreak: "clone",
+            }}
+          >
+            {part.text}
+          </motion.span>
+        ) : (
+          part.text
+        ),
+      )}
     </motion.span>
   );
 };
@@ -72,22 +89,19 @@ const Quote = ({ t, index }: { t: Testimonial; index: number }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.7, delay: index * 0.1, ease: EASE }}
-      className="relative"
+      className="relative pt-10 sm:pt-14"
     >
+      {/* Oversized quote mark behind the text */}
       <span
         aria-hidden="true"
-        className="block select-none font-serif text-7xl leading-[0.6] text-clash-gold/50 sm:text-8xl sm:leading-[0.6]"
+        className="pointer-events-none absolute -left-2 -top-6 select-none font-serif text-[9rem] leading-none text-clash-gold/15 sm:-left-6 sm:-top-10 sm:text-[13rem]"
       >
         &ldquo;
       </span>
-      <blockquote className="mt-2 text-xl font-medium leading-snug tracking-tight text-foreground sm:text-3xl sm:leading-[1.25]">
+      <blockquote className="relative text-[1.4rem] font-medium leading-snug tracking-tight text-foreground sm:text-3xl sm:leading-[1.25]">
         {tokens.map((token, i) => (
           <span key={i}>
-            {reduceMotion ? (
-              <Parts token={token} />
-            ) : (
-              <Word token={token} progress={scrollYProgress} range={[i / tokens.length, (i + 1) / tokens.length]} />
-            )}{" "}
+            <Word token={token} progress={scrollYProgress} range={[i / tokens.length, (i + 1) / tokens.length]} />{" "}
           </span>
         ))}
       </blockquote>
@@ -115,8 +129,9 @@ const Quote = ({ t, index }: { t: Testimonial; index: number }) => {
               </a>
             )}
           </span>
-          <span className="mt-0.5 block text-sm text-muted-foreground">
-            {t.role} · {t.context}
+          <span className="mt-0.5 block text-sm text-muted-foreground">{t.role}</span>
+          <span className="mt-2 inline-block rounded-full border border-clash-gold/40 px-2.5 py-0.5 text-xs text-clash-gold">
+            {t.context}
           </span>
         </span>
       </figcaption>
@@ -140,12 +155,9 @@ const TestimonialsSection = () => {
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-28">
             <SectionIntro eyebrow="In their words" title="From the people the prep is for." />
-            <p className="mt-6 max-w-sm text-sm text-muted-foreground">
-              Quoted with permission. Every author has confirmed the exact wording.
-            </p>
           </div>
         </div>
-        <div className="space-y-20 lg:col-span-8">
+        <div className="space-y-24 lg:col-span-8">
           {quotes.map((t, i) => (
             <Quote key={t.name} t={t} index={i} />
           ))}
