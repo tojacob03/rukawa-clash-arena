@@ -1,17 +1,15 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  animate,
+  AnimatePresence,
   motion,
   useInView,
-  useMotionValue,
   useMotionValueEvent,
-  useReducedMotion,
   useScroll,
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { ArrowUpRight, RotateCcw } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import SectionIntro from "@/components/portfolio/SectionIntro";
 import { MILESTONES, WORLDS, worldsPhase, type Milestone } from "@/data/roadToWorlds";
 
@@ -91,7 +89,11 @@ const StatusCard = () => {
   );
 };
 
-const MilestoneList = ({ reached }: { reached: number }) => (
+const MilestoneList = ({
+  reached,
+}: {
+  reached: number;
+}) => (
   <ol className="space-y-3">
     {MILESTONES.map((m: Milestone, i) => (
       <li
@@ -121,69 +123,111 @@ const MilestoneList = ({ reached }: { reached: number }) => (
   </ol>
 );
 
+// Phones: one milestone at a time under the pinned map, with a stepper
+// showing where on the road we are.
+const STEPS = [
+  ...MILESTONES.map((m) => ({
+    key: m.month,
+    short: m.month.slice(0, 3),
+    label: m.month,
+    event: m.event,
+    line: m.results.map((r) => `${r.player} ${r.place}`).join(" · "),
+  })),
+  {
+    key: "worlds",
+    short: "Worlds",
+    label: "November 2026",
+    event: WORLDS.name,
+    line: `${WORLDS.city} · ${WORLDS.qualified} qualified`,
+  },
+];
+
+const MilestoneStepper = ({ reached }: { reached: number }) => {
+  const current = STEPS[Math.max(reached, 0)];
+  return (
+    <div className="rounded-xl border border-border/60 bg-card/40 p-4">
+      <ol className="grid grid-cols-4 gap-2" aria-hidden="true">
+        {STEPS.map((step, i) => (
+          <li key={step.key}>
+            <span
+              className={`block h-0.5 rounded-full transition-colors duration-500 ${
+                i <= reached ? "bg-clash-gold" : "bg-border"
+              }`}
+            />
+            <span
+              className={`label-caps mt-2 block transition-colors duration-500 ${
+                i <= reached ? "text-clash-gold" : "text-muted-foreground/60"
+              }`}
+            >
+              {step.short}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div className="relative mt-4 h-[4.5rem]" aria-live="polite">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={current.key}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: reached < 0 ? 0.45 : 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0"
+          >
+            <p className="text-sm text-muted-foreground">
+              {current.label} · {current.event}
+            </p>
+            <p className="mt-1 text-lg font-semibold leading-snug text-foreground">{current.line}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
 const MapBox = ({
   progress,
   near,
   crop,
   className,
-  onReady,
-  children,
 }: {
   progress: MotionValue<number>;
   near: boolean;
   crop?: string;
   className: string;
-  onReady?: () => void;
-  children?: React.ReactNode;
 }) => (
   <div className={`relative w-full overflow-hidden rounded-2xl border border-border/60 bg-card/40 ${className}`}>
     <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
     {near && (
       <Suspense fallback={null}>
-        <WorldRouteMap progress={progress} stations={STATIONS} viewBox={crop} onReady={onReady} />
+        <WorldRouteMap progress={progress} stations={STATIONS} viewBox={crop} />
       </Suspense>
     )}
-    {children}
   </div>
 );
 
 const ShanghaiRoadmap = () => {
-  const reduce = useReducedMotion();
   const desktopRef = useRef<HTMLDivElement>(null);
   const mobileRef = useRef<HTMLDivElement>(null);
   const near = useInView(desktopRef, { once: true, margin: "800px 0px" });
   const nearMobile = useInView(mobileRef, { once: true, margin: "800px 0px" });
-  const mobileInView = useInView(mobileRef, { once: true, amount: 0.5 });
   // Separate state per layout: the hidden one must not overwrite the visible one.
   const [reachedDesktop, setReachedDesktop] = useState(-1);
   const [reachedMobile, setReachedMobile] = useState(-1);
 
-  // Desktop: the section is 2.5 screens tall and sticks; scrolling flies the
-  // plane. Reduced motion: the whole journey is shown as done.
+  // Both layouts fly on scroll, never on their own: the visitor sets the
+  // pace, nothing can play before the map has loaded, and there is no
+  // autonomous motion to switch off - the plane only moves while the page
+  // is being scrolled, like any other content.
+  // Desktop: the section is 2.5 screens tall and sticks.
   const { scrollYProgress } = useScroll({ target: desktopRef, offset: ["start start", "end end"] });
-  const flown = useTransform(scrollYProgress, [0.05, 0.9], [0, 1], { clamp: true });
-  const desktopProgress = useTransform(flown, (v) => (reduce ? 1 : v));
+  const desktopProgress = useTransform(scrollYProgress, [0.05, 0.9], [0, 1], { clamp: true });
 
-  // Mobile: no sticky scroll; the flight plays once when the map is in view.
-  // It waits for the map itself: the map is its own chunk, and on a slow
-  // connection (or after jumping here from the menu) a flight started on
-  // "in view" alone was over before the map appeared - a still of Shanghai.
-  const mobileProgress = useMotionValue(reduce ? 1 : 0);
-  const [mapReady, setMapReady] = useState(false);
-  const fly = () => animate(mobileProgress, 1, { duration: 4, ease: [0.45, 0, 0.2, 1] });
-  useEffect(() => {
-    if (!mobileInView || !mapReady || reduce) return;
-    mobileProgress.set(0);
-    const controls = fly();
-    return () => controls.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mobileInView, mapReady, reduce]);
-  // Replay on request - a tap is a deliberate choice, so this also plays
-  // with reduced motion switched on.
-  const replay = () => {
-    mobileProgress.set(0);
-    fly();
-  };
+  // Phones and tablets: same idea. Map and current milestone stick under
+  // the nav; the block is ~2.6 screens tall, so the whole route takes about
+  // one and a half screens of scrolling.
+  const { scrollYProgress: mobileScroll } = useScroll({ target: mobileRef, offset: ["start 0.08", "end end"] });
+  const mobileProgress = useTransform(mobileScroll, [0.02, 0.92], [0, 1], { clamp: true });
 
   const toReached = (p: number) => {
     let n = -1;
@@ -194,12 +238,6 @@ const ShanghaiRoadmap = () => {
   };
   useMotionValueEvent(desktopProgress, "change", (p) => setReachedDesktop(toReached(p)));
   useMotionValueEvent(mobileProgress, "change", (p) => setReachedMobile(toReached(p)));
-  useEffect(() => {
-    if (!reduce) return;
-    setReachedDesktop(MILESTONES.length);
-    setReachedMobile(MILESTONES.length);
-  }, [reduce]);
-
   const intro = (
     <SectionIntro
       eyebrow="Road to Worlds"
@@ -231,30 +269,16 @@ const ShanghaiRoadmap = () => {
       </div>
 
       {/* Mobile and tablet */}
-      <div className="px-5 py-20 sm:px-6 lg:hidden">
+      <div className="px-5 pb-20 pt-20 sm:px-6 lg:hidden">
         {intro}
-        <div ref={mobileRef} className="mt-10">
-          <MapBox
-            progress={mobileProgress}
-            near={nearMobile}
-            crop={ROUTE_CROP}
-            className="aspect-[16/10]"
-            onReady={() => setMapReady(true)}
-          >
-            <button
-              type="button"
-              onClick={replay}
-              className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
-            >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Replay
-            </button>
-          </MapBox>
+        <div ref={mobileRef} className="relative mt-10 h-[260vh]">
+          <div className="sticky top-16 space-y-3">
+            <MapBox progress={mobileProgress} near={nearMobile} crop={ROUTE_CROP} className="aspect-[16/10]" />
+            <MilestoneStepper reached={reachedMobile} />
+          </div>
         </div>
         <div className="mt-6">
           <StatusCard />
-        </div>
-        <div className="mt-8">
-          <MilestoneList reached={reachedMobile} />
         </div>
       </div>
     </section>
