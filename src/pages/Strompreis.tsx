@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import SiteNav from "@/components/portfolio/SiteNav";
 import Footer from "@/components/portfolio/Footer";
 import PriceCurve from "@/components/energy/PriceCurve";
@@ -324,6 +325,12 @@ const Dashboard = ({ data }: { data: EnergyDashboard }) => {
             Nach jedem Abruf rechnet SQL alle Kennzahlen dieser Seite neu. Die Seite selbst liest nur das fertige Ergebnis.
           </li>
         </ol>
+        <Link
+          to="/work/strompreis-kompass"
+          className="mt-8 inline-block text-sm font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground"
+        >
+          Case Study: Was ein Jahr Börsenpreise zeigt, mit allen Abfragen →
+        </Link>
         <p className="mt-8 max-w-3xl text-xs leading-relaxed text-muted-foreground" style={tabular}>
           Datenquelle:{" "}
           <a href="https://www.smard.de" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">

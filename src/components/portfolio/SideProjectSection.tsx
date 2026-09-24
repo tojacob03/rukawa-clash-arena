@@ -10,6 +10,7 @@ const projects = [
     title: "Race Strategy Lab",
     href: "/race-strategy",
     linkLabel: "Open Race Strategy Lab",
+    caseStudy: null,
     body: "Tyre strategy, tyre wear, race pace and pit stops for every Grand Prix since 2023. A database job pulls lap and pit data after each race, SQL cleans it (safety cars, in- and out-laps, fuel burn) and fits a regression of lap time against tyre age for every stint.",
     note: null,
     facts: [
@@ -21,6 +22,7 @@ const projects = [
     title: "Strompreis-Kompass",
     href: "/strompreis",
     linkLabel: "Open Strompreis-Kompass (German)",
+    caseStudy: { href: "/work/strompreis-kompass", label: "Read the case study (German)" },
     body: "A live dashboard that shows when electricity is cheapest on the exchange, how wind and solar push prices down, and how often prices turn negative, built on official data from the German Federal Network Agency (Bundesnetzagentur).",
     note: "The project page is in German, because it covers German electricity prices and is written for people in Germany.",
     facts: [
@@ -61,13 +63,24 @@ const SideProjectSection = () => {
                 ))}
               </dl>
 
-              <Link
-                to={p.href}
-                className="mt-6 inline-flex items-center gap-2 self-start text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
-              >
-                {p.linkLabel}
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
+              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+                <Link
+                  to={p.href}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
+                >
+                  {p.linkLabel}
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+                {p.caseStudy && (
+                  <Link
+                    to={p.caseStudy.href}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {p.caseStudy.label}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                )}
+              </div>
             </Card>
           ))}
         </div>

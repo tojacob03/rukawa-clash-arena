@@ -9,6 +9,7 @@ metricLabel: recent battles aggregated per player
 stats: 2-5 | duel slots profiled separately; 8 | cards hashed into one deck identity
 role: Design, build & analysis
 stack: React, TypeScript, Supabase, Postgres
+featured: true
 ---
 
 ## The problem

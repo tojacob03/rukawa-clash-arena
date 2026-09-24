@@ -19,6 +19,13 @@ export interface CaseStudy {
   stack: string[];
   /** Absolute or site-relative URL for the social preview image. */
   ogImage?: string;
+  /** Language of the writeup - switches the page's labels and date format. */
+  lang: "en" | "de";
+  /** Pinned to the top of /work regardless of date. */
+  featured: boolean;
+  /** Closing link under the article; defaults to the contact section. */
+  ctaLabel?: string;
+  ctaHref?: string;
   /** Raw markdown body (frontmatter stripped) - render with `marked`. */
   content: string;
 }
@@ -39,6 +46,10 @@ export interface CaseStudy {
 //   duration: 2021 – present               (optional)
 //   stack: React, TypeScript, Supabase     (optional, comma separated)
 //   ogImage: /og/my-study.png              (optional, falls back to the site default)
+//   lang: de                               (optional, "en" or "de", default "en")
+//   ctaLabel: Open the dashboard →         (optional, closing link text)
+//   ctaHref: /strompreis                   (optional, closing link target, default /#contact)
+//   featured: true                         (optional, pins it to the top of /work)
 //   ---
 //
 // No code changes needed - it shows up on /work, in the sitemap, the RSS
@@ -84,6 +95,7 @@ export const caseStudies: CaseStudy[] = Object.values(files)
   .map((raw) => {
     const { data, content } = parseFrontmatter(raw);
     if (!data.slug || !data.title) return null;
+    const lang: CaseStudy["lang"] = data.lang === "de" ? "de" : "en";
     return {
       slug: data.slug,
       eyebrow: data.eyebrow ?? "",
@@ -97,11 +109,16 @@ export const caseStudies: CaseStudy[] = Object.values(files)
       duration: data.duration || undefined,
       stack: splitList(data.stack),
       ogImage: data.ogImage || undefined,
+      lang,
+      ctaLabel: data.ctaLabel || undefined,
+      ctaHref: data.ctaHref || undefined,
+      featured: data.featured === "true",
       content,
     };
   })
   .filter((s): s is NonNullable<typeof s> => s !== null)
-  .sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
+  // Featured first (the esports work leads /work), then newest first.
+  .sort((a, b) => Number(b.featured) - Number(a.featured) || (a.date < b.date ? 1 : -1));
 
 export const caseStudiesBySlug: Record<string, CaseStudy> = Object.fromEntries(
   caseStudies.map((s) => [s.slug, s]),
