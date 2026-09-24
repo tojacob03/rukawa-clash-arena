@@ -1,75 +1,39 @@
-import { Card } from "@/components/ui/card";
-import { Trophy, Medal, Award, Crown } from "lucide-react";
+import { motion } from "framer-motion";
+import SectionIntro from "@/components/portfolio/SectionIntro";
 
-const achievements = [
-  {
-    title: "4th Place",
-    event: "GGtoor x Haneki Cup Season 1",
-    icon: Trophy,
-    rank: "4th",
-    color: "text-clash-blue",
-  },
-  {
-    title: "Champion",
-    event: "Amazon University Esports Masters S4 Germany",
-    icon: Crown,
-    rank: "1st",
-    color: "text-clash-gold",
-  },
-  {
-    title: "CRL Monthly Finals",
-    event: "1x Top 2, 2x Top 3, 1x Top 4",
-    icon: Medal,
-    rank: "CRL 25 & 26",
-    color: "text-clash-silver",
-  },
-  {
-    title: "Copa América",
-    event: "Supremacy League 2025",
-    icon: Award,
-    rank: "Top 6",
-    color: "text-primary",
-  },
+// Result first, then the event - one line each, no icon tiles or repeated
+// rank pills.
+const results = [
+  { result: "Top 2, 3, 3 & 4", event: "CRL Monthly Finals", context: "Players I prepared · CRL 2025 & 2026" },
+  { result: "Top 6", event: "Supremacy League Copa América", context: "Selección Colombia · 2025" },
+  { result: "Champion", event: "Amazon University Esports Masters", context: "Season 4 · Germany" },
+  { result: "4th place", event: "GGtoor x Haneki Cup", context: "Season 1" },
 ];
 
-const AchievementsSection = () => {
-  return (
-    <section id="achievements" className="py-14 sm:py-20 px-5 sm:px-6 bg-muted/30">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 gradient-primary bg-clip-text text-transparent">
-            Achievements & Results
-          </h2>
-          <div className="w-24 h-1 gradient-accent mx-auto rounded-full"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {achievements.map((achievement, index) => (
-            <Card
-              key={index}
-              className="gradient-card shadow-card border-border/50 p-6 hover:shadow-glow transition-all duration-300 group"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`p-4 rounded-xl bg-secondary/50 ${achievement.color} group-hover:animate-glow`}>
-                  <achievement.icon className="w-8 h-8" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold text-foreground">{achievement.title}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold bg-secondary/50 ${achievement.color}`}>
-                      {achievement.rank}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground">{achievement.event}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
+const AchievementsSection = () => (
+  <section id="achievements" className="scroll-mt-14 px-5 py-20 sm:px-6 sm:py-28">
+    <div className="mx-auto max-w-7xl">
+      <SectionIntro eyebrow="Results" title="What the work has produced." />
+      <ol className="mt-12 border-t border-border/60">
+        {results.map((r, i) => (
+          <motion.li
+            key={r.event}
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+            className="grid gap-1 border-b border-border/60 py-6 sm:grid-cols-12 sm:items-baseline sm:gap-6"
+          >
+            <span className="text-3xl font-semibold tracking-tight text-clash-gold sm:col-span-4 sm:text-4xl">
+              {r.result}
+            </span>
+            <span className="text-lg font-medium text-foreground sm:col-span-5">{r.event}</span>
+            <span className="text-sm text-muted-foreground sm:col-span-3 sm:text-right">{r.context}</span>
+          </motion.li>
+        ))}
+      </ol>
+    </div>
+  </section>
+);
 
 export default AchievementsSection;

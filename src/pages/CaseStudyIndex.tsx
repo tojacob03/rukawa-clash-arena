@@ -36,7 +36,7 @@ const CaseStudyIndex = () => {
             Behind the systems
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Deeper writeups on the tooling and decisions behind the work - updated occasionally, not on a schedule.
+            Deeper writeups on the tooling and decisions behind the work – updated occasionally, not on a schedule.
           </p>
 
           <div className="mt-12 space-y-4">
@@ -100,7 +100,7 @@ const CaseStudyIndex = () => {
 
             {caseStudies.length === 0 && (
               <Card className="gradient-card border-border/50 p-8 text-center text-muted-foreground">
-                Nothing published here yet - check back soon.
+                Nothing published here yet – check back soon.
               </Card>
             )}
           </div>

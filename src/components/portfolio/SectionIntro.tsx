@@ -48,7 +48,7 @@ const SectionIntro = ({
           visible: { scaleX: 1, opacity: 1 },
         }}
         transition={{ duration: 0.55, ease: EASE }}
-        className={`mb-4 h-px w-20 origin-left bg-gradient-to-r from-clash-gold via-clash-gold to-clash-blue ${
+        className={`mb-4 h-px w-20 origin-left bg-clash-gold ${
           centered ? "mx-auto origin-center" : ""
         }`}
       />

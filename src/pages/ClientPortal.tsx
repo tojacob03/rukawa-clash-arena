@@ -435,7 +435,7 @@ const ClientPortal = () => {
               className="w-full" 
               onClick={handleResetPortalSession}
             >
-              Portal-Session zurücksetzen
+              Reset portal session
             </Button>
           </form>
         </CardContent>

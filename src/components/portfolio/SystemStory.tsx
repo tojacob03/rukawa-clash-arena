@@ -17,7 +17,7 @@ const STEPS = [
   {
     tag: "02 · Profile",
     title: "Habits per game slot",
-    body: "Decks and cards are split by Game 1, 2 and 3, filtered by mode and season - repeatable habits instead of one-off results.",
+    body: "Decks and cards are split by Game 1, 2 and 3, filtered by mode and season – repeatable habits instead of one-off results.",
   },
   {
     tag: "03 · Decision",
