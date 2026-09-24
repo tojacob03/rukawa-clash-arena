@@ -21,6 +21,8 @@ Portfolio and client platform of **Till Oscar Jacob ("Rukawa")**, a Clash Royale
 
 Featured case study: [From Battle Log to Set Decision](src/content/case-studies/player-analysis-tooling.md) — how up to 1,000 recent battles per player become slot-based tendencies (Game 1/2/3) and remaining-deck predictions.
 
+Data case study (German): [Wann Strom am günstigsten ist](src/content/case-studies/strompreis-kompass.md) — a year of German exchange electricity prices analysed in SQL; every number in it can be reproduced with [`docs/strompreis-kompass/analysis.sql`](docs/strompreis-kompass/analysis.sql).
+
 ## Architecture
 
 ```mermaid
@@ -35,11 +37,13 @@ flowchart LR
 - **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion, GSAP
 - **Backend:** Supabase (Postgres, Row Level Security, Edge Functions), both projects hosted in the EU (Frankfurt)
 - **Analysis pipeline:** separate private project — scheduled collection of battle logs, duel/set detection, deck hashing, meta aggregation, self-healing tracking
+- **Database schema:** versioned in [`supabase/migrations`](supabase/migrations). The 2026 migrations (privacy retention job, Strompreis-Kompass, Race Strategy Lab) carry the same version numbers as in the live database; readable one-file versions are in [`docs/strompreis-kompass/schema.sql`](docs/strompreis-kompass/schema.sql) and [`docs/race-strategy-lab/schema.sql`](docs/race-strategy-lab/schema.sql).
 
 ## Security & privacy decisions
 
 - Client data is only reachable through `SECURITY DEFINER` database functions (`*_secure`) with session tokens — no direct table access from the browser.
 - Portal logins and the contact form are rate-limited.
+- Personal data is deleted automatically after the retention periods stated in the privacy policy (daily `pg_cron` job, see [`20260923124846_privacy_retention_cleanup_job.sql`](supabase/migrations/20260923124846_privacy_retention_cleanup_job.sql)).
 - The key in `.env` is Supabase's **publishable (anon) key**, which is meant to be public; access control lives in RLS policies and the secure functions.
 - Fonts and map data are bundled with the site instead of loaded from third-party CDNs; the Cal.com scheduler only loads after a visitor clicks "Book a call".
 
@@ -56,6 +60,14 @@ git clone https://github.com/tojacob03/rukawa-clash-arena.git
 cd rukawa-clash-arena
 npm install
 npm run dev
+```
+
+Checks — the same three run in CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) on every push:
+
+```sh
+npm run lint
+npm run typecheck
+npm run build
 ```
 
 ## Contact
