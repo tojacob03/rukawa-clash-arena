@@ -84,7 +84,7 @@ export default function Start({ today }: { today: string }) {
           </div>
           <div className="field">
             <span className="fl">Trainings pro Woche (Ziel)</span>
-            <Seg<number> value={goal} onChange={setGoal} label="Wochenziel" options={[1, 2, 3, 4, 5].map((v) => ({ v, label: String(v) }))} />
+            <Seg value={goal} onChange={(v) => setGoal(v)} label="Wochenziel" options={[1, 2, 3, 4, 5].map((v) => ({ v, label: String(v) }))} />
           </div>
         </div>
         <p className="muted small">Das Wochenziel hält deine Flamme am Leben. Zwei Trainings sind ein guter Start, Pausen wegen Verletzung kannst du später markieren.</p>

@@ -28,5 +28,9 @@
   },
   "include": [
     "src"
+  ],
+  // Node test files (node:test) run outside the app build; see npm run test:arc.
+  "exclude": [
+    "src/**/*.test.ts"
   ]
 }

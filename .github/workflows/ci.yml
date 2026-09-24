@@ -45,3 +45,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # The development build runs Lovable's component tagger, which breaks on
+      # syntax the production build accepts (e.g. generic JSX like <Seg<T>>).
+      # Lovable's preview uses this build, so check it too.
+      - name: Build (development, as Lovable's preview)
+        run: npm run build:dev

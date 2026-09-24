@@ -39,7 +39,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         </label>
         <div className="field">
           <span className="fl">Trainings pro Woche (Ziel)</span>
-          <Seg<number> value={p.weeklyGoal} onChange={(v) => updateProfile({ weeklyGoal: v })} label="Wochenziel" options={[1, 2, 3, 4, 5].map((v) => ({ v, label: String(v) }))} />
+          <Seg value={p.weeklyGoal} onChange={(v) => updateProfile({ weeklyGoal: v })} label="Wochenziel" options={[1, 2, 3, 4, 5].map((v) => ({ v, label: String(v) }))} />
         </div>
         <div className="field">
           <span className="fl">Heilungsmodus</span>
