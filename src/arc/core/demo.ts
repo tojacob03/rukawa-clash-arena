@@ -5,6 +5,7 @@
 
 import type { ArcData, Attire, Belt, Control, QuestResult, Roll, Session, Size } from "./types.ts";
 import { TECH, baseOf } from "./techniques.ts";
+import { inventory } from "./items.ts";
 import { BELT_R, SIZE_R, clamp, compute, dayNum, expected, isoOf, partnerWeight, pickCards, questShape, weekOf } from "./model.ts";
 
 function mulberry32(seed: number) {
@@ -26,6 +27,9 @@ const KNOWN = [
   "s_armbar_g", "s_americana", "s_crosscollar", "s_triangle", "s_kimura", "s_rnc", "s_armbar_m",
   "d_mount", "d_side", "d_elbow",
 ];
+
+/** Self-assessment at the start: the scissor sweep already worked in rolls. */
+const CLAIMS: Record<string, number> = { g_scissor: 3, g_closed: 3 };
 
 const CURRICULUM: [string, string][] = [
   ["g_closed", "g_scissor"], ["g_dlr", "g_berimbolo"], ["g_berimbolo", "s_triangle"], ["p_kneecut", "p_pressure"],
@@ -67,12 +71,31 @@ export function buildDemo(todayIsoStr: string, seed = DEMO_SEED): ArcData {
   const monday0 = (weekOf(today) - 20) * 7 + 4;
   const data: ArcData = {
     v: 1,
-    profile: { name: "Demo-Kämpfer", belt: "blau", stripes: 2, startBelt: "blau", weeklyGoal: 2, createdAt: isoOf(monday0) },
-    onboarding: { date: isoOf(monday0), known: KNOWN },
+    profile: {
+      name: "Demo-Kämpfer",
+      belt: "blau",
+      stripes: 2,
+      startBelt: "blau",
+      startStripes: 1,
+      weeklyGoal: 2,
+      createdAt: isoOf(monday0),
+      countries: ["DE", "BR"],
+      birthYear: Number(todayIsoStr.slice(0, 4)) - 31,
+      weightKg: 78,
+      trainingSince: isoOf(monday0 - 800).slice(0, 7),
+      cls: "netzweber",
+    },
+    onboarding: { date: isoOf(monday0), known: KNOWN, claims: CLAIMS },
     sessions: [],
     pauses: [weekOf(monday0) + PAUSE_WEEK],
-    promotions: [],
+    promotions: [{ date: isoOf(monday0 + 7 * 13 + 2), belt: "blau", stripes: 2 }],
     ui: {},
+    character: {
+      look: { skin: 2, hair: 3, hairColor: 0, eyeColor: 0, face: 0, beard: 1 },
+      equipped: { patch1: "flag:DE", patch3: "flag:BR", talisman: "tl_omamori", head: "" },
+      mode: "gi",
+      seen: [],
+    },
     demo: true,
   };
   const cum: Record<string, number> = {};
@@ -151,5 +174,8 @@ export function buildDemo(todayIsoStr: string, seed = DEMO_SEED): ArcData {
       data.sessions.push(s);
     }
   }
+  // Everything found up to ten days ago has been looked at; newer loot shows as new.
+  const earlier = isoOf(today - 10);
+  data.character!.seen = [...inventory(data, compute(data, earlier)).keys()];
   return data;
 }

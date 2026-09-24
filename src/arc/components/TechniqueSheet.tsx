@@ -1,8 +1,9 @@
 import { AlertTriangle, Swords, X } from "lucide-react";
-import type { ArcState } from "../core/types.ts";
+import type { ArcState, ClassId } from "../core/types.ts";
 import { COMBOS, TECH, TECHS, branchName, sectorName } from "../core/techniques.ts";
 import { LEVELS, LEVEL_HINT, RINGS } from "../core/lore.ts";
 import { questShape } from "../core/model.ts";
+import { CLASS } from "../core/classes.ts";
 import { nf0, nf1, pct } from "../format.ts";
 import { KindBadge, LevelPill, Star } from "./ui.tsx";
 
@@ -11,12 +12,14 @@ interface Props {
   st: ArcState;
   cmp: { gi: ArcState; nogi: ArcState } | null;
   acceptedNode: string | null;
+  /** Chosen class, for the quest XP bonus. */
+  cls?: ClassId;
   onSelect: (id: string) => void;
   onAccept: (id: string) => void;
   onClose?: () => void;
 }
 
-export default function TechniqueSheet({ id, st, cmp, acceptedNode, onSelect, onAccept, onClose }: Props) {
+export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelect, onAccept, onClose }: Props) {
   const x = TECH[id];
   const n = st.nodes[id];
   const ring = RINGS[x.tier];
@@ -31,8 +34,10 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, onSelect, on
   }
   const unlocks = TECHS.filter((y) => y.pre.includes(id)).map((y) => y.id);
   const combos = COMBOS.filter(([a, b]) => a === id || b === id);
-  const q = questShape(x, n);
-  const req = nextReq(n);
+  const q = questShape(x, n, false, cls);
+  const claimed = n.claim > n.dataLevel;
+  const req = claimed ? claimReq(n) : reqFor(n.level + 1, n);
+  const clsDef = cls && cls !== "wandler" && CLASS[cls].match(x) ? CLASS[cls] : null;
   const split = cmp && cmp.gi.nodes[id].rawAtt >= 5 && cmp.nogi.nodes[id].rawAtt >= 5 ? { gi: cmp.gi.nodes[id], nogi: cmp.nogi.nodes[id] } : null;
 
   return (
@@ -45,6 +50,11 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, onSelect, on
         <span className="pills">
           {x.gi ? <span className="pill tag">Gi</span> : null}
           {x.nogi ? <span className="pill tag">No-Gi</span> : <span className="pill tag muted">nur Gi</span>}
+          {clsDef ? (
+            <span className="pill cls" style={{ ["--cc" as string]: clsDef.color }} title={clsDef.perk}>
+              {clsDef.name}
+            </span>
+          ) : null}
         </span>
       </div>
       <p className="muted small">{LEVEL_HINT[n.level]}</p>
@@ -65,7 +75,20 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, onSelect, on
         </div>
       </div>
 
-      {n.level < 5 ? (
+      {claimed ? (
+        <div className="next claim">
+          <p className="k">
+            Selbsteinschätzung: Stufe {n.claim} · {LEVELS[n.claim]}. Bewiesen ist Stufe {n.dataLevel}. Bestätige sie im Roll, dann gibt es die Stufen-XP:
+          </p>
+          <ul className="req">
+            {req.map((r) => (
+              <li key={r.t} className={r.ok ? "ok" : ""}>
+                {r.t}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : n.level < 5 ? (
         <div className="next">
           <p className="k">
             Für Stufe {n.level + 1} · {LEVELS[n.level + 1]}
@@ -204,20 +227,30 @@ function Chips({ label, ids, st, onSelect }: { label: string; ids: string[]; st:
   );
 }
 
-function nextReq(n: ArcState["nodes"][string]): { t: string; ok: boolean }[] {
-  switch (n.level) {
-    case 0:
-      return [{ t: "Einmal im Kurs sehen, drillen oder versuchen", ok: false }];
+type Node = ArcState["nodes"][string];
+
+/** What a self-assessed level still needs from the data. */
+function claimReq(n: Node) {
+  const out: { t: string; ok: boolean }[] = [];
+  for (let t = Math.max(3, n.dataLevel + 1); t <= n.claim; t++) out.push(...reqFor(t, n));
+  return out;
+}
+
+/** Requirements to reach the level `target` from the one below. */
+function reqFor(target: number, n: Node): { t: string; ok: boolean }[] {
+  switch (target) {
     case 1:
-      return [{ t: `Gesehen oder gedrillt: ${n.exp} von 3 (oder 5 Live-Versuche)`, ok: n.exp >= 3 }];
+      return [{ t: "Einmal im Kurs sehen, drillen oder versuchen", ok: false }];
     case 2:
-      return [{ t: `Live-Versuche: ${n.rawAtt} von 5`, ok: n.rawAtt >= 5 }];
+      return [{ t: `Gesehen oder gedrillt: ${n.exp} von 3 (oder 5 Live-Versuche)`, ok: n.exp >= 3 }];
     case 3:
+      return [{ t: `Live-Versuche: ${n.rawAtt} von 5`, ok: n.rawAtt >= 5 }];
+    case 4:
       return [
         { t: `Gewichtete Versuche: ${nf1.format(n.nw)} von 8`, ok: n.nw >= 8 },
         { t: `Untergrenze: ${pct(n.lbw)} von ${pct(n.b)}`, ok: n.lbw >= n.b },
       ];
-    case 4:
+    case 5:
       return [
         { t: `Gewichtete Versuche: ${nf1.format(n.nw)} von 25`, ok: n.nw >= 25 },
         { t: `Untergrenze: ${pct(n.lbw)} von ${pct(1.5 * n.b)}`, ok: n.lbw >= 1.5 * n.b },

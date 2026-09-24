@@ -9,6 +9,28 @@ export type Control = 0 | 0.5 | 1;
 export type QuestKind = "kata" | "jagd" | "stand" | "schmiede";
 export type SectorId = "guard" | "sub" | "ctrl" | "pass" | "stand" | "def";
 export type Tier = 0 | 1 | 2 | 3 | 4;
+export type ClassId = "netzweber" | "druckwalze" | "anker" | "schatten" | "jaeger" | "ferse" | "sturm" | "festung" | "wandler";
+export type Slot = "gi" | "top" | "bottom" | "head" | "extra" | "trait" | "talisman" | "aura" | "patch1" | "patch2" | "patch3";
+export type Rarity = "common" | "rare" | "epic" | "legendary";
+
+export interface Look {
+  skin: number;
+  hair: number;
+  hairColor: number;
+  eyeColor: number;
+  face: number;
+  beard: number;
+}
+
+export interface Character {
+  look: Look;
+  equipped: Partial<Record<Slot, string>>;
+  /** Which outfit the avatar shows. */
+  mode: Attire;
+  /** Item ids the player has already looked at (for the "neu" badge). */
+  seen: string[];
+}
+
 export type TechKind =
   | "position"
   | "sweep"
@@ -69,16 +91,27 @@ export interface Session {
   worked: string | null;
   stuck: string | null;
   createdAt: number;
+  /** XP from equipped talismans, fixed when the session was saved. */
+  bonus?: number;
 }
 
 export interface Profile {
   name: string;
   belt: Belt;
   stripes: number;
-  /** Belt at sign-up; the Ki rating starts from its value. */
+  /** Belt at sign-up; the Ki rating and the prologue start from it. */
   startBelt: Belt;
+  startStripes?: number;
   weeklyGoal: number;
   createdAt: string;
+  /** ISO 3166 codes (plus ENG, SCO), shown as patches. */
+  countries?: string[];
+  birthYear?: number;
+  weightKg?: number;
+  /** YYYY-MM */
+  trainingSince?: string;
+  /** Chosen play style. */
+  cls?: ClassId;
 }
 
 export interface Promotion {
@@ -97,7 +130,8 @@ export interface AcceptedQuest {
 export interface ArcData {
   v: 1;
   profile: Profile | null;
-  onboarding: { date: string; known: string[] } | null;
+  /** known: seen or drilled (level 2). claims: self-assessed 3 ("klappt im Roll") or 4 ("Stärke"). */
+  onboarding: { date: string; known: string[]; claims?: Record<string, number> } | null;
   sessions: Session[];
   /** Week numbers (see weekOf) in healing mode. */
   pauses: number[];
@@ -107,11 +141,17 @@ export interface ArcData {
     rerollDay?: string;
     todayAttire?: { day: string; attire: Attire };
   };
+  character?: Character;
   demo?: boolean;
 }
 
 export interface NodeState {
+  /** Shown level: the higher of data and self-assessment. */
   level: number;
+  /** Level proven by logged data. */
+  dataLevel: number;
+  /** Self-assessed level from onboarding (0, 3 or 4). */
+  claim: number;
   prog: number;
   M: number;
   K: number;
@@ -134,12 +174,14 @@ export interface NodeState {
 }
 
 export interface Attr {
+  /** True while unconfirmed self-assessments feed the tree value. */
+  claimed: boolean;
   baum: number;
   form: number | null;
   val: number;
 }
 
-export type ReasonKey = "prog" | "unc" | "rust" | "weak" | "taught" | "explore";
+export type ReasonKey = "prog" | "unc" | "rust" | "weak" | "taught" | "explore" | "prove";
 
 export interface QuestOffer {
   node: string;
@@ -162,6 +204,8 @@ export interface ArcState {
   nodes: Record<string, NodeState>;
   attrs: Record<SectorId, Attr>;
   xp: number;
+  /** XP from the time before the app (belt and stripes at the start). */
+  prologXp: number;
   lvl: number;
   lo: number;
   hi: number;
@@ -169,6 +213,8 @@ export interface ArcState {
   weekNow: number;
   weekGoal: number;
   paused: boolean;
+  /** Class the data points to. */
+  clsDetected: ClassId;
   cls: string;
   title: string;
   tokui: string[];

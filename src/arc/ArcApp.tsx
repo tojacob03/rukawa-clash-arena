@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Flame, Home, Map as MapIcon, Plus, UserRound } from "lucide-react";
+import { BookOpen, Flame, Home, Map as MapIcon, Plus, Settings, UserRound } from "lucide-react";
 import { APP_NAME, rankOf } from "./core/lore.ts";
 import { ki, nf0 } from "./format.ts";
 import { go, useArcData, useArcState, useRoute, useToday } from "./store.ts";
@@ -48,7 +48,7 @@ export default function ArcApp() {
     ) : route === "codex" ? (
       <Codex {...props} />
     ) : route === "held" ? (
-      <Held {...props} />
+      <Held {...props} arg={arg} />
     ) : route === "profil" ? (
       <Profil {...props} />
     ) : (
@@ -93,8 +93,8 @@ export default function ArcApp() {
             <Flame size={16} aria-hidden="true" />
             <b>{st.streak}</b>
           </span>
-          <button type="button" className="hud-me" onClick={() => go("profil")} aria-label="Profil">
-            <UserRound size={18} />
+          <button type="button" className="hud-me" onClick={() => go("profil")} aria-label="Profil und Einstellungen">
+            <Settings size={18} />
           </button>
         </div>
         {data.demo ? (

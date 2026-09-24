@@ -16,6 +16,7 @@ const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => stri
   weak: (_st, q) => (TECH[q.node].sector === "fund" ? "Fundament festigen" : `Deine schwächste Achse: ${sectorName(TECH[q.node])}`),
   taught: () => "Diese Woche im Kurs gezeigt",
   explore: () => "Ein neuer Stern am Rand deiner Karte",
+  prove: (st, q) => `Beweise deine Einschätzung: Stufe ${st.nodes[q.node].claim} · ${LEVELS[st.nodes[q.node].claim]}`,
 };
 
 export default function Today({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {

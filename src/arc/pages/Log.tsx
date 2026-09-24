@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { Check, Map as MapIcon, Minus, Plus, RotateCcw } from "lucide-react";
+import { Check, Gift, Map as MapIcon, Minus, Plus, RotateCcw } from "lucide-react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, Control, Format, QuestKind, Roll, Session, Size } from "../core/types.ts";
+import type { ItemDef } from "../core/items.ts";
+import { RARITY, SLOTS, inventory, itemById, perkText, talismanBonus } from "../core/items.ts";
 import { SECTORS, TECH, TECHS } from "../core/techniques.ts";
 import { LEVELS, QUEST, SEALS, STUCK, rankOf } from "../core/lore.ts";
 import { compute, diff, pickCards, xpParts } from "../core/model.ts";
@@ -8,9 +10,11 @@ import type { Diff } from "../core/model.ts";
 import { BELTS, nf0, signed } from "../format.ts";
 import { deleteSession, saveSession } from "../actions.ts";
 import { go, uid } from "../store.ts";
+import { useGear } from "../useGear.ts";
 import { questTask, successLabel } from "../questText.ts";
 import { KindBadge, SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import Burst from "../components/Burst.tsx";
+import ItemIcon from "../components/ItemIcon.tsx";
 import type { BurstEvent } from "../components/Burst.tsx";
 
 interface Draft {
@@ -66,31 +70,45 @@ function toSession(d: Draft, today: string, id: string): Session {
   };
 }
 
+/** Talisman XP is fixed when the session is saved, so changing gear later does not rewrite history. */
+function withBonus(s: Session, talisman: ItemDef | undefined): Session {
+  const bonus = talismanBonus(talisman, s);
+  return bonus ? { ...s, bonus } : s;
+}
+
 export default function Log({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const [draft, setDraft] = useState<Draft>(() => initialDraft(data, st, today));
-  const [result, setResult] = useState<{ s: Session; D: Diff } | null>(null);
+  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[] } | null>(null);
+  const { gear, owned } = useGear(data, st);
+  const belt = data.profile?.belt ?? "weiss";
+  const talisman = gear.talisman;
   const [burst, setBurst] = useState<BurstEvent[]>([]);
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const setRoll = (i: number, patch: Partial<Roll>) => setDraft((d) => ({ ...d, rolls: d.rolls.map((r, j) => (j === i ? { ...r, ...patch } : r)) }));
   const setQuest = (patch: Partial<NonNullable<Draft["quest"]>>) => setDraft((d) => (d.quest ? { ...d, quest: { ...d.quest, ...patch } } : d));
 
   const preview = useMemo(() => {
-    const s = toSession(draft, today, "preview");
+    const s = withBonus(toSession(draft, today, "preview"), talisman);
     const B = compute({ ...data, sessions: [...data.sessions, s] }, today);
     return { s, D: diff(st, B) };
-  }, [draft, data, st, today]);
+  }, [draft, data, st, today, talisman]);
 
   const eta = 6 + 4 * draft.rolls.length + (draft.quest ? 5 : 0) + (draft.taught ? 2 : 0) + (draft.worked || draft.stuck ? 6 : 0);
   const cards = pickCards(st.offers, { attire: draft.attire });
   const questOptions = [...new Map([...(draft.quest ? [draft.quest] : []), ...cards].map((q) => [q.node, q])).values()];
 
   const save = () => {
-    const s = toSession(draft, today, uid());
-    const after = compute({ ...data, sessions: [...data.sessions, s] }, today);
+    const s = withBonus(toSession(draft, today, uid()), talisman);
+    const next = { ...data, sessions: [...data.sessions, s] };
+    const after = compute(next, today);
     const D = diff(st, after);
+    const loot = [...inventory(next, after).keys()]
+      .filter((id) => !owned.has(id))
+      .map((id) => itemById(id, next, after))
+      .filter((x): x is ItemDef => !!x);
     saveSession(s);
-    setResult({ s, D });
-    setBurst(burstsFor(D, after));
+    setResult({ s, D, loot });
+    setBurst([...burstsFor(D, after), ...lootBursts(loot)]);
     window.scrollTo({ top: 0 });
   };
 
@@ -99,12 +117,17 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
       <div className="page log">
         {burst.length ? <Burst ev={burst[0]} onClose={() => setBurst((b) => b.slice(1))} /> : null}
         <SecTitle kanji="記録" eyebrow="Gespeichert" title="Training eingetragen" />
-        <ResultPanel s={result.s} D={result.D} saved />
+        <ResultPanel s={result.s} D={result.D} saved loot={result.loot} belt={belt} />
         <div className="row wrap">
           <button type="button" className="btn primary" onClick={() => go("karte", result.D.levels[0]?.id ?? result.D.mastery[0]?.id)}>
             <MapIcon size={16} aria-hidden="true" />
             <span>Auf der Karte ansehen</span>
           </button>
+          {result.loot.length ? (
+            <button type="button" className="btn ghost" onClick={() => go("held", "ausruestung")}>
+              <Gift size={16} aria-hidden="true" /> <span>Beute ausrüsten</span>
+            </button>
+          ) : null}
           <button type="button" className="btn ghost" onClick={() => go("heute")}>
             Fertig
           </button>
@@ -291,6 +314,11 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
           <div className="savebar">
             <span className="eta">
               Eingabezeit etwa <b>{eta} s</b>
+              {talisman?.perk ? (
+                <small>
+                  Talisman {talisman.name}: {perkText(talisman.perk)}
+                </small>
+              ) : null}
             </span>
             <button type="submit" className="btn primary big">
               <Check size={18} aria-hidden="true" />
@@ -332,9 +360,10 @@ function TechSelect({ id, value, onChange, empty, attire }: { id: string; value:
   );
 }
 
-function ResultPanel({ s, D, saved }: { s: Session; D: Diff; saved?: boolean }) {
+function ResultPanel({ s, D, saved, loot, belt }: { s: Session; D: Diff; saved?: boolean; loot?: ItemDef[]; belt?: BeltId }) {
   const parts = xpParts(s, D);
   const ups = D.levels.filter((l) => l.to > l.from);
+  const proven = D.dataLevels.filter((l) => l.to > l.from && !ups.some((u) => u.id === l.id));
   return (
     <div className={`result${saved ? " saved" : ""}`}>
       <div className="result-burst" aria-hidden="true" />
@@ -362,6 +391,14 @@ function ResultPanel({ s, D, saved }: { s: Session; D: Diff; saved?: boolean }) 
             · Stufe {l.from} → {l.to} {LEVELS[l.to]}
           </li>
         ))}
+        {proven.map((l) => (
+          <li key={l.id} className="up">
+            <button type="button" className="linkish strong" onClick={() => go("karte", l.id)}>
+              {TECH[l.id].name}
+            </button>{" "}
+            · {D.confirmed.includes(l.id) ? `Einschätzung bestätigt, Stufe ${l.to}` : `Stufe ${l.to} im Roll bewiesen`}
+          </li>
+        ))}
         {D.mastery
           .filter((m) => !ups.some((l) => l.id === m.id))
           .map((m) => (
@@ -376,6 +413,24 @@ function ResultPanel({ s, D, saved }: { s: Session; D: Diff; saved?: boolean }) 
           </li>
         ))}
       </ul>
+      {loot?.length ? (
+        <div className="loot">
+          <p className="k">Beute</p>
+          <ul>
+            {loot.map((x) => (
+              <li key={x.id} className={`item r-${x.rarity}`} style={{ ["--rc" as string]: RARITY[x.rarity].color }}>
+                <ItemIcon item={x} belt={belt ?? "weiss"} size={44} />
+                <span>
+                  <b>{x.name}</b>
+                  <small>
+                    {RARITY[x.rarity].name} · {slotName(x)}
+                  </small>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <div className="adelta">
         {SECTORS.map((sc) => {
           const d = D.attrs[sc.id];
@@ -389,6 +444,27 @@ function ResultPanel({ s, D, saved }: { s: Session; D: Diff; saved?: boolean }) 
       </div>
     </div>
   );
+}
+
+function slotName(x: ItemDef) {
+  return x.slot === "patch" ? "Aufnäher" : SLOTS.find((s) => s.id === x.slot)?.name ?? x.slot;
+}
+
+function lootBursts(loot: ItemDef[]): BurstEvent[] {
+  const drops = loot.filter((x) => x.src.t === "drop");
+  const earned = loot.filter((x) => x.src.t !== "drop");
+  const out: BurstEvent[] = [];
+  if (drops.length) {
+    const best = drops.find((x) => x.rarity === "legendary") ?? drops.find((x) => x.rarity === "epic") ?? drops[0];
+    out.push({
+      kicker: `Beute · ${RARITY[best.rarity].name}`,
+      title: drops.map((x) => x.name).join(" · "),
+      lines: drops.map((x) => x.desc),
+      tone: best.rarity === "legendary" || best.rarity === "epic" ? "gold" : "ai",
+    });
+  }
+  if (earned.length) out.push({ kicker: "Freigeschaltet", title: earned.map((x) => x.name).join(" · "), lines: earned.map((x) => x.desc), tone: "gold" });
+  return out;
 }
 
 function burstsFor(D: Diff, after: ArcState): BurstEvent[] {
