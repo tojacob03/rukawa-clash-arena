@@ -25,6 +25,67 @@ const GYMS: Gym[] = [
   { name: "038 Fightclub", city: "Prishtina", country: "Kosovo" },
 ];
 
+// [longitude, latitude] per city, for the globe. A city missing here simply
+// isn't pinned; its gyms still get their stamp.
+const CITY_COORDS: Record<string, [number, number]> = {
+  Oldenburg: [8.2146, 53.1435],
+  Bremen: [8.8017, 53.0793],
+  Düsseldorf: [6.7735, 51.2277],
+  Rhodes: [28.2176, 36.4341],
+  Venice: [12.3155, 45.4408],
+  Warsaw: [21.0122, 52.2297],
+  Tirana: [19.8187, 41.3275],
+  Vienna: [16.3738, 48.2082],
+  Prishtina: [21.1655, 42.6629],
+};
+
+export type MatPhoto = { src: string; gym: string; alt: string };
+
+const PHOTOS: Record<string, MatPhoto[]> = {
+  Prishtina: [
+    {
+      src: "/off-the-clock/038-fightclub.webp",
+      gym: "038 Fightclub",
+      alt: "Empty red mats at 038 Fight Club in Prishtina, a Kosovo flag and the club banner on the wall",
+    },
+    {
+      src: "/off-the-clock/bjj-prishtina.webp",
+      gym: "BJJ Prishtina",
+      alt: "The empty BJJ Prishtina hall with blue and red puzzle mats and trophies along the back wall",
+    },
+  ],
+};
+
+export type MatStop = {
+  city: string;
+  country: string;
+  coords: [number, number];
+  gyms: string[];
+  home?: boolean;
+  photos?: MatPhoto[];
+};
+
+// One stop per city, home first, in the order the gyms are listed above.
+export const MAT_STOPS: MatStop[] = GYMS.reduce<MatStop[]>((stops, gym) => {
+  const coords = gym.city ? CITY_COORDS[gym.city] : undefined;
+  if (!gym.city || !gym.country || !coords) return stops;
+  const stop = stops.find((s) => s.city === gym.city);
+  if (stop) {
+    stop.gyms.push(gym.name);
+    stop.home ||= gym.home;
+  } else {
+    stops.push({
+      city: gym.city,
+      country: gym.country,
+      coords,
+      gyms: [gym.name],
+      home: gym.home,
+      photos: PHOTOS[gym.city],
+    });
+  }
+  return stops;
+}, []);
+
 export const BJJ = {
   since: "August 2023",
   belt: "White belt",

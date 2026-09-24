@@ -1,10 +1,13 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import SiteNav from "@/components/portfolio/SiteNav";
 import Footer from "@/components/portfolio/Footer";
 import FragranceChapter from "@/components/offTheClock/FragranceChapter";
+import MatAtlas from "@/components/offTheClock/MatAtlas";
+import CoffeeJourney from "@/components/offTheClock/CoffeeJourney";
+import Book3D from "@/components/offTheClock/Book3D";
 import { BJJ, COFFEE, READING } from "@/data/offTheClock";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -34,62 +37,6 @@ const Fact = ({ value, label }: { value: string; label: string }) => (
   <div className="flex flex-col">
     <dt className="mt-1 text-sm text-muted-foreground">{label}</dt>
     <dd className="order-first text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{value}</dd>
-  </div>
-);
-
-const MatPassport = () => {
-  const reduceMotion = useReducedMotion();
-  const countries = new Set(BJJ.gyms.map((g) => g.country).filter(Boolean));
-  const incomplete = BJJ.gyms.some((g) => !g.country);
-
-  return (
-    <div className="mt-12">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 className="text-lg font-semibold text-foreground">Mat passport</h3>
-        <p className="text-sm text-muted-foreground" style={{ fontVariantNumeric: "tabular-nums" }}>
-          {BJJ.gyms.length} gyms in {countries.size}
-          {incomplete ? "+" : ""} countries, mostly open mats on the road
-        </p>
-      </div>
-      <ul className="mt-5 flex flex-wrap gap-3">
-        {BJJ.gyms.map((gym, i) => (
-          <motion.li
-            key={gym.name}
-            initial={reduceMotion ? false : { opacity: 0, scale: 1.3, rotate: 0 }}
-            whileInView={{ opacity: 1, scale: 1, rotate: reduceMotion ? 0 : ((i * 37) % 7) - 3 }}
-            viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.35, delay: reduceMotion ? 0 : i * 0.05, ease: [0.3, 1.4, 0.5, 1] }}
-            className={`rounded-lg border-2 border-dashed px-4 py-2 ${
-              gym.home ? "border-clash-gold/80" : "border-muted-foreground/35"
-            }`}
-          >
-            <span className={`block text-sm font-medium ${gym.home ? "text-clash-gold" : "text-foreground"}`}>
-              {gym.name}
-            </span>
-            {(gym.city || gym.home) && (
-              <span className="block text-xs text-muted-foreground">
-                {gym.home ? `Home gym, ${gym.city}` : `${gym.city}, ${gym.country}`}
-              </span>
-            )}
-          </motion.li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-const BookCover = () => (
-  <div
-    className="relative flex aspect-[2/3] w-36 shrink-0 flex-col justify-between overflow-hidden rounded-r-md rounded-l-sm p-4 shadow-card sm:w-44"
-    style={{
-      background: "linear-gradient(90deg, rgba(0,0,0,0.35) 0, rgba(0,0,0,0) 9%), #23392f",
-      fontFamily: "Georgia, 'Times New Roman', serif",
-    }}
-    aria-hidden="true"
-  >
-    <span className="text-[10px] tracking-[0.2em] text-[#e9dcb8]/70">{READING.author.toUpperCase()}</span>
-    <span className="text-lg leading-tight text-[#f3e9cc] sm:text-xl">{READING.title}</span>
-    <span className="h-px w-8 bg-[#e9dcb8]/50" />
   </div>
 );
 
@@ -158,7 +105,7 @@ const OffTheClock = () => {
             <p className="mt-1 text-sm text-muted-foreground">Changes about as often as the meta.</p>
           </div>
 
-          <MatPassport />
+          <MatAtlas />
         </Chapter>
 
         <Chapter index="02" label="Coffee">
@@ -186,11 +133,12 @@ const OffTheClock = () => {
               </div>
             </dl>
           </div>
+          <CoffeeJourney />
         </Chapter>
 
         <Chapter index="03" label="Reading">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-10">
-            <BookCover />
+            <Book3D title={READING.title} author={READING.author} year={READING.year} />
             <div>
               <h2 className="text-4xl font-semibold leading-[1.02] tracking-tight text-foreground sm:text-5xl">
                 {READING.title}
