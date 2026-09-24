@@ -38,7 +38,8 @@ export const WORLDS = {
   // China Standard Time
   start: new Date("2026-11-06T00:00:00+08:00"),
   end: new Date("2026-11-09T00:00:00+08:00"),
-  qualified: 2,
+  // Everyone I prepare this season qualified.
+  qualified: "Morten & Viiper",
   // After the event, e.g. "Viiper: Top 8 · Morten: Top 16"
   result: null as string | null,
   // Optional link to a recap case study, e.g. "/work/road-to-worlds-2026"

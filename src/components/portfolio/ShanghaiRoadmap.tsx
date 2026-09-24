@@ -66,8 +66,7 @@ const StatusCard = () => {
       </div>
       <h3 className="text-xl font-semibold text-foreground sm:text-2xl">{WORLDS.name}</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        <span className="font-medium text-clash-gold">{WORLDS.city}</span> · {WORLDS.dates} · {WORLDS.qualified}{" "}
-        players qualified
+        <span className="font-medium text-clash-gold">{WORLDS.city}</span> · {WORLDS.dates} · {WORLDS.qualified} qualified
       </p>
       <div className="mt-5">
         {phase === "upcoming" && <Countdown />}
@@ -112,7 +111,7 @@ const MilestoneList = ({ reached }: { reached: number }) => (
       <p className="label-caps text-clash-gold">November 2026</p>
       <p className="mt-1 text-sm text-muted-foreground">{WORLDS.name}</p>
       <p className="mt-1 text-base font-semibold text-foreground">
-        {WORLDS.city} · {WORLDS.qualified} players qualified
+        {WORLDS.city} · {WORLDS.qualified} qualified
       </p>
     </li>
   </ol>
@@ -173,7 +172,7 @@ const ShanghaiRoadmap = () => {
     <SectionIntro
       eyebrow="Road to Worlds"
       title="From Monthly Finals to the biggest stage."
-      description={`I started preparing Morten and Viiper in May 2026. ${WORLDS.qualified} of the players I prepare qualified for the World Finals in Shanghai.`}
+      description={"I started preparing Morten and Viiper in May 2026. Both qualified for the World Finals in Shanghai."}
     />
   );
 
