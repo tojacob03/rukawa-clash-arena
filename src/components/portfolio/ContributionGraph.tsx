@@ -16,6 +16,8 @@ interface ContributionPayload {
 type UntypedRpc = (fn: string) => Promise<{ data: unknown; error: { message: string } | null }>;
 
 const WEEKS = 26;
+// Leading weeks without any activity are trimmed, but never below this.
+const MIN_WEEKS = 12;
 
 const useContributions = () =>
   useQuery({
@@ -50,14 +52,19 @@ const ContributionGraph = () => {
       while (col.length < 7) col.push(null);
       columns.push(col);
     }
+    // Start at the first active week, so the graph opens with the work
+    // rather than with empty months.
+    const firstActive = columns.findIndex((col) => col.some((d) => d && d[1] > 0));
+    if (firstActive > 0) columns.splice(0, Math.min(firstActive, columns.length - MIN_WEEKS));
+    const shown = columns.flat().filter((d): d is [string, number] => d !== null);
     // Colour steps from the spread of active days, so a few huge days don't
     // flatten everything else into the lowest shade.
-    const active = slice.map((d) => d[1]).filter((c) => c > 0).sort((a, b) => a - b);
+    const active = shown.map((d) => d[1]).filter((c) => c > 0).sort((a, b) => a - b);
     const q = (p: number) => active[Math.min(active.length - 1, Math.floor(p * active.length))] ?? 1;
     const steps = [q(0.25), q(0.5), q(0.75)];
-    const total = slice.reduce((n, d) => n + d[1], 0);
+    const total = shown.reduce((n, d) => n + d[1], 0);
     const activeDays = active.length;
-    return { columns, steps, total, activeDays };
+    return { columns, steps, total, activeDays, since: shown[0][0] };
   }, [data]);
 
   if (!view) return null;
@@ -84,7 +91,7 @@ const ContributionGraph = () => {
         style={{ gridTemplateColumns: `repeat(${view.columns.length}, minmax(0, 1fr))` }}
         onMouseLeave={() => setHover(null)}
         role="img"
-        aria-label={`${view.total} GitHub contributions on ${view.activeDays} days in the last ${WEEKS} weeks`}
+        aria-label={`${view.total} GitHub contributions on ${view.activeDays} days since ${fmtDay(view.since)}`}
       >
         {view.columns.map((col, x) => (
           <div key={x} className="grid gap-[3px]">
@@ -111,7 +118,7 @@ const ContributionGraph = () => {
       <p className="mt-3 h-4 text-xs text-muted-foreground" aria-live="polite">
         {hover
           ? `${hover[1]} contribution${hover[1] === 1 ? "" : "s"} on ${fmtDay(hover[0])}`
-          : `${view.total.toLocaleString("en-US")} contributions on ${view.activeDays} days in the last ${WEEKS} weeks`}
+          : `${view.total.toLocaleString("en-US")} contributions on ${view.activeDays} days since ${fmtDay(view.since)}`}
       </p>
     </div>
   );
