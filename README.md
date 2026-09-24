@@ -10,7 +10,7 @@ Portfolio and client platform of **Till Oscar Jacob ("Rukawa")**, a Clash Royale
 
 | Area | What it does |
 |---|---|
-| **Portfolio** (`/`) | Method, current engagements, results, team history, contact |
+| **Portfolio** (`/`) | Kinetic-typography hero with live pipeline numbers, scroll-driven walkthrough of the analysis system, approach, projects with real-data previews, experience, contact |
 | **Case studies** (`/work`, `/work/:slug`) | Written as Markdown in `src/content/case-studies/`, rendered in the app |
 | **Live stats** | Pulls aggregated, public numbers from my separate analysis pipeline (private repo) |
 | **Client portal** (`/portal`) | Players see their deck sets, teams see opponent analyses — access via personal login code |
