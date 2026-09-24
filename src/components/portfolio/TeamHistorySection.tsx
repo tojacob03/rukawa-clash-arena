@@ -156,7 +156,7 @@ const TeamHistorySection = () => {
   return (
     <>
       {/* MOBILE LAYOUT */}
-      <section id="experience-mobile" className="scroll-mt-20 py-14 sm:py-20 px-5 sm:px-6 md:hidden">
+      <section id="experience-mobile" className="scroll-mt-14 py-14 sm:py-20 px-5 sm:px-6 md:hidden">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10 sm:mb-16">
             <SectionHeader />
@@ -182,7 +182,7 @@ const TeamHistorySection = () => {
       <section
         id="experience"
         ref={sectionRef}
-        className="scroll-mt-20 relative h-screen overflow-hidden hidden md:block"
+        className="scroll-mt-0 relative h-screen overflow-hidden hidden md:block"
       >
         <div className="absolute inset-x-0 top-14 z-10 px-6 text-center pointer-events-none">
           <SectionHeader />

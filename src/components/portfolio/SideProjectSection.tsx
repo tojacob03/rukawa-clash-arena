@@ -104,7 +104,7 @@ const projects = [
 
 const SideProjectSection = () => {
   return (
-    <section id="projects" className="scroll-mt-20 px-5 py-14 sm:px-6 sm:py-20">
+    <section id="projects" className="scroll-mt-14 px-5 py-14 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <SectionIntro
           eyebrow="Beyond esports"

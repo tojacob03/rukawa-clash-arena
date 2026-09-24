@@ -180,7 +180,7 @@ const SystemStory = () => {
   });
 
   return (
-    <section id="work" className="scroll-mt-20 bg-muted/20">
+    <section id="work" className="scroll-mt-14 bg-muted/20 lg:scroll-mt-0">
       {/* Desktop: sticky scroll story */}
       <div ref={ref} className="relative hidden h-[300vh] lg:block">
         <div className="sticky top-0 flex h-screen items-center">
