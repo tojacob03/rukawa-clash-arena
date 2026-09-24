@@ -40,9 +40,10 @@ export const BJJ = {
 export const COFFEE = {
   method: "Espresso",
   bean: "Jamaican Blue Mountain",
+  origin: "Jamaica",
   roaster: "Fa-Kafë",
-  from: "Prishtina",
-  note: "Brought back from a trip.",
+  from: "Prishtina, Kosovo",
+  note: "Jamaican beans, roasted locally by Fa-Kafë in Prishtina and brought back from a trip.",
 };
 
 export const READING = {
