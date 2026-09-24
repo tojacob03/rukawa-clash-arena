@@ -1,0 +1,1333 @@
+<title>Tatami Arc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0d1221; --bg2:#121a2e; --panel:#161f38; --panel2:#1c2744; --line:#27325a; --line2:#36436f;
+  --text:#ede5d1; --muted:#a3aac4; --faint:#6c7599;
+  --ai:#5d8ee6; --ai-deep:#26457f; --gold:#e6b65f; --gold-deep:#6e5226; --rust:#cf7646; --rust-deep:#5a3523;
+  --good:#8fc98b; --bad:#e58168;
+  --belt-weiss:#f0ede4; --belt-blau:#2f64cc; --belt-lila:#7d4fbb; --belt-braun:#7c5334; --belt-schwarz:#0b0b0d;
+  --f-d:"Dela Gothic One","Hiragino Kaku Gothic StdN","Arial Black",sans-serif;
+  --f-b:"Zen Kaku Gothic New","Hiragino Sans","Segoe UI",system-ui,sans-serif;
+  --f-n:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --f-m:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f-b);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+b{font-weight:700}
+
+/* HUD */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:rgba(13,18,33,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hud-in{max-width:1240px;margin:0 auto;padding:10px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 28px}
+.brand{font-family:var(--f-d);font-size:21px;line-height:1;white-space:nowrap}
+.brand span{color:var(--gold)}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.who svg{flex:none}
+.who .cls{font-family:var(--f-n);font-weight:600;font-size:14px;letter-spacing:.04em;line-height:1.2}
+.who .ttl{font-size:12.5px;color:var(--muted);line-height:1.3}
+.stats{display:flex;flex-wrap:wrap;gap:8px 26px;margin-left:auto}
+.stat{display:grid;gap:3px;align-content:start}
+.stat .k{font-family:var(--f-n);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--f-n);font-weight:600;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
+.xpbar{width:130px;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;background:var(--gold);transition:width .7s ease}
+@media (max-width:719px){.hud{position:static}.stats{margin-left:0;width:100%;gap:8px 20px}}
+
+/* Intro + sections */
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px}
+.intro{padding-block:34px 0;display:grid;gap:10px}
+.tag{margin:0;font-family:var(--f-n);font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.intro h1{margin:0;font-family:var(--f-d);font-weight:400;font-size:clamp(36px,6.4vw,66px);line-height:1;letter-spacing:.01em}
+.intro p.sub{margin:0;max-width:64ch;color:var(--muted);font-size:16.5px}
+.sec{padding-block:50px 6px}
+.sec-head{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:16px;align-items:center;margin-bottom:20px}
+.kanji{grid-row:1 / span 3;font-family:var(--f-d);font-size:52px;line-height:1;color:var(--gold)}
+.eyebrow{margin:0;font-family:var(--f-n);font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.sec h2{margin:2px 0 0;font-family:var(--f-d);font-weight:400;font-size:clamp(26px,3.6vw,36px);line-height:1.1;text-wrap:balance}
+.lede{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+@media (max-width:560px){.kanji{font-size:38px}}
+
+/* Map */
+.map-grid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(290px,1fr);gap:20px;align-items:start}
+@media (max-width:920px){.map-grid{grid-template-columns:minmax(0,1fr)}}
+.map-box{background:radial-gradient(circle at 50% 50%,#1b2751 0%,#111a33 50%,#0c1120 100%);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.map-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 10px 0}
+.tool{font-family:var(--f-n);font-size:12px;font-weight:600;letter-spacing:.05em;padding:6px 10px;border-radius:999px;border:1px solid var(--line2);background:rgba(255,255,255,.02);color:var(--muted);cursor:pointer}
+.tool:hover{color:var(--text);border-color:var(--muted)}
+.tool[aria-pressed="true"]{color:var(--text);border-color:var(--gold)}
+.tool.zoom{width:32px;padding:6px 0;text-align:center}
+.tools-sp{flex:1}
+#map{display:block;width:100%;height:auto;aspect-ratio:1/1;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+#map.zoomed{touch-action:none;cursor:grab}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 14px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{width:20px;height:20px;overflow:visible}
+.hint{margin:0;padding:0 14px 12px;font-size:12.5px;color:var(--faint)}
+
+.wedge{fill:#9fb4ff;fill-opacity:.018}
+.wedge.alt{fill-opacity:.04}
+.spoke{stroke:var(--line);stroke-width:1}
+.ring{fill:none;stroke:#34406a;stroke-width:1;stroke-dasharray:1.5 6}
+.ringlbl{fill:var(--faint);font-family:var(--f-n);font-size:11px;letter-spacing:.14em}
+.hexshadow{fill:var(--gold);fill-opacity:.07;stroke:var(--gold);stroke-opacity:.42;stroke-width:1.4;stroke-linejoin:round}
+.edge{stroke:#34406a;stroke-width:1.2}
+.edge.lit{stroke:var(--text);stroke-opacity:.42}
+.edge.hot{stroke:var(--gold);stroke-opacity:.75;stroke-width:1.8}
+.combo{fill:none;stroke:var(--ai);stroke-opacity:.16;stroke-width:1.2;stroke-dasharray:3 5}
+.combo.lit{stroke-opacity:.8;stroke-width:1.6}
+.seclbl{fill:var(--muted);font-family:var(--f-d);letter-spacing:.08em;cursor:pointer}
+.seclbl:hover{fill:var(--text)}
+.lbl{fill:var(--muted);font-family:var(--f-b);font-weight:500;pointer-events:none}
+.lbl.hi{fill:var(--text)}
+.lbl.on{fill:var(--gold);font-weight:700}
+.node{cursor:pointer;outline:none}
+.hit{fill:transparent}
+.n-core{stroke-width:1.6}
+.node.lv0 .n-core{fill:var(--bg);stroke:var(--faint);stroke-dasharray:2 3}
+.node.lv1 .n-core{fill:var(--bg2);stroke:var(--muted)}
+.node.lv2 .n-core{fill:var(--bg2);stroke:var(--text)}
+.node.lv2.prov .n-core{stroke-dasharray:3 2.2}
+.node.lv3 .n-core{fill:var(--ai-deep);stroke:var(--ai)}
+.node.lv4 .n-core{fill:var(--ai);stroke:var(--text)}
+.node.lv5 .n-core{fill:var(--gold);stroke:#fff1cf}
+.node.rust .n-core{fill:var(--rust-deep);stroke:var(--rust)}
+.node.fog .n-core{fill:var(--faint);stroke:none;opacity:.55}
+.n-prog{fill:none;stroke:var(--ai);stroke-width:2.2;stroke-linecap:round;opacity:.9}
+.node.lv4 .n-prog{stroke:var(--gold)}
+.node.rust .n-prog{stroke:var(--rust)}
+.aura{fill:none;stroke:var(--gold);stroke-width:1.2;stroke-opacity:.45;animation:aura 3.4s ease-in-out infinite}
+.n-sel{fill:none;stroke:var(--gold);stroke-width:1.6;display:none}
+.node.sel .n-sel,.node:focus-visible .n-sel{display:inline}
+.node.pulse .n-core{animation:pulse 1.1s ease-out 3;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.8)}100%{transform:scale(1)}}
+@keyframes aura{0%,100%{stroke-opacity:.18}50%{stroke-opacity:.75}}
+
+/* Detail */
+.detail{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 20px;display:grid;gap:14px}
+@media (min-width:921px){.detail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px)}}
+.detail h3{margin:0;font-family:var(--f-d);font-weight:400;font-size:26px;line-height:1.15;text-wrap:balance}
+.detail p{margin:0}
+.muted{color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-family:var(--f-n);font-size:12px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:999px;border:1px solid var(--line2);color:var(--text)}
+.pill.l3{border-color:var(--ai)}
+.pill.l4{background:var(--ai-deep);border-color:var(--ai)}
+.pill.l5{background:var(--gold);color:#221803;border-color:var(--gold)}
+.pill.rust{border-color:var(--rust);color:var(--rust)}
+.pill.prov{border-style:dashed;color:var(--muted)}
+.meter{display:grid;gap:6px}
+.mtop{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}
+.mtop b{font-family:var(--f-n);font-size:24px;color:var(--text);font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ai),var(--gold))}
+.next .k,.rel .k{font-size:12px;color:var(--muted);margin:0}
+.req{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px;font-size:14px}
+.req li::before{content:"";display:inline-block;width:9px;height:9px;border:1.5px solid var(--muted);border-radius:50%;margin-right:8px;vertical-align:1px}
+.req li.ok{color:var(--muted)}
+.req li.ok::before{background:var(--good);border-color:var(--good)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:0;padding-top:12px;border-top:1px solid var(--line)}
+.kv div{display:grid;gap:1px}
+.kv dt{font-size:11.5px;color:var(--muted)}
+.kv dd{margin:0;font-family:var(--f-n);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.kv dd small{font-family:var(--f-b);font-weight:400;font-size:11.5px;color:var(--faint);margin-left:4px}
+.rel{display:grid;gap:6px}
+.nchips{display:flex;flex-wrap:wrap;gap:6px}
+.nchip{font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid var(--line2);background:var(--bg2);cursor:pointer;line-height:1.35}
+.nchip:hover{border-color:var(--muted)}
+.nchip.c-on{border-color:var(--ai)}
+.nchip[disabled]{opacity:.5;cursor:default}
+.nchip small{color:var(--faint);margin-left:4px;font-family:var(--f-n)}
+
+/* Heute */
+.today-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.today-bar p{margin:0;color:var(--muted)}
+.quests{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:14px}
+.qcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.qcard.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qkind{font-family:var(--f-n);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:4px;background:var(--ai-deep)}
+.qkind.k-drill{background:#2c3a5e}
+.qkind.k-rust{background:var(--rust-deep);color:#f3c3a4}
+.qkind.k-survive{background:#3d2c5c}
+.qsec{font-size:12px;color:var(--muted)}
+.qcard h3{margin:2px 0 0;font-size:18px;font-weight:700;line-height:1.3}
+.qcard p{margin:0;font-size:14px;color:var(--muted)}
+.qcard p.why{color:var(--text);font-size:13px}
+.qcard p.why::before{content:"◆ ";color:var(--gold);font-size:10px}
+.qfoot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px}
+.qxp{font-family:var(--f-n);font-weight:700;color:var(--gold)}
+.boss{margin-top:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px 22px;align-items:center;background:linear-gradient(120deg,#271b36,#161f38 65%);border:1px solid #43335e;border-radius:12px;padding:18px}
+@media (max-width:720px){.boss{grid-template-columns:minmax(0,1fr)}}
+.boss h3{margin:4px 0 0;font-family:var(--f-d);font-weight:400;font-size:30px;line-height:1.1}
+.boss p{margin:0}
+.boss .pos{color:var(--muted)}
+.hp{display:flex;gap:4px;margin:0 0 8px}
+.hp i{flex:1;height:12px;border-radius:2px;background:#3a2f4d}
+.hp i.on{background:var(--bad)}
+.hpk{display:flex;justify-content:space-between;font-family:var(--f-n);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+/* Buttons */
+.btn{font-family:var(--f-n);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12.5px;padding:9px 14px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--text);cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--gold);color:#1d1606;border-color:var(--gold)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.on{border-color:var(--gold);color:var(--gold)}
+.btn[disabled]{opacity:.45;cursor:default}
+.linkish{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px;cursor:pointer;font-size:13px;text-align:left}
+.linkish:hover{color:var(--text)}
+
+/* Log */
+.log-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr);gap:20px;align-items:start}
+@media (max-width:920px){.log-grid{grid-template-columns:minmax(0,1fr)}}
+.form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:20px}
+.step{display:grid;gap:8px}
+.step-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.step-h h3{margin:0;font-size:15.5px;font-weight:700}
+.step-h h3 span{font-family:var(--f-n);color:var(--gold);margin-right:8px}
+.step-h .t{font-family:var(--f-n);font-size:12px;color:var(--faint);white-space:nowrap}
+.step p.note{margin:0;font-size:13px;color:var(--faint)}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;flex-wrap:nowrap}
+.seg button{border:0;background:transparent;padding:6px 10px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line2)}
+.seg button[aria-pressed="true"]{background:var(--ai-deep);color:var(--text)}
+select{font:inherit;font-size:14px;color:var(--text);background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;max-width:100%}
+.rolls{display:grid}
+.roll{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 16px;padding:10px 0;border-top:1px solid var(--line)}
+.rnum{font-family:var(--f-n);font-weight:600;font-size:13px;color:var(--muted);width:48px;align-self:center}
+.field{display:grid;gap:4px}
+.fl{font-size:11px;color:var(--faint)}
+.belts{display:flex;gap:7px;align-items:center;height:30px}
+.beltbtn{width:30px;height:13px;padding:0;border-radius:2px;border:1px solid rgba(255,255,255,.25);background:linear-gradient(90deg,var(--bc) 0 62%,var(--bar,#111) 62% 86%,var(--bc) 86%);cursor:pointer}
+.beltbtn[aria-pressed="true"]{outline:2px solid var(--gold);outline-offset:3px}
+.mini{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:8px;height:30px}
+.mini button{width:28px;height:28px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px;line-height:1}
+.mini button:hover{color:var(--text)}
+.mini span{min-width:18px;text-align:center;font-family:var(--f-n);font-weight:600;font-variant-numeric:tabular-nums}
+.mini.big{height:40px}
+.mini.big button{width:38px;height:38px;font-size:20px}
+.mini.big span{min-width:30px;font-size:20px}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:13px;padding:5px 10px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--gold);color:var(--text);background:rgba(230,182,95,.1)}
+.qbox{display:grid;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--gold-deep);background:rgba(230,182,95,.05)}
+.qbox .qn{font-weight:700}
+.check{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.check input{width:18px;height:18px;accent-color:var(--gold)}
+.savebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
+.eta{font-family:var(--f-n);font-size:14px;color:var(--muted)}
+.eta b{color:var(--gold);font-size:18px}
+.result{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px}
+@media (min-width:921px){.result{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px)}}
+.result .eyebrow.saved{color:var(--good)}
+.xpgain{font-family:var(--f-d);font-size:50px;line-height:1;color:var(--gold)}
+.xpgain span{font-size:20px;margin-left:4px}
+.parts{list-style:none;margin:0;padding:0;display:grid;font-size:13.5px}
+.parts li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-block:4px;color:var(--muted)}
+.parts b{font-family:var(--f-n);color:var(--text);font-variant-numeric:tabular-nums}
+.deltas{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:14px}
+.deltas li.up::before{content:"▲ ";color:var(--good);font-size:11px}
+.deltas li.down::before{content:"▼ ";color:var(--bad);font-size:11px}
+.deltas .linkish{font-size:14px;color:var(--text)}
+.adelta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px;font-size:13px;color:var(--muted)}
+.adelta b{font-family:var(--f-n);font-variant-numeric:tabular-nums;display:block}
+.pos{color:var(--good)}
+.neg{color:var(--bad)}
+
+/* Charakter */
+.char-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:start}
+@media (max-width:860px){.char-grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.hex{width:100%;height:auto;display:block}
+.hx-ring{fill:none;stroke:var(--line2);stroke-width:1}
+.hx-ring.outer{stroke:var(--faint)}
+.hx-ringlbl{fill:var(--faint);font-family:var(--f-n);font-size:10.5px;letter-spacing:.06em}
+.hx-axis{stroke:var(--line);stroke-width:1}
+.hx-prev{fill:none;stroke:var(--muted);stroke-width:1.4;stroke-dasharray:4 4}
+.hx-now{fill:var(--gold);fill-opacity:.18;stroke:var(--gold);stroke-width:2;stroke-linejoin:round}
+.hx-dot{fill:var(--gold)}
+.hx-name{fill:var(--muted);font-family:var(--f-b);font-size:13px}
+.hx-val{fill:var(--text);font-family:var(--f-n);font-weight:600;font-size:16px}
+.hexkey{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);padding:4px 6px 0}
+.hexkey span{display:inline-flex;align-items:center;gap:6px}
+.hexkey i{display:inline-block;width:18px;height:0;border-top:2px solid var(--gold)}
+.hexkey i.p{border-top:2px dashed var(--muted)}
+.char-side{display:grid;gap:18px}
+.prof{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.prof{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.prof div{display:grid;gap:2px}
+.prof .k{font-size:11.5px;color:var(--muted)}
+.prof .v{font-family:var(--f-d);font-size:19px;line-height:1.2}
+.tbl{overflow-x:auto}
+table.attr{width:100%;border-collapse:collapse;font-size:14px}
+.attr th{font-family:var(--f-n);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line2)}
+.attr th:first-child,.attr td:first-child{text-align:left}
+.attr td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-family:var(--f-n)}
+.attr td:first-child{font-family:var(--f-b)}
+.spark{width:100%;height:auto;display:block}
+.sp-line{fill:none;stroke:var(--ai);stroke-width:2;stroke-linejoin:round}
+.sp-end{fill:var(--gold)}
+.sp-txt{fill:var(--muted);font-family:var(--f-n);font-size:11px}
+.sp-val{fill:var(--gold);font-family:var(--f-n);font-weight:700;font-size:13px}
+.sp-grid{stroke:var(--line);stroke-dasharray:2 4}
+.h4{margin:0 0 6px;font-size:14px;font-weight:700}
+.small{font-size:13px;color:var(--muted);margin:6px 0 0}
+
+/* Rechenweg */
+.math{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px}
+.mcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start}
+.mcard h3{margin:0;font-size:16px}
+.mcard p{margin:0;font-size:14px;color:var(--muted)}
+.formula{margin:0;font-family:var(--f-m);font-size:12.5px;line-height:1.65;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre;color:var(--text)}
+footer{max-width:1240px;margin:40px auto 0;padding:22px 20px 40px;border-top:1px solid var(--line);color:var(--faint);font-size:13px}
+footer p{margin:0;max-width:80ch}
+
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<header class="hud" aria-label="Charakter">
+  <div class="hud-in">
+    <div class="brand">Tatami <span>Arc</span></div>
+    <div class="who">
+      <svg id="hudBelt" width="92" height="16" viewBox="0 0 92 16" aria-hidden="true"></svg>
+      <div><div class="cls" id="hudClass"></div><div class="ttl" id="hudTitle"></div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="k">Level</span><span class="v" id="hudLvl"></span><div class="xpbar"><i id="hudXpFill"></i></div></div>
+      <div class="stat"><span class="k">Kampfkraft</span><span class="v" id="hudPow"></span></div>
+      <div class="stat"><span class="k">Wochenserie</span><span class="v" id="hudStreak"></span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="intro">
+    <p class="tag">Prototyp · simulierte Beispieldaten: 20 Wochen eines Blaugurts</p>
+    <h1>Tatami Arc</h1>
+    <p class="sub">Dein BJJ-Training als Anime-RPG. Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit: deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus und zeigt ihn als Sternkarte.</p>
+  </div>
+
+  <section class="sec" id="karte" aria-labelledby="h-karte">
+    <div class="sec-head">
+      <span class="kanji" aria-hidden="true">技</span>
+      <p class="eyebrow">Skilltree · waza</p>
+      <h2 id="h-karte">Sternkarte</h2>
+      <p class="lede" id="mapLede"></p>
+    </div>
+    <div class="map-grid">
+      <div class="map-box">
+        <div class="map-tools" id="mapTools"></div>
+        <svg id="map" viewBox="-560 -560 1120 1120" role="group" aria-label="Sternkarte der Techniken"></svg>
+        <p class="hint">Stern antippen für Details. Sektorname oder Knopf oben zoomt hinein, im Zoom lässt sich die Karte ziehen.</p>
+        <div class="legend" id="legend"></div>
+      </div>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <section class="sec" id="heute" aria-labelledby="h-heute">
+    <div class="sec-head">
+      <span class="kanji" aria-hidden="true">今日</span>
+      <p class="eyebrow">Donnerstag, 24. September</p>
+      <h2 id="h-heute">Tagesquest</h2>
+      <p class="lede">Drei Karten zur Wahl, eine nimmst du mit auf die Matte. Die Quest ist gleichzeitig das Messinstrument: Was du zählst, wird zur Evidenz für den Stern.</p>
+    </div>
+    <div class="today-bar">
+      <p id="todayInfo"></p>
+      <button class="btn" type="button" id="reroll">Neu ziehen · 1× pro Tag</button>
+    </div>
+    <div class="quests" id="quests"></div>
+    <div class="boss" id="boss"></div>
+  </section>
+
+  <section class="sec" id="log" aria-labelledby="h-log">
+    <div class="sec-head">
+      <span class="kanji" aria-hidden="true">記録</span>
+      <p class="eyebrow">Nach dem Training</p>
+      <h2 id="h-log">Training loggen</h2>
+      <p class="lede">Standardwerte sind vorausgefüllt, du tippst nur, was abweicht. Die Vorschau rechnet live mit, was das Training bewegt.</p>
+    </div>
+    <div class="log-grid">
+      <form class="form" id="logForm" autocomplete="off">
+        <div class="step">
+          <div class="step-h"><h3><span>1</span>Check-in</h3><span class="t">1 Tipp</span></div>
+          <div class="row">
+            <div class="seg" id="logType" role="group" aria-label="Trainingsart"></div>
+            <div class="field"><label class="fl" for="taught">Heute im Kurs</label><select id="taught"></select></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-h"><h3><span>2</span>Roll-Karten</h3><span class="t">≈ 4 s pro Roll</span></div>
+          <p class="note">Gürtel und Größe des Partners, Subs in beide Richtungen, wer den Roll kontrolliert hat.</p>
+          <div class="rolls" id="rolls"></div>
+          <div class="row"><button class="btn" type="button" data-act="addRoll">+ Roll</button><button class="btn" type="button" data-act="delRoll">− Roll</button></div>
+        </div>
+        <div class="step">
+          <div class="step-h"><h3><span>3</span>Quest-Zähler</h3><span class="t">im Training mitgezählt</span></div>
+          <div class="qbox" id="qbox"></div>
+        </div>
+        <div class="step">
+          <div class="step-h"><h3><span>4</span>Notiz <span style="color:var(--faint);font-family:var(--f-b);font-weight:400">optional, +15 XP</span></h3><span class="t">2 Tipps</span></div>
+          <div class="row">
+            <div class="field"><label class="fl" for="worked">Hat funktioniert</label><select id="worked"></select></div>
+          </div>
+          <div class="field"><span class="fl">Festgehangen in</span><div class="chips" id="stuckChips"></div></div>
+        </div>
+        <div class="savebar">
+          <span class="eta" id="eta"></span>
+          <div class="row">
+            <button class="btn" type="button" id="undo" hidden>Letztes Training entfernen</button>
+            <button class="btn primary" type="submit" id="save">Training speichern</button>
+          </div>
+        </div>
+      </form>
+      <aside class="result" id="result" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <section class="sec" id="charakter" aria-labelledby="h-char">
+    <div class="sec-head">
+      <span class="kanji" aria-hidden="true">力</span>
+      <p class="eyebrow">Charakterbogen</p>
+      <h2 id="h-char">Hexagon und Kampfkraft</h2>
+      <p class="lede">Die sechs Achsen sind die sechs Sektoren der Sternkarte. Das Hexagon ist der Schatten deines Baums, ergänzt um deine Form der letzten acht Wochen.</p>
+    </div>
+    <div class="char-grid">
+      <div class="panel">
+        <div id="hex"></div>
+        <div class="hexkey"><span><i></i>jetzt</span><span><i class="p"></i>vor 8 Wochen</span><span>Ringe: Richtwerte pro Gürtel</span></div>
+      </div>
+      <div class="char-side">
+        <div class="prof" id="prof"></div>
+        <div class="tbl">
+          <table class="attr">
+            <thead><tr><th>Achse</th><th>Baum</th><th>Form</th><th>Wert</th><th>Δ 8 Wo.</th></tr></thead>
+            <tbody id="attrBody"></tbody>
+          </table>
+        </div>
+        <div>
+          <p class="h4">Kampfkraft über die Zeit</p>
+          <div id="spark"></div>
+          <p class="small">Elo-Rating aus allen Roll-Karten, mal 10. Startwert ist das Gürtel-Rating. Nicht öffentlich, kein Ranking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="rechenweg" aria-labelledby="h-math">
+    <div class="sec-head">
+      <span class="kanji" aria-hidden="true">理</span>
+      <p class="eyebrow">Rechenweg</p>
+      <h2 id="h-math">So wird Fortschritt zur Zahl</h2>
+      <p class="lede">Alle Startwerte sind Annahmen und werden nach dem Pilot mit echten Daten kalibriert. Die Zahlen zu jedem Stern stehen im Detailfeld der Sternkarte.</p>
+    </div>
+    <div class="math">
+      <div class="mcard"><h3>Partnerstärke</h3><p>Jeder Roll bekommt ein Gewicht. Ein Treffer gegen einen gleich starken Partner zählt 1, gegen einen deutlich stärkeren bis zu 2, gegen einen deutlich schwächeren 0,5.</p>
+<pre class="formula">Rating  Weiß 1000 · Blau 1150 · Lila 1300
+        Braun 1420 · Schwarz 1520
+Größe   leichter −60 · ähnlich 0 · schwerer +60
+
+E = 1 / (1 + 10^((R_Partner − R_du) / 400))
+w = 0,5 / E        begrenzt auf 0,5 … 2</pre></div>
+      <div class="mcard"><h3>Kampfkraft</h3><p>Ein Elo-Rating über alle Rolls. Kontrolle zählt mit, damit auch Rolls ohne Submission etwas aussagen.</p>
+<pre class="formula">S = 0,5 + 0,2·(Subs ich − Subs Partner)
+        + 0,3·(Kontrolle − 0,5)     (0 … 1)
+Kontrolle: Partner 0 · gleich 0,5 · ich 1
+
+R_du ← R_du + 12 · (S − E)
+Kampfkraft = R_du × 10</pre></div>
+      <div class="mcard"><h3>Meisterung einer Technik</h3><p>Die Trefferquote wird als Beta-Verteilung geschätzt. Entscheidend ist die Untergrenze: 3 aus 3 ist noch keine Meisterschaft.</p>
+<pre class="formula">n = Σ w · Versuche · Frische   (Halbwertszeit 120 T.)
+s = Σ w · Treffer  · Frische
+Beta(4b + s, 4(1−b) + n − s)    b = Basisquote
+UG = μ − 0,84·σ                 (80 % sicher)
+
+A = min(1, UG / 1,5b) · n / (n + 5)
+K = 1 − e^(−E/2,5)      E = Kurs/Drill, HWZ 60 T.
+M = 100 · (0,25·K + 0,75·A) · Frische
+Frische: ab Tag 45 ohne Training sinkend, min. 0,5</pre></div>
+      <div class="mcard"><h3>Stufen und Rost</h3><p>Stufen sind feste Schwellen, damit jeder Aufstieg erklärbar ist. Pausen senken keine Stufe, sie lassen den Stern nur rosten.</p>
+<pre class="formula">1 Gesehen       1× im Kurs oder gedrillt
+2 Gedrillt      3× gesehen oder gedrillt
+3 Versucht      5 Live-Versuche
+4 Funktioniert  ≥ 8 gew. Versuche, UG ≥ b
+5 Signature     ≥ 25 gew. Versuche, UG ≥ 1,5b,
+                3 Treffer gegen Stärkere
+Rost            Stufe ≥ 3, 60 Tage nicht trainiert
+Basisquote b    Sweep 30 · Pass 25 · Takedown 25
+                Kontrolle 40 · Sub 18 · Escape 30 %</pre></div>
+      <div class="mcard"><h3>Attribute</h3><p>Baum heißt, was du kannst: Breite und Tiefe im Sektor. Form heißt, was du gerade zeigst: die letzten acht Wochen.</p>
+<pre class="formula">Achse = 0,65 · Baum + 0,35 · Form
+Baum  = Σ Ring-Gewicht · M / Σ Ring-Gewicht
+        Ring 1…4: ×1 · ×1,5 · ×2 · ×2,5
+Form  Submission   gewichtete Subs pro Roll
+      Verteidigung Taps pro Roll, durch w geteilt
+      Kontrolle    Kontrolle minus Erwartung
+      Guard, Passing, Stand: Quest-Quoten</pre></div>
+      <div class="mcard"><h3>XP und Level</h3><p>XP messen Aufwand und sinken nie. Deshalb gibt es sie für Dranbleiben, Quests und Reflexion, nicht für Siege.</p>
+<pre class="formula">Training 40 · je Roll 5 · Notiz 15
+Quest 30 … 80 · je Treffer 5 (max. 50)
+Wochenziel (2 Trainings) 100
+Stufe 3 / 4 / 5 erreicht: 75 / 100 / 125
+Level L ab 40 · (L − 1)² XP</pre></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Tatami Arc ist ein Konzept-Prototyp. Alle Werte stammen aus einer Simulation: ein Blaugurt mit zwei Streifen, 20 Wochen, eine Verletzungspause in Woche 12. Gespeicherte Beispieltrainings gelten nur bis zum Neuladen der Seite.</p>
+</footer>
+
+<script>
+(()=>{
+"use strict";
+const $=(s,r=document)=>r.querySelector(s);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
+const decay=(age,h)=>Math.pow(2,-Math.max(0,age)/h);
+const DAY=864e5;
+const day=s=>Math.round(Date.parse(s+'T12:00:00Z')/DAY);
+const fmtDate=d=>new Date(d*DAY+DAY/2).toLocaleDateString('de-DE',{day:'numeric',month:'short'});
+const nf0=new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
+const nf1=new Intl.NumberFormat('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1});
+const pct=x=>nf0.format(x*100)+' %';
+const sign0=x=>{const r=Math.round(x);return (r>0?'+':r<0?'−':'±')+nf0.format(Math.abs(r));};
+const sign1=x=>(x>0.05?'+':x<-0.05?'−':'±')+nf1.format(Math.abs(x));
+const RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const TODAY=day('2026-09-24');
+const MON0=day('2026-05-04');
+const weekOf=d=>Math.floor((d-MON0)/7);
+const K_ELO=12, K0=4, Z=0.84, GOAL=2;
+
+const BELTS=[{id:'weiss',name:'Weiß',r:1000},{id:'blau',name:'Blau',r:1150},{id:'lila',name:'Lila',r:1300},{id:'braun',name:'Braun',r:1420},{id:'schwarz',name:'Schwarz',r:1520}];
+const BELT_R=Object.fromEntries(BELTS.map(b=>[b.id,b.r]));
+const SIZES=[{id:'leichter',name:'leichter',r:-60},{id:'aehnlich',name:'gleich',r:0},{id:'schwerer',name:'schwerer',r:60}];
+const SIZE_R=Object.fromEntries(SIZES.map(s=>[s.id,s.r]));
+const CTRL=[{v:0,name:'Partner'},{v:0.5,name:'gleich'},{v:1,name:'ich'}];
+const TYPES=[{id:'gi',name:'Gi'},{id:'nogi',name:'No-Gi'},{id:'open',name:'Open Mat'}];
+const LEVELS=['Unbekannt','Gesehen','Gedrillt','Versucht','Funktioniert','Signature'];
+const TIERS=['Fundament','Basis','Kern','Aufbau','Meisterschaft'];
+const TIER_R=[88,176,268,360,448];
+const TIER_W=[0,1,1.5,2,2.5];
+const SPREAD=[0,22,15,12,11];
+const BENCH=[['Blau',25],['Lila',45],['Braun',65],['Schwarz',85]];
+
+const SECTORS=[
+  {id:'guard',name:'Guard',b:.30,cls:'Guard-Weber'},
+  {id:'sub',name:'Submission',b:.18,cls:'Jäger'},
+  {id:'ctrl',name:'Kontrolle',b:.40,cls:'Anker'},
+  {id:'pass',name:'Passing',b:.25,cls:'Druckwalze'},
+  {id:'stand',name:'Stand',b:.25,cls:'Ringer'},
+  {id:'def',name:'Verteidigung',b:.30,cls:'Festung'},
+];
+SECTORS.forEach((s,i)=>{s.ang=-90+60*i;});
+const SEC=Object.fromEntries(SECTORS.map(s=>[s.id,s]));
+
+const F=(id,name,dir,lbl)=>({id,name,sector:'fund',dir,tier:0,pre:[],lbl});
+const N=(id,sector,tier,name,pre,lbl)=>({id,sector,tier,name,pre,lbl});
+const NODES=[
+  F('f_shrimp','Hüftflucht (Shrimp)','guard','Hüftflucht'),
+  F('f_grips','Griffkampf','sub'),
+  F('f_base','Base & Gewicht','ctrl','Base &\nGewicht'),
+  F('f_posture','Haltung','pass'),
+  F('f_breakfall','Fallschule','stand'),
+  F('f_bridge','Brücke (Upa)','def','Brücke'),
+  N('g_closed','guard',1,'Closed Guard',['f_shrimp'],'Closed\nGuard'),
+  N('g_retention','guard',1,'Guard Retention',['f_shrimp'],'Guard\nRetention'),
+  N('g_scissor','guard',2,'Scissor Sweep',['g_closed'],'Scissor\nSweep'),
+  N('g_hipbump','guard',2,'Hip Bump Sweep',['g_closed'],'Hip Bump'),
+  N('g_butterfly','guard',2,'Butterfly Guard',['g_retention'],'Butterfly'),
+  N('g_half','guard',2,'Half Guard unten',['g_retention'],'Half\nGuard'),
+  N('g_flower','guard',3,'Flower Sweep',['g_scissor'],'Flower\nSweep'),
+  N('g_bfsweep','guard',3,'Butterfly Sweep',['g_butterfly'],'Butterfly\nSweep'),
+  N('g_dlr','guard',3,'De La Riva',['g_butterfly'],'De La\nRiva'),
+  N('g_oldschool','guard',3,'Old School Sweep',['g_half'],'Old\nSchool'),
+  N('g_xguard','guard',4,'X-Guard',['g_bfsweep']),
+  N('g_berimbolo','guard',4,'Berimbolo',['g_dlr']),
+  N('s_armbar_g','sub',1,'Armbar aus der Guard',['f_grips'],'Armbar\n(Guard)'),
+  N('s_americana','sub',1,'Americana',['f_grips']),
+  N('s_crosscollar','sub',1,'Cross Collar Choke',['f_grips'],'Cross\nCollar'),
+  N('s_triangle','sub',2,'Triangle',['s_armbar_g']),
+  N('s_kimura','sub',2,'Kimura',['s_americana']),
+  N('s_armbar_m','sub',2,'Armbar aus dem Mount',['s_americana'],'Armbar\n(Mount)'),
+  N('s_rnc','sub',2,'Rear Naked Choke',['s_crosscollar'],'Rear\nNaked'),
+  N('s_omoplata','sub',3,'Omoplata',['s_triangle']),
+  N('s_ankle','sub',3,'Straight Ankle Lock',['s_armbar_m'],'Ankle\nLock'),
+  N('s_guillotine','sub',3,'Guillotine',['s_rnc']),
+  N('s_bowarrow','sub',3,'Bow & Arrow',['s_rnc'],'Bow &\nArrow'),
+  N('s_heelhook','sub',4,'Heel Hook',['s_ankle'],'Heel\nHook'),
+  N('s_darce','sub',4,"D'Arce",['s_guillotine']),
+  N('c_side','ctrl',1,'Side Control',['f_base'],'Side\nControl'),
+  N('c_mount','ctrl',1,'Mount',['f_base']),
+  N('c_kob','ctrl',2,'Knee on Belly',['c_side'],'Knee on\nBelly'),
+  N('c_ns','ctrl',2,'North-South',['c_side'],'North-\nSouth'),
+  N('c_mountkeep','ctrl',2,'Mount halten',['c_mount'],'Mount\nhalten'),
+  N('c_back','ctrl',2,'Back Take',['c_mount'],'Back\nTake'),
+  N('c_flow','ctrl',3,'Positionswechsel',['c_kob'],'Positions-\nwechsel'),
+  N('c_smount','ctrl',3,'S-Mount',['c_mountkeep']),
+  N('c_seatbelt','ctrl',3,'Seatbelt & Hooks',['c_back'],'Seatbelt'),
+  N('c_crucifix','ctrl',4,'Crucifix',['c_flow']),
+  N('c_bodytri','ctrl',4,'Body Triangle',['c_seatbelt'],'Body\nTriangle'),
+  N('p_open','pass',1,'Closed Guard öffnen',['f_posture'],'Guard\nöffnen'),
+  N('p_pressure','pass',1,'Druck & Gewicht',['f_posture'],'Druck'),
+  N('p_toreando','pass',2,'Toreando',['p_open']),
+  N('p_kneecut','pass',2,'Knee Cut',['p_pressure'],'Knee\nCut'),
+  N('p_overunder','pass',2,'Over-Under',['p_pressure'],'Over-\nUnder'),
+  N('p_legdrag','pass',3,'Leg Drag',['p_toreando'],'Leg\nDrag'),
+  N('p_smash','pass',3,'Half Guard Smash',['p_kneecut'],'HG\nSmash'),
+  N('p_stack','pass',3,'Double-Under Stack',['p_overunder'],'Stack\nPass'),
+  N('p_longstep','pass',4,'Long Step',['p_smash'],'Long\nStep'),
+  N('p_bodylock','pass',4,'Body Lock Pass',['p_stack'],'Body\nLock'),
+  N('t_stance','stand',1,'Stand & Bewegung',['f_breakfall'],'Stand'),
+  N('t_pull','stand',1,'Guard Pull',['f_breakfall'],'Guard\nPull'),
+  N('t_double','stand',2,'Double Leg',['t_stance'],'Double\nLeg'),
+  N('t_single','stand',2,'Single Leg',['t_stance'],'Single\nLeg'),
+  N('t_sprawl','stand',2,'Sprawl',['t_stance']),
+  N('t_osoto','stand',3,'Osoto Gari',['t_single'],'Osoto\nGari'),
+  N('t_anklepick','stand',3,'Ankle Pick',['t_single'],'Ankle\nPick'),
+  N('t_snap','stand',3,'Snap Down',['t_sprawl'],'Snap\nDown'),
+  N('t_uchimata','stand',4,'Uchi Mata',['t_osoto'],'Uchi\nMata'),
+  N('t_armdrag','stand',4,'Arm Drag',['t_snap'],'Arm\nDrag'),
+  N('d_mount','def',1,'Mount Escape (Upa)',['f_bridge'],'Mount\nEscape'),
+  N('d_side','def',1,'Side Control Escape',['f_bridge'],'Side\nEscape'),
+  N('d_elbow','def',2,'Elbow-Knee Escape',['d_mount'],'Elbow-\nKnee'),
+  N('d_frames','def',2,'Frames & Distanz',['d_side'],'Frames'),
+  N('d_subdef','def',2,'Armbar-Verteidigung',['d_side'],'Armbar-\nAbwehr'),
+  N('d_back','def',3,'Back Escape',['d_elbow'],'Back\nEscape'),
+  N('d_turtle','def',3,'Turtle Recovery',['d_frames'],'Turtle'),
+  N('d_tridef','def',3,'Triangle-Verteidigung',['d_subdef'],'Triangle-\nAbwehr'),
+  N('d_granby','def',4,'Granby Roll',['d_turtle'],'Granby'),
+  N('d_legdef','def',4,'Leg-Lock-Verteidigung',['d_tridef'],'Leglock-\nAbwehr'),
+];
+const NODE=Object.fromEntries(NODES.map(n=>[n.id,n]));
+const COMBOS=[
+  ['t_pull','g_closed','Pull in die Closed Guard'],
+  ['g_closed','s_triangle','Closed Guard → Triangle'],
+  ['g_hipbump','s_kimura','Hip Bump → Kimura'],
+  ['g_scissor','c_mount','Sweep → Mount'],
+  ['c_mount','s_armbar_m','Mount → Armbar'],
+  ['c_back','s_rnc','Back Take → Rear Naked'],
+  ['c_seatbelt','s_bowarrow','Seatbelt → Bow & Arrow'],
+  ['p_kneecut','c_side','Knee Cut → Side Control'],
+  ['p_legdrag','c_back','Leg Drag → Rücken'],
+  ['t_double','p_pressure','Double Leg → Druck'],
+  ['t_snap','c_back','Snap Down → Rücken'],
+  ['d_elbow','g_half','Escape → Half Guard'],
+  ['d_frames','g_retention','Frames → Guard zurück'],
+];
+const NEIGH=Object.fromEntries(NODES.map(n=>[n.id,[]]));
+for(const n of NODES) for(const p of n.pre){NEIGH[n.id].push(p);NEIGH[p].push(n.id);}
+for(const [a,b] of COMBOS){NEIGH[a].push(b);NEIGH[b].push(a);}
+const baseOf=n=>n.sector==='fund'?0.5:SEC[n.sector].b;
+const secName=n=>n.sector==='fund'?'Fundament':SEC[n.sector].name;
+
+const EPITHET={s_triangle:'Die Dreiecksfalle',p_kneecut:'Die Knieklinge',g_scissor:'Die Schere',s_armbar_g:'Der Hebelmeister',s_rnc:'Die Würgeschlange',c_back:'Der Rucksack',g_closed:'Die Klammer',c_mount:'Der Berg',d_elbow:'Der Entfesselte',t_double:'Der Rammbock',s_kimura:'Die Kimura-Falle'};
+const STUCK={
+  sidebottom:{name:'Unter Side Control',boss:'Der Schraubstock',nodes:['d_side','d_frames','d_turtle']},
+  mountbottom:{name:'Unter Mount',boss:'Die Last',nodes:['d_mount','d_elbow']},
+  halfbottom:{name:'Half Guard unten',boss:'Das Nadelöhr',nodes:['g_half','g_oldschool']},
+  standing:{name:'Im Stand',boss:'Die Mauer',nodes:['t_single','t_double','t_sprawl']},
+  backlost:{name:'Rücken verloren',boss:'Der Schatten',nodes:['d_back']},
+  closedtop:{name:'In der Closed Guard oben',boss:'Die Falle',nodes:['p_open','p_toreando']},
+};
+const KIND={drill:'Drill',try:'Versuch',survive:'Überleben',rust:'Entrosten'};
+
+/* ---------- layout ---------- */
+const P=(r,a)=>[r*Math.cos(a*Math.PI/180),r*Math.sin(a*Math.PI/180)];
+for(const n of NODES){ if(n.sector==='fund'){[n.x,n.y]=P(TIER_R[0],SEC[n.dir].ang);} }
+for(const s of SECTORS) for(let t=1;t<=4;t++){
+  const list=NODES.filter(n=>n.sector===s.id&&n.tier===t), k=list.length;
+  list.forEach((n,j)=>{[n.x,n.y]=P(TIER_R[t],s.ang+(j-(k-1)/2)*SPREAD[t]);});
+}
+
+/* ---------- model ---------- */
+function post(b,n,s){const a=K0*b+s, bb=K0*(1-b)+Math.max(0,n-s); const mu=a/(a+bb); const sd=Math.sqrt(mu*(1-mu)/(a+bb+1)); return {mu,lb:Math.max(0,mu-Z*sd)};}
+
+function questShape(n,st,forceTry){
+  const kind=forceTry?(n.sector==='def'?'survive':'try'):st.level<=1?'drill':st.rust?'rust':n.sector==='def'?'survive':'try';
+  const xp={drill:30,try:30+10*st.level,survive:40+10*st.level,rust:60}[kind];
+  return {node:n.id,kind,xp};
+}
+
+function compute(H,asOf){
+  const sess=H.sessions.filter(s=>s.date<=asOf).sort((a,b)=>a.date-b.date||a.id-b.id);
+  const onb=H.onboarding.date;
+  let ru=BELT_R[H.belt];
+  const ruSeries=[{d:onb,r:ru}];
+  const der=sess.map(s=>{
+    const rolls=s.rolls.map(r=>{
+      const rp=BELT_R[r.belt]+SIZE_R[r.size];
+      const E=1/(1+Math.pow(10,(rp-ru)/400));
+      const w=clamp(0.5/E,0.5,2);
+      const S=clamp(0.5+0.2*(r.sf-r.sa)+0.3*(r.c-0.5),0,1);
+      ru+=K_ELO*(S-E);
+      return {E,w,S,sf:r.sf,sa:r.sa,c:r.c};
+    });
+    ruSeries.push({d:s.date,r:ru});
+    return {s,rolls,wbar:rolls.length?mean(rolls.map(x=>x.w)):1};
+  });
+  const ev={};
+  for(const n of NODES) ev[n.id]={exp:0,expOnb:0,KE:0,rawAtt:0,rawSucc:0,nw:0,sw:0,nd:0,sd:0,sStrong:0,last:null,lastAny:null};
+  if(onb<=asOf) for(const id of H.onboarding.known){const e=ev[id]; e.exp+=3; e.expOnb+=3; e.KE+=3*decay(asOf-onb,60); e.lastAny=onb;}
+  for(const {s,wbar} of der){
+    const age=asOf-s.date;
+    if(s.taught){const e=ev[s.taught]; e.exp++; e.KE+=decay(age,60); e.lastAny=s.date;}
+    const q=s.quest;
+    if(q){
+      const e=ev[q.node];
+      if(q.kind==='drill'){ if(q.done){e.exp++; e.KE+=1.5*decay(age,60); e.lastAny=s.date;} }
+      else if(q.att>0){
+        const d=decay(age,120);
+        e.exp++; e.KE+=decay(age,60); e.rawAtt+=q.att; e.rawSucc+=q.succ;
+        e.nw+=wbar*q.att; e.sw+=wbar*q.succ; e.nd+=wbar*q.att*d; e.sd+=wbar*q.succ*d;
+        if(wbar>=1.1) e.sStrong+=q.succ;
+        e.last=s.date; e.lastAny=s.date;
+      }
+    }
+    if(s.worked){const e=ev[s.worked]; const w=0.5*wbar, d=decay(age,120); e.nw+=w; e.sw+=w; e.nd+=w*d; e.sd+=w*d; e.last=Math.max(e.last==null?-1e9:e.last,s.date); e.lastAny=s.date;}
+  }
+  const nodes={};
+  for(const n of NODES){
+    const e=ev[n.id], b=baseOf(n);
+    const pw=post(b,e.nw,e.sw), pd=post(b,e.nd,e.sd);
+    const K=1-Math.exp(-e.KE/2.5);
+    const A=Math.min(1,pd.lb/(1.5*b))*e.nd/(e.nd+5);
+    const dLast=e.last==null?null:asOf-e.last;
+    const dAny=e.lastAny==null?null:asOf-e.lastAny;
+    const Rf=dAny==null||dAny<=45?1:Math.max(0.5,decay(dAny-45,60));
+    let level=0;
+    if(e.exp>0||e.nw>0) level=1;
+    if(level===1&&(e.exp>=3||e.rawAtt>=5)) level=2;
+    if(level===2&&e.rawAtt>=5) level=3;
+    if(level===3&&e.nw>=8&&pw.lb>=b) level=4;
+    if(level===4&&e.nw>=25&&pw.lb>=1.5*b&&e.sStrong>=3) level=5;
+    const rust=level>=3&&dAny!=null&&dAny>60;
+    const prov=level===2&&(e.exp-e.expOnb)<3&&e.rawAtt<5;
+    const prog=[0,Math.max(Math.min(1,e.exp/3),Math.min(1,e.rawAtt/5)),Math.min(1,e.rawAtt/5),
+      0.5*Math.min(1,e.nw/8)+0.5*Math.min(1,pw.lb/b),
+      (Math.min(1,e.nw/25)+Math.min(1,pw.lb/(1.5*b))+Math.min(1,e.sStrong/3))/3,1][level];
+    const M=100*(0.25*K+0.75*A)*Rf;
+    nodes[n.id]=Object.assign({},e,{b,K,A,Rf,M,level,rust,prov,prog,dLast,dAny,mu:pw.mu,lbw:pw.lb});
+  }
+  for(const n of NODES){const st=nodes[n.id]; st.fog=!(n.sector==='fund'||st.level>=1||NEIGH[n.id].some(id=>nodes[id].level>=1));}
+
+  const win=asOf-56;
+  const rec=der.filter(x=>x.s.date>win);
+  const rr=rec.flatMap(x=>x.rolls);
+  const attrs={};
+  for(const sct of SECTORS){
+    const ns=NODES.filter(n=>n.sector===sct.id);
+    const baum=ns.reduce((a,n)=>a+TIER_W[n.tier]*nodes[n.id].M,0)/ns.reduce((a,n)=>a+TIER_W[n.tier],0);
+    let form=null;
+    if(sct.id==='sub'&&rr.length) form=100*(1-Math.exp(-(rr.reduce((a,r)=>a+r.w*r.sf,0)/rr.length)/0.6));
+    else if(sct.id==='def'&&rr.length) form=100*Math.exp(-(rr.reduce((a,r)=>a+r.sa/r.w,0)/rr.length)/0.7);
+    else if(sct.id==='ctrl'&&rr.length) form=clamp(50+100*mean(rr.map(r=>r.c-r.E)),0,100);
+    else if(['guard','pass','stand'].includes(sct.id)){
+      let nn=0,ss=0;
+      for(const x of rec){const q=x.s.quest; if(q&&q.kind!=='drill'&&q.att>0&&NODE[q.node].sector===sct.id){nn+=x.wbar*q.att; ss+=x.wbar*q.succ;}}
+      if(nn>0){const p=post(sct.b,nn,ss); form=100*Math.min(1,p.lb/(1.5*sct.b))*nn/(nn+5);}
+    }
+    attrs[sct.id]={baum,form,val:form==null?baum:0.65*baum+0.35*form};
+  }
+
+  let xp=0; const wk=new Map();
+  for(const {s} of der){
+    let g=40+5*s.rolls.length;
+    const q=s.quest;
+    if(q&&(q.kind==='drill'?q.done:q.att>0)) g+=q.xp+Math.min(50,5*(q.succ||0));
+    if(s.worked||s.stuck) g+=15;
+    xp+=g; const w=weekOf(s.date); wk.set(w,(wk.get(w)||0)+1);
+  }
+  for(const c of wk.values()) if(c>=GOAL) xp+=100;
+  for(const n of NODES){const L=nodes[n.id].level; for(let k=3;k<=L;k++) xp+=25*k;}
+  const lvl=Math.floor(Math.sqrt(xp/40))+1, lo=40*(lvl-1)**2, hi=40*lvl**2;
+
+  const cw=weekOf(asOf); let streak=0;
+  if((wk.get(cw)||0)>=GOAL) streak++;
+  for(let w=cw-1;w>=weekOf(onb);w--){ if(H.pauses.includes(w)) continue; if((wk.get(w)||0)>=GOAL) streak++; else break; }
+
+  const ranked=SECTORS.map(s=>[s.id,attrs[s.id].val]).sort((a,b)=>b[1]-a[1]);
+  const cls=ranked[0][1]-ranked[1][1]<2?'Allrounder':SEC[ranked[0][0]].cls;
+  const sig=NODES.filter(n=>nodes[n.id].level===5).sort((a,b)=>nodes[b.id].M-nodes[a.id].M);
+  const title=sig.length?(EPITHET[sig[0].id]||('Signature: '+sig[0].name)):'Noch ohne Signature';
+
+  const cnt=(a,b)=>{const m={}; for(const {s} of der) if(s.stuck&&s.date>a&&s.date<=b) m[s.stuck]=(m[s.stuck]||0)+1; return m;};
+  const c14=cnt(asOf-14,asOf), p14=cnt(asOf-28,asOf-14);
+  const bk=Object.entries(c14).sort((a,b)=>b[1]-a[1])[0];
+  const boss=bk?{key:bk[0],hp:bk[1],prev:p14[bk[0]]||0}:null;
+
+  const recentQ=sess.slice(-3).map(s=>s.quest&&s.quest.node).filter(Boolean);
+  const taught7=new Set(sess.filter(s=>s.taught&&s.date>asOf-7).map(s=>s.taught));
+  const qlist=[];
+  for(const n of NODES){
+    const st=nodes[n.id]; if(st.fog) continue;
+    if(n.sector==='fund'&&st.level>=2) continue;
+    const attrV=n.sector==='fund'?50:attrs[n.sector].val;
+    const c={
+      prog:(st.level>=2&&st.level<=4)?1.2*st.prog:0,
+      unc:(st.level>=2&&st.level<=4)?0.6/(1+st.nw/4):0,
+      rust:st.rust?0.9:0,
+      weak:n.sector==='fund'?0.2:0.8*(100-attrV)/100,
+      taught:taught7.has(n.id)?0.9:0,
+      explore:st.level<=1?0.35:0,
+    };
+    let Pr=c.prog+c.unc+c.rust+c.weak+c.taught+c.explore;
+    if(recentQ.includes(n.id)) Pr-=1.5;
+    if(st.level===5) Pr-=0.8;
+    const reason=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];
+    qlist.push(Object.assign({P:Pr,reason},questShape(n,st)));
+  }
+  qlist.sort((a,b)=>b.P-a.P);
+
+  const weekNow=wk.get(cw)||0;
+  return {asOf,ru,ruSeries,nodes,attrs,xp,lvl,lo,hi,streak,weekNow,cls,title,boss,qlist,count:sess.length};
+}
+
+function pickCards(list,excl){
+  excl=excl||new Set(); const out=[], secs=new Set(), kinds={};
+  for(const q of list){
+    if(excl.has(q.node)) continue; const s=NODE[q.node].sector; if(secs.has(s)) continue;
+    if((q.kind==='rust'||q.kind==='drill')&&kinds[q.kind]) continue;
+    out.push(q); secs.add(s); kinds[q.kind]=1; if(out.length===3) break;
+  }
+  return out;
+}
+
+/* ---------- simulation ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const KNOWN=['f_shrimp','f_grips','f_base','f_posture','f_breakfall','f_bridge','g_closed','g_retention','g_scissor','g_hipbump','g_half','p_open','p_pressure','p_toreando','p_kneecut','t_stance','t_pull','c_side','c_mount','c_mountkeep','c_back','s_armbar_g','s_americana','s_crosscollar','s_triangle','s_kimura','s_rnc','s_armbar_m','d_mount','d_side','d_elbow'];
+const CURR=[
+  ['g_closed','g_scissor'],['g_dlr','g_berimbolo'],['g_berimbolo','s_triangle'],['p_kneecut','p_pressure'],
+  ['c_back','c_seatbelt'],['s_triangle','s_omoplata'],['t_double','t_single'],['d_side','d_frames'],
+  ['g_half','g_oldschool'],['p_toreando','p_legdrag'],['s_kimura','g_hipbump'],[null,null],
+  ['c_mount','s_armbar_m'],['d_elbow','d_mount'],['g_butterfly','g_bfsweep'],['p_kneecut','p_smash'],
+  ['t_snap','t_sprawl'],['s_rnc','s_bowarrow'],['g_scissor','g_flower'],['d_side','d_turtle'],
+  ['p_overunder','p_stack'],
+];
+const STYLE={guard:1.5,sub:1.25,ctrl:1.0,pass:1.1,stand:.55,def:.85};
+const BONUS={s_triangle:2.2,s_armbar_g:1.5,g_scissor:1.35,p_kneecut:1.45,g_berimbolo:.3,c_back:1.2};
+const FAV=['s_triangle','s_triangle','g_scissor','p_kneecut','s_armbar_g'];
+const BELT_P=[['weiss',.33],['blau',.34],['lila',.19],['braun',.09],['schwarz',.05]];
+const SIZE_P=[['leichter',.3],['aehnlich',.45],['schwerer',.25]];
+const STUCK_EARLY=[['halfbottom',.3],['sidebottom',.25],['standing',.25],['mountbottom',.1],['backlost',.1]];
+const STUCK_LATE=[['sidebottom',.55],['standing',.2],['halfbottom',.1],['mountbottom',.1],['backlost',.05]];
+
+function simulate(){
+  const rng=mulberry32(12);
+  const pick=arr=>{const x=rng(); let acc=0; for(const [v,p] of arr){acc+=p; if(x<acc) return v;} return arr[arr.length-1][0];};
+  const binom=(n,p)=>{let k=0; for(let i=0;i<n;i++) if(rng()<p) k++; return k;};
+  const H={belt:'blau',stripes:2,onboarding:{date:MON0,known:KNOWN},sessions:[],pauses:[11]};
+  const cum={}; let sid=1;
+  for(let w=0;w<=20;w++){
+    if(H.pauses.includes(w)) continue;
+    const days=[];
+    if(w===20) days.push(0);
+    else{ if(rng()<.92) days.push(0); if(rng()<.86) days.push(2); if(rng()<.45||(w>=12&&days.length<2)||days.length===0) days.push(5); }
+    for(const dd of days){
+      const date=MON0+7*w+dd; if(date>=TODAY) continue;
+      const type=dd===5?'open':(rng()<.3?'nogi':'gi');
+      const taught=dd===5?null:CURR[w][dd===0?0:1];
+      const trueR=1175+3*w;
+      const nR=4+Math.floor(rng()*3), rolls=[], ws=[];
+      for(let i=0;i<nR;i++){
+        const belt=pick(BELT_P), size=pick(SIZE_P);
+        const E=1/(1+Math.pow(10,(BELT_R[belt]+SIZE_R[size]-trueR)/400));
+        ws.push(clamp(0.5/E,0.5,2));
+        const x=rng(); const c=x<E*.75?1:x<E*.75+.35?0.5:0;
+        const sf=rng()<E*.7?(rng()<.3?2:1):0;
+        const sa=rng()<(1-E)*.7?(rng()<.25?2:1):0;
+        rolls.push({belt,size,sf,sa,c});
+      }
+      const wSim=mean(ws);
+      const st=compute(H,date);
+      const cards=pickCards(st.qlist);
+      let qs; const x=rng();
+      if(w<=2&&taught==='g_berimbolo') qs=questShape(NODE[taught],st.nodes[taught],true);
+      else if(x<.4||(!taught&&x<.65)) qs=(cards[0].kind==='rust'&&cards[1])?cards[1]:cards[0];
+      else if(x<.65) qs=questShape(NODE[taught],st.nodes[taught],true);
+      else {const f=FAV[Math.floor(rng()*FAV.length)]; qs=questShape(NODE[f],st.nodes[f],true);}
+      const q={node:qs.node,kind:qs.kind,xp:qs.xp,att:0,succ:0,done:false};
+      if(q.kind==='drill') q.done=rng()<.85;
+      else{
+        const n=NODE[q.node], c0=cum[q.node]||0;
+        const pt=n.sector==='fund'?.5:Math.min(.85,SEC[n.sector].b*STYLE[n.sector]*(BONUS[n.id]||1)*(1-.1*(n.tier-1))*(.75+.25*Math.min(1,c0/15)));
+        q.att=2+Math.floor(rng()*5); q.succ=binom(q.att,clamp(pt/Math.sqrt(wSim),0,.9)); cum[q.node]=c0+q.att;
+      }
+      let worked=null, stuck=null;
+      if(rng()<.55){ if(q.succ>0&&rng()<.6) worked=q.node; stuck=pick(w>=15?STUCK_LATE:STUCK_EARLY); }
+      H.sessions.push({id:sid++,date,type,taught,rolls,quest:q,worked,stuck});
+    }
+  }
+  H.nextId=sid;
+  return H;
+}
+
+/* ---------- state ---------- */
+const H=simulate();
+let S=compute(H,TODAY);
+const S8=compute(H,TODAY-56);
+let selId=(()=>{const l=NODES.slice().sort((a,b)=>(S.nodes[b.id].level-S.nodes[a.id].level)||(S.nodes[b.id].M-S.nodes[a.id].M)); return l[0].id;})();
+let cards=pickCards(S.qlist), rerolled=false;
+const DEFAULT_ROLLS=[
+  {belt:'blau',size:'aehnlich',sf:1,sa:0,c:1},
+  {belt:'lila',size:'schwerer',sf:0,sa:1,c:0},
+  {belt:'weiss',size:'leichter',sf:2,sa:0,c:1},
+  {belt:'blau',size:'aehnlich',sf:0,sa:0,c:0.5},
+  {belt:'braun',size:'aehnlich',sf:0,sa:2,c:0},
+];
+const draft={type:'gi',taught:'p_stack',rolls:DEFAULT_ROLLS.map(r=>Object.assign({},r)),quest:null,worked:'',stuck:''};
+function setQuest(q){draft.quest={node:q.node,kind:q.kind,xp:q.xp,att:q.kind==='drill'?0:4,succ:q.kind==='drill'?0:2,done:q.kind==='drill'};}
+setQuest(cards[0]);
+const added=[]; let lastSaved=null;
+
+/* ---------- map ---------- */
+const NS='http://www.w3.org/2000/svg';
+const el=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag); if(attrs) for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;};
+const svg=$('#map');
+const VB0={x:-560,y:-560,w:1120,h:1120};
+let vb=Object.assign({},VB0), hexEl, ringLbls=[], edgeEls=[], comboEls=[];
+
+function buildMap(){
+  const defs=el('defs',null,svg);
+  const f=el('filter',{id:'glow',x:'-100%',y:'-100%',width:'300%',height:'300%'},defs);
+  el('feGaussianBlur',{stdDeviation:'5',result:'b'},f);
+  const m=el('feMerge',null,f); el('feMergeNode',{in:'b'},m); el('feMergeNode',{in:'SourceGraphic'},m);
+  const gBg=el('g',null,svg);
+  SECTORS.forEach((s,i)=>{
+    const a1=s.ang-30,a2=s.ang+30,r0=40,r1=520;
+    const [x1,y1]=P(r0,a1),[x2,y2]=P(r1,a1),[x3,y3]=P(r1,a2),[x4,y4]=P(r0,a2);
+    el('path',{d:`M${x1} ${y1}L${x2} ${y2}A${r1} ${r1} 0 0 1 ${x3} ${y3}L${x4} ${y4}A${r0} ${r0} 0 0 0 ${x1} ${y1}Z`,class:'wedge'+(i%2?' alt':'')},gBg);
+    el('line',{x1:x1,y1:y1,x2:x2,y2:y2,class:'spoke'},gBg);
+  });
+  TIER_R.forEach((r,t)=>{
+    el('circle',{cx:0,cy:0,r:r,class:'ring'},gBg);
+    const [x,y]=P(r,-120);
+    const tx=el('text',{x:x,y:y-4,class:'ringlbl','text-anchor':'middle'},gBg); tx.textContent=TIERS[t].toUpperCase(); ringLbls.push(tx);
+  });
+  hexEl=el('polygon',{class:'hexshadow'},svg);
+  const gE=el('g',null,svg), gC=el('g',null,svg), gN=el('g',null,svg), gL=el('g',null,svg), gS=el('g',null,svg);
+  for(const n of NODES) for(const p of n.pre){const a=NODE[p]; edgeEls.push([el('line',{x1:a.x,y1:a.y,x2:n.x,y2:n.y,class:'edge'},gE),p,n.id]);}
+  for(const [a,b] of COMBOS){const A=NODE[a],B=NODE[b]; const mx=(A.x+B.x)/4, my=(A.y+B.y)/4; comboEls.push([el('path',{d:`M${A.x} ${A.y}Q${mx} ${my} ${B.x} ${B.y}`,class:'combo'},gC),a,b]);}
+  for(const n of NODES){
+    const g=el('g',{class:'node',tabindex:'0',role:'button','data-id':n.id,transform:`translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`},gN);
+    el('circle',{r:'22',class:'hit'},g);
+    n._aura=el('circle',{r:'20',class:'aura'},g);
+    n._prog=el('circle',{r:'12',class:'n-prog',transform:'rotate(-90)'},g);
+    n._core=el('circle',{r:'9',class:'n-core'},g);
+    n._sel=el('circle',{r:'17',class:'n-sel'},g);
+    n._title=el('title',null,g);
+    n._g=g;
+    n._t=el('text',{class:'lbl','text-anchor':'middle'},gL);
+  }
+  for(const s of SECTORS){
+    s._p=el('path',{id:'sa-'+s.id,fill:'none',stroke:'none'},defs);
+    s._t=el('text',{class:'seclbl','data-sec':s.id},gS);
+    const tp=el('textPath',{href:'#sa-'+s.id,startOffset:'50%','text-anchor':'middle'},s._t);
+    tp.textContent=s.name.toUpperCase();
+  }
+}
+const coreR=st=>st.fog?3:[7,8,9,10,11,13][st.level];
+
+function renderMap(){
+  for(const n of NODES){
+    const st=S.nodes[n.id], R=coreR(st);
+    n._g.setAttribute('class',`node lv${st.level}${st.rust?' rust':''}${st.prov?' prov':''}${st.fog?' fog':''}${n.id===selId?' sel':''}`);
+    n._g.setAttribute('aria-label',st.fog?'Unentdeckter Stern':`${n.name}, Stufe ${st.level} ${LEVELS[st.level]}`);
+    n._core.setAttribute('r',R);
+    n._core.setAttribute('filter',(st.level>=4&&!st.rust&&!st.fog)?'url(#glow)':'none');
+    const pr=R+4, C=2*Math.PI*pr, showP=!st.fog&&st.level>=1&&st.level<=4;
+    n._prog.setAttribute('r',pr); n._prog.setAttribute('stroke-dasharray',`${(st.prog*C).toFixed(1)} ${C.toFixed(1)}`);
+    n._prog.setAttribute('display',showP&&st.prog>0.01?'inline':'none');
+    n._aura.setAttribute('display',st.level===5&&!st.fog?'inline':'none');
+    n._sel.setAttribute('r',R+8);
+    n._title.textContent=st.fog?'Unentdeckt':`${n.name} · Stufe ${st.level} ${LEVELS[st.level]}`;
+  }
+  for(const [e,a,b] of edgeEls){const la=S.nodes[a].level, lb=S.nodes[b].level; e.setAttribute('class','edge'+(la>=4&&lb>=4?' hot':la>=2&&lb>=2?' lit':''));}
+  for(const [e,a,b] of comboEls){e.setAttribute('class','combo'+(S.nodes[a].level>=3&&S.nodes[b].level>=3?' lit':''));}
+  hexEl.setAttribute('points',SECTORS.map(s=>P(TIER_R[0]+S.attrs[s.id].val/100*(TIER_R[4]-TIER_R[0]),s.ang).map(v=>v.toFixed(1)).join(',')).join(' '));
+  updateLabels();
+}
+
+function updateLabels(){
+  const w=svg.getBoundingClientRect().width||600;
+  const ppu=w/vb.w;
+  const fs=clamp(11/ppu,7,13);
+  const showAll=fs*ppu>=8;
+  for(const n of NODES){
+    const st=S.nodes[n.id], t=n._t;
+    const show=!st.fog&&(showAll||n.id===selId||st.level===5);
+    t.setAttribute('display',show?'inline':'none');
+    if(!show) continue;
+    const R=coreR(st), lines=(n.lbl||n.name).split('\n');
+    t.setAttribute('font-size',fs.toFixed(2));
+    t.setAttribute('class','lbl'+(st.level>=4?' hi':'')+(n.id===selId?' on':''));
+    t.textContent='';
+    lines.forEach((l,i)=>{const sp=el('tspan',{x:n.x.toFixed(1),y:(n.y+R+5+fs*(0.95+i*1.05)).toFixed(1)},t); sp.textContent=l;});
+  }
+  for(const r of ringLbls) r.setAttribute('display',showAll?'inline':'none');
+  const fsS=clamp(12/ppu,18,34);
+  for(const s of SECTORS){
+    const top=Math.sin(s.ang*Math.PI/180)<0, r=top?506:506+fsS*0.8;
+    const [x1,y1]=P(r,top?s.ang-28:s.ang+28), [x2,y2]=P(r,top?s.ang+28:s.ang-28);
+    s._p.setAttribute('d',`M${x1.toFixed(1)} ${y1.toFixed(1)}A${r} ${r} 0 0 ${top?1:0} ${x2.toFixed(1)} ${y2.toFixed(1)}`);
+    s._t.setAttribute('font-size',fsS.toFixed(1));
+  }
+}
+
+function setVB(v){vb=v; svg.setAttribute('viewBox',`${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`); svg.classList.toggle('zoomed',v.w<VB0.w-1); updateLabels();}
+let anim=0;
+function animateVB(t){
+  cancelAnimationFrame(anim);
+  const f=Object.assign({},vb), t0=performance.now(), dur=RM?0:450;
+  const step=now=>{const k=dur?Math.min(1,(now-t0)/dur):1, e=1-Math.pow(1-k,3);
+    setVB({x:f.x+(t.x-f.x)*e,y:f.y+(t.y-f.y)*e,w:f.w+(t.w-f.w)*e,h:f.h+(t.h-f.h)*e}); if(k<1) anim=requestAnimationFrame(step);};
+  anim=requestAnimationFrame(step);
+}
+function focusSector(id){
+  const ns=NODES.filter(n=>n.sector===id||(n.sector==='fund'&&n.dir===id));
+  const xs=ns.map(n=>n.x), ys=ns.map(n=>n.y);
+  const x0=Math.min(...xs)-70, x1=Math.max(...xs)+70, y0=Math.min(...ys)-60, y1=Math.max(...ys)+80;
+  const size=Math.max(x1-x0,y1-y0), cx=(x0+x1)/2, cy=(y0+y1)/2;
+  animateVB({x:cx-size/2,y:cy-size/2,w:size,h:size});
+  for(const b of document.querySelectorAll('#mapTools [data-sec]')) b.setAttribute('aria-pressed',String(b.dataset.sec===id));
+}
+function zoomBy(f){
+  const cx=vb.x+vb.w/2, cy=vb.y+vb.h/2, w=clamp(vb.w*f,260,VB0.w);
+  if(w>=VB0.w){animateVB(VB0); clearSecButtons(); return;}
+  animateVB({x:cx-w/2,y:cy-w/2,w:w,h:w});
+}
+function clearSecButtons(){for(const b of document.querySelectorAll('#mapTools [data-sec]')) b.setAttribute('aria-pressed','false');}
+
+let drag=null, moved=false;
+svg.addEventListener('pointerdown',e=>{moved=false; if(vb.w>=VB0.w-1) return; drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y,id:e.pointerId};});
+svg.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const ppu=svg.getBoundingClientRect().width/vb.w;
+  const dxp=e.clientX-drag.x, dyp=e.clientY-drag.y;
+  if(!moved&&Math.abs(dxp)+Math.abs(dyp)>5){moved=true; try{svg.setPointerCapture(drag.id);}catch(_){}}
+  if(moved) setVB({x:drag.vx-dxp/ppu,y:drag.vy-dyp/ppu,w:vb.w,h:vb.h});
+});
+const endDrag=()=>{drag=null;};
+svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointercancel',endDrag);
+svg.addEventListener('click',e=>{
+  if(moved){moved=false; return;}
+  const g=e.target.closest('.node'); if(g){select(g.dataset.id); return;}
+  const sl=e.target.closest('.seclbl'); if(sl) focusSector(sl.dataset.sec);
+});
+svg.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('.node'); if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault(); select(g.dataset.id);}});
+if(window.ResizeObserver) new ResizeObserver(()=>updateLabels()).observe(svg);
+
+function select(id){selId=id; renderMap(); renderDetail();}
+
+function nextReq(st){
+  switch(st.level){
+    case 0: return [{t:'Einmal im Kurs sehen oder drillen',ok:false}];
+    case 1: return [{t:`Gesehen oder gedrillt: ${st.exp} von 3`,ok:st.exp>=3}];
+    case 2: return [{t:`Live-Versuche: ${st.rawAtt} von 5`,ok:st.rawAtt>=5}];
+    case 3: return [{t:`Gewichtete Versuche: ${nf1.format(st.nw)} von 8`,ok:st.nw>=8},{t:`Untergrenze: ${pct(st.lbw)} von ${pct(st.b)}`,ok:st.lbw>=st.b}];
+    case 4: return [{t:`Gewichtete Versuche: ${nf1.format(st.nw)} von 25`,ok:st.nw>=25},{t:`Untergrenze: ${pct(st.lbw)} von ${pct(1.5*st.b)}`,ok:st.lbw>=1.5*st.b},{t:`Treffer gegen Stärkere: ${st.sStrong} von 3`,ok:st.sStrong>=3}];
+    default: return [];
+  }
+}
+function chipList(ids){
+  return ids.map(id=>{const st=S.nodes[id]; return st.fog?'<button class="nchip" type="button" disabled>???</button>':`<button class="nchip" type="button" data-sel="${id}">${NODE[id].name}<small>${st.level}</small></button>`;}).join('');
+}
+function renderDetail(){
+  const n=NODE[selId], st=S.nodes[selId], box=$('#detail');
+  if(st.fog){box.innerHTML=`<p class="eyebrow">${secName(n)} · Ring ${TIERS[n.tier]}</p><h3>Unentdeckt</h3><p class="muted">Dieser Stern liegt noch im Nebel. Er wird sichtbar, sobald du eine benachbarte Technik gesehen oder gedrillt hast.</p>`; return;}
+  const unl=NODES.filter(m=>m.pre.includes(n.id)).map(m=>m.id);
+  const cmb=COMBOS.filter(c=>c[0]===n.id||c[1]===n.id);
+  const req=nextReq(st);
+  box.innerHTML=`
+    <p class="eyebrow">${secName(n)} · Ring ${TIERS[n.tier]}</p>
+    <h3>${n.name}</h3>
+    <div class="pills"><span class="pill l${st.level}">Stufe ${st.level} · ${LEVELS[st.level]}</span>${st.rust?`<span class="pill rust">Rost · ${st.dAny} Tage nicht trainiert</span>`:''}${st.prov?'<span class="pill prov">vorläufig, aus dem Onboarding</span>':''}</div>
+    <div class="meter"><div class="mtop"><span>Meisterung (0 bis 100)</span><b>${nf0.format(st.M)}</b></div><div class="bar"><i style="width:${clamp(st.M,0,100).toFixed(1)}%"></i></div></div>
+    ${st.level<5?`<div class="next"><p class="k">Für Stufe ${st.level+1} · ${LEVELS[st.level+1]}</p><ul class="req">${req.map(r=>`<li class="${r.ok?'ok':''}">${r.t}</li>`).join('')}</ul></div>`:`<p class="muted">Höchste Stufe. Der Stern bleibt hell, solange du die Technik mindestens alle 60 Tage trainierst.</p>`}
+    <dl class="kv">
+      <div><dt>Live-Versuche</dt><dd>${st.rawAtt}</dd></div>
+      <div><dt>Treffer</dt><dd>${st.rawSucc}</dd></div>
+      <div><dt>Gewichtete Versuche</dt><dd>${nf1.format(st.nw)}</dd></div>
+      <div><dt>Quote, geglättet</dt><dd>${st.nw>0?pct(st.mu):'–'}</dd></div>
+      <div><dt>Untergrenze 80 %</dt><dd>${st.nw>0?pct(st.lbw):'–'}<small>Basis ${pct(st.b)}</small></dd></div>
+      <div><dt>Wissen</dt><dd>${nf0.format(st.K*100)}</dd></div>
+      <div><dt>Zuletzt live</dt><dd>${st.dLast==null?'nie':st.dLast===0?'heute':'vor '+st.dLast+' T.'}</dd></div>
+      <div><dt>Treffer gegen Stärkere</dt><dd>${st.sStrong}</dd></div>
+    </dl>
+    ${n.pre.length?`<div class="rel"><p class="k">Voraussetzung</p><div class="nchips">${chipList(n.pre)}</div></div>`:''}
+    ${unl.length?`<div class="rel"><p class="k">Schaltet frei</p><div class="nchips">${chipList(unl)}</div></div>`:''}
+    ${cmb.length?`<div class="rel"><p class="k">Kombos</p><div class="nchips">${cmb.map(c=>{const o=c[0]===n.id?c[1]:c[0]; const on=S.nodes[c[0]].level>=3&&S.nodes[c[1]].level>=3; return S.nodes[o].fog?'<button class="nchip" type="button" disabled>???</button>':`<button class="nchip${on?' c-on':''}" type="button" data-sel="${o}">${c[2]}<small>${on?'aktiv':'ab Stufe 3'}</small></button>`;}).join('')}</div></div>`:''}`;
+}
+
+function renderTools(){
+  $('#mapTools').innerHTML=SECTORS.map(s=>`<button class="tool" type="button" data-sec="${s.id}" aria-pressed="false">${s.name}</button>`).join('')+
+    '<span class="tools-sp"></span><button class="tool zoom" type="button" data-zoom="0.7" aria-label="Hineinzoomen">+</button><button class="tool zoom" type="button" data-zoom="1.45" aria-label="Herauszoomen">−</button><button class="tool" type="button" data-zoom="reset">Ganze Karte</button>';
+  $('#mapTools').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.sec) focusSector(b.dataset.sec);
+    else if(b.dataset.zoom==='reset'){animateVB(VB0); clearSecButtons();}
+    else if(b.dataset.zoom) zoomBy(parseFloat(b.dataset.zoom));
+  });
+  const mk=(cls,r,extra)=>`<svg viewBox="-12 -12 24 24" aria-hidden="true"><g class="node ${cls}"><circle class="n-core" r="${r}"${extra||''}/></g></svg>`;
+  $('#legend').innerHTML=[
+    [mk('lv0',6),'Unbekannt'],[mk('lv1',7),'Gesehen'],[mk('lv2',8),'Gedrillt'],[mk('lv2 prov',8),'Vorläufig'],[mk('lv3',9),'Versucht'],[mk('lv4',10),'Funktioniert'],[mk('lv5',11),'Signature'],[mk('lv3 rust',9),'Rost'],[mk('fog',3),'Nebel'],
+    ['<svg viewBox="0 -6 24 12" aria-hidden="true"><path d="M0 0H24" class="combo lit"/></svg>','Kombo'],
+    ['<svg viewBox="-12 -12 24 24" aria-hidden="true"><polygon points="0,-10 9,-5 9,5 0,10 -9,5 -9,-5" class="hexshadow"/></svg>','Dein Hexagon'],
+  ].map(([s,l])=>`<span>${s}${l}</span>`).join('');
+}
+
+/* ---------- HUD ---------- */
+function beltSVG(belt,stripes){
+  const col=getComputedStyle(document.documentElement).getPropertyValue('--belt-'+belt).trim()||'#2f64cc';
+  let s=`<rect x="0.5" y="2.5" width="91" height="11" rx="2" fill="${col}" stroke="rgba(255,255,255,.25)"/><rect x="62" y="2.5" width="22" height="11" fill="${belt==='schwarz'?'#b3261e':'#111'}"/>`;
+  for(let i=0;i<stripes;i++) s+=`<rect x="${79-i*5}" y="2.5" width="2.4" height="11" fill="#f5f2ea"/>`;
+  return s;
+}
+function renderHUD(){
+  $('#hudBelt').innerHTML=beltSVG(H.belt,H.stripes);
+  $('#hudClass').textContent=`${S.cls} · Blaugurt, 2 Streifen`;
+  $('#hudTitle').textContent=`Titel: ${S.title}`;
+  $('#hudLvl').innerHTML=`${S.lvl}<small>${nf0.format(S.xp)} XP</small>`;
+  $('#hudXpFill').style.width=(100*(S.xp-S.lo)/(S.hi-S.lo)).toFixed(1)+'%';
+  $('#hudPow').textContent=nf0.format(Math.round(S.ru*10));
+  $('#hudStreak').innerHTML=`${S.streak} Wo.<small>${S.weekNow}/${GOAL} diese Woche</small>`;
+  const vis=NODES.filter(n=>!S.nodes[n.id].fog).length;
+  const cnt=l=>NODES.filter(n=>S.nodes[n.id].level===l).length;
+  $('#mapLede').textContent=`${NODES.length} Techniken in fünf Ringen und sechs Sektoren. ${vis} davon sind aufgedeckt, ${cnt(4)} funktionieren im Roll, ${cnt(5)} sind Signature. Die goldene Fläche ist dein Hexagon, die gestrichelten blauen Bögen sind Kombos zwischen Sektoren.`;
+}
+
+/* ---------- Heute ---------- */
+function questText(q){
+  const n=NODE[q.node];
+  switch(q.kind){
+    case 'drill': return {title:`${n.name} drillen`,task:'3 Runden à 10 Wiederholungen, beim Aufwärmen oder in der Open Mat. Abhaken reicht.'};
+    case 'survive': return {title:`Überleben mit ${n.name}`,task:'Lass dich in einem Roll bewusst in die Position bringen und arbeite dich raus. Zähle Versuche und gelungene Escapes.'};
+    case 'rust': return {title:`${n.name} entrosten`,task:'Triff die Technik heute mindestens einmal live. Zähle Versuche und Treffer.'};
+    default: return {title:`${n.name} in jedem Roll`,task:'Versuche die Technik in jedem Roll. Zähle Versuche und Treffer.'};
+  }
+}
+function reasonText(q){
+  const st=S.nodes[q.node], n=NODE[q.node];
+  switch(q.reason){
+    case 'prog': return `Kurz vor Stufe ${st.level+1} · ${LEVELS[st.level+1]}`;
+    case 'unc': return 'Noch zu wenig Daten für eine sichere Quote';
+    case 'rust': return `Rostet: seit ${st.dAny} Tagen nicht trainiert`;
+    case 'weak': return n.sector==='fund'?'Fundament festigen':`Achse ${SEC[n.sector].name} ist gerade deine schwächste Seite`;
+    case 'taught': return 'Diese Woche im Kurs gezeigt';
+    default: return 'Neuer Stern am Rand deiner Karte';
+  }
+}
+function renderToday(){
+  $('#todayInfo').textContent=`${S.count} Trainings seit dem 4. Mai · ${S.weekNow} von ${GOAL} diese Woche`;
+  $('#quests').innerHTML=cards.map(q=>{
+    const n=NODE[q.node], st=S.nodes[q.node], tx=questText(q), on=draft.quest.node===q.node&&draft.quest.kind===q.kind;
+    return `<article class="qcard${on?' on':''}">
+      <div class="qtop"><span class="qkind k-${q.kind}">${KIND[q.kind]}</span><span class="qsec">${secName(n)} · Stufe ${st.level}</span></div>
+      <h3>${tx.title}</h3>
+      <p>${tx.task}</p>
+      <p class="why">${reasonText(q)}</p>
+      <div class="qfoot"><span class="qxp">+${q.xp} XP</span><button class="btn${on?' on':''}" type="button" data-take="${q.node}|${q.kind}|${q.xp}">${on?'Angenommen':'Annehmen'}</button></div>
+      <button class="linkish" type="button" data-sel="${q.node}">Stern auf der Karte zeigen</button>
+    </article>`;}).join('');
+  $('#reroll').disabled=rerolled;
+  const b=S.boss, box=$('#boss');
+  if(!b){box.innerHTML='<div><p class="eyebrow">Wochenboss</p><h3>Kein Boss</h3></div><p class="muted">In den letzten 14 Tagen hast du nirgends festgehangen. Trage bei der Notiz ein, wo du feststeckst, dann erscheint hier ein Boss.</p>'; return;}
+  const info=STUCK[b.key], maxHP=Math.max(b.hp,b.prev,4), goal=Math.floor(b.hp/2);
+  box.innerHTML=`<div><p class="eyebrow">Wochenboss</p><h3>${info.boss}</h3><p class="pos">${info.name}</p></div>
+    <div><div class="hpk"><span>Lebenspunkte</span><span>${b.hp} / ${maxHP}</span></div><div class="hp" aria-hidden="true">${Array.from({length:maxHP},(_,i)=>`<i class="${i<b.hp?'on':''}"></i>`).join('')}</div>
+    <p>${b.hp}× hier festgehangen in den letzten 14 Tagen, davor ${b.prev}×. Besiegt, wenn es in den nächsten 14 Tagen höchstens ${goal}× passiert.</p>
+    <div class="nchips" style="margin-top:10px">${chipList(info.nodes)}</div></div>`;
+}
+$('#heute').addEventListener('click',e=>{
+  const t=e.target.closest('[data-take]');
+  if(t){const [node,kind,xp]=t.dataset.take.split('|'); setQuest({node,kind,xp:+xp}); renderToday(); renderLog(); return;}
+});
+$('#reroll').addEventListener('click',()=>{
+  if(rerolled) return; rerolled=true;
+  const ex=new Set(cards.map(c=>c.node)); cards=pickCards(S.qlist,ex); if(cards.length) setQuest(cards[0]);
+  renderToday(); renderLog();
+});
+
+/* ---------- Log ---------- */
+function nodeOptions(sel,emptyLabel){
+  let h=`<option value="">${emptyLabel}</option>`;
+  const groups=[['fund','Fundament']].concat(SECTORS.map(s=>[s.id,s.name]));
+  for(const [id,name] of groups){h+=`<optgroup label="${name}">`+NODES.filter(n=>n.sector===id).map(n=>`<option value="${n.id}"${n.id===sel?' selected':''}>${n.name}</option>`).join('')+'</optgroup>';}
+  return h;
+}
+const mini=(k,i,v,big)=>`<div class="mini${big?' big':''}"><button type="button" data-act="${k}" data-i="${i}" data-d="-1" aria-label="weniger">−</button><span>${v}</span><button type="button" data-act="${k}" data-i="${i}" data-d="1" aria-label="mehr">+</button></div>`;
+function rollRow(r,i){
+  return `<div class="roll">
+    <span class="rnum">Roll ${i+1}</span>
+    <div class="field"><span class="fl">Gürtel Partner</span><div class="belts">${BELTS.map(b=>`<button type="button" class="beltbtn" data-act="belt" data-i="${i}" data-v="${b.id}" aria-pressed="${r.belt===b.id}" aria-label="${b.name}" title="${b.name}" style="--bc:var(--belt-${b.id});${b.id==='schwarz'?'--bar:#b3261e':''}"></button>`).join('')}</div></div>
+    <div class="field"><span class="fl">Größe</span><div class="seg">${SIZES.map(s=>`<button type="button" data-act="size" data-i="${i}" data-v="${s.id}" aria-pressed="${r.size===s.id}">${s.name}</button>`).join('')}</div></div>
+    <div class="field"><span class="fl">Subs ich</span>${mini('sf',i,r.sf)}</div>
+    <div class="field"><span class="fl">Subs Partner</span>${mini('sa',i,r.sa)}</div>
+    <div class="field"><span class="fl">Kontrolle</span><div class="seg">${CTRL.map(c=>`<button type="button" data-act="ctrl" data-i="${i}" data-v="${c.v}" aria-pressed="${r.c===c.v}">${c.name}</button>`).join('')}</div></div>
+  </div>`;
+}
+function renderLog(){
+  $('#logType').innerHTML=TYPES.map(t=>`<button type="button" data-act="type" data-v="${t.id}" aria-pressed="${draft.type===t.id}">${t.name}</button>`).join('');
+  $('#rolls').innerHTML=draft.rolls.map(rollRow).join('');
+  const q=draft.quest, tx=questText(q);
+  $('#qbox').innerHTML=`<div><span class="qkind k-${q.kind}">${KIND[q.kind]}</span> <span class="qn">${tx.title}</span></div>`+
+    (q.kind==='drill'?`<label class="check"><input type="checkbox" id="qDone"${q.done?' checked':''}> Drill erledigt</label>`:
+    `<div class="row"><div class="field"><span class="fl">Versuche</span>${mini('att',0,q.att,true)}</div><div class="field"><span class="fl">${q.kind==='survive'?'Escapes':'Treffer'}</span>${mini('succ',0,q.succ,true)}</div></div>`);
+  $('#stuckChips').innerHTML=Object.entries(STUCK).map(([k,v])=>`<button type="button" class="chip" data-act="stuck" data-v="${k}" aria-pressed="${draft.stuck===k}">${v.name}</button>`).join('');
+  const eta=6+4*draft.rolls.length+5+(draft.taught?2:0)+((draft.worked||draft.stuck)?6:0);
+  $('#eta').innerHTML=`Eingabezeit etwa <b>${eta} s</b>`;
+  $('#undo').hidden=!added.length;
+  renderPreview();
+}
+function buildTaughtSelects(){ $('#taught').innerHTML=nodeOptions(draft.taught,'nichts Neues'); $('#worked').innerHTML=nodeOptions(draft.worked,'nichts eingetragen'); }
+$('#logForm').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const a=b.dataset.act, i=+b.dataset.i, d=+b.dataset.d, v=b.dataset.v, r=draft.rolls[i], q=draft.quest;
+  if(a==='type') draft.type=v;
+  else if(a==='belt') r.belt=v;
+  else if(a==='size') r.size=v;
+  else if(a==='ctrl') r.c=+v;
+  else if(a==='sf') r.sf=clamp(r.sf+d,0,5);
+  else if(a==='sa') r.sa=clamp(r.sa+d,0,5);
+  else if(a==='addRoll'){ if(draft.rolls.length<10) draft.rolls.push({belt:'blau',size:'aehnlich',sf:0,sa:0,c:0.5}); }
+  else if(a==='delRoll'){ if(draft.rolls.length>0) draft.rolls.pop(); }
+  else if(a==='att'){ q.att=clamp(q.att+d,0,30); q.succ=Math.min(q.succ,q.att); }
+  else if(a==='succ'){ q.succ=clamp(q.succ+d,0,q.att); }
+  else if(a==='stuck') draft.stuck=draft.stuck===v?'':v;
+  else return;
+  renderLog();
+});
+$('#logForm').addEventListener('change',e=>{
+  if(e.target.id==='taught') draft.taught=e.target.value;
+  else if(e.target.id==='worked') draft.worked=e.target.value;
+  else if(e.target.id==='qDone') draft.quest.done=e.target.checked;
+  renderLog();
+});
+function draftSession(){
+  return {id:H.nextId,date:TODAY,type:draft.type,taught:draft.taught||null,rolls:draft.rolls.map(r=>Object.assign({},r)),quest:Object.assign({},draft.quest),worked:draft.worked||null,stuck:draft.stuck||null};
+}
+function diff(A,B){
+  const levels=NODES.filter(n=>B.nodes[n.id].level!==A.nodes[n.id].level).map(n=>({id:n.id,from:A.nodes[n.id].level,to:B.nodes[n.id].level}));
+  const mastery=NODES.map(n=>({id:n.id,d:B.nodes[n.id].M-A.nodes[n.id].M})).filter(x=>Math.abs(x.d)>=0.3).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,4);
+  return {xp:B.xp-A.xp,lvlFrom:A.lvl,lvlTo:B.lvl,streakFrom:A.streak,streakTo:B.streak,weekGoal:A.weekNow<GOAL&&B.weekNow>=GOAL,
+    pow:Math.round(B.ru*10)-Math.round(A.ru*10),levels,mastery,attrs:Object.fromEntries(SECTORS.map(s=>[s.id,B.attrs[s.id].val-A.attrs[s.id].val]))};
+}
+function xpParts(s,D){
+  const parts=[['Training',40]];
+  if(s.rolls.length) parts.push([`${s.rolls.length} Roll-Karten`,5*s.rolls.length]);
+  const q=s.quest;
+  if(q&&(q.kind==='drill'?q.done:q.att>0)){parts.push([`Quest: ${KIND[q.kind]}`,q.xp]); if(q.succ) parts.push([`${q.succ} ${q.kind==='survive'?'Escapes':'Treffer'}`,Math.min(50,5*q.succ)]);}
+  if(s.worked||s.stuck) parts.push(['Notiz',15]);
+  if(D.weekGoal) parts.push(['Wochenziel erreicht',100]);
+  let lv=0; for(const x of D.levels){for(let k=Math.max(3,x.from+1);k<=x.to;k++) lv+=25*k; for(let k=Math.max(3,x.to+1);k<=x.from;k++) lv-=25*k;}
+  if(lv) parts.push(['Stufenaufstieg',lv]);
+  return parts;
+}
+function resultHTML(s,D,saved){
+  const parts=xpParts(s,D);
+  const lines=[];
+  if(D.lvlTo>D.lvlFrom) lines.push(`<li class="up">Level ${D.lvlFrom} → ${D.lvlTo}</li>`);
+  if(D.weekGoal) lines.push(`<li class="up">Wochenziel geschafft · Serie ${D.streakFrom} → ${D.streakTo} Wochen</li>`);
+  for(const x of D.levels) lines.push(`<li class="${x.to>x.from?'up':'down'}"><button class="linkish" type="button" data-sel="${x.id}">${NODE[x.id].name}</button> · Stufe ${x.from} → ${x.to} ${LEVELS[x.to]}</li>`);
+  for(const x of D.mastery) if(!D.levels.some(l=>l.id===x.id)) lines.push(`<li class="${x.d>0?'up':'down'}"><button class="linkish" type="button" data-sel="${x.id}">${NODE[x.id].name}</button> · Meisterung ${sign1(x.d)}</li>`);
+  lines.push(`<li class="${D.pow>=0?'up':'down'}">Kampfkraft ${sign0(D.pow)}</li>`);
+  return `<p class="eyebrow${saved?' saved':''}">${saved?'Gespeichert':'Vorschau · noch nicht gespeichert'}</p>
+    <div class="xpgain">+${nf0.format(D.xp)}<span>XP</span></div>
+    <ul class="parts">${parts.map(([k,v])=>`<li><span>${k}</span><b>+${nf0.format(v)}</b></li>`).join('')}</ul>
+    <ul class="deltas">${lines.join('')}</ul>
+    <div><p class="eyebrow" style="margin-bottom:6px">Hexagon</p><div class="adelta">${SECTORS.map(s=>{const d=D.attrs[s.id]; return `<span>${s.name}<b class="${d>0.05?'pos':d<-0.05?'neg':''}">${sign1(d)}</b></span>`;}).join('')}</div></div>`;
+}
+function renderPreview(){
+  if(lastSaved){ $('#result').innerHTML=resultHTML(lastSaved.s,lastSaved.D,true); return; }
+  const s=draftSession();
+  H.sessions.push(s); const B=compute(H,TODAY); H.sessions.pop();
+  $('#result').innerHTML=resultHTML(s,diff(S,B),false);
+}
+$('#result').addEventListener('click',e=>{const b=e.target.closest('[data-sel]'); if(b) goSelect(b.dataset.sel);});
+$('#logForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const s=draftSession(); const A=S;
+  H.sessions.push(s); H.nextId++; added.push(s.id);
+  S=compute(H,TODAY);
+  const D=diff(A,S);
+  lastSaved={s,D};
+  cards=pickCards(S.qlist); rerolled=false; setQuest(cards[0]);
+  draft.worked=''; draft.stuck=''; buildTaughtSelects();
+  renderAll();
+  const changed=new Set(D.levels.map(x=>x.id).concat(D.mastery.map(x=>x.id)));
+  for(const id of changed){const g=NODE[id]._g; g.classList.add('pulse'); setTimeout(()=>g.classList.remove('pulse'),3600);}
+  setTimeout(()=>{lastSaved=null;},0);
+});
+$('#undo').addEventListener('click',()=>{
+  const id=added.pop(); if(id==null) return;
+  const i=H.sessions.findIndex(s=>s.id===id); if(i>=0) H.sessions.splice(i,1);
+  S=compute(H,TODAY); lastSaved=null; cards=pickCards(S.qlist); rerolled=false; setQuest(cards[0]);
+  renderAll();
+});
+
+/* ---------- Charakter ---------- */
+function hexSVG(now,prev){
+  const R=130, pad=108, V=R+pad;
+  const poly=vals=>SECTORS.map((s,i)=>P(R*clamp(vals[i],0,100)/100,s.ang).map(v=>v.toFixed(1)).join(',')).join(' ');
+  let h=`<svg class="hex" viewBox="${-V} ${-V+18} ${2*V} ${2*V-36}" role="img" aria-label="Attribut-Hexagon: ${SECTORS.map((s,i)=>s.name+' '+Math.round(now[i])).join(', ')}">`;
+  for(const [name,v] of BENCH){h+=`<polygon class="hx-ring" points="${poly(SECTORS.map(()=>v))}"/>`; const [x,y]=P(R*v/100,-90); h+=`<text class="hx-ringlbl" x="${(x+7).toFixed(1)}" y="${(y+4).toFixed(1)}">${name}</text>`;}
+  h+=`<polygon class="hx-ring outer" points="${poly(SECTORS.map(()=>100))}"/>`;
+  for(const s of SECTORS){const [x,y]=P(R,s.ang); h+=`<line class="hx-axis" x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`;}
+  h+=`<polygon class="hx-prev" points="${poly(prev)}"/><polygon class="hx-now" points="${poly(now)}"/>`;
+  SECTORS.forEach((s,i)=>{const [x,y]=P(R*clamp(now[i],0,100)/100,s.ang); h+=`<circle class="hx-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>`;});
+  SECTORS.forEach((s,i)=>{
+    const [x,y]=P(R+16,s.ang), c=Math.cos(s.ang*Math.PI/180), sn=Math.sin(s.ang*Math.PI/180);
+    const anc=c>0.3?'start':c<-0.3?'end':'middle', yy=sn<-0.9?y-22:sn>0.9?y+14:y-6;
+    h+=`<text text-anchor="${anc}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}"><tspan class="hx-name">${s.name}</tspan><tspan class="hx-val" x="${x.toFixed(1)}" dy="18">${Math.round(now[i])}</tspan></text>`;
+  });
+  return h+'</svg>';
+}
+function sparkSVG(series){
+  const W=560,Hh=170,l=52,r=70,t=16,b=26;
+  const ys=series.map(p=>p.r*10), x0=series[0].d, x1=TODAY;
+  const ymin=Math.min(...ys), ymax=Math.max(...ys), pd=(ymax-ymin)*0.12||10, y0=ymin-pd, y1=ymax+pd;
+  const X=d=>l+(d-x0)/(x1-x0)*(W-l-r), Y=v=>t+(1-(v-y0)/(y1-y0))*(Hh-t-b);
+  const pts=series.map(p=>`${X(p.d).toFixed(1)},${Y(p.r*10).toFixed(1)}`);
+  const last=series[series.length-1], lx=X(last.d), ly=Y(last.r*10);
+  return `<svg class="spark" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Kampfkraft von ${nf0.format(Math.round(ys[0]))} auf ${nf0.format(Math.round(last.r*10))}">
+    <defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d8ee6" stop-opacity=".35"/><stop offset="1" stop-color="#5d8ee6" stop-opacity="0"/></linearGradient></defs>
+    <line class="sp-grid" x1="${l}" x2="${W-r}" y1="${Y(ymax).toFixed(1)}" y2="${Y(ymax).toFixed(1)}"/>
+    <line class="sp-grid" x1="${l}" x2="${W-r}" y1="${Y(ymin).toFixed(1)}" y2="${Y(ymin).toFixed(1)}"/>
+    <text class="sp-txt" x="${l-8}" y="${(Y(ymax)+4).toFixed(1)}" text-anchor="end">${nf0.format(Math.round(ymax))}</text>
+    <text class="sp-txt" x="${l-8}" y="${(Y(ymin)+4).toFixed(1)}" text-anchor="end">${nf0.format(Math.round(ymin))}</text>
+    <path d="M${X(x0).toFixed(1)},${Hh-b} L${pts.join(' L')} L${lx.toFixed(1)},${Hh-b} Z" fill="url(#spg)"/>
+    <polyline class="sp-line" points="${pts.join(' ')}"/>
+    <circle class="sp-end" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4.5"/>
+    <text class="sp-val" x="${(lx+8).toFixed(1)}" y="${(ly+4).toFixed(1)}">${nf0.format(Math.round(last.r*10))}</text>
+    <text class="sp-txt" x="${l}" y="${Hh-6}">${fmtDate(x0)}</text>
+    <text class="sp-txt" x="${W-r}" y="${Hh-6}" text-anchor="end">heute</text>
+  </svg>`;
+}
+function renderChar(){
+  const now=SECTORS.map(s=>S.attrs[s.id].val), prev=SECTORS.map(s=>S8.attrs[s.id].val);
+  $('#hex').innerHTML=hexSVG(now,prev);
+  $('#attrBody').innerHTML=SECTORS.map((s,i)=>{const a=S.attrs[s.id], d=now[i]-prev[i];
+    return `<tr><td>${s.name}</td><td>${nf0.format(a.baum)}</td><td>${a.form==null?'–':nf0.format(a.form)}</td><td><b>${nf0.format(a.val)}</b></td><td class="${d>=0.5?'pos':d<=-0.5?'neg':''}">${sign0(d)}</td></tr>`;}).join('');
+  const sig=NODES.filter(n=>S.nodes[n.id].level===5).map(n=>n.name);
+  $('#prof').innerHTML=`<div><span class="k">Klasse · stärkste Achse</span><span class="v">${S.cls}</span></div>
+    <div><span class="k">Titel · beste Signature</span><span class="v">${S.title}</span></div>
+    <div><span class="k">Signature-Techniken</span><span class="v">${sig.length?sig.join(', '):'keine'}</span></div>`;
+  $('#spark').innerHTML=sparkSVG(S.ruSeries);
+}
+
+/* ---------- wiring ---------- */
+function goSelect(id){ select(id); const m=$('#karte'); if(m&&m.getBoundingClientRect().top<-200) m.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'}); }
+document.addEventListener('click',e=>{const b=e.target.closest('#detail [data-sel], #heute [data-sel]'); if(b) goSelect(b.dataset.sel);});
+function renderAll(){renderHUD(); renderMap(); renderDetail(); renderToday(); renderLog(); renderChar();}
+
+buildMap(); renderTools(); buildTaughtSelects(); renderAll();
+})();
+</script>
