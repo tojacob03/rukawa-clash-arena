@@ -17,7 +17,7 @@ const METHOD = [
   },
   {
     title: "Remaining-deck support",
-    body: "Score what a player still has after burned cards - mid-set, under time pressure.",
+    body: "Score what a player still has after burned cards – mid-set, under time pressure.",
   },
   {
     title: "Prep hub",
