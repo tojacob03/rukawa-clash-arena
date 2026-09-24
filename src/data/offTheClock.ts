@@ -13,7 +13,7 @@ export type Gym = {
 // Leave city/country out when unknown - the page handles it.
 const GYMS: Gym[] = [
   { name: "Checkmat Oldenburg", city: "Oldenburg", country: "Germany", home: true },
-  { name: "Elevate Gym", city: "Bremen", country; "Germany" },
+  { name: "Elevate Gym", city: "Bremen", country: "Germany" },
   { name: "UFD Gym", city: "Düsseldorf", country: "Germany" },
   { name: "Rhodes Knights BJJ", city: "Rhodes", country: "Greece" },
   { name: "Jiujitsu Squad Venezia", city: "Venice", country: "Italy" },
