@@ -23,7 +23,7 @@ export interface PublicStatsPayload {
 }
 
 /**
- * Single shared source for the public-stats edge function. LiveStats and
+ * Single shared source for the public-stats edge function. KineticHero and
  * MetaPulse both use this hook with the same query key, so TanStack Query
  * dedupes them into one network request instead of two.
  */

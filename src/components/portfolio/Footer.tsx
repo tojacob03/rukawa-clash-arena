@@ -79,6 +79,9 @@ const Footer = () => {
         </div>
 
         <div className="mt-8 pt-6 border-t border-border/40 space-y-2 text-center md:text-left">
+          <p className="text-xs text-muted-foreground">
+            Languages: German (native) · English C2 · Spanish B1 · Russian A2 · Arabic A2
+          </p>
           <p className="text-xs leading-relaxed text-muted-foreground">
             This material is unofficial and is not endorsed by Supercell. For more information see{" "}
             <a
