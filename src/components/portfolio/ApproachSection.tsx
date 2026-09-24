@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import SectionIntro from "@/components/portfolio/SectionIntro";
+import ContributionGraph from "@/components/portfolio/ContributionGraph";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -69,6 +70,7 @@ const ApproachSection = () => (
               </li>
             ))}
           </ul>
+          <ContributionGraph />
         </motion.div>
       </div>
 
