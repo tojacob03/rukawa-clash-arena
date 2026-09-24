@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -18,10 +19,11 @@ All colors MUST be HSL.
     --popover: 220 20% 10%;
     --popover-foreground: 210 40% 98%;
 
-    /* Clash Royale purple-blue gradient primary */
-    --primary: 260 85% 58%;
-    --primary-foreground: 210 40% 98%;
-    --primary-glow: 280 100% 70%;
+    /* Primary = light on dark. The old purple gradient is gone; gold
+       (--accent / --clash-gold) is the only accent colour. */
+    --primary: 210 40% 98%;
+    --primary-foreground: 220 25% 8%;
+    --primary-glow: 210 40% 98%;
 
     --secondary: 220 15% 20%;
     --secondary-foreground: 210 40% 98%;
@@ -37,24 +39,25 @@ All colors MUST be HSL.
 
     --border: 220 15% 18%;
     --input: 220 15% 18%;
-    --ring: 260 85% 58%;
+    --ring: 45 100% 60%;
 
     --radius: 0.75rem;
 
     /* Custom Clash Royale colors */
     --clash-gold: 45 100% 60%;
-    --clash-purple: 260 85% 58%;
+    --clash-purple: 250 45% 72%;
     --clash-blue: 220 85% 65%;
     --clash-silver: 210 10% 70%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-hero: linear-gradient(135deg, hsl(220 25% 8%) 0%, hsl(260 85% 58% / 0.1) 100%);
+    /* Kept as tokens so existing classes keep working, but flat: no purple. */
+    --gradient-primary: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
+    --gradient-hero: linear-gradient(hsl(var(--background)), hsl(var(--background)));
     --gradient-card: linear-gradient(145deg, hsl(220 20% 12%), hsl(220 15% 15%));
     --gradient-accent: linear-gradient(135deg, hsl(var(--clash-gold)), hsl(45 90% 55%));
 
     /* Shadows */
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+    --shadow-glow: 0 0 0 1px hsl(var(--border)), 0 8px 24px hsl(220 25% 4% / 0.5);
     --shadow-card: 0 8px 32px hsl(220 25% 8% / 0.5);
     --shadow-accent: 0 4px 20px hsl(var(--clash-gold) / 0.4);
 

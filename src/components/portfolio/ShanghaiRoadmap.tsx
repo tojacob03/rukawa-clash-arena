@@ -72,7 +72,7 @@ const ShanghaiRoadmap = () => {
               <path
                 d={flightPath}
                 fill="none"
-                stroke="#a855f7"
+                stroke="#F5C542"
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 className="opacity-70"
@@ -86,7 +86,7 @@ const ShanghaiRoadmap = () => {
               <Marker coordinates={originCoords}>
                 <motion.circle
                   r="4"
-                  fill="#a855f7"
+                  fill="#F5C542"
                   className="opacity-80"
                   animate={{
                     scale: [1, 2.5],
@@ -98,7 +98,7 @@ const ShanghaiRoadmap = () => {
                     ease: "easeOut",
                   }}
                 />
-                <circle r="2" fill="#a855f7" />
+                <circle r="2" fill="#F5C542" />
               </Marker>
 
               {/* Marker: Ziel (Shanghai) */}
@@ -137,7 +137,7 @@ const ShanghaiRoadmap = () => {
                       delay: 1.5,
                     }}
                   />
-                  <MapPin className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                  <MapPin className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(245,197,66,0.8)]" />
                 </g>
               </Marker>
 
@@ -165,7 +165,7 @@ const ShanghaiRoadmap = () => {
                     x={-10}
                     y={-10}
                     fill="currentColor"
-                    className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,1)]"
+                    className="text-white drop-shadow-[0_0_8px_rgba(245,197,66,1)]"
                   />
                 </g>
               </g>

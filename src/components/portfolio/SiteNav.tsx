@@ -4,6 +4,7 @@ import { scrollToSection, scrollToTop } from "@/lib/smoothScroll";
 
 const links = [
   { id: "work", label: "Work" },
+  { id: "projects", label: "Projects" },
   { id: "method", label: "Method" },
   { id: "experience", label: "Experience" },
   { id: "contact", label: "Contact" },

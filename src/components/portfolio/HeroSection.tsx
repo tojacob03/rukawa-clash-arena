@@ -1,88 +1,53 @@
-import { Card } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Trophy, BarChart3 } from "lucide-react";
-import heroBackground from "@/assets/hero-background.jpg";
+import { scrollToSection } from "@/lib/smoothScroll";
+
+// Typographic hero: the claim first, then proof. No background artwork,
+// no gradients, no floating decoration - the numbers carry it.
+const proof = [
+  { value: "Top 2, 3 & 4", label: "CRL Monthly Finals results of players I prepared" },
+  { value: "2 players", label: "qualified for the CRL World Finals 2026" },
+  { value: "Since 2019", label: "analyst for teams, a national team and players" },
+];
 
 const HeroSection = () => {
-  const scrollToSection = (sectionId: string) => {
-    document.getElementById(sectionId)?.scrollIntoView({
-      behavior: "smooth",
-    });
-  };
-
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-24 sm:py-20">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${heroBackground})`,
-        }}
-      />
-      <div className="absolute inset-0 gradient-hero" />
+    <section className="border-b border-border/60">
+      <div className="mx-auto max-w-6xl px-5 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-28">
+        <p className="text-sm text-muted-foreground">Till Oscar Jacob, known as Rukawa</p>
 
-      <div className="absolute top-20 left-10 animate-float hidden sm:block">
-        <Trophy className="w-8 h-8 text-clash-gold opacity-30" />
-      </div>
-      <div
-        className="absolute top-40 right-20 animate-float hidden sm:block"
-        style={{
-          animationDelay: "1s",
-        }}
-      >
-        <BarChart3 className="w-10 h-10 text-primary opacity-40" />
-      </div>
+        <h1 className="mt-5 max-w-4xl text-5xl font-semibold leading-[1.02] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+          I turn battle logs into set decisions.
+        </h1>
 
-      <div className="relative z-10 text-center max-w-4xl mx-auto px-5 sm:px-6">
-        <div className="animate-slide-in-up">
-          <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-4 sm:mb-6 text-white">Rukawa</h1>
-          <p className="text-base sm:text-xl md:text-2xl text-white/85 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Clash Royale analyst for Solo CRL. I turn a player’s battle log into set decisions - and I built the app
-            that does it.
-          </p>
+        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+          Clash Royale analyst for Solo CRL, currently preparing two players for the CRL World Finals. I build the data
+          tooling behind it myself, and use the same approach beyond esports.
+        </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center mb-10 sm:mb-12">
-            <Button variant="hero" size="xl" onClick={() => scrollToSection("work")} className="group w-full sm:w-auto">
-              View the method
-              <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
-            </Button>
-            <Button
-              variant="outline"
-              size="xl"
-              className="w-full sm:w-auto text-white border-white/70 hover:bg-white hover:text-primary"
-              onClick={() => scrollToSection("contact")}
-            >
-              Get in touch
-            </Button>
-          </div>
+        <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+          <Button size="lg" className="px-6" onClick={() => scrollToSection("work")}>
+            See the work
+          </Button>
+          <button
+            type="button"
+            onClick={() => scrollToSection("contact")}
+            className="group inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-clash-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Get in touch
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mt-10 sm:mt-16">
-          <Card
-            className="text-center animate-slide-in-up gradient-card/90 border-white/15 p-5 sm:p-6 shadow-card backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1"
-            style={{ animationDelay: "0.2s" }}
-          >
-            <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Player analysis</div>
-            <div className="text-sm sm:text-base text-muted-foreground">Solo CRL player prep</div>
-          </Card>
-          <Card
-            className="text-center animate-slide-in-up gradient-card/90 border-white/15 p-5 sm:p-6 shadow-card backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Top 2, 3 & 4</div>
-            <div className="text-sm sm:text-base text-muted-foreground">CRL Monthly Finals support</div>
-          </Card>
-          <Card
-            className="text-center animate-slide-in-up gradient-card/90 border-white/15 p-5 sm:p-6 shadow-card backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1"
-            style={{ animationDelay: "0.6s" }}
-          >
-            <div className="text-2xl sm:text-3xl font-bold text-clash-gold mb-1 sm:mb-2">Internal tooling</div>
-            <div className="text-sm sm:text-base text-muted-foreground">Ingest, duel detection, remaining decks</div>
-          </Card>
-        </div>
-      </div>
-
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block">
-        <ChevronDown className="w-6 h-6 text-muted-foreground" />
+        <dl className="mt-16 grid gap-8 border-t border-border/60 pt-8 sm:grid-cols-3 sm:gap-6">
+          {proof.map((item) => (
+            <div key={item.value} className="flex flex-col gap-1">
+              <dt className="max-w-[16rem] text-sm leading-relaxed text-muted-foreground">{item.label}</dt>
+              {/* Value shown above its label, so all three values line up. */}
+              <dd className="order-first text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );
