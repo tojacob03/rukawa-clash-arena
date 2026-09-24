@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { motion, useMotionValueEvent, type MotionValue } from "framer-motion";
 import { MapPin, Plane } from "lucide-react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
@@ -32,11 +32,14 @@ const WorldRouteMap = ({
   progress,
   stations,
   viewBox,
+  onReady,
 }: {
   progress: MotionValue<number>;
   stations: number[];
   /** Crop of the 800x600 map, e.g. just the route on narrow screens */
   viewBox?: string;
+  /** Called once the route is measured and the plane can fly */
+  onReady?: () => void;
 }) => {
   const pathRef = useRef<SVGPathElement>(null);
   const trailRef = useRef<SVGPathElement>(null);
@@ -76,6 +79,11 @@ const WorldRouteMap = ({
 
   useLayoutEffect(() => {
     place(progress.get());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [length]);
+
+  useEffect(() => {
+    if (length) onReady?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [length]);
 
