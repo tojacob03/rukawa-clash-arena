@@ -24,6 +24,7 @@ const Strompreis = lazy(() => import("./pages/Strompreis"));
 const RaceStrategy = lazy(() => import("./pages/RaceStrategy"));
 const OffTheClock = lazy(() => import("./pages/OffTheClock"));
 const FragranceLog = lazy(() => import("./pages/FragranceLog"));
+const ArcRedirect = lazy(() => import("./pages/ArcRedirect"));
 
 const queryClient = new QueryClient();
 
@@ -149,6 +150,14 @@ const AnimatedRoutes = () => {
             <LazyPage>
               <FragranceLog />
             </LazyPage>
+          }
+        />
+        <Route
+          path="/arc"
+          element={
+            <Suspense fallback={null}>
+              <ArcRedirect />
+            </Suspense>
           }
         />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -21,4 +21,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      // Two entry points: the portfolio and Waza Arc (/arc/), a separate
+      // app with its own bundle, styles and head. See docs/waza-arc/.
+      input: {
+        main: path.resolve(__dirname, "index.html"),
+        arc: path.resolve(__dirname, "arc/index.html"),
+      },
+    },
+  },
 }));
