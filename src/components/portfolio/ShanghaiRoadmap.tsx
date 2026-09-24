@@ -20,6 +20,10 @@ import { MILESTONES, WORLDS, worldsPhase, type Milestone } from "@/data/roadToWo
 // away. The map box has a fixed height, so nothing moves when it arrives.
 const WorldRouteMap = lazy(() => import("@/components/portfolio/WorldRouteMap"));
 
+// On phones and tablets the whole world leaves the route as a short line
+// in a big empty map: crop to Europe - East Asia (16:10, same as the box).
+const ROUTE_CROP = "160 150 480 300";
+
 // Where the milestones sit along the route (0 = Germany, 1 = Shanghai).
 const STATIONS = MILESTONES.map((_, i) => (i + 1) / (MILESTONES.length + 1));
 
@@ -92,7 +96,7 @@ const MilestoneList = ({ reached }: { reached: number }) => (
     {MILESTONES.map((m: Milestone, i) => (
       <li
         key={m.month}
-        className={`rounded-xl border-l-2 py-2 pl-4 transition-all duration-500 ${
+        className={`border-l-2 py-2 pl-4 transition-all duration-500 ${
           i <= reached ? "border-clash-gold opacity-100" : "border-border opacity-40"
         }`}
       >
@@ -104,7 +108,7 @@ const MilestoneList = ({ reached }: { reached: number }) => (
       </li>
     ))}
     <li
-      className={`rounded-xl border-l-2 py-2 pl-4 transition-all duration-500 ${
+      className={`border-l-2 py-2 pl-4 transition-all duration-500 ${
         reached >= MILESTONES.length ? "border-clash-gold opacity-100" : "border-border opacity-40"
       }`}
     >
@@ -117,12 +121,22 @@ const MilestoneList = ({ reached }: { reached: number }) => (
   </ol>
 );
 
-const MapBox = ({ progress, near }: { progress: MotionValue<number>; near: boolean }) => (
-  <div className="relative h-[380px] w-full overflow-hidden rounded-2xl border border-border/60 bg-card/40 sm:h-[460px]">
+const MapBox = ({
+  progress,
+  near,
+  crop,
+  className,
+}: {
+  progress: MotionValue<number>;
+  near: boolean;
+  crop?: string;
+  className: string;
+}) => (
+  <div className={`relative w-full overflow-hidden rounded-2xl border border-border/60 bg-card/40 ${className}`}>
     <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
     {near && (
       <Suspense fallback={null}>
-        <WorldRouteMap progress={progress} stations={STATIONS} />
+        <WorldRouteMap progress={progress} stations={STATIONS} viewBox={crop} />
       </Suspense>
     )}
   </div>
@@ -189,7 +203,7 @@ const ShanghaiRoadmap = () => {
               </div>
             </div>
             <div className="relative col-span-8">
-              <MapBox progress={desktopProgress} near={near} />
+              <MapBox progress={desktopProgress} near={near} className="h-[460px]" />
               <div className="absolute bottom-5 left-5 max-w-sm">
                 <StatusCard />
               </div>
@@ -202,7 +216,7 @@ const ShanghaiRoadmap = () => {
       <div className="px-5 py-20 sm:px-6 lg:hidden">
         {intro}
         <div ref={mobileRef} className="mt-10">
-          <MapBox progress={mobileProgress} near={nearMobile} />
+          <MapBox progress={mobileProgress} near={nearMobile} crop={ROUTE_CROP} className="aspect-[16/10]" />
         </div>
         <div className="mt-6">
           <StatusCard />

@@ -240,6 +240,17 @@ const GymGlobe = ({
           <stop offset="86%" stopColor={GOLD} stopOpacity="0.08" />
           <stop offset="100%" stopColor={GOLD} stopOpacity="0" />
         </radialGradient>
+        {/* SVG filter rather than CSS drop-shadow(): WebKit doesn't repaint
+            SVG elements with a CSS filter when their attributes change. */}
+        <filter id="globe-glow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+          <feFlood floodColor={GOLD} floodOpacity="0.9" />
+          <feComposite in2="blur" operator="in" result="glow" />
+          <feMerge>
+            <feMergeNode in="glow" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
         <clipPath id="globe-lens">
           <circle cx={C} cy={C} r={RADIUS} />
         </clipPath>
@@ -272,7 +283,7 @@ const GymGlobe = ({
           ),
         )}
 
-        <circle ref={pulseRef} r={4.5} fill="#fff" style={{ filter: `drop-shadow(0 0 6px ${GOLD})` }} />
+        <circle ref={pulseRef} r={4.5} fill="#fff" filter="url(#globe-glow)" />
       </g>
 
       <circle cx={C} cy={C} r={RADIUS} fill="url(#globe-rim)" className="pointer-events-none" />
