@@ -26,6 +26,13 @@ const PROJECT_PAGES = [
       "Tyre strategy, tyre wear, race pace and pit stop analysis for every Grand Prix since 2023, built on OpenF1 data.",
     image: "/og/race-strategy.png",
   },
+  {
+    route: "off-the-clock",
+    title: `Off the clock | ${SITE_NAME}`,
+    description:
+      "What Till Oscar Jacob (Rukawa) does away from battle logs: No-Gi grappling, espresso, detective novels and fragrance.",
+    image: "/og/default.jpg",
+  },
 ];
 
 interface CaseStudyMeta {

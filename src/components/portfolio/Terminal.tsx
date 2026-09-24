@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SquareTerminal, X } from "lucide-react";
+import { BJJ, COFFEE, READING } from "@/data/offTheClock";
 
 const STATS_URL = "https://rudopohqygznwhudyohf.supabase.co/functions/v1/public-stats";
 const PROMPT = "rukawa@portfolio:~$";
@@ -15,6 +16,10 @@ const HELP_LINES = [
   "  stats    - live numbers behind this site",
   "  source   - open the repo",
   "  hire     - say hi",
+  "  whoami   - off the clock",
+  "  roll     - on the mat",
+  "  brew     - in the cup",
+  "  reading  - on the nightstand",
   "  clear    - clear the screen",
 ];
 
@@ -58,6 +63,25 @@ async function runCommand(raw: string): Promise<Line[]> {
     case "source":
       window.open("https://github.com/tojacob03/rukawa-clash-arena", "_blank", "noopener,noreferrer");
       return [{ type: "output", text: "opening github.com/tojacob03/rukawa-clash-arena…" }];
+
+    case "whoami":
+      return [
+        { type: "output", text: "grappler (no-gi), espresso drinker, detective-novel reader, fragrance person." },
+        { type: "output", text: "full version: /off-the-clock" },
+      ];
+
+    case "roll":
+      return [
+        { type: "output", text: `${BJJ.belt.toLowerCase()} since ${BJJ.since}, ${BJJ.style.toLowerCase()}.` },
+        { type: "output", text: `home: ${BJJ.home} · ${BJJ.visited.length} gyms visited on the road.` },
+        { type: "output", text: `current favourite: ${BJJ.favourite.toLowerCase()} (subject to change).` },
+      ];
+
+    case "brew":
+      return [{ type: "output", text: `${COFFEE.method.toLowerCase()} · ${COFFEE.bean} · ${COFFEE.roaster}, ${COFFEE.from}.` }];
+
+    case "reading":
+      return [{ type: "output", text: `${READING.title} - ${READING.author}.` }];
 
     case "hire":
       window.location.href = "mailto:to_jacob@me.com?subject=Let%27s%20talk";
