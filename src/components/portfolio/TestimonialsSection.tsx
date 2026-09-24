@@ -74,6 +74,27 @@ const Word = ({ token, progress, range }: { token: Token; progress: MotionValue<
   );
 };
 
+/**
+ * A social handle. Geist draws "_" narrower than its advance, so "__" shows
+ * as two separate dashes; on X it reads as one line. Runs of underscores
+ * are pulled together to match.
+ */
+const Handle = ({ label }: { label: string }) => (
+  // One span: the link is inline-flex, and loose parts would each become a
+  // flex item (and copy with line breaks).
+  <span>
+    {label.split(/(_{2,})/).map((part, i) =>
+      part.startsWith("__") ? (
+        <span key={i} style={{ letterSpacing: "-0.14em", marginRight: "0.14em" }}>
+          {part}
+        </span>
+      ) : (
+        part
+      ),
+    )}
+  </span>
+);
+
 const Quote = ({ t, index }: { t: Testimonial; index: number }) => {
   const ref = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
@@ -136,7 +157,7 @@ const Quote = ({ t, index }: { t: Testimonial; index: number }) => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-clash-gold"
               >
-                {t.profile.label}
+                <Handle label={t.profile.label} />
                 <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
             )}
