@@ -375,6 +375,7 @@ export type Database = {
       }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
       energy_dashboard: { Args: never; Returns: Json }
+      fragrance_status: { Args: never; Returns: Json }
       generate_secure_login_code: { Args: never; Returns: string }
       get_admin_role: {
         Args: { user_id: string }
@@ -432,8 +433,16 @@ export type Database = {
           client_type: Database["public"]["Enums"]["client_type"]
         }[]
       }
+      github_contributions: { Args: never; Returns: Json }
       is_admin: { Args: { user_id: string }; Returns: boolean }
+      log_fragrance: {
+        Args: { p_house?: string; p_name: string; p_token: string }
+        Returns: Json
+      }
       privacy_retention_cleanup: { Args: never; Returns: undefined }
+      racing_index: { Args: never; Returns: Json }
+      racing_race: { Args: { p_session_key: number }; Returns: Json }
+      racing_season: { Args: { p_year: number }; Returns: Json }
       security_maintenance: { Args: never; Returns: undefined }
       submit_contact_form_secure: {
         Args: {
