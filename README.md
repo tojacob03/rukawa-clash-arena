@@ -17,6 +17,7 @@ Portfolio and client platform of **Till Oscar Jacob ("Rukawa")**, a Clash Royale
 | **Admin panel** (`/admin`) | Manage clients, deck sets and analysis files |
 | **Contact** | Contact form (stored in Supabase) and optional call booking |
 | **Strompreis-Kompass** (`/strompreis`) | German electricity price dashboard built on official Bundesnetzagentur data, see [docs](docs/strompreis-kompass/README.md) |
+| **Race Strategy Lab** (`/race-strategy`) | Tyre strategy, tyre wear, race pace and pit stop analysis for every Grand Prix since 2023 (OpenF1 data), see [docs](docs/race-strategy-lab/README.md) |
 
 Featured case study: [From Battle Log to Set Decision](src/content/case-studies/player-analysis-tooling.md) — how up to 1,000 recent battles per player become slot-based tendencies (Game 1/2/3) and remaining-deck predictions.
 
