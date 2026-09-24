@@ -289,10 +289,23 @@ html.lenis body {
     animation: slideInUp 0.6s ease-out;
   }
 
+  /* Ring pulsing out of the active city on the /off-the-clock globe */
+  @keyframes globePing {
+    from { transform: scale(1); opacity: 0.9; }
+    to { transform: scale(3.2); opacity: 0; }
+  }
+
+  .globe-ping {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: globePing 1.8s ease-out infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-float,
     .animate-glow,
-    .animate-slide-in-up {
+    .animate-slide-in-up,
+    .globe-ping {
       animation: none;
     }
   }
