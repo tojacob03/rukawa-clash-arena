@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { scrollToSection, scrollToTop } from "@/lib/smoothScroll";
 
 const links = [
@@ -59,6 +59,15 @@ const SiteNav = () => {
               {link.label}
             </button>
           ))}
+          <span className="h-4 w-px bg-border" aria-hidden />
+          <Link
+            to="/off-the-clock"
+            className={`text-sm transition-colors ${
+              location.pathname === "/off-the-clock" ? "text-clash-gold" : "text-muted-foreground hover:text-clash-gold"
+            }`}
+          >
+            Off the clock
+          </Link>
         </div>
         <button
           type="button"
@@ -82,6 +91,13 @@ const SiteNav = () => {
               {link.label}
             </button>
           ))}
+          <Link
+            to="/off-the-clock"
+            onClick={() => setOpen(false)}
+            className="border-t border-border/50 pt-3 text-sm text-clash-gold"
+          >
+            Off the clock
+          </Link>
         </div>
       )}
     </nav>

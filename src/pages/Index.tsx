@@ -10,6 +10,7 @@ import SideProjectSection from "@/components/portfolio/SideProjectSection";
 import TeamHistorySection from "@/components/portfolio/TeamHistorySection";
 import AchievementsSection from "@/components/portfolio/AchievementsSection";
 import ShanghaiRoadmap from "@/components/portfolio/ShanghaiRoadmap";
+import OffTheClockTeaser from "@/components/portfolio/OffTheClockTeaser";
 import ContactSection from "@/components/portfolio/ContactSection";
 import Footer from "@/components/portfolio/Footer";
 
@@ -42,6 +43,7 @@ const Index = () => {
       <TeamHistorySection />
       <AchievementsSection />
       <ShanghaiRoadmap />
+      <OffTheClockTeaser />
       <ContactSection />
       <Footer />
     </div>
