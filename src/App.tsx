@@ -23,6 +23,7 @@ const LegalPage = lazy(() => import("./pages/LegalPage"));
 const Strompreis = lazy(() => import("./pages/Strompreis"));
 const RaceStrategy = lazy(() => import("./pages/RaceStrategy"));
 const OffTheClock = lazy(() => import("./pages/OffTheClock"));
+const FragranceLog = lazy(() => import("./pages/FragranceLog"));
 
 const queryClient = new QueryClient();
 
@@ -139,6 +140,14 @@ const AnimatedRoutes = () => {
           element={
             <LazyPage>
               <OffTheClock />
+            </LazyPage>
+          }
+        />
+        <Route
+          path="/off-the-clock/log"
+          element={
+            <LazyPage>
+              <FragranceLog />
             </LazyPage>
           }
         />
