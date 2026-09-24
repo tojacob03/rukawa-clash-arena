@@ -1,10 +1,12 @@
-# Tatami Arc – Konzept
+# Waza Arc – Konzept
 
-Arbeitstitel. Eine BJJ-Fortschritts-App im Stil eines Anime-RPGs.
+Eine BJJ-Fortschritts-App im Stil eines Anime-RPGs. Der Arbeitstitel war „Tatami Arc“. Er wurde geändert, weil „Tatami“ im BJJ-Markt als Marke von Tatami Fightwear belegt ist. „Waza“ ist das allgemeine japanische Wort für Technik.
 
-**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Kampfkraft.
+**Stand:** Die App läuft unter `/arc/` als eigener Einstiegspunkt im Portfolio (Code in `src/arc/`, Tests in `src/arc/core/model.test.ts`). Die Daten liegen vorerst nur im Browser (localStorage, Export und Import als JSON). Das Supabase-Schema ist als Entwurf in [`schema.sql`](schema.sql) beschrieben und noch nicht angewendet (siehe 8.3).
 
-Klickbarer Prototyp mit simulierten Daten: [`prototyp.html`](prototyp.html). Die Datei ist der Quelltext des Artifacts. Lokal im Browser öffnen oder in Claude ansehen.
+**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Ki.
+
+Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](prototyp.html).
 
 ---
 
@@ -24,7 +26,7 @@ Klickbarer Prototyp mit simulierten Daten: [`prototyp.html`](prototyp.html). Die
 |---|---|---|---|---|
 | 1 Check-in | Kurs oder Open Mat, Gi oder No-Gi. Aus dem Kursplan vorausgewählt, Datum und Dauer ebenfalls | 1 | 2 s | XP, Wochenserie, Mattenzeit, Gi/No-Gi-Vergleich |
 | 2 Heute im Kurs | Technik aus der Liste, zuletzt genutzte oben. Im Gym-Modus trägt der Coach sie ein, dann 0 Tipps | 0–2 | 2 s | Wissen |
-| 3 Roll-Karten | Pro Roll: Gürtel des Partners, Größe (leichter/gleich/schwerer), Subs ich, Subs Partner, Kontrolle (Partner/gleich/ich). Standardwerte: gleich groß, 0, 0, gleich | 2–4 pro Roll | 4 s pro Roll | Kampfkraft, Form, Partnergewicht |
+| 3 Roll-Karten | Pro Roll: Gürtel des Partners, Größe (leichter/gleich/schwerer), Subs ich, Subs Partner, Kontrolle (Partner/gleich/ich). Standardwerte: gleich groß, 0, 0, gleich | 2–4 pro Roll | 4 s pro Roll | Ki, Form, Partnergewicht |
 | 4 Quest-Zähler | Versuche und Treffer (bei Überleben: Escapes, bei Drill: erledigt) | 2–6 | 5 s | Meisterung |
 | 5 Notiz, optional | „Hat funktioniert“ (Technik) und „Festgehangen in“ (6 Positions-Chips) | 2 | 6 s | Bonus-Evidenz, Wochenboss, +15 XP |
 
@@ -82,16 +84,16 @@ Gegen einen gleich starken Partner ist w = 1. Gegen einen deutlich stärkeren st
 
 Der Gürtel ist bewusst die Hauptgröße: Er ist objektiv und mit einem Tipp erfasst. Eine subjektive Angabe wie „stärker/schwächer“ würde sich verschieben, während man selbst besser wird.
 
-### 4.2 Kampfkraft (Elo)
+### 4.2 Ki (Elo)
 
 ```text
 Roll-Ergebnis  S = 0,5 + 0,2 · (Subs ich − Subs Partner) + 0,3 · (Kontrolle − 0,5), begrenzt auf 0 … 1
 Update         R_du ← R_du + 12 · (S − E)          pro Roll
 Start          R_du = Gürtel-Rating des eigenen Gürtels
-Anzeige        Kampfkraft = R_du × 10               (Anime-Zahl, z. B. 12.080)
+Anzeige        Ki = R_du × 10                       (z. B. 12.080)
 ```
 
-Kontrolle zählt mit, damit auch Rolls ohne Submission etwas aussagen. Die Kampfkraft ist privat. Es gibt kein Ranking.
+Kontrolle zählt mit, damit auch Rolls ohne Submission etwas aussagen. Das Ki ist privat. Es gibt kein Ranking. Im ersten Entwurf hieß der Wert „Kampfkraft“. Er wurde umbenannt, weil das Wort in der deutschen Fassung einer bekannten Anime-Serie für genau diese Idee steht.
 
 ### 4.3 Meisterung einer Technik
 
@@ -142,9 +144,9 @@ Stufen sind feste Schwellen, damit jeder Aufstieg erklärbar ist. Sie verwenden 
 | 0 | Unbekannt | noch nie gesehen |
 | 1 | Gesehen | 1× im Kurs, gedrillt oder versucht |
 | 2 | Gedrillt | 3× gesehen oder gedrillt, oder 5 Live-Versuche |
-| 3 | Versucht | 5 Live-Versuche |
-| 4 | Funktioniert | ≥ 8 gewichtete Versuche und UG ≥ b |
-| 5 | Signature | ≥ 25 gewichtete Versuche, UG ≥ 1,5 · b und ≥ 3 Treffer in Trainings mit w̄ ≥ 1,1 („gegen Stärkere“) |
+| 3 | Erprobt | 5 Live-Versuche |
+| 4 | Geschärft | ≥ 8 gewichtete Versuche und UG ≥ b |
+| 5 | Tokui-Waza | ≥ 25 gewichtete Versuche, UG ≥ 1,5 · b und ≥ 3 Treffer in Trainings mit w̄ ≥ 1,1 („gegen Stärkere“) |
 
 Dazu kommen zwei Zustände:
 
@@ -158,8 +160,9 @@ Sechs Achsen, identisch mit den sechs Sektoren der Sternkarte.
 ```text
 Achse = 0,65 · Baum + 0,35 · Form            (nur Baum, wenn noch keine Form-Daten da sind)
 
-Baum  = Σ Ring-Gewicht · M / Σ Ring-Gewicht über alle Techniken des Sektors
-        Ring-Gewichte: Basis 1 · Kern 1,5 · Aufbau 2 · Meisterschaft 2,5
+Baum  = 0,6 · Tiefe + 0,4 · Breite
+        Tiefe  = Mittel der fünf höchsten Meisterungen im Sektor
+        Breite = Anteil der Sektor-Techniken ab Stufe 3, in Prozent
 
 Form  = letzte 8 Wochen
         Submission    r = Σ w · Subs ich / Rolls                → 100 · (1 − e^(−r / 0,6))
@@ -169,7 +172,7 @@ Form  = letzte 8 Wochen
                       → 100 · min(1, UG / 1,5b) · n / (n + 5)
 ```
 
-„Baum“ zeigt, was du kannst, also Breite und Tiefe. „Form“ zeigt, was du gerade auf die Matte bringst. Die Hexagon-Ringe zeigen Richtwerte pro Gürtel (Blau 25, Lila 45, Braun 65, Schwarz 85). Das sind Platzhalter, bis Gym-Daten sie kalibrieren.
+„Baum“ zeigt, was du kannst, also Breite und Tiefe. Ein einfacher Durchschnitt über 20 bis 40 Techniken pro Sektor hätte einen Blaugurt bei 1 bis 6 Punkten begraben. „Form“ zeigt, was du gerade auf die Matte bringst. Die Hexagon-Ringe zeigen Richtwerte pro Gürtel (Blau 25, Lila 45, Braun 65, Schwarz 85). Das sind Platzhalter, bis Gym-Daten sie kalibrieren.
 
 ### 4.6 XP, Level und Wochenserie
 
@@ -189,11 +192,11 @@ Level L ab 40 · (L − 1)² XP
 
 ### 4.7 Gi und No-Gi
 
-**Grundsatz: Alles wird zusammen gerechnet.** Kampfkraft, Meisterung, Stufen, Hexagon, Quests und XP beruhen auf allen Trainings. Jede Session trägt aber `attire` (Gi oder No-Gi), deshalb lässt sich jederzeit ein Vergleich berechnen, ohne ein zweites Modell zu pflegen.
+**Grundsatz: Alles wird zusammen gerechnet.** Ki, Meisterung, Stufen, Hexagon, Quests und XP beruhen auf allen Trainings. Jede Session trägt aber `attire` (Gi oder No-Gi), deshalb lässt sich jederzeit ein Vergleich berechnen, ohne ein zweites Modell zu pflegen.
 
 - **Vergleichsansicht:** erscheint, sobald beide Seiten genug Daten haben, also mindestens 20 Rolls je Seite in den letzten 8 Wochen. Darunter zeigt die App „Noch zu wenig Daten für einen Vergleich“ statt wackliger Zahlen.
 - **Hexagon:** Gi und No-Gi übereinandergelegt, jeweils mit `compute(…, { attire })` berechnet.
-- **Kampfkraft:** zwei zusätzliche Verläufe mit demselben Elo, einmal nur über Gi-Rolls, einmal nur über No-Gi-Rolls, beide ab demselben Startwert. Die Hauptzahl bleibt die gemeinsame.
+- **Ki:** zwei zusätzliche Verläufe mit demselben Elo, einmal nur über Gi-Rolls, einmal nur über No-Gi-Rolls, beide ab demselben Startwert. Die Hauptzahl bleibt die gemeinsame.
 - **Pro Technik:** Quote und Untergrenze je Seite, sobald je Seite mindestens 5 Versuche vorliegen. Im Detailfeld als zwei Balken.
 - **Auffällige Unterschiede als Satz**, z. B. „Dein Triangle trifft im Gi deutlich öfter als im No-Gi“. Nur wenn sich die 80-%-Bereiche beider Seiten nicht überschneiden, sonst kein Satz.
 - **Bibliothek:** Jede Technik hat die Flags `gi` und `nogi`. Reine Gi-Techniken (Cross Collar Choke, Bow & Arrow) sind in der No-Gi-Ansicht ausgegraut. Im gemeinsamen Modell zählen sie normal.
@@ -202,9 +205,10 @@ Level L ab 40 · (L − 1)² XP
 
 ## 5. Sternkarte (Skilltree)
 
-- **Aufbau:** mindestens 72 Techniken auf fünf Ringen: Fundament, Basis, Kern, Aufbau, Meisterschaft. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
+- **Aufbau:** 178 Techniken auf fünf Ringen, benannt nach den klassischen Stufen der Überlieferung: Kiso (Fundament), Shoden, Chūden, Okuden, Hiden. Jeder Sektor ist in Zweige geteilt (Guard z. B. in Closed Guard, Offene Guard, Half Guard, Haken & Beine, Gi-Guards), die als eigene Arme der Sternkarte nach außen wachsen. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
+- **Namen:** so, wie sie auf deutschen Matten gesagt werden (meist englisch oder portugiesisch). Japanische Begriffe stehen in Kodokan-Schreibweise mit Bindestrich, deutsche Judo-Namen nach dem Deutschen Judo-Bund (O-soto-gari = Große Außensichel). Andere Namen stehen als „auch:“ dabei und sind im Codex durchsuchbar. Benannte Techniken (Williams Guard, Tarikoplata, Baratoplata, Estima Lock, Imanari Roll) nennen ihren Namensgeber. Reine Gi-Techniken sind markiert. Beinhebel und riskante Techniken tragen einen Sicherheitshinweis.
 - **Kanten:** Voraussetzungs-Kanten innerhalb eines Sektors. Dazu Kombo-Kanten quer über Sektoren, z. B. Scissor Sweep → Mount → Armbar oder Snap Down → Rücken. Eine Kombo leuchtet auf, sobald beide Enden Stufe 3 haben.
-- **Zustände:** Die Größe, Füllung und das Leuchten eines Sterns zeigen die Stufe. Ein Fortschrittsring zeigt den Weg zur nächsten Stufe. Gold heißt Signature, Rostfarbe heißt Rost, gestrichelt heißt vorläufig.
+- **Zustände:** Die Größe, Füllung und das Leuchten eines Sterns zeigen die Stufe. Ein Fortschrittsring zeigt den Weg zur nächsten Stufe. Gold heißt Tokui-Waza, Rostfarbe heißt Rost, gestrichelt heißt vorläufig.
 - **Nebel:** Sterne ohne gesehenen Nachbarn sind nur Punkte ohne Namen. Die Karte deckt sich beim Lernen auf.
 - **Hexagon als Schatten:** Hinter der Karte liegt das Attribut-Hexagon, auf dieselben sechs Achsen ausgerichtet. Der Baum und der Charakterbogen sind damit visuell dasselbe Objekt.
 - **Onboarding-Kalibrierung:** Beim Start markiert man, was man schon kennt. Das hebt Techniken höchstens auf Stufe 2, vorläufig. Ab Stufe 3 zählen nur Daten.
@@ -231,17 +235,17 @@ P =  1,2 · Fortschritt zur nächsten Stufe        (Stufe 2–4)
    + 0,9 · diese Woche im Kurs
    + 0,35 · neu                                  (Stufe 0–1)
    − 1,5 · in den letzten 3 Trainings schon Quest
-   − 0,8 · schon Signature
+   − 0,8 · schon Tokui-Waza
 ```
 
-Die drei Karten kommen aus drei verschiedenen Sektoren, mit höchstens einer Entrosten- und höchstens einer Drill-Karte. Jede Karte nennt ihren Grund, z. B. „Kurz vor Stufe 4“, „Rostet seit 70 Tagen“ oder „Achse Stand ist gerade deine schwächste Seite“.
+Die drei Karten kommen aus drei verschiedenen Sektoren, mit höchstens einer Schmiede- und höchstens einer Kata-Karte. An einem No-Gi-Tag fallen reine Gi-Techniken weg. Jede Karte nennt ihren Grund, z. B. „Kurz vor Stufe 4“, „Rostet seit 70 Tagen“ oder „Achse Stand ist gerade deine schwächste Seite“.
 
 | Quest-Typ | Wann | Aufgabe |
 |---|---|---|
-| Drill | Stufe 0–1 | 3 × 10 Wiederholungen, abhaken |
-| Versuch | Stufe 2–5 | in jedem Roll versuchen, Versuche und Treffer zählen |
-| Überleben | Verteidigung | sich bewusst in die Position bringen, Escapes zählen |
-| Entrosten | Rost | mindestens einmal live treffen |
+| Kata | Stufe 0–1 | 3 × 10 Wiederholungen, abhaken |
+| Jagd | Stufe 2–5 | in jedem Roll versuchen, Versuche und Treffer zählen (bei Positionen: wie oft gehalten) |
+| Standhalten | Escapes und Abwehr | sich bewusst in die Lage bringen, Escapes zählen |
+| Schmiede | Rost | mindestens einmal live treffen |
 
 ### 6.2 Wochenboss
 
@@ -249,21 +253,22 @@ Die Position, in der du in den letzten 14 Tagen am häufigsten festgehangen hast
 
 ### 6.3 Arcs
 
-Acht-Wochen-Staffeln mit Namen („Guard Arc“, „Druck-Arc“). Jeder Arc hat ein selbst gewähltes Ziel, z. B. die Achse Passing +10 oder Knee Cut auf Stufe 4. Am Ende gibt es eine Rückblick-Karte mit dem Hexagon vorher und nachher, zum Teilen im Wrapped-Stil.
+Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Erste Prüfung“, III „Die Schmiede“, IV „Sturm“ und so weiter. Später bekommt jeder Arc ein selbst gewähltes Ziel, z. B. die Achse Passing +10 oder Knee Cut auf Stufe 4. Am Ende gibt es eine Rückblick-Karte mit dem Hexagon vorher und nachher, zum Teilen im Wrapped-Stil.
 
 ### 6.4 Klasse, Titel, Achievements
 
-- **Klasse** = stärkste Achse: Guard-Weber, Jäger, Anker, Druckwalze, Ringer, Festung. Liegen die zwei stärksten Achsen weniger als 2 Punkte auseinander, heißt sie Allrounder.
-- **Titel** = beste Signature-Technik als Beiname, z. B. Triangle → „Die Dreiecksfalle“, Knee Cut → „Die Knieklinge“.
+- **Klasse** = stärkste Achse: Netzweber (Guard), Jäger (Submission), Anker (Kontrolle), Druckwalze (Passing), Sturmbrecher (Stand), Festung (Verteidigung). Liegen die zwei stärksten Achsen weniger als 2 Punkte auseinander, heißt sie Wandler.
+- **Rang** nach Level: Mattenneuling, Schüler des Dōjō, Wanderer der Matte, Techniksucher, Rollkrieger, Klingenschmied, Dōjō-Veteran, Legende der Matte.
+- **Titel** = beste Tokui-Waza als Beiname, z. B. Triangle → „Die Dreiecksfalle“, Knee Cut → „Die Knieklinge“.
 - **Gürtelprüfung** = Klassenwechsel-Event mit eigener Animation. Das Datum wird als Ground Truth gespeichert.
-- **Achievements** (später): erste Signature, erste aktive Kombo, 100 Rolls, zehn Rolls gegen höhere Gürtel ohne Tap, ein Boss besiegt, ein Arc abgeschlossen.
+- **Siegel** (13 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3, 4 und 5, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 Sterne aufgedeckt, je fünf Trainings in Gi und No-Gi.
 
 ### 6.5 Gym-Modus (später)
 
 - Der Coach pflegt den Kursplan, dann entfällt Schritt 2 für alle.
 - Der Coach kann Techniken „siegeln“, als externe Bestätigung von Stufe 4 oder 5.
 - Gym-Quests für alle, z. B. „Diese Woche: Mount Escapes“.
-- Bewusst keine öffentliche Rangliste für Kampfkraft, höchstens eine Anwesenheits-Serie (opt-in).
+- Bewusst keine öffentliche Rangliste für das Ki, höchstens eine Anwesenheits-Serie (opt-in).
 - Ein Dashboard für Gym-Betreiber: Anwesenheit, Abwanderungsrisiko in den ersten Monaten. Das ist der Teil, für den ein Gym bezahlen würde.
 
 ---
@@ -271,9 +276,9 @@ Acht-Wochen-Staffeln mit Namen („Guard Arc“, „Druck-Arc“). Jeder Arc hat
 ## 7. Screens
 
 1. **Heute:** drei Quest-Karten, Wochenboss, Wochenziel, Knopf „Training loggen“.
-2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach ein Ergebnis-Screen mit XP-Aufschlüsselung, Stufenaufstiegen, Kampfkraft-Änderung und pulsierenden Sternen.
+2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach ein Ergebnis-Screen mit XP-Aufschlüsselung, Stufenaufstiegen, Ki-Änderung und pulsierenden Sternen.
 3. **Sternkarte:** zoombar, Sektor-Fokus, Detailfeld.
-4. **Charakter:** Hexagon jetzt und vor 8 Wochen, Klasse, Titel, Kampfkraft-Verlauf, Gürtel-Zeitleiste.
+4. **Charakter:** Hexagon jetzt und vor 8 Wochen, Klasse, Titel, Ki-Verlauf, Gürtel-Zeitleiste.
 5. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
 
 Der Prototyp zeigt Heute, Log-Flow mit Live-Vorschau, Sternkarte und Charakter.
@@ -282,15 +287,15 @@ Der Prototyp zeigt Heute, Log-Flow mit Live-Vorschau, Sternkarte und Charakter.
 
 ## 8. Technik und Architektur
 
-Tatami Arc bleibt im Portfolio-Repo und nutzt das bestehende Supabase-Projekt. Nach außen ist es trotzdem eine eigene App mit eigenem Frontend.
+Waza Arc bleibt im Portfolio-Repo und nutzt das bestehende Supabase-Projekt. Nach außen ist es trotzdem eine eigene App mit eigenem Frontend. Das Portfolio legt schon heute eigene `index.html` in Unterordnern ab (`/strompreis/`, `/work/…`) und der Hoster liefert sie aus. `/arc/` nutzt denselben Mechanismus.
 
 ### 8.1 Frontend: eigener Einstiegspunkt im selben Vite-Projekt
 
-Vite kann mehrere HTML-Einstiegspunkte bauen (Multi-Page-Build, `build.rollupOptions.input`). Tatami Arc bekommt einen eigenen:
+Vite kann mehrere HTML-Einstiegspunkte bauen (Multi-Page-Build, `build.rollupOptions.input`). Waza Arc hat einen eigenen:
 
 ```text
 index.html               → src/main.tsx        Portfolio, unverändert
-arc/index.html           → src/arc/main.tsx    Tatami Arc
+arc/index.html           → src/arc/main.tsx    Waza Arc
 src/arc/                 eigene App: Seiten, Komponenten, Styles, Supabase-Client
 src/arc/core/            Rechenkern compute(), reine Funktionen, mit Tests
 src/arc/data/            Technik-Bibliothek als versioniertes JSON
@@ -302,12 +307,14 @@ public/arc/              manifest.webmanifest, Icons, Service Worker (Scope /arc
 - **Eigenes Design:** eigene CSS-Tokens (die Nachtdojo-Palette aus dem Prototyp). Die Portfolio-`index.css` wird nicht importiert. Tailwind geht mit eigener Konfiguration für `src/arc`, schlichtes CSS auch. Fonts werden wie im Portfolio selbst gehostet (@fontsource), nicht von Google geladen.
 - **Geteilt wird nur Unsichtbares:** Build, CI (Lint, Typecheck, Build), Deployment über Lovable, Supabase-Typen.
 - **Routing per Hash** (`/arc/#/karte`), damit der Hoster keine Deep Links auf `arc/index.html` umleiten muss.
+- **Weiterleitung:** `/arc` ohne Schrägstrich leitet die Portfolio-App auf `/arc/` weiter (`src/pages/ArcRedirect.tsx`).
 - **Der eine offene Punkt:** Ein Test-Deployment muss zeigen, dass Lovable `/arc/` wirklich mit `arc/index.html` beantwortet und nicht mit der Rückfallseite des Portfolios. Plan B, falls nicht: dieselbe Ordnerstruktur, aber als eigenes Deployment auf `arc.rukawaanalytics.com` (z. B. Cloudflare Pages, kostenlos). Das Backend bleibt dabei gleich.
 
 ### 8.2 Backend: dasselbe Supabase-Projekt, eigenes Schema
 
 Das Projekt „Rukawa Portfolio“ bekommt ein Schema `arc`, so wie es schon `energy`, `racing` und `personal` gibt. Der Free-Plan erlaubt zwei aktive Projekte, und beide sind mit Portfolio und CR-Analyse belegt. Ein drittes würde also Geld kosten. Die Datenmenge ist klein, ein Training ergibt eine Handvoll Zeilen.
 
+- **Entwurf:** [`schema.sql`](schema.sql). Er übernimmt die Datenform der App (Rolls und Quest als JSON pro Session), damit der spätere Sync die lokalen Daten 1:1 hochladen kann.
 - **Tabellen** aus Abschnitt 3 im Schema `arc`, jede mit `user_id uuid references auth.users on delete cascade` und Row Level Security `user_id = auth.uid()`. Die Technik-Bibliothek ist nur lesbar.
 - **Rechte:** `grant usage on schema arc to authenticated`, **nicht** an `anon`. Wer nicht angemeldet ist, sieht nichts. Das Schema wird in den API-Einstellungen als „Exposed schema“ freigeschaltet, die App greift mit `supabase.schema('arc')` zu.
 - **Anmeldung** über Supabase Auth mit Magic Link oder Google. Das ist neu für das Projekt, bisher meldet sich dort nur der Admin an. Voraussetzung siehe 8.3.
@@ -343,7 +350,7 @@ Das ist der Teil, der aus der App ein vorzeigbares Datenprojekt macht.
 
 1. **Coach-Abgleich:** Der Coach bewertet die Pilot-Teilnehmenden einmal pro Achse auf einer Skala von 1 bis 10. Verglichen wird die Rangkorrelation (Spearman) mit den berechneten Achsen.
 2. **Stabilität:** Wie stark springen Meisterung und Achsen von Woche zu Woche ohne echte Veränderung? Ziel: glatte Verläufe, klare Sprünge nur bei Stufenaufstiegen.
-3. **Vorhersage:** Steigen Kampfkraft und Achsen in den Wochen vor einer Streifen- oder Gürtelvergabe? Bei kleinen Zahlen ist das deskriptiv, aber gut erzählbar.
+3. **Vorhersage:** Steigen Ki und Achsen in den Wochen vor einer Streifen- oder Gürtelvergabe? Bei kleinen Zahlen ist das deskriptiv, aber gut erzählbar.
 4. **Partner-Ratings kalibrieren:** Die Gürtel-Ratings werden aus den Roll-Ergebnissen aller Teilnehmenden per Maximum Likelihood geschätzt, statt sie gesetzt zu lassen.
 5. **Sensitivität:** Wie ändern sich die Rangfolgen, wenn man Gewichte (0,65/0,35, Prior-Stärke 4, Halbwertszeiten) um ±30 % verschiebt? Robuste Rangfolgen sind ein gutes Zeichen.
 6. **Log-Treue:** Anteil der Trainings, die geloggt wurden, und Median der Eingabezeit. Das misst, ob das Kernversprechen „realistisch zu merken“ hält.
@@ -356,8 +363,8 @@ Daraus wird die Case Study: „Kann man BJJ-Fortschritt messen? Acht Wochen, zeh
 
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
-| 0 Fundament | Rechte aufräumen (8.3), Multi-Page-Setup mit leerer Arc-Seite, Test-Deployment auf `/arc/`, Schema `arc` mit Auth | Die Architektur steht, bevor Features gebaut werden |
-| 1 Eigenversuch | Log-Flow, alle 72 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
+| 0 Fundament | Erledigt: eigener Einstiegspunkt `/arc/`, App lokal-first. Offen: Rechte aufräumen (8.3), Schema `arc` anwenden, Auth, Sync | Die Architektur steht |
+| 1 Eigenversuch | Läuft ab sofort lokal: Log-Flow, alle 178 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
 | 2 Spielsysteme | Sternkarte mit Nebel und Kombos, Drei-Karten-Draft, Wochenboss, Klasse und Titel, Rückblick-Karte | Die App macht Spaß, nicht nur Sinn |
 | 3 Gym-Pilot | 5 bis 10 Leute, Kursplan vom Coach, Coach-Bewertung als Ground Truth | 8 Wochen Daten mehrerer Personen |
 | 4 Auswertung | Validierung (Abschnitt 10), Kalibrierung der Parameter, Case Study im Portfolio | Belegbare Modellgüte und eine Geschichte dazu |
@@ -370,10 +377,11 @@ Entschieden:
 
 - **Kontrolle** bleibt „Partner / gleich / ich“, ohne oben/unten.
 - **Gi und No-Gi** werden zusammen gerechnet, mit Vergleichsansicht, sobald beide Seiten genug Daten haben (4.7).
-- **Mindestens 72 Techniken** schon in der ersten Version.
+- **Mindestens 72 Techniken** schon in der ersten Version. Umgesetzt sind 178.
+- **Name:** Waza Arc statt Tatami Arc (Markenkonflikt mit Tatami Fightwear). Vor einem öffentlichen Start noch eine Markenrecherche beim DPMA und EUIPO machen.
 - **Im Portfolio** mit eigenem Frontend unter `/arc/` und demselben Supabase-Projekt (Abschnitt 8).
 
 Offen:
 
-- Positional Sparring (Start in einer Position) als eigener Roll-Typ, der nicht in die Kampfkraft eingeht?
-- Name: Tatami Arc, MatQuest oder etwas ganz anderes. Der Pfad `/arc/` passt zu Tatami Arc.
+- Positional Sparring (Start in einer Position) als eigener Roll-Typ, der nicht ins Ki eingeht?
+- Offline-Start über einen Service Worker (Scope `/arc/`), damit die App auch ohne Netz im Gym-Keller öffnet.

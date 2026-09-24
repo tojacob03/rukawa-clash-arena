@@ -18,6 +18,7 @@ Portfolio and client platform of **Till Oscar Jacob ("Rukawa")**, a Clash Royale
 | **Contact** | Contact form (stored in Supabase) and optional call booking |
 | **Strompreis-Kompass** (`/strompreis`) | German electricity price dashboard built on official Bundesnetzagentur data, see [docs](docs/strompreis-kompass/README.md) |
 | **Race Strategy Lab** (`/race-strategy`) | Tyre strategy, tyre wear, race pace and pit stop analysis for every Grand Prix since 2023 (OpenF1 data), see [docs](docs/race-strategy-lab/README.md) |
+| **Waza Arc** (`/arc/`, beta) | BJJ progress app as an anime-style RPG: 30-second training log, a daily quest you count on the mat, 178 techniques on a star-map skill tree, Ki rating and character sheet. Its own entry point with its own bundle and design; data stays in the browser for now. See [concept](docs/waza-arc/KONZEPT.md) |
 
 Featured case study: [From Battle Log to Set Decision](src/content/case-studies/player-analysis-tooling.md) — how up to 1,000 recent battles per player become slot-based tendencies (Game 1/2/3) and remaining-deck predictions.
 

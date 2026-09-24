@@ -1,0 +1,16 @@
+{
+  "name": "Waza Arc",
+  "short_name": "Waza Arc",
+  "description": "BJJ-Fortschritt als Anime-RPG: Tagesquests, Sternkarte, Ki.",
+  "lang": "de",
+  "start_url": "/arc/",
+  "scope": "/arc/",
+  "display": "standalone",
+  "background_color": "#0a0f1e",
+  "theme_color": "#0a0f1e",
+  "icons": [
+    { "src": "/arc/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/arc/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/arc/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

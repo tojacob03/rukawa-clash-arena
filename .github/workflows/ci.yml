@@ -38,5 +38,10 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Waza Arc model tests: node's built-in runner with type stripping,
+      # no test framework dependency.
+      - name: Test (Waza Arc model)
+        run: npm run test:arc
+
       - name: Build
         run: npm run build
