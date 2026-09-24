@@ -10,7 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { DeckItem } from '@/components/deck/DeckItem';
 import { OpponentCard } from '@/components/opponent/OpponentCard';
 import { AnalysisViewer } from '@/components/opponent/AnalysisViewer';
-import { withTimeout, withSupabaseTimeout } from '@/lib/withTimeout';
+import { withSupabaseTimeout } from '@/lib/withTimeout';
+import { errorMessage, errorName } from '@/lib/errors';
 import { safeStorage } from '@/lib/safeStorage';
 
 interface Client {
@@ -35,7 +36,7 @@ interface DeckFile {
   deck_name: string;
   deck_link: string;
   deck_number: number;
-  card_ids?: any; // JSON from database
+  card_ids?: unknown; // JSON from database
 }
 
 interface AnalysisFile {
@@ -96,16 +97,16 @@ const ClientPortal = () => {
         return;
       }
 
-      const deckSetsWithFiles = (deckSetsResult.data || []).map((deckSet: any) => ({
+      const deckSetsWithFiles = (deckSetsResult.data || []).map((deckSet) => ({
         ...deckSet,
-        deck_files: (deckFilesResult.data || []).filter((file: any) => file.deck_set_id === deckSet.id)
+        deck_files: (deckFilesResult.data || []).filter((file) => file.deck_set_id === deckSet.id)
       }));
 
       setDeckSets(deckSetsWithFiles);
       console.log(`[ClientPortal] Successfully loaded ${deckSetsWithFiles.length} deck sets`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[ClientPortal] Exception fetching deck sets:', err);
-      if (err.name === 'TimeoutError') {
+      if (errorName(err) === 'TimeoutError') {
         setError('Request timeout. Please check your connection and try again.');
       } else {
         setError('Failed to load deck sets. Please try again.');
@@ -145,16 +146,16 @@ const ClientPortal = () => {
         return;
       }
 
-      const opponentsWithFiles = (opponentsResult.data || []).map((opponent: any) => ({
+      const opponentsWithFiles = (opponentsResult.data || []).map((opponent) => ({
         ...opponent,
-        analysis_files: (analysisResult.data || []).filter((file: any) => file.opponent_id === opponent.id)
+        analysis_files: (analysisResult.data || []).filter((file) => file.opponent_id === opponent.id)
       }));
 
       setOpponents(opponentsWithFiles);
       console.log(`[ClientPortal] Successfully loaded ${opponentsWithFiles.length} opponents`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[ClientPortal] Exception fetching opponents:', err);
-      if (err.name === 'TimeoutError') {
+      if (errorName(err) === 'TimeoutError') {
         setError('Request timeout. Please check your connection and try again.');
       } else {
         setError('Failed to load opponents. Please try again.');
@@ -169,7 +170,7 @@ const ClientPortal = () => {
     setLoading(true);
     setError('');
 
-    console.log('[ClientPortal] Starting login attempt with code:', loginCode.trim());
+    console.log('[ClientPortal] Starting login attempt');
 
     try {
       console.log('[ClientPortal] Calling authenticate_client_secure...');
@@ -195,12 +196,12 @@ const ClientPortal = () => {
         return;
       }
 
-      if (!authResult.data || (authResult.data as any[]).length === 0) {
+      if (!authResult.data || authResult.data.length === 0) {
         setError('Invalid login code or client not active');
         return;
       }
 
-      const clientData = (authResult.data as any[])[0];
+      const clientData = authResult.data[0];
       console.log(`[ClientPortal] Login successful for client:`, clientData.client_name, clientData.client_type);
       
       const clientObject = {
@@ -223,12 +224,12 @@ const ClientPortal = () => {
       } else if (clientData.client_type === 'team') {
         await fetchOpponents(clientData.session_token);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[ClientPortal] Login exception:', err);
       
-      if (err.name === 'TimeoutError') {
+      if (errorName(err) === 'TimeoutError') {
         setError('Login timeout. Please check your connection and try again.');
-      } else if (err.message?.includes('Too many failed')) {
+      } else if (errorMessage(err).includes('Too many failed')) {
         setError('Too many failed login attempts. Please try again later.');
       } else {
         setError('Login failed. Please check your connection and try again.');

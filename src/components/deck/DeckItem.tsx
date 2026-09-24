@@ -8,7 +8,7 @@ interface DeckFile {
   deck_name: string;
   deck_link: string;
   deck_number: number;
-  card_ids?: any;
+  card_ids?: unknown;
 }
 
 interface DeckItemProps {

@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCalApi } from "@calcom/embed-react";
+import { errorMessage } from "@/lib/errors";
 
 const CAL_LINK = "tilloscar";
 const CAL_NAMESPACE = "contact-section";
@@ -75,11 +76,11 @@ const ContactSection = () => {
         description: "Thank you for your message. I'll get back to you soon.",
       });
       setFormData({ name: "", email: "", message: "" });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error submitting form:", error);
 
       // Handle rate limiting specifically
-      if (error.message?.includes("Rate limit exceeded")) {
+      if (errorMessage(error).includes("Rate limit exceeded")) {
         toast({
           title: "Rate Limit Exceeded",
           description: "Too many submissions. Please wait an hour before sending another message.",

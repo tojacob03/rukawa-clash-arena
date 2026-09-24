@@ -23,6 +23,7 @@ import { FileManager } from '@/components/admin/FileManager';
 import { AdminStats } from '@/components/admin/AdminStats';
 import { withTimeout, withSupabaseTimeout } from '@/lib/withTimeout';
 import { safeStorage } from '@/lib/safeStorage';
+import { errorMessage, errorName } from '@/lib/errors';
 import type { User, Session } from '@supabase/supabase-js';
 
 const AdminPanel = () => {
@@ -55,7 +56,7 @@ const AdminPanel = () => {
       }
 
       return result.data === true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[AdminPanel] Exception checking admin status:', error);
       return false;
     }
@@ -90,9 +91,9 @@ const AdminPanel = () => {
           await supabase.auth.signOut();
         }
       }
-    } catch (error: any) {
-      if (error.name === 'TimeoutError') {
-        console.error('[AdminPanel] Login timeout:', error.message);
+    } catch (error: unknown) {
+      if (errorName(error) === 'TimeoutError') {
+        console.error('[AdminPanel] Login timeout:', errorMessage(error));
         setError('Login timeout. Please check your connection and try again.');
       } else {
         console.error('[AdminPanel] Login exception:', error);
@@ -125,7 +126,6 @@ const AdminPanel = () => {
     console.log('AdminPanel: Starting initialization');
     let isMounted = true;
     let adminStatusChecked = false;
-    let isWindowFocused = true;
     
     const initializeAuth = async () => {
       try {
@@ -161,10 +161,10 @@ const AdminPanel = () => {
           console.log('[AdminPanel] Setting loading to false');
           setLoading(false);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('[AdminPanel] Error in initializeAuth:', error);
-        if (error.name === 'TimeoutError') {
-          console.error('[AdminPanel] Session retrieval timeout:', error.message);
+        if (errorName(error) === 'TimeoutError') {
+          console.error('[AdminPanel] Session retrieval timeout:', errorMessage(error));
         }
         if (isMounted) setLoading(false);
       }
