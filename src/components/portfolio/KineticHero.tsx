@@ -11,7 +11,6 @@ import {
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { scrollToSection } from "@/lib/smoothScroll";
 import { usePublicStats } from "@/hooks/usePublicStats";
-import heroBackground from "@/assets/hero-background.jpg";
 
 // Same curve as --ease-out-expo in index.css.
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -21,9 +20,12 @@ const OUTCOMES = ["set decisions.", "Game 1 reads.", "ban plans.", "Game 3 calls
 
 const MARQUEE = "Battle logs · Duel detection · Game 1 tendencies · Remaining decks · Solo CRL · ";
 
-// CRL Worlds 2026 (Shanghai, Nov 6-8) - the badge hides itself afterwards
-// instead of going stale.
-const WORLDS_END = new Date("2026-11-09T00:00:00+08:00");
+// Proof first, decoration second: these carry the hero, not artwork.
+const PROOF = [
+  { value: "Top 2, 3 & 4", label: "CRL Monthly Finals results of players I prepared" },
+  { value: "2 players", label: "qualified for the CRL World Finals 2026" },
+  { value: "Since 2019", label: "analyst for teams, a national team and players" },
+];
 
 const CountUp = ({ value }: { value: number }) => {
   const ref = useRef<HTMLSpanElement>(null);
@@ -93,8 +95,6 @@ const KineticHero = () => {
   };
 
   const battles = data?.battlesAnalyzed30d ?? 0;
-  const dossiers = data?.activeDossiers ?? 0;
-  const showWorlds = new Date() < WORLDS_END;
 
   return (
     <section
@@ -103,12 +103,8 @@ const KineticHero = () => {
       className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden pb-16 pt-28 sm:pt-32"
       style={{ ["--spot-x" as string]: "70%", ["--spot-y" as string]: "30%" }}
     >
-      {/* Background: the old hero art, dimmed, plus grid and pointer light */}
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-40"
-        style={{ backgroundImage: `url(${heroBackground})` }}
-        aria-hidden
-      />
+      {/* Background: no artwork and no purple - a quiet grid and a faint
+          gold light that follows the pointer. */}
       <div
         className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.5)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.5)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
         aria-hidden
@@ -117,7 +113,7 @@ const KineticHero = () => {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(600px circle at var(--spot-x) var(--spot-y), hsl(var(--primary) / 0.22), transparent 60%)",
+            "radial-gradient(600px circle at var(--spot-x) var(--spot-y), hsl(var(--clash-gold) / 0.07), transparent 60%)",
         }}
         aria-hidden
       />
@@ -148,7 +144,7 @@ const KineticHero = () => {
           transition={{ duration: 0.6, ease: EASE }}
           className="label-caps text-clash-gold"
         >
-          Rukawa · Clash Royale analyst · Solo CRL
+          Till Oscar Jacob, known as Rukawa
         </motion.p>
 
         <h1 className="mt-6 text-[clamp(3rem,9.5vw,9rem)] font-semibold leading-[0.92] tracking-[-0.045em] text-foreground">
@@ -173,7 +169,7 @@ const KineticHero = () => {
                       animate={{ y: "0%", opacity: 1 }}
                       exit={{ y: "-100%", opacity: 0 }}
                       transition={{ duration: 0.55, ease: EASE }}
-                      className="bg-gradient-to-r from-clash-gold via-[hsl(30_100%_65%)] to-[hsl(var(--primary-glow))] bg-clip-text pb-[0.08em] text-transparent"
+                      className="pb-[0.08em] text-clash-gold"
                     >
                       {OUTCOMES[outcome]}
                     </motion.span>
@@ -191,8 +187,8 @@ const KineticHero = () => {
           className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between"
         >
           <p className="max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Opponent research and set prep for Solo CRL players - backed by a data pipeline I designed and run
-            myself.
+            Clash Royale analyst for Solo CRL, currently preparing two players for the CRL World Finals. I build
+            the data tooling behind it myself, and use the same approach beyond esports.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
@@ -221,37 +217,25 @@ const KineticHero = () => {
           className="mt-14 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-border/60 pt-6 md:grid-cols-4"
         >
           {battles > 0 && (
-            <div>
-              <dt className="label-caps flex items-center gap-2 text-muted-foreground">
-                <span className="relative flex h-1.5 w-1.5">
+            <div className="flex flex-col">
+              <dt className="mt-2 flex max-w-[16rem] items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+                <span className="relative mt-[0.6em] flex h-1.5 w-1.5 shrink-0">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75 motion-reduce:animate-none" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-400" />
                 </span>
-                Battles parsed · 30 days
+                battles parsed by my pipeline, last 30 days
               </dt>
-              <dd className="tabular-stat mt-2 text-3xl font-semibold text-foreground">
+              <dd className="tabular-stat order-first text-3xl font-semibold tracking-tight text-foreground">
                 <CountUp value={battles} />
               </dd>
             </div>
           )}
-          {dossiers > 0 && (
-            <div>
-              <dt className="label-caps text-muted-foreground">Active pro dossiers</dt>
-              <dd className="tabular-stat mt-2 text-3xl font-semibold text-foreground">
-                <CountUp value={dossiers} />
-              </dd>
+          {PROOF.map((item) => (
+            <div key={item.value} className="flex flex-col">
+              <dt className="mt-2 max-w-[16rem] text-sm leading-relaxed text-muted-foreground">{item.label}</dt>
+              <dd className="order-first text-3xl font-semibold tracking-tight text-foreground">{item.value}</dd>
             </div>
-          )}
-          <div>
-            <dt className="label-caps text-muted-foreground">CRL Monthly Finals support</dt>
-            <dd className="mt-2 text-3xl font-semibold text-clash-gold">Top 2, 3 &amp; 4</dd>
-          </div>
-          {showWorlds && (
-            <div>
-              <dt className="label-caps text-muted-foreground">Next · CRL Worlds 2026</dt>
-              <dd className="mt-2 text-3xl font-semibold text-foreground">Shanghai, Nov 6-8</dd>
-            </div>
-          )}
+          ))}
         </motion.dl>
       </motion.div>
     </section>
