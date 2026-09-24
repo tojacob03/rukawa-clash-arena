@@ -9,6 +9,8 @@ export type Testimonial = {
   role: string;
   /** What it is about, so a visitor can place it */
   context: string;
+  /** Small round photo, only with the person's permission (public/testimonials/) */
+  avatar?: string;
   /** Public profile, e.g. their X account */
   profile?: { label: string; href: string };
   /** A phrase from the quote to set in gold - emphasis only, never new words */
@@ -23,6 +25,7 @@ export const TESTIMONIALS: Testimonial[] = [
     name: "Viiper",
     role: "CRL pro, Joblife Esports",
     context: "Qualified for the CRL World Finals 2026",
+    avatar: "/testimonials/viiper.webp", // photo use approved by Viiper
     profile: { label: "@Viiper__1", href: "https://x.com/Viiper__1" },
     highlight: "backed by data",
     // Wording and name line confirmed by Viiper.

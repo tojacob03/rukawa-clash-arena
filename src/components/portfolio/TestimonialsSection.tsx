@@ -107,13 +107,25 @@ const Quote = ({ t, index }: { t: Testimonial; index: number }) => {
       </blockquote>
 
       <figcaption className="mt-10 flex items-center gap-4 border-t border-border/60 pt-6">
-        {/* Monogram instead of a photo - no picture is used without asking. */}
-        <span
-          aria-hidden="true"
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-clash-gold/50 text-lg font-semibold text-clash-gold"
-        >
-          {t.name.charAt(0)}
-        </span>
+        {/* Photo where the person has allowed one, otherwise a monogram. */}
+        {t.avatar ? (
+          <img
+            src={t.avatar}
+            alt=""
+            width={56}
+            height={56}
+            loading="lazy"
+            decoding="async"
+            className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-clash-gold/60 ring-offset-2 ring-offset-background"
+          />
+        ) : (
+          <span
+            aria-hidden="true"
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-clash-gold/50 text-lg font-semibold text-clash-gold"
+          >
+            {t.name.charAt(0)}
+          </span>
+        )}
         <span className="min-w-0">
           <span className="flex flex-wrap items-baseline gap-x-3">
             <span className="text-base font-semibold text-foreground">{t.name}</span>
