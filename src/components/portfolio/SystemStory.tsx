@@ -26,14 +26,28 @@ const STEPS = [
   },
 ];
 
+// A battle log as the tool groups it: duels are sets of several games
+// (one deck per game), and at this level most games end 1-0 in crowns.
 const LOG = [
-  ["CRL Duel", "W 2-1", "Miner Poison"],
-  ["Friendly", "L 1-2", "Hog 2.6"],
-  ["CRL Duel", "W 2-0", "Giant Double Prince"],
-  ["Ladder", "W 3-1", "Miner Poison"],
-  ["Friendly", "W 2-1", "Lava Clone"],
-  ["CRL Duel", "L 0-2", "Hog 2.6"],
-  ["Friendly", "W 2-0", "Miner Poison"],
+  {
+    mode: "CRL Duel · Bo3",
+    result: "W 2-1",
+    games: [
+      ["Miner Poison", "1-0"],
+      ["Hog 2.6", "0-1"],
+      ["Lava Clone", "1-0"],
+    ],
+  },
+  {
+    mode: "Friendly duel · Bo3",
+    result: "L 1-2",
+    games: [
+      ["Giant Double Prince", "0-1"],
+      ["Miner Poison", "1-0"],
+      ["Hog 2.6", "0-1"],
+    ],
+  },
+  { mode: "Ladder", result: "W", games: [["Miner Poison", "1-0"]] },
 ];
 
 const SLOTS = [
@@ -63,21 +77,33 @@ const Panel = ({ step }: { step: number }) => (
         transition={{ duration: 0.45, ease: EASE }}
       >
         {step === 0 && (
-          <ul className="space-y-2">
-            {LOG.map(([mode, result, deck], i) => (
-              <motion.li
-                key={i}
+          <div className="space-y-3">
+            {LOG.map((set, i) => (
+              <motion.div
+                key={set.mode}
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.07, duration: 0.35 }}
-                className="grid grid-cols-[6rem_4rem_1fr] gap-3 rounded-md bg-secondary/40 px-3 py-2"
+                transition={{ delay: i * 0.12, duration: 0.35 }}
+                className="rounded-lg bg-secondary/40 px-3 py-2"
               >
-                <span className="text-muted-foreground">{mode}</span>
-                <span className={result.startsWith("W") ? "text-green-400" : "text-red-400"}>{result}</span>
-                <span className="truncate text-foreground">{deck}</span>
-              </motion.li>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{set.mode}</span>
+                  <span className={set.result.startsWith("W") ? "text-green-400" : "text-red-400"}>{set.result}</span>
+                </div>
+                <ul className="mt-1.5 space-y-1">
+                  {set.games.map(([deck, crowns], g) => (
+                    <li key={g} className="grid grid-cols-[2rem_1fr_2.5rem] gap-2 text-xs">
+                      <span className="text-muted-foreground/60">{set.games.length > 1 ? `G${g + 1}` : ""}</span>
+                      <span className="truncate text-foreground">{deck}</span>
+                      <span className={`text-right ${crowns.startsWith("1") ? "text-green-400" : "text-red-400"}`}>
+                        {crowns}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
             ))}
-          </ul>
+          </div>
         )}
         {step === 1 && (
           <div className="grid gap-5">
