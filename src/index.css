@@ -294,3 +294,16 @@ html.lenis body {
     }
   }
 }
+
+/*
+  Markdown column alignment (|---:|) in case studies. marked emits it as an
+  `align` attribute, which @tailwindcss/typography's `th, td { text-align:
+  start }` would otherwise override - numbers belong right-aligned.
+*/
+.prose [align="right"] {
+  text-align: right;
+}
+
+.prose [align="center"] {
+  text-align: center;
+}

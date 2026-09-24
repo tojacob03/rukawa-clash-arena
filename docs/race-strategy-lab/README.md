@@ -36,6 +36,8 @@ Alles läuft wie beim Strompreis-Kompass in der Datenbank **Rukawa Portfolio**, 
 | `racing.race_cache`, `racing.season_cache` | Fertig berechnete Auswertungen als JSON |
 | `racing.ingest_runs` | Protokoll jedes Abrufs, 90 Tage |
 
+Das komplette SQL steht in [`schema.sql`](schema.sql): jede Funktion einmal, in ihrer aktuellen Fassung. Die Methode unten steckt in `racing.build_race` und `racing.build_season`. So, wie es in der Datenbank angewendet wurde, liegt das SQL als vier Migrationen in [`supabase/migrations`](../../supabase/migrations) (`20260923230453` bis `20260923230809`).
+
 ## Methode
 
 1. **Saubere Runden:** ab Runde 2, keine Out-Laps, keine In-Laps (Runde mit Boxenstopp), höchstens 107 % des Rennmedians. Das filtert Safety-Car-Phasen, Dreher und Verkehr in der Startphase.

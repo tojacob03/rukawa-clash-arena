@@ -6,7 +6,27 @@ const SITE_URL = "https://rukawaanalytics.com";
 const SITE_NAME = "Rukawa Analytics";
 const WORK_TITLE = `Case Studies | ${SITE_NAME}`;
 const WORK_DESCRIPTION =
-  "Writeups on the Clash Royale analysis tooling behind Solo CRL prep - the systems, the data problems and the decisions.";
+  "Writeups on the systems behind my work: the Clash Royale analysis tooling behind Solo CRL prep, and data projects beyond esports.";
+
+// Standalone project pages outside /work. They get the same prerendered head
+// as the case studies, so a shared link previews the project itself instead
+// of the Clash Royale homepage.
+const PROJECT_PAGES = [
+  {
+    route: "strompreis",
+    title: `Strompreis-Kompass | ${SITE_NAME}`,
+    description:
+      "Wann ist Strom am günstigsten? Börsenstrompreise, Wind- und Solarerzeugung und negative Preise, laufend aktualisiert aus den offiziellen Daten der Bundesnetzagentur (SMARD).",
+    image: "/og/strompreis.png",
+  },
+  {
+    route: "race-strategy",
+    title: `Race Strategy Lab | ${SITE_NAME}`,
+    description:
+      "Tyre strategy, tyre wear, race pace and pit stop analysis for every Grand Prix since 2023, built on OpenF1 data.",
+    image: "/og/race-strategy.png",
+  },
+];
 
 interface CaseStudyMeta {
   slug: string;
@@ -68,6 +88,7 @@ function buildSitemap(studies: CaseStudyMeta[]): string {
   const staticUrls = [
     { loc: "/", priority: "1.0" },
     { loc: "/work", priority: "0.8" },
+    ...PROJECT_PAGES.map((page) => ({ loc: `/${page.route}`, priority: "0.8" })),
   ];
   const urls = [
     ...staticUrls.map(
@@ -96,7 +117,7 @@ function buildRss(studies: CaseStudyMeta[]): string {
     })
     .join("\n");
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>${SITE_NAME} — Case Studies</title>\n    <link>${SITE_URL}/work</link>\n    <description>Writeups on Clash Royale analysis tooling and Solo CRL prep.</description>\n    <language>en</language>\n${items}\n  </channel>\n</rss>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>${SITE_NAME} — Case Studies</title>\n    <link>${SITE_URL}/work</link>\n    <description>Writeups on the systems behind my work: Clash Royale analysis tooling and data projects beyond esports.</description>\n    <language>en</language>\n${items}\n  </channel>\n</rss>\n`;
 }
 
 interface PageMeta {
@@ -123,7 +144,7 @@ function renderPage(template: string, meta: PageMeta): string {
   const stripped = template
     .replace(/<title>[\s\S]*?<\/title>/, "")
     .replace(
-      /<meta\s+(?:name|property)="(?:description|og:title|og:description|og:url|og:type|og:image|twitter:title|twitter:description|twitter:image|article:published_time)"[^>]*>/g,
+      /<meta\s+(?:name|property)="(?:description|og:site_name|og:title|og:description|og:url|og:type|og:image|twitter:title|twitter:description|twitter:image|article:published_time)"[^>]*>/g,
       "",
     )
     .replace(/<link\s+rel="canonical"[^>]*>/g, "");
@@ -157,10 +178,10 @@ function writePage(outDir: string, routePath: string, html: string) {
 }
 
 /**
- * At build time, from src/content/case-studies/*.md:
+ * At build time, from src/content/case-studies/*.md and PROJECT_PAGES:
  *  - /sitemap.xml and /rss.xml
- *  - /work/index.html and /work/<slug>/index.html with their own title,
- *    description, canonical URL and social preview tags
+ *  - /work/index.html, /work/<slug>/index.html and /<project>/index.html
+ *    with their own title, description, canonical URL and social preview tags
  *
  * Add a new case study .md file and all of it regenerates on the next
  * build - no manual step.
@@ -198,6 +219,20 @@ export function feedsPlugin(): Plugin {
           type: "website",
         }),
       );
+
+      for (const page of PROJECT_PAGES) {
+        writePage(
+          outDir,
+          page.route,
+          renderPage(template, {
+            title: page.title,
+            description: page.description,
+            url: `${SITE_URL}/${page.route}`,
+            image: absoluteUrl(page.image),
+            type: "website",
+          }),
+        );
+      }
 
       for (const study of studies) {
         writePage(

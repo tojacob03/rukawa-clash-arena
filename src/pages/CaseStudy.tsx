@@ -6,11 +6,34 @@ import SiteNav from "@/components/portfolio/SiteNav";
 import Footer from "@/components/portfolio/Footer";
 import { caseStudiesBySlug } from "@/data/caseStudies";
 
-const formatDate = (iso: string) => {
+// Page chrome in the writeup's own language, so a German case study doesn't
+// open with "Back to case studies" and close with a set-prep pitch.
+const COPY = {
+  en: {
+    locale: "en-GB",
+    back: "Back to case studies",
+    role: "Role",
+    duration: "Duration",
+    stack: "Stack",
+    published: "Published",
+    cta: "Talk about your set prep →",
+  },
+  de: {
+    locale: "de-DE",
+    back: "Zurück zu den Case Studies",
+    role: "Rolle",
+    duration: "Zeitraum",
+    stack: "Stack",
+    published: "Veröffentlicht",
+    cta: "Kontakt aufnehmen →",
+  },
+} as const;
+
+const formatDate = (iso: string, locale: string) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? iso
-    : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    : d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
 };
 
 const CaseStudy = () => {
@@ -35,26 +58,28 @@ const CaseStudy = () => {
     return <Navigate to="/work" replace />;
   }
 
+  const copy = COPY[study.lang];
+
   // Only render the rows the frontmatter actually fills - an empty "Role"
   // column looks worse than no column.
   const meta = [
-    study.role && { label: "Role", value: study.role },
-    study.duration && { label: "Duration", value: study.duration },
-    study.stack.length > 0 && { label: "Stack", value: study.stack.join(", ") },
-    study.date && { label: "Published", value: formatDate(study.date) },
+    study.role && { label: copy.role, value: study.role },
+    study.duration && { label: copy.duration, value: study.duration },
+    study.stack.length > 0 && { label: copy.stack, value: study.stack.join(", ") },
+    study.date && { label: copy.published, value: formatDate(study.date, copy.locale) },
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
     <div className="min-h-screen bg-background">
       <SiteNav />
-      <article className="px-5 py-14 sm:px-6 sm:py-20">
+      <article lang={study.lang} className="px-5 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <Link
             to="/work"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to case studies
+            {copy.back}
           </Link>
 
           {study.eyebrow && <p className="mt-8 label-caps text-clash-gold">{study.eyebrow}</p>}
@@ -111,10 +136,10 @@ const CaseStudy = () => {
 
           <div className="mt-16 border-t border-border/50 pt-8">
             <Link
-              to="/#contact"
+              to={study.ctaHref ?? "/#contact"}
               className="inline-flex items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
             >
-              Talk about your set prep →
+              {study.ctaLabel ?? copy.cta}
             </Link>
           </div>
         </div>

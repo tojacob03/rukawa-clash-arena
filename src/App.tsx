@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,16 +10,30 @@ import PageTransition from "@/components/PageTransition";
 import SmoothScroll from "@/components/SmoothScroll";
 import { resetScroll } from "@/lib/smoothScroll";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import ClientPortal from "./pages/ClientPortal";
-import AdminPanel from "./pages/AdminPanel";
-import CaseStudy from "./pages/CaseStudy";
-import CaseStudyIndex from "./pages/CaseStudyIndex";
-import LegalPage from "./pages/LegalPage";
-import Strompreis from "./pages/Strompreis";
-import RaceStrategy from "./pages/RaceStrategy";
+
+// Only the homepage ships in the main bundle. Every other page is its own
+// chunk, loaded when it is opened - first-time visitors shouldn't download
+// the client portal, the admin panel or the dashboards' chart library.
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ClientPortal = lazy(() => import("./pages/ClientPortal"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const CaseStudy = lazy(() => import("./pages/CaseStudy"));
+const CaseStudyIndex = lazy(() => import("./pages/CaseStudyIndex"));
+const LegalPage = lazy(() => import("./pages/LegalPage"));
+const Strompreis = lazy(() => import("./pages/Strompreis"));
+const RaceStrategy = lazy(() => import("./pages/RaceStrategy"));
 
 const queryClient = new QueryClient();
+
+// Suspense sits inside the transition wrapper, so the fade starts straight
+// away and the page fills in as soon as its chunk has arrived. The fallback
+// is an empty page-height block rather than a spinner: chunks are small and
+// usually load within the fade itself.
+const LazyPage = ({ children }: { children: ReactNode }) => (
+  <PageTransition>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>{children}</Suspense>
+  </PageTransition>
+);
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -46,87 +60,86 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         {/*
-          The homepage is deliberately NOT wrapped in PageTransition.
-          It hosts the sticky MacbookScroll and the GSAP-pinned
-          Experience section, both of which rely on `position: fixed` /
-          `position: sticky` resolving against the viewport. Any wrapper
-          framer-motion animates (and the will-change / compositing hints
-          it leaves behind) can re-root those, which rendered the pinned
-          section as an empty black area. Scroll integrity on the main
-          page beats a fade on it.
+          The homepage is deliberately NOT wrapped in PageTransition (and
+          not lazy-loaded). It hosts the GSAP-pinned Experience section,
+          which relies on `position: fixed` resolving against the
+          viewport. Any wrapper framer-motion animates (and the
+          will-change / compositing hints it leaves behind) can re-root
+          that, which rendered the pinned section as an empty black area.
+          Scroll integrity on the main page beats a fade on it.
         */}
         <Route path="/" element={<Index />} />
         <Route
           path="/work"
           element={
-            <PageTransition>
+            <LazyPage>
               <CaseStudyIndex />
-            </PageTransition>
+            </LazyPage>
           }
         />
         <Route
           path="/work/:slug"
           element={
-            <PageTransition>
+            <LazyPage>
               <CaseStudy />
-            </PageTransition>
+            </LazyPage>
           }
         />
         <Route
           path="/portal"
           element={
-            <PageTransition>
+            <LazyPage>
               <ClientPortal />
-            </PageTransition>
+            </LazyPage>
           }
         />
         <Route
           path="/admin"
           element={
-            <PageTransition>
+            <LazyPage>
               <AdminPanel />
-            </PageTransition>
+            </LazyPage>
           }
         />
         <Route
           path="/impressum"
           element={
-            <PageTransition>
+            <LazyPage>
               <LegalPage page="impressum" />
-            </PageTransition>
+            </LazyPage>
           }
         />
         <Route
           path="/datenschutz"
           element={
-            <PageTransition>
+            <LazyPage>
               <LegalPage page="datenschutz" />
-            </PageTransition>
+            </LazyPage>
           }
         />
         <Route
           path="/strompreis"
           element={
-            <PageTransition>
+            <LazyPage>
               <Strompreis />
-            </PageTransition>
+            </LazyPage>
           }
         />
         <Route
           path="/race-strategy"
           element={
-            <PageTransition>
+            <LazyPage>
               <RaceStrategy />
-            </PageTransition>
+            </LazyPage>
           }
         />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route
           path="*"
           element={
-            <PageTransition>
+            <LazyPage>
               <NotFound />
-            </PageTransition>
+            </LazyPage>
           }
         />
       </Routes>

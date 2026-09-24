@@ -160,7 +160,7 @@ function initRemoteOnce() {
         const typeLower = String(entry.type || '').toLowerCase();
         const type: 'troop' | 'spell' | 'building' =
           (typeLower === 'troop' || typeLower === 'spell' || typeLower === 'building')
-            ? (typeLower as any)
+            ? typeLower
             : 'troop';
         const keySanitized = String(entry.key || '').toLowerCase().replace(/_/g, '-');
         let imageUrl = `https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/cards/${keySanitized}.png`;

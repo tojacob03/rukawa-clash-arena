@@ -45,7 +45,7 @@ Gesammelte Zeitreihen:
 
 Auflösungen: `quarterhour` seit 1. Oktober 2025 (seitdem handelt die Börse in Viertelstunden), `hour` seit Januar 2023. Zeitpunkte sind als `timestamptz` gespeichert. Für deutsche Uhrzeiten immer `ts at time zone 'Europe/Berlin'` verwenden, sonst sind die Stunden bei Sommer-/Winterzeit verschoben.
 
-Das komplette SQL steht in [`schema.sql`](schema.sql).
+Das komplette SQL steht in [`schema.sql`](schema.sql). So, wie es in der Datenbank angewendet wurde, liegt es als drei Migrationen in [`supabase/migrations`](../../supabase/migrations) (`20260923165736` bis `20260923170158`).
 
 ## Betrieb
 
@@ -95,15 +95,9 @@ order by series_key, resolution;
 
 Jede Abfrage, die dir eine interessante Antwort liefert, ist ein Kandidat für die Case Study.
 
-## Woche 4: Gliederung der Case Study
+## Case Study
 
-Zielgruppe sind Arbeitgeber außerhalb von Esports, also auf Deutsch und ohne Fachjargon.
-
-1. **Ausgangsfrage:** Wann lohnt es sich, Stromverbrauch zu verschieben, und warum schwanken die Preise so stark?
-2. **Daten:** offizielle Quelle, was gesammelt wird, wie oft.
-3. **Umsetzung:** automatische Datenpipeline in der Datenbank, Kennzahlen per SQL, Dashboard. Ehrlich: KI-gestützt gebaut, Konzept und Auswertung von dir.
-4. **Erkenntnisse:** zwei, drei Zahlen aus deinen SQL-Übungen, zum Beispiel wie viel günstiger Strom mittags ist oder wie häufig negative Preise geworden sind.
-5. **Was ich gelernt habe** und was als Nächstes käme.
+Die Case Study [„Wann Strom am günstigsten ist“](https://rukawaanalytics.com/work/strompreis-kompass) ([Quelltext](../../src/content/case-studies/strompreis-kompass.md)) wertet ein Jahr Börsenstrompreise aus: Tageszeit, Jahreszeit, Wind- und Solaranteil, negative Preise. Jede Zahl darin lässt sich mit den Abfragen in [`analysis.sql`](analysis.sql) nachrechnen; die Ergebnisse vom 24.09.2026 stehen jeweils darunter.
 
 ## Quelle und Lizenz
 
