@@ -17,6 +17,7 @@ import CaseStudy from "./pages/CaseStudy";
 import CaseStudyIndex from "./pages/CaseStudyIndex";
 import LegalPage from "./pages/LegalPage";
 import Strompreis from "./pages/Strompreis";
+import RaceStrategy from "./pages/RaceStrategy";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,14 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <Strompreis />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/race-strategy"
+          element={
+            <PageTransition>
+              <RaceStrategy />
             </PageTransition>
           }
         />
