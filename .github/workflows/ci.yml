@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, typecheck & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # npm, not bun: bun.lockb (the lockfile Lovable keeps current) pins
+      # tarball URLs on Lovable's internal package cache, not the public
+      # registry. `npm install`, not `npm ci`: package-lock.json lags behind
+      # package.json because dependencies added in Lovable only land in
+      # bun.lockb, so `npm ci` would fail on each of them. `npm install` uses
+      # the lockfile where it has entries and resolves the rest.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
