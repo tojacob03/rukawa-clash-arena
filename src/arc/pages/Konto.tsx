@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Cloud, CloudOff, Fingerprint, KeyRound, LogOut, Mail, Pencil, Phone, RefreshCw, ShieldCheck, Smartphone, Trash2, TriangleAlert, UserRound } from "lucide-react";
 import type { ArcData } from "../core/types.ts";
-import { useCloud, loadCloud } from "../cloud/state.ts";
+import { useCloud, loadCloud, takeAfterSignIn } from "../cloud/state.ts";
 import type { CloudState } from "../cloud/state.ts";
 import type { AuthSettings } from "../cloud/engine.ts";
 import { go } from "../store.ts";
@@ -32,6 +32,13 @@ export default function Konto({ data }: { data: ArcData }) {
       dead = true;
     };
   }, [c.configured]);
+
+  // Came here from character creation: once signed in, back to the Dōjō.
+  useEffect(() => {
+    if (c.status !== "signedIn" || c.mfa) return;
+    const next = takeAfterSignIn();
+    if (next) go(next);
+  }, [c.status, c.mfa]);
 
   if (!c.configured) {
     return (
