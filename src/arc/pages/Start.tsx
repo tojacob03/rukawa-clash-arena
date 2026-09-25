@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ChevronDown, Sparkles, Wand2 } from "lucide-react";
+import { ChevronDown, Cloud, Sparkles, Wand2 } from "lucide-react";
 import type { Attire, Belt as BeltId, ClassId, Look, SeaId, Slot, SportId } from "../core/types.ts";
 import { DEFAULT_SEA } from "../core/sea.ts";
 import type { ItemDef } from "../core/items.ts";
 import { DEFAULT_EQUIP, ITEM } from "../core/items.ts";
 import { CLASS } from "../core/classes.ts";
-import { SECTORS, TECHS } from "../core/techniques.ts";
+import { SECTORS, TECH, TECHS } from "../core/techniques.ts";
 import { RINGS, rankOf } from "../core/lore.ts";
 import { BELT_R, PROLOG_LEVEL, prologXp } from "../core/model.ts";
 import { BELT, BELTS, nf0, power } from "../format.ts";
@@ -17,10 +17,10 @@ import Avatar from "../components/Avatar.tsx";
 import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SportsPicker } from "../components/CharacterForms.tsx";
 import { SPORT } from "../core/sports.ts";
 import { Belt, HeroKoma, Seg, Stepper } from "../components/ui.tsx";
-import { cloudConfigured } from "../cloud/state.ts";
+import { cloudConfigured, afterSignIn, useCloud } from "../cloud/state.ts";
 import { go } from "../store.ts";
 
-type Step = "hello" | "steckbrief" | "rang" | "klasse" | "aussehen" | "technik";
+type Step = "hello" | "steckbrief" | "rang" | "klasse" | "aussehen" | "technik" | "sichern";
 const STEPS: Step[] = ["steckbrief", "rang", "klasse", "aussehen", "technik"];
 /** Self-assessment: 2 = kenne ich (seen/drilled), 3 = klappt im Roll, 4 = Stärke. */
 type Mark = 2 | 3 | 4;
@@ -48,23 +48,26 @@ export default function Start({ today }: { today: string }) {
   const [mode, setMode] = useState<Attire>("gi");
   const [marks, setMarks] = useState<Record<string, Mark> | null>(null);
   const [sports, setSports] = useState<{ id: SportId; since?: number }[]>([]);
+  const cloud = useCloud();
+  // Without an account the last step offers one, so the new character does not live in this browser only.
+  const steps: Step[] = cloud.configured && cloud.status !== "signedIn" ? [...STEPS, "sichern"] : STEPS;
 
   const year = Number(today.slice(0, 4));
   const byRaw = parseNum(birthYear, year - 90, year - 4);
   const by = byRaw === null ? null : Math.round(byRaw);
   const kg = parseNum(weight, 30, 200);
-  const idx = STEPS.indexOf(step);
+  const idx = steps.indexOf(step);
   const next = () => {
-    const n = STEPS[idx + 1];
+    const n = steps[idx + 1];
     if (n === "technik" && !marks) setMarks(preset(belt, stripes, sports));
     if (n) setStep(n);
     window.scrollTo({ top: 0 });
   };
   const back = () => {
-    setStep(idx <= 0 ? "hello" : STEPS[idx - 1]);
+    setStep(idx <= 0 ? "hello" : steps[idx - 1]);
     window.scrollTo({ top: 0 });
   };
-  const finish = () => {
+  const finish = (account = false) => {
     const m = marks ?? {};
     const known = Object.keys(m);
     const claims = Object.fromEntries(Object.entries(m).filter(([, v]) => v >= 3));
@@ -88,6 +91,10 @@ export default function Start({ today }: { today: string }) {
       look,
       mode,
     );
+    if (account) {
+      afterSignIn("heute");
+      go("konto");
+    }
   };
 
   if (step === "hello") {
@@ -135,12 +142,12 @@ export default function Start({ today }: { today: string }) {
   );
   const head = (title: string) => (
     <>
-      <div className="stepper-dots" aria-label={`Schritt ${idx + 1} von ${STEPS.length}`}>
-        {STEPS.map((s, i) => (
+      <div className="stepper-dots" aria-label={`Schritt ${idx + 1} von ${steps.length}`}>
+        {steps.map((s, i) => (
           <i key={s} className={i < idx ? "done" : i === idx ? "on" : ""} />
         ))}
         <span>
-          Schritt {idx + 1} von {STEPS.length}
+          Schritt {idx + 1} von {steps.length}
         </span>
       </div>
       <h1 className="page-h">{title}</h1>
@@ -271,120 +278,258 @@ export default function Start({ today }: { today: string }) {
     );
   }
 
-  return <TechStep marks={marks ?? {}} setMarks={setMarks} belt={belt} stripes={stripes} head={head("Was kannst du schon?")} back={back} finish={finish} />;
+  if (step === "sichern") {
+    return (
+      <main className="start form-page">
+        {head("Sichere deinen Charakter")}
+        <div className="save-offer">
+          <div className="save-offer-art">
+            <Avatar look={look} mode={mode} gear={gear} belt={belt} stripes={stripes} weightKg={kg ?? undefined} size={150} crop="head" label={name ? `${name}, dein Charakter` : "Dein Charakter"} />
+          </div>
+          <div className="save-offer-text">
+            <p className="lede">Dein Charakter ist fertig. Ohne Konto lebt er nur in diesem Browser: Räumt der Browser auf oder wechselst du das Handy, ist der Fortschritt weg.</p>
+            <ul className="save-offer-list">
+              <li>Gesichert, auch wenn der Browser seine Daten löscht.</li>
+              <li>Auf Handy, Tablet und Laptop derselbe Stand.</li>
+              <li>Anmelden geht ohne Passwort, mit einem Code per E-Mail.</li>
+            </ul>
+          </div>
+        </div>
+        <p className="muted small">Dein Charakter wird in beiden Fällen jetzt angelegt. Das Konto kannst du später im Profil nachholen.</p>
+        <div className="row wrap save-offer-actions">
+          <button type="button" className="btn ghost" onClick={back}>
+            Zurück
+          </button>
+          <button type="button" className="btn" onClick={() => finish()}>
+            Ohne Konto weiter
+          </button>
+          <button type="button" className="btn primary" onClick={() => finish(true)}>
+            <Cloud size={18} aria-hidden="true" />
+            <span>Konto erstellen</span>
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  const last = idx === steps.length - 1;
+  return (
+    <TechStep
+      marks={marks ?? {}}
+      setMarks={setMarks}
+      suggestion={() => preset(belt, stripes, sports)}
+      suggestionLabel={`Vorschlag für ${BELT[belt].name}gurt`}
+      head={head("Was kannst du schon?")}
+      back={back}
+      done={last ? () => finish() : next}
+      doneLabel={last ? "Dōjō betreten" : "Weiter"}
+    />
+  );
 }
+
+/** A whole block at once: 0 clears it, 2 and 3 set every technique in it (strengths stay). */
+type Level = 0 | 2 | 3;
+const LEVELS: { v: Level; label: string; title?: string }[] = [
+  { v: 0, label: "Nichts" },
+  { v: 2, label: "Kenne ich" },
+  { v: 3, label: "Klappt", title: "Klappt im Roll" },
+];
+const MIXED = -1;
+
+/** The common level of a block, or MIXED. Strengths are set one by one and do not count. */
+function blockLevel(ids: string[], marks: Record<string, Mark>): Level | typeof MIXED {
+  let lvl: Level | null = null;
+  let strong = false;
+  for (const id of ids) {
+    const m = marks[id];
+    if (m === 4) {
+      strong = true;
+      continue;
+    }
+    const v: Level = m ?? 0;
+    if (lvl === null) lvl = v;
+    else if (lvl !== v) return MIXED;
+  }
+  if (lvl === null || (strong && lvl === 0)) return MIXED;
+  return lvl;
+}
+
+const FUND_IDS = TECHS.filter((x) => x.sector === "fund").map((x) => x.id);
+const RING_IDS = RINGS.map((_, tier) => TECHS.filter((x) => x.tier === tier).map((x) => x.id));
 
 function TechStep({
   marks,
   setMarks,
-  belt,
-  stripes,
+  suggestion,
+  suggestionLabel,
   head,
   back,
-  finish,
+  done,
+  doneLabel,
 }: {
   marks: Record<string, Mark>;
   setMarks: (m: Record<string, Mark>) => void;
-  belt: BeltId;
-  stripes: number;
+  suggestion: () => Record<string, Mark>;
+  suggestionLabel: string;
   head: ReactNode;
   back: () => void;
-  finish: () => void;
+  done: () => void;
+  doneLabel: string;
 }) {
-  const [brush, setBrush] = useState<Mark>(2);
-  const [open, setOpen] = useState<string | null>("guard");
+  const [open, setOpen] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
   const count = (v: Mark) => Object.values(marks).filter((m) => m === v).length;
   const strengths = count(4);
-  const byRing = useMemo(() => {
-    const m: Record<string, string[]> = {};
-    for (const s of SECTORS) m[s.id] = TECHS.filter((x) => x.sector === s.id && x.tier === 1).map((x) => x.id);
+  const bySector = useMemo(() => {
+    const m: Record<string, { ids: string[]; branches: { id: string; name: string; ids: string[] }[] }> = {
+      fund: { ids: FUND_IDS, branches: [{ id: "fund", name: "Fundament", ids: FUND_IDS }] },
+    };
+    for (const s of SECTORS) {
+      const branches = s.branches.map((b) => ({ ...b, ids: TECHS.filter((x) => x.sector === s.id && x.branch === b.id).map((x) => x.id) }));
+      m[s.id] = { ids: branches.flatMap((b) => b.ids), branches };
+    }
     return m;
   }, []);
+  const sections = [{ id: "fund", name: "Fundament" }, ...SECTORS.map((s) => ({ id: s.id, name: s.name }))];
 
-  const paint = (id: string) => {
+  const setBlock = (ids: string[], lvl: Level) => {
     const n = { ...marks };
-    if (n[id] === brush) delete n[id];
-    else if (brush === 4 && strengths >= MAX_STRENGTHS) return;
-    else n[id] = brush;
+    for (const id of ids) {
+      if (lvl === 0) delete n[id];
+      else if (n[id] !== 4) n[id] = lvl;
+    }
+    setHint(null);
     setMarks(n);
   };
+  /** One tap moves a technique a level up: Kenne ich, Klappt im Roll, Stärke, then back to nothing. */
+  const cycle = (id: string, name: string) => {
+    const n = { ...marks };
+    const m = n[id];
+    let next: Mark | undefined = m === undefined ? 2 : m === 2 ? 3 : m === 3 ? 4 : undefined;
+    if (next === 4 && strengths >= MAX_STRENGTHS) {
+      next = undefined;
+      setHint(`Schon ${MAX_STRENGTHS} Stärken. ${name} ist wieder leer; nimm erst eine andere Stärke zurück.`);
+    } else setHint(null);
+    if (next) n[id] = next;
+    else delete n[id];
+    setMarks(n);
+  };
+  const blockSeg = (ids: string[], label: string) => (
+    <div className="block-seg">
+      <Seg value={blockLevel(ids, marks)} onChange={(v) => setBlock(ids, v as Level)} label={label} options={LEVELS} />
+    </div>
+  );
 
   return (
     <main className="start form-page">
       {head}
       <p className="lede">
-        Markiere, was du schon kannst. <b>Kenne ich</b>: gesehen und gedrillt (Stufe 2). <b>Klappt im Roll</b>: gelingt dir live (Stufe 3). <b>Stärke</b>: eine deiner
-        besten Techniken (Stufe 4, höchstens {MAX_STRENGTHS}). Selbsteinschätzungen gelten vorläufig und geben keine XP. Deine Rolls bestätigen sie, dann gibt es XP und die
-        Stufe wird fest.
+        Stufe erst ganze Blöcke ein, dann einzelne Techniken. <b>Kenne ich</b>: gesehen und gedrillt. <b>Klappt</b>: gelingt dir im Roll. <b>Stärke</b>: eine deiner besten,
+        höchstens {MAX_STRENGTHS}, nur einzeln. Selbsteinschätzungen gelten vorläufig und geben keine XP; deine Rolls bestätigen sie.
       </p>
-      <div className="brushbar">
-        <Seg
-          value={brush}
-          onChange={(v) => setBrush(v as Mark)}
-          label="Markierung"
-          options={([2, 3, 4] as Mark[]).map((v) => ({ v, label: <span className={`brush b${v}`}>{MARK_NAME[v]}</span> }))}
-        />
-        <p className="counter">
-          {count(2)} kenne ich, {count(3)} klappen, {strengths} von {MAX_STRENGTHS} Stärken
-        </p>
-      </div>
       <div className="row wrap">
-        <button type="button" className="btn ghost small" onClick={() => setMarks({ ...preset(belt, stripes), ...marks })}>
-          <Wand2 size={14} aria-hidden="true" /> <span>Vorschlag für {BELT[belt].name}gurt</span>
+        <button type="button" className="btn ghost small" onClick={() => setMarks({ ...suggestion(), ...marks })}>
+          <Wand2 size={14} aria-hidden="true" /> <span>{suggestionLabel}</span>
         </button>
         <button type="button" className="linkish" onClick={() => setMarks({})}>
           Alles leeren
         </button>
       </div>
-      <div className="known">
-        {SECTORS.map((s) => (
-          <section key={s.id} className={`known-sec${open === s.id ? " open" : ""}`}>
-            <button type="button" className="known-head" aria-expanded={open === s.id} onClick={() => setOpen(open === s.id ? null : s.id)}>
-              <span>{s.name}</span>
-              <small>{TECHS.filter((x) => x.sector === s.id && marks[x.id]).length} markiert</small>
-              <ChevronDown size={18} aria-hidden="true" />
-            </button>
-            {open === s.id ? (
-              <div className="known-body">
-                {byRing[s.id]?.length ? (
-                  <button type="button" className="chip" onClick={() => setMarks({ ...Object.fromEntries(byRing[s.id].map((id) => [id, 2 as Mark])), ...marks })}>
-                    Alles aus {RINGS[1].jp} ({RINGS[1].de}) als „kenne ich“
-                  </button>
-                ) : null}
-                {s.branches.map((b) => (
-                  <div key={b.id} className="known-branch">
-                    <p className="k">{b.name}</p>
-                    <div className="chips">
-                      {TECHS.filter((x) => x.sector === s.id && x.branch === b.id).map((x) => {
-                        const m = marks[x.id];
-                        return (
-                          <button
-                            key={x.id}
-                            type="button"
-                            className={`chip mark${m ? ` m${m}` : ""}`}
-                            aria-pressed={!!m}
-                            aria-label={`${x.name}${m ? `, ${MARK_NAME[m]}` : ""}`}
-                            onClick={() => paint(x.id)}
-                          >
-                            {x.name}
-                            <small>{m ? MARK_NAME[m] : RINGS[x.tier].jp}</small>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+      <div className="known-bar">
+        <p className="counter" aria-live="polite">
+          {count(2)} kenne ich, {count(3)} klappen, {strengths} von {MAX_STRENGTHS} Stärken
+        </p>
+        {hint ? (
+          <p className="known-hint" role="status">
+            {hint}
+          </p>
+        ) : null}
+      </div>
+
+      <h2 className="h3 known-h">Nach Ring</h2>
+      <div className="block-list">
+        {RINGS.map((r, tier) =>
+          tier === 0 ? null : (
+            <div key={r.jp} className="block-row">
+              <div className="block-name">
+                <b>
+                  {r.jp}, {r.de}
+                </b>
+                <small>
+                  {RING_IDS[tier].filter((id) => marks[id]).length} von {RING_IDS[tier].length} markiert
+                </small>
               </div>
-            ) : null}
-          </section>
-        ))}
+              {blockSeg(RING_IDS[tier], `Alle Techniken aus ${r.jp}`)}
+            </div>
+          ),
+        )}
+      </div>
+
+      <h2 className="h3 known-h">Nach Bereich</h2>
+      <div className="block-list">
+        {sections.map((s) => {
+          const sec = bySector[s.id];
+          const isOpen = open === s.id;
+          return (
+            <section key={s.id} className={`known-sec${isOpen ? " open" : ""}`} aria-label={s.name}>
+              <div className="block-row">
+                <div className="block-name">
+                  <b>{s.name}</b>
+                  <small>
+                    {sec.ids.filter((id) => marks[id]).length} von {sec.ids.length} markiert
+                  </small>
+                </div>
+                {blockSeg(sec.ids, `Alle Techniken aus ${s.name}`)}
+                <button type="button" className="btn ghost small known-toggle" aria-expanded={isOpen} aria-controls={`known-${s.id}`} onClick={() => setOpen(isOpen ? null : s.id)}>
+                  <span>Einzeln</span>
+                  <ChevronDown size={16} aria-hidden="true" />
+                </button>
+              </div>
+              {isOpen ? (
+                <div className="known-body" id={`known-${s.id}`}>
+                  {sec.branches.map((b) => (
+                    <div key={b.id} className="known-branch">
+                      {sec.branches.length > 1 ? (
+                        <div className="block-row sub">
+                          <p className="block-name">
+                            <b>{b.name}</b>
+                          </p>
+                          {blockSeg(b.ids, `Alle Techniken aus ${b.name}`)}
+                        </div>
+                      ) : null}
+                      <div className="chips">
+                        {b.ids.map((id) => {
+                          const x = TECH[id];
+                          const m = marks[id];
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              className={`chip mark${m ? ` m${m}` : ""}`}
+                              aria-label={`${x.name}: ${m ? MARK_NAME[m] : "nicht markiert"}`}
+                              onClick={() => cycle(id, x.name)}
+                            >
+                              {x.name}
+                              <small>{m ? MARK_NAME[m] : RINGS[x.tier].jp}</small>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                  <p className="muted small">Antippen setzt eine Stufe höher: Kenne ich, Klappt im Roll, Stärke, dann wieder leer.</p>
+                </div>
+              ) : null}
+            </section>
+          );
+        })}
       </div>
       <div className="row sticky-actions">
         <button type="button" className="btn ghost" onClick={back}>
           Zurück
         </button>
-        <button type="button" className="btn primary" onClick={finish}>
-          <span>Dōjō betreten</span>
+        <button type="button" className="btn primary" onClick={done}>
+          <span>{doneLabel}</span>
         </button>
       </div>
     </main>

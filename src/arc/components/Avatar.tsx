@@ -29,6 +29,8 @@ export interface AvatarProps {
 }
 
 const FACE_W = [46, 48, 46, 46, 43, 51];
+/** Hair, beards and headgear are drawn for a head 46 wide on each side; wider heads stretch them so the skull never shows past the hair. */
+const HAIR_BASE_W = 46;
 
 export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg, size = 240, label, still, crop = "full" }: AvatarProps) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -58,6 +60,7 @@ export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg,
   const extra = gear.extra?.art.style;
   const trait = gear.trait?.art.style;
   const halfW = FACE_W[look.faceShape] ?? 46;
+  const fit = halfW > HAIR_BASE_W ? `translate(${CX} 0) scale(${halfW / HAIR_BASE_W} 1) translate(${-CX} 0)` : undefined;
   const marks = new Set(look.marks);
 
   // Torso outline, shared by clothing and pattern clip.
@@ -86,6 +89,9 @@ export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg,
         <clipPath id={`torso${uid}`}>
           <path d={torso} />
         </clipPath>
+        <clipPath id={`skull${uid}`}>
+          <HeadShape shape={look.faceShape} skin={skin} />
+        </clipPath>
       </defs>
 
       {head ? null : <Aura id={gear.aura?.id} color={gear.aura?.art.c} glow={`url(#glow${uid})`} />}
@@ -93,7 +99,9 @@ export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg,
 
       <g className="avatar-body">
         <g transform={`translate(0 ${lift})`}>
-          <BackHair style={look.hair} fill={hairFill} hairD={hairD} />
+          <g transform={fit}>
+            <BackHair style={look.hair} fill={hairFill} hairD={hairD} />
+          </g>
 
           {/* Legs */}
           <g transform={`translate(0 226) scale(1 ${lf}) translate(0 -226)`}>
@@ -159,15 +167,24 @@ export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg,
           <Ears shape={look.ears} halfW={halfW} skin={skin} cauli={trait === "ear"} earring={look.earring} />
           <HeadShape shape={look.faceShape} skin={skin} />
           <Marks marks={marks} skin={skin} layer="under" />
-          <Beard kind={look.beard} fill={hairFill} hair={hair} />
+          <g transform={fit}>
+            <Beard kind={look.beard} fill={hairFill} hair={hair} />
+          </g>
           <Eyes look={look} eye={eye} eye2={eye2} skin={skin} uid={uid} />
           <Brows kind={look.brows} color={look.hair === 7 ? shade(hair, -0.2) : hairD} gap={look.eyeGap} />
           <Nose kind={look.nose} skin={skin} />
           <Mouth kind={look.mouth} />
           <Marks marks={marks} skin={skin} layer="over" />
           {trait === "scar" ? <path d={`M${CX + 30} 80 L${CX + 38} 92 M${CX + 34} 80 L${CX + 42} 92`} stroke="#b0525a" strokeWidth={2} strokeLinecap="round" opacity={0.8} /> : null}
-          <FrontHair style={look.hair} fill={hairFill} hair={hair} hairD={hairD} />
-          <Headgear art={gear.head?.art} />
+          <g clipPath={`url(#skull${uid})`}>
+            <g transform={fit}>
+              <HairCap style={look.hair} fill={hairFill} />
+            </g>
+          </g>
+          <g transform={fit}>
+            <FrontHair style={look.hair} fill={hairFill} hair={hair} hairD={hairD} />
+            <Headgear art={gear.head?.art} />
+          </g>
         </g>
       </g>
     </svg>
@@ -658,6 +675,18 @@ function BackHair({ style, fill, hairD }: { style: number; fill: string; hairD: 
   }
 }
 
+/** Spiky styles leave gaps between the spikes; this fills the gaps that fall on the skull so no forehead shows through. Same outline as the style, minus the notches. */
+function HairCap({ style, fill }: { style: number; fill: string }) {
+  switch (style) {
+    case 1:
+      return <path fill={fill} d="M70 102 L60 72 L72 44 L106 26 L144 28 L172 44 L180 76 L170 102 Q162 78 148 72 L140 86 L128 72 L116 88 L104 72 L94 86 L88 72 Q78 82 70 102 Z" />;
+    case 14:
+      return <path fill={fill} d="M72 104 L66 84 L70 64 L86 46 L108 38 L130 36 L152 44 L170 60 L176 86 L168 104 Q160 84 150 78 L144 90 L134 76 L124 92 L112 76 L100 88 L94 76 Q82 86 72 104 Z" />;
+    default:
+      return null;
+  }
+}
+
 function FrontHair({ style, fill, hair, hairD }: { style: number; fill: string; hair: string; hairD: string }) {
   const p = { fill, stroke: OL, strokeWidth: 2.4, strokeLinejoin: "round" as const };
   switch (style) {
@@ -730,7 +759,13 @@ function FrontHair({ style, fill, hair, hairD }: { style: number; fill: string; 
         </g>
       );
     case 13:
-      return <path {...p} d="M74 98 Q72 58 120 54 Q168 58 166 98 Q158 72 120 70 Q82 72 74 98 Z" />;
+      // The dome covers the top of every head shape and melts into the afro behind; only the hairline is outlined.
+      return (
+        <g>
+          <path d="M72 100 Q64 38 120 30 Q176 38 168 100 Q158 72 120 70 Q82 72 72 100 Z" fill={hair} />
+          <path d="M72 100 Q82 72 120 70 Q158 72 168 100" fill="none" stroke={OL} strokeWidth={2.4} strokeLinecap="round" />
+        </g>
+      );
     case 14:
       return <path {...p} d="M72 104 L66 84 L78 84 L70 64 L88 66 L86 46 L102 56 L108 38 L118 52 L130 36 L136 54 L152 44 L152 62 L170 60 L162 78 L176 86 L168 104 Q160 84 150 78 L144 90 L134 76 L124 92 L112 76 L100 88 L94 76 Q82 86 72 104 Z" />;
     case 15:

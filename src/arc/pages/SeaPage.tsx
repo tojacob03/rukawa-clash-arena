@@ -394,7 +394,7 @@ function ShipView({ data, st, today, wx }: { data: ArcData; st: ArcState; today:
 }
 
 function Swatch({ hex, on, label, onClick }: { hex: string; on: boolean; label: string; onClick: () => void }) {
-  return <button type="button" role="radio" aria-checked={on} aria-label={label} title={label} className={`swatch${on ? " on" : ""}`} style={{ ["--sw" as string]: hex }} onClick={onClick} />;
+  return <button type="button" role="radio" aria-checked={on} aria-label={label} title={label} className={`swatch sq${on ? " on" : ""}`} style={{ ["--c" as string]: hex }} onClick={onClick} />;
 }
 
 function FlagEditor({ flag }: { flag: FlagDesign }) {
