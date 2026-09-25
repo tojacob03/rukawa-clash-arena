@@ -1236,6 +1236,17 @@ button.item:hover { background-color: var(--ink-4); }
 /* Wanted poster, printed in palette: paper, ink frame, karmin title. */
 .wanted { margin: 0; display: grid; justify-items: center; gap: 4px; padding: 16px 16px 14px; border: 4px double var(--ink); background-color: var(--paper-3); background-image: radial-gradient(var(--tone) 1.1px, transparent 1.4px); background-size: 7px 7px; color: var(--ink); text-align: center; box-shadow: 6px 6px 0 var(--shade); }
 .wanted p { margin: 0; }
+/* The crew ship in the aside, and the wall of wanted posters under the chart */
+.crew-ship { display: grid; gap: 8px; justify-items: start; }
+.crew-ship p { margin: 0; }
+.crew-wanted { display: grid; gap: 12px; }
+.crew-wanted .h2 { margin: 0; }
+.crew-wanted-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 18px 16px; align-items: start; }
+.crew-poster { display: grid; gap: 8px; }
+.crew-poster:nth-child(odd) .wanted { transform: rotate(-1.2deg); }
+.crew-poster:nth-child(even) .wanted { transform: rotate(1deg); }
+.crew-poster.me .wanted { border-color: var(--ai); }
+.crew-poster-miles { margin: 0; font-size: 13.5px; font-weight: 800; text-align: center; }
 .w-title { font-family: var(--f-d); font-size: 40px; line-height: 1; color: var(--beni); }
 .w-sub { font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .w-photo { margin: 8px 0 6px; padding: 6px; border: 3px solid var(--ink); background: var(--paper-2); }
@@ -1268,6 +1279,7 @@ button.item:hover { background-color: var(--ink-4); }
 .sc-name { font-family: var(--f-d); font-size: 24px; overflow-wrap: anywhere; }
 .sc-pl { font-family: var(--f-d); font-size: clamp(48px, 9vw, 76px); line-height: 1; color: #f3b000; -webkit-text-stroke: 2px #16171c; paint-order: stroke fill; }
 .sc-tier { font-size: 15px; font-weight: 800; }
+.sc-hint { margin: 0; font-size: 13px; font-weight: 600; opacity: 0.9; }
 .sc-rows { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
 .sc-rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; font-size: 14px; font-weight: 700; }
 .sc-rows li b { font-family: var(--f-d); font-weight: 400; }

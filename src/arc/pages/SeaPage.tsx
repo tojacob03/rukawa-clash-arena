@@ -16,12 +16,14 @@ import type { ArcData, ArcState, FlagDesign, SeaId } from "../core/types.ts";
 import {
   DEFAULT_SEA,
   ISLAND,
+  LOOP_START,
   SEA,
   SEAS,
   SHIPS,
-  islandAt,
+  nextIndex,
   rankIndex,
   route,
+  stepIndex,
 } from "../core/sea.ts";
 import type { Island } from "../core/sea.ts";
 import { ITEMS, RARITY } from "../core/items.ts";
@@ -31,10 +33,14 @@ import { TECHS } from "../core/techniques.ts";
 import { dayNum, rankAt } from "../core/model.ts";
 import { bounty } from "../core/bounty.ts";
 import {
+  MILES,
+  SPEED,
+  competitionIsles,
   exploration,
   logbook,
-  passage,
+  milesTo,
   seaMiles,
+  voyage,
   weather,
 } from "../core/voyage.ts";
 import type { Explored, LogEntry, Weather } from "../core/voyage.ts";
@@ -68,6 +74,9 @@ import CrewView from "./Crew.tsx";
 import { cloudConfigured } from "../cloud/state.ts";
 import { useSocial } from "../cloud/social.ts";
 import { shipsOf } from "../socialCard.ts";
+import { crewNow, shipNow } from "../ship.ts";
+import type { ShipNow } from "../ship.ts";
+import { gearItems } from "../core/social.ts";
 
 export function MapSwitch({ value }: { value: "karte" | "meer" }) {
   return (
@@ -122,33 +131,45 @@ export default function SeaPage({
     arg === "schiff" || arg === "logbuch" || (arg === "crew" && cloudConfigured)
       ? arg
       : "karte";
-  const social = useSocial();
+  // The crew ship moves with the others' trainings: keep it fresh while the chart is open.
+  const social = useSocial(true);
   const others = useMemo(
     () => shipsOf(social.me?.id ?? null, social.crew, social.friends),
     [social.me, social.crew, social.friends],
   );
-  const sea = p.homeSea ?? DEFAULT_SEA;
-  const r = route(sea);
-  const current = rankIndex(p.belt, p.stripes);
   const g = useGear(data, st);
-  const pas = useMemo(() => passage(data, today), [data, today]);
   const wx = useMemo(
     () => weather(data, today, st.paused),
     [data, today, st.paused],
   );
   const expl = useMemo(() => exploration(data, today), [data, today]);
+  // The ship you sail on: your crew's, or your own.
+  const crew = crewNow(social);
+  const ship = useMemo(
+    () =>
+      shipNow(
+        data,
+        today,
+        { sail: shipSail(data, st), flag: data.character?.flag ?? null },
+        crew,
+      ),
+    [data, st, today, crew],
+  );
+  const sea = ship.sea;
+  const r = route(sea);
+  const pos = ship.pos;
+  const current = pos.idx;
   const here = r[current];
-  const next = r[current + 1];
-  const moving = !!next && pas.progress >= 0.08 && pas.idx === current;
-  const miles = seaMiles(data, today);
-  const progress = pas.idx === current ? pas.progress : 0;
+  const next = r[nextIndex(current)];
+  const moving = pos.progress >= 0.08;
+  const miles = pos.miles;
   const [leg, landed] = useVoyage({
-    slot: data.demo ? "demo" : (arcStore.namespace() ?? "device"),
+    slot: `${data.demo ? "demo" : (arcStore.namespace() ?? "device")}:${crew?.id ?? "own"}`,
     active: view === "karte",
     sea,
-    u: current + progress,
+    u: pos.u,
     miles,
-    harbour: pas.idx === current ? miles - pas.miles : miles,
+    harbour: miles - pos.into,
   });
   const [sail, setSail] = useState<{ id: number; seconds: number } | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -157,7 +178,7 @@ export default function SeaPage({
     if (!leg) return;
     setSail({ id: leg.id, seconds: e.seconds });
     const n = miles - leg.miles;
-    const reached = Math.floor(leg.from) < current;
+    const reached = Math.floor(leg.from) < pos.step;
     setNote(
       leg.first
         ? `Seit dem Ablegen vor ${here.name}: ${nf0.format(n)} Seemeilen.`
@@ -170,26 +191,28 @@ export default function SeaPage({
       <div className="map-head">
         <div>
           <MapSwitch value="meer" />
-          <p className="eyebrow">Seekarte, Heimat {SEA[sea].name}</p>
+          <p className="eyebrow">
+            {crew
+              ? `Seekarte, an Bord der Crew „${crew.name}“`
+              : `Seekarte, Heimat ${SEA[sea].name}`}
+          </p>
           <h1 className="page-h">
             {moving
-              ? `Unterwegs nach ${next.name}`
-              : `Dein Schiff liegt vor ${here.name}`}
+              ? `${crew ? "Mit der Crew unterwegs" : "Unterwegs"} nach ${next.name}`
+              : `${crew ? "Das Crew-Schiff" : "Dein Schiff"} liegt vor ${here.name}`}
           </h1>
         </div>
         <ul className="map-stats">
           <li>
             <Anchor size={15} aria-hidden="true" /> Insel {current + 1} von{" "}
             {r.length}
+            {pos.lap ? `, ${pos.lap + 1}. Runde um die Welt` : ""}
           </li>
-          {next ? (
-            <li>
-              <Compass size={16} aria-hidden="true" /> Nächste Insel:{" "}
-              {next.name}, {rankLabel(next)}
-            </li>
-          ) : (
-            <li>Ziel erreicht: Kap Kuro</li>
-          )}
+          <li>
+            <Compass size={16} aria-hidden="true" /> Nächste Insel:{" "}
+            {next.name}, noch {nf0.format(Math.ceil(pos.leg - pos.into))}{" "}
+            Seemeilen
+          </li>
           <li>
             <Wind size={15} aria-hidden="true" /> {wx.name},{" "}
             <Tally
@@ -218,7 +241,7 @@ export default function SeaPage({
         ))}
       </nav>
       {view === "schiff" ? (
-        <ShipView data={data} st={st} today={today} wx={wx} />
+        <ShipView data={data} st={st} today={today} wx={wx} crew={crew?.name ?? null} />
       ) : view === "logbuch" ? (
         <LogView data={data} today={today} />
       ) : view === "crew" ? (
@@ -230,7 +253,8 @@ export default function SeaPage({
           today={today}
           arg={arg}
           expl={expl}
-          progress={progress}
+          ship={ship}
+          meId={social.me?.id ?? null}
           wx={wx}
           others={others}
           voyage={leg}
@@ -244,6 +268,7 @@ export default function SeaPage({
               belt={p.belt}
               stripes={p.stripes}
               weightKg={p.weightKg}
+              heightCm={p.heightCm}
               size={150}
               crop="head"
             />
@@ -313,7 +338,8 @@ function ChartView({
   today,
   arg,
   expl,
-  progress,
+  ship,
+  meId,
   wx,
   avatar,
   others = [],
@@ -326,7 +352,8 @@ function ChartView({
   today: string;
   arg: string | null;
   expl: Explored[];
-  progress: number;
+  ship: ShipNow;
+  meId: string | null;
   wx: Weather;
   avatar: ReactNode;
   others?: OtherShip[];
@@ -335,18 +362,19 @@ function ChartView({
   note: string | null;
 }) {
   const p = data.profile!;
-  const sea = p.homeSea ?? DEFAULT_SEA;
+  const sea = ship.sea;
   const r = route(sea);
-  const current = rankIndex(p.belt, p.stripes);
-  const start = Math.min(current, rankIndex(p.startBelt, p.startStripes ?? 0));
+  const pos = ship.pos;
+  const current = pos.idx;
+  const compIsle = useMemo(() => competitionIsles(data, today), [data, today]);
   const comps: Record<
     string,
     { n: number; best: number; list: NonNullable<ArcData["competitions"]> }
   > = {};
   for (const c of data.competitions ?? []) {
-    const rk = rankAt(data, dayNum(c.date));
-    const is = islandAt(rk.belt, rk.stripes, sea);
-    const e = (comps[is.id] ??= { n: 0, best: 0, list: [] });
+    const id = compIsle.get(c.id);
+    if (!id) continue;
+    const e = (comps[id] ??= { n: 0, best: 0, list: [] });
     e.n++;
     if (c.place && (!e.best || c.place < e.best)) e.best = c.place;
     e.list.push(c);
@@ -357,6 +385,7 @@ function ChartView({
   );
   const strip = useRef<HTMLOListElement>(null);
   const selIdx = r.findIndex((x) => x.id === selected);
+  const nextI = nextIndex(current);
 
   // Keep the chosen island visible in the route strip.
   useEffect(() => {
@@ -368,16 +397,19 @@ function ChartView({
       box.scrollLeft = el.offsetLeft - box.clientWidth / 2 + el.clientWidth / 2;
   }, [selected]);
 
+  const away = (i: number) => milesTo(pos, i);
   const shortStatus =
     selIdx < 0
-      ? `${SEA[ISLAND[selected].sea!].name}, nicht auf deiner Route`
+      ? `${SEA[ISLAND[selected].sea!].name}, nicht auf dieser Route`
       : selIdx === current
-        ? "Hier liegt dein Schiff."
-        : selIdx < current
-          ? "Schon erreicht."
-          : selIdx === current + 1
-            ? "Dein nächstes Ziel."
-            : `Noch ${selIdx - current} Streifen entfernt.`;
+        ? ship.crew
+          ? "Hier liegt das Crew-Schiff."
+          : "Hier liegt dein Schiff."
+        : selIdx === nextI
+          ? `Das nächste Ziel, noch ${nf0.format(Math.ceil(away(selIdx) ?? 0))} Seemeilen.`
+          : away(selIdx) === null || selIdx <= pos.step
+            ? "Schon erreicht."
+            : `Noch ${nf0.format(Math.ceil(away(selIdx)!))} Seemeilen.`;
 
   return (
     <>
@@ -388,20 +420,20 @@ function ChartView({
               marks={{
                 sea,
                 current,
-                start,
+                lap: pos.lap,
                 comps: Object.fromEntries(
                   Object.entries(comps).map(([k, v]) => [
                     k,
                     { n: v.n, best: v.best },
                   ]),
                 ),
-                shipColor: shipSail(data, st),
+                shipColor: ship.sail,
                 boss: st.boss ? STUCK[st.boss.key].boss : null,
                 bossHp: st.boss?.hp,
                 bossMax: st.boss ? Math.max(st.boss.hp, st.boss.prev, 4) : undefined,
-                belt: p.belt,
-                flag: data.character?.flag,
-                progress,
+                belt: ship.belt,
+                flag: ship.flag,
+                progress: pos.progress,
                 weather: wx.kind,
                 explored,
                 hull: st.body.kraft,
@@ -433,45 +465,61 @@ function ChartView({
               </button>
             </div>
           </div>
-          <ol className="route-strip" ref={strip} aria-label="Deine Route">
-            {r.map((is, i) => (
-              <li
-                key={is.id}
-                data-id={is.id}
-                className={`${i < current ? "past" : i === current ? "here" : "future"}${is.id === selected ? " sel" : ""}`}
-              >
-                <button
-                  type="button"
-                  aria-current={is.id === selected ? "true" : undefined}
-                  onClick={() => go("meer", is.id)}
+          <ol className="route-strip" ref={strip} aria-label="Die Route">
+            {r.map((is, i) => {
+              const m = away(i);
+              return (
+                <li
+                  key={is.id}
+                  data-id={is.id}
+                  className={`${i === current ? "here" : i <= pos.step ? "past" : "future"}${is.id === selected ? " sel" : ""}`}
                 >
-                  {is.name}
-                  <small>
-                    {i + 1}. {rankLabel(is)}
-                  </small>
-                </button>
-              </li>
-            ))}
+                  <button
+                    type="button"
+                    aria-current={is.id === selected ? "true" : undefined}
+                    onClick={() => go("meer", is.id)}
+                  >
+                    {is.name}
+                    <small>
+                      {i + 1}.{" "}
+                      {i === current
+                        ? "Hier liegt das Schiff"
+                        : i > pos.step && m !== null
+                          ? `in ${nf0.format(Math.ceil(m))} Seemeilen`
+                          : "erreicht"}
+                    </small>
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         </div>
         <aside className="sea-side">
           <IslandCard
             is={ISLAND[selected]}
             data={data}
-            sea={sea}
-            current={current}
-            start={start}
+            today={today}
+            ship={ship}
+            wx={wx}
             comps={comps[selected]?.list ?? []}
             explored={expl.find((e) => e.island.id === selected) ?? null}
           />
-          <Wanted
-            name={p.name}
-            bounty={bounty(data, st)}
-            line={`${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt, ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
-            portrait={avatar}
-          />
+          {ship.crew ? (
+            <CrewShipCard data={data} today={today} ship={ship} />
+          ) : (
+            <Wanted
+              name={p.name}
+              bounty={bounty(data, st)}
+              line={`${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt, ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
+              portrait={avatar}
+            />
+          )}
         </aside>
       </div>
+
+      {ship.crew && ship.crew.members.length ? (
+        <CrewPosters data={data} st={st} ship={ship} meId={meId} avatar={avatar} />
+      ) : null}
 
       <section className="panel sea-lore">
         <h2 className="h3">Die Welt</h2>
@@ -479,15 +527,20 @@ function ChartView({
           Ein roter Gebirgskamm teilt die Welt von Norden nach Süden, die Große
           Strömung umrundet sie von Westen nach Osten. Wo sich beide kreuzen,
           liegt das Tor der vier Strömungen. Zu beiden Seiten der Strömung
-          liegen die windstillen Kalmengürtel. Jeder Streifen ist eine Insel:
-          Als Weißgurt segelst du in deinem Heimatmeer, mit dem Blaugurt geht es
-          durchs Tor in die Äußere Strömung, mit dem Braungurt über den Kammpass
-          in die Tiefe Strömung und am Ende nach Kap Kuro. Mit jedem Training
-          segelt dein Schiff ein Stück weiter zur nächsten Insel und erkundet
-          die, an der es liegt: erst die Anlegestelle, nach acht Trainings ein
-          Wahrzeichen, nach fünfzehn das Geheimnis der Insel. Turniere
-          erscheinen als gekreuzte Klingen, dein Wochenboss als Seeungeheuer
-          neben dem Schiff.
+          liegen die windstillen Kalmengürtel. Jede Reise beginnt im Hafen
+          eines der vier Meere und führt durchs Tor in die Äußere Strömung,
+          über den Kammpass in die Tiefe Strömung bis Kap Kuro und von dort
+          wieder durchs Tor, Runde um Runde. Jedes Training bringt das Schiff
+          weiter, ob Gi, No-Gi oder Open Mat: 10 Seemeilen, ein Turnier 20,
+          Nebensport 5, und wer regelmäßig trainiert, segelt mit frischer Brise
+          oder Rückenwind bis zur Hälfte schneller. Ein neuer Streifen oder
+          Gürtel ist ein kräftiger Windstoß. In einer Crew segelt ihr auf einem
+          gemeinsamen Schiff, und jedes Training an Bord bringt es voran. In
+          den Gewässern einer Insel erkundest du sie: Das erste Training dort
+          geht an Land, das dritte findet ein Wahrzeichen, das sechste ihr
+          Geheimnis. Was du bei schneller Fahrt verpasst, wartet auf die
+          nächste Runde. Turniere erscheinen als gekreuzte Klingen, dein
+          Wochenboss als Seeungeheuer neben dem Schiff.
         </p>
         <div className="sea-legend">
           {SEAS.map((s) => (
@@ -513,75 +566,83 @@ function ChartView({
   );
 }
 
+/** Items that wait on an island: the ones you get for reaching it. */
+const itemsOn = (is: Island, sea: SeaId) =>
+  ITEMS.filter(
+    (x) =>
+      x.src.t === "rank" &&
+      !!x.src.isle &&
+      (x.src.isle === is.id ||
+        (x.src.isle.startsWith("home:") &&
+          is.sea === sea &&
+          String(is.stripe) === x.src.isle.slice(5))),
+  );
+
 function IslandCard({
   is,
   data,
-  sea,
-  current,
-  start,
+  today,
+  ship,
+  wx,
   comps,
   explored,
 }: {
   is: Island;
   data: ArcData;
-  sea: SeaId;
-  current: number;
-  start: number;
+  today: string;
+  ship: ShipNow;
+  wx: Weather;
   comps: NonNullable<ArcData["competitions"]>;
   explored: Explored | null;
 }) {
-  const idx = route(sea).findIndex((x) => x.id === is.id);
+  const r = route(ship.sea);
+  const pos = ship.pos;
+  const idx = r.findIndex((x) => x.id === is.id);
   const onRoute = idx >= 0;
   const p = data.profile!;
+  const away = onRoute ? milesTo(pos, idx) : null;
+  // About how many trainings in the current wind.
+  const perTraining = MILES.session * SPEED[wx.kind];
   let status: string;
   if (!onRoute)
-    status = `Liegt im ${SEA[is.sea!].name}. Nicht auf deiner Route, aber andere starten hier.`;
-  else if (idx === current) status = "Hier liegt dein Schiff.";
-  else if (idx < current) {
-    if (idx < start) status = "Erreicht vor der App.";
-    else {
-      const pr = [...data.promotions]
-        .sort((a, b) => (a.date < b.date ? -1 : 1))
-        .find((x) => rankIndex(x.belt, x.stripes) >= idx);
-      status = pr
-        ? `Erreicht am ${shortDate(pr.date)} ${pr.date.slice(0, 4)}.`
-        : "Erreicht.";
-    }
+    status = `Liegt im ${SEA[is.sea!].name}. Nicht auf dieser Route, aber andere legen hier ab.`;
+  else if (idx === pos.idx)
+    status = ship.crew ? "Hier liegt das Crew-Schiff." : "Hier liegt dein Schiff.";
+  else if (away === null || idx <= pos.step) {
+    const arrival = ship.crew
+      ? null
+      : [...voyageOf(data, today)].reverse().find((a) => a.idx === idx);
+    status = arrival
+      ? `Erreicht am ${shortDate(arrival.date)} ${arrival.date.slice(0, 4)}.`
+      : "Erreicht.";
+    if (away !== null && pos.step >= LOOP_START && idx >= LOOP_START)
+      status += ` In der nächsten Runde in ${nf0.format(Math.ceil(away))} Seemeilen wieder.`;
   } else {
-    const steps = idx - current;
-    status =
-      steps === 1
-        ? "Nächstes Ziel: der nächste Streifen."
-        : `Noch ${steps} Streifen entfernt.`;
+    const n = Math.max(1, Math.ceil(away / perTraining));
+    status = `Noch ${nf0.format(Math.ceil(away))} Seemeilen, bei diesem Wind etwa ${n} ${n === 1 ? "Training" : "Trainings"}.`;
   }
-  const items = ITEMS.filter(
-    (x) =>
-      x.src.t === "rank" &&
-      x.src.belt === is.belt &&
-      x.src.stripes === is.stripe &&
-      (is.belt !== "weiss" || is.sea === sea),
-  );
+  const items = itemsOn(is, p.homeSea ?? DEFAULT_SEA);
   const nextFind = explored?.found.find((f) => !f.date);
   return (
     <section className="panel isle-card">
       <p className="eyebrow">
         {is.sea
           ? SEA[is.sea].name
-          : is.belt === "blau" || is.belt === "lila"
+          : Number(is.id.slice(1)) < 10
             ? "Äußere Strömung"
             : "Tiefe Strömung"}
-        , {rankLabel(is)}
       </p>
       <h2 className="isle-title">{is.name}</h2>
       <p className="small">{is.desc}</p>
-      <p className={`isle-status${onRoute && idx === current ? " here" : ""}`}>
+      <p className={`isle-status${onRoute && idx === pos.idx ? " here" : ""}`}>
         {status}
       </p>
       {explored ? (
         <div className="isle-explore">
           <p className="k">
             Landgang: {explored.trainings}{" "}
-            {explored.trainings === 1 ? "Training" : "Trainings"} hier
+            {explored.trainings === 1 ? "Training" : "Trainings"} in ihren
+            Gewässern
           </p>
           <ul>
             {explored.found.map((f) => (
@@ -598,20 +659,16 @@ function IslandCard({
               </li>
             ))}
           </ul>
-          {nextFind && idx === current ? (
+          {nextFind && idx === pos.idx ? (
             <p className="small muted">
               Noch {nextFind.need - explored.trainings}{" "}
               {nextFind.need - explored.trainings === 1
                 ? "Training"
                 : "Trainings"}{" "}
-              bis zur nächsten Entdeckung.
+              hier bis zur nächsten Entdeckung, bevor das Schiff weiterzieht.
             </p>
           ) : null}
         </div>
-      ) : onRoute && idx < start ? (
-        <p className="small muted">
-          Vor der App erreicht: unerkundet, deine Erinnerung kennt sie besser.
-        </p>
       ) : null}
       {items.length ? (
         <div className="isle-items">
@@ -647,6 +704,98 @@ function IslandCard({
   );
 }
 
+/** Arrivals of your own ship with the route index of each island. */
+function voyageOf(data: ArcData, today: string) {
+  return voyage(data, today).arrivals.map((a) => ({ idx: stepIndex(a.step), date: a.date }));
+}
+
+/** The crew ship: everyone's miles on board, yours among them, and where your own ship waits. */
+function CrewShipCard({ data, today, ship }: { data: ArcData; today: string; ship: ShipNow }) {
+  const own = useMemo(() => voyage(data, today), [data, today]);
+  const home = route(data.profile?.homeSea ?? DEFAULT_SEA);
+  const crew = ship.crew!;
+  return (
+    <section className="panel crew-ship">
+      <p className="eyebrow">Crew-Schiff</p>
+      <h2 className="isle-title">{crew.name}</h2>
+      <CrewFlag design={crew.flag} width={120} />
+      <p className="small">
+        <b>{nf0.format(ship.pos.miles)} Seemeilen</b>, davon{" "}
+        {nf0.format(ship.mine)} von dir seit du an Bord bist. Jedes Training
+        an Bord bringt das Schiff weiter, eine größere Crew segelt schneller.
+      </p>
+      <p className="small muted">
+        Dein eigenes Schiff wartet vor {home[own.idx].name} und segelt weiter,
+        wenn du die Crew verlässt.
+      </p>
+    </section>
+  );
+}
+
+/** Wanted posters of everyone on board, with what each has brought the ship. */
+function CrewPosters({
+  data,
+  st,
+  ship,
+  meId,
+  avatar,
+}: {
+  data: ArcData;
+  st: ArcState;
+  ship: ShipNow;
+  meId: string | null;
+  avatar: ReactNode;
+}) {
+  const crew = ship.crew!;
+  const p = data.profile!;
+  return (
+    <section className="crew-wanted" aria-label={`Steckbriefe der Crew ${crew.name}`}>
+      <h2 className="h2">Steckbriefe der Crew</h2>
+      <div className="crew-wanted-grid">
+        {crew.members.map((m) => {
+          const mine = m.id === meId;
+          const c = m.card;
+          const onBoard = mine ? ship.mine : c?.aboard?.id === crew.id ? c.aboard.miles : 0;
+          const line = mine
+            ? `${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt`
+            : c
+              ? `${rankOf(c.lvl)}, ${BELT[c.belt].name}gurt`
+              : "Noch keine Karte";
+          return (
+            <div key={m.id} className={`crew-poster${mine ? " me" : ""}`}>
+              <Wanted
+                name={m.name}
+                bounty={mine ? bounty(data, st) : (c?.bounty ?? 0)}
+                line={`${line}${m.captain ? ", Kapitän" : ""}`}
+                portrait={
+                  mine ? (
+                    avatar
+                  ) : c ? (
+                    <Avatar
+                      look={c.look}
+                      mode={c.mode}
+                      gear={gearItems(c.gear)}
+                      belt={c.belt}
+                      stripes={c.stripes}
+                      body={c.body}
+                      size={150}
+                      crop="head"
+                      label={`${m.name}s Charakter`}
+                    />
+                  ) : null
+                }
+              />
+              <p className="crew-poster-miles">
+                {nf0.format(onBoard)} Seemeilen an Bord
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 // ── Ship ──────────────────────────────────────────────────────────────────
 
 function Bar({
@@ -675,28 +824,31 @@ function ShipView({
   st,
   today,
   wx,
+  crew,
 }: {
   data: ArcData;
   st: ArcState;
   today: string;
   wx: Weather;
+  /** The crew you sail with, if any: your own ship waits meanwhile. */
+  crew: string | null;
 }) {
   const p = data.profile!;
   const sea = p.homeSea ?? DEFAULT_SEA;
   const r = route(sea);
-  const current = rankIndex(p.belt, p.stripes);
-  const pas = passage(data, today);
+  const rank = rankIndex(p.belt, p.stripes);
+  const own = useMemo(() => voyage(data, today), [data, today]);
   const flag = normalizeFlag(data.character?.flag);
   const barnacles = rustCount(st);
   const defaultName = `Die ${p.name}`;
   const [name, setName] = useState(data.character?.shipName ?? defaultName);
   const cls = SHIPS[p.belt];
   const nextBelt = (["blau", "lila", "braun", "schwarz"] as const).find(
-    (b) => rankIndex(b, 0) > current,
+    (b) => rankIndex(b, 0) > rank,
   );
-  const next = r[current + 1];
-  const since = pas.idx === current ? pas.miles : 0;
-  const pct = Math.round((pas.idx === current ? pas.progress : 0) * 100);
+  const next = r[nextIndex(own.idx)];
+  const left = Math.ceil(own.leg - own.into);
+  const perTraining = MILES.session * SPEED[wx.kind];
   const noCross = !st.body.total;
 
   return (
@@ -759,20 +911,27 @@ function ShipView({
               <b>{nf0.format(seaMiles(data, today))}</b>
             </li>
             <li>
-              <span>Seit der letzten Insel</span>
-              <b>{nf0.format(since)}</b>
+              <span>Dein Schiff liegt vor</span>
+              <b>
+                {r[own.idx].name}
+                {own.lap ? `, ${own.lap + 1}. Runde` : ""}
+              </b>
             </li>
-            {next ? (
-              <Bar
-                label={`Auf dem Weg nach ${next.name}`}
-                value={pct}
-                hint="Ankommen tut dein Schiff erst mit dem nächsten Streifen."
-              />
-            ) : null}
+            <Bar
+              label={`Auf dem Weg nach ${next.name}`}
+              value={Math.round(own.progress * 100)}
+              hint={
+                crew
+                  ? `Du segelst gerade mit der Crew „${crew}“: deine Trainings bringen das Crew-Schiff voran, dein eigenes wartet hier.`
+                  : `Noch ${nf0.format(left)} Seemeilen, bei diesem Wind etwa ${Math.max(1, Math.ceil(left / perTraining))} Trainings.`
+              }
+            />
           </ul>
           <p className="small muted">
-            Jedes Training bringt 10 Seemeilen, ein Turnier 20, eine Einheit
-            Nebensport 3.
+            Jedes Training bringt 10 Seemeilen, ob Gi oder No-Gi, ein Turnier
+            20, eine Einheit Nebensport 5. Bei frischer Brise segelst du ein
+            Viertel schneller, bei starkem Rückenwind die Hälfte. Ein neuer
+            Streifen gibt 25 Seemeilen Rückenwind, ein neuer Gürtel 50.
           </p>
         </section>
 
@@ -944,6 +1103,9 @@ function FlagEditor({ flag, wind }: { flag: FlagDesign; wind: number }) {
 const LOG_ICON: Record<LogEntry["kind"], ReactNode> = {
   start: <Sailboat size={16} aria-hidden="true" />,
   island: <Anchor size={16} aria-hidden="true" />,
+  lap: <Compass size={16} aria-hidden="true" />,
+  gust: <Wind size={16} aria-hidden="true" />,
+  crew: <Users size={16} aria-hidden="true" />,
   land: <FlagIcon size={16} aria-hidden="true" />,
   mark: <Compass size={16} aria-hidden="true" />,
   comp: <Swords size={16} aria-hidden="true" />,

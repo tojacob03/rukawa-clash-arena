@@ -9,6 +9,8 @@ import type { ItemDef, PatternKind } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { EYE_COLORS, HAIR_COLORS, eyeOf, hairOf, normalizeLook, shade, skinOf } from "../avatarOptions.ts";
 import { FlagIn } from "./Flag.tsx";
+import { bodyOf } from "../core/body.ts";
+import type { Body } from "../core/body.ts";
 
 const OL = "#1c1526";
 const CX = 120;
@@ -21,6 +23,9 @@ export interface AvatarProps {
   belt: Belt;
   stripes: number;
   weightKg?: number;
+  heightCm?: number;
+  /** Height and build from someone else's card; wins over height and weight. */
+  body?: Body | null;
   size?: number;
   label?: string;
   still?: boolean;
@@ -32,14 +37,15 @@ const FACE_W = [46, 48, 46, 46, 43, 51];
 /** Hair, beards and headgear are drawn for a head 46 wide on each side; wider heads stretch them so the skull never shows past the hair. */
 const HAIR_BASE_W = 46;
 
-export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg, size = 240, label, still, crop = "full" }: AvatarProps) {
+export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg, heightCm, body, size = 240, label, still, crop = "full" }: AvatarProps) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const look = normalizeLook(raw);
   const head = crop !== "full";
-  const wb = weightKg ? Math.min(1.25, Math.max(0.86, 0.86 + (weightKg - 58) / 110)) : 1;
-  const b = wb * (1 + 0.07 * clamp(look.build, -2, 2));
+  // Height and build from the body you entered; the height slider only counts without a height.
+  const fig = body ?? bodyOf(heightCm, weightKg);
+  const b = fig.b * (1 + 0.07 * clamp(look.build, -2, 2));
   const m = clamp(look.muscle, 0, 3);
-  const lf = 1 + 0.08 * clamp(look.height, -2, 2);
+  const lf = body || heightCm ? fig.h : 1 + 0.08 * clamp(look.height, -2, 2);
   const lift = head ? 0 : -72 * (lf - 1);
   const skin = skinOf(look);
   const skinD = shade(skin, -0.18);

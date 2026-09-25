@@ -49,7 +49,7 @@ const CATS: { id: Cat; label: string }[] = [
 ];
 
 /** Full character editor: categories, face thumbnails, sliders and custom colours. */
-export function LookEditor({ look: raw, onChange, mode, onMode }: { look: Look; onChange: (l: Look) => void; mode: Attire; onMode: (m: Attire) => void }) {
+export function LookEditor({ look: raw, onChange, mode, onMode, heightCm }: { look: Look; onChange: (l: Look) => void; mode: Attire; onMode: (m: Attire) => void; heightCm?: number }) {
   const look = normalizeLook(raw);
   const [cat, setCat] = useState<Cat>("koerper");
   const set = (patch: Partial<Look>) => onChange({ ...look, ...patch });
@@ -80,10 +80,14 @@ export function LookEditor({ look: raw, onChange, mode, onMode }: { look: Look; 
       {cat === "koerper" ? (
         <>
           <ColorPick label="Hautton" colors={SKIN} value={look.skin} hex={look.skinHex} onPick={(skin) => set({ skin, skinHex: undefined })} onHex={(skinHex) => set({ skinHex })} />
-          <Slider label="Größe" min={-2} max={2} value={look.height} left="klein" right="groß" onChange={(height) => set({ height })} />
+          {heightCm ? null : <Slider label="Größe" min={-2} max={2} value={look.height} left="klein" right="groß" onChange={(height) => set({ height })} />}
           <Slider label="Statur" min={-2} max={2} value={look.build} left="schmal" right="breit" onChange={(build) => set({ build })} />
           <Slider label="Muskeln" min={0} max={3} value={look.muscle} left="drahtig" right="massiv" onChange={(muscle) => set({ muscle })} />
-          <p className="muted small">Das Gewicht aus dem Steckbrief fließt zusätzlich in die Statur ein.</p>
+          <p className="muted small">
+            {heightCm
+              ? `Die Figur ist so groß wie du (${heightCm} cm), die Statur ergibt sich aus deinem Gewicht im Verhältnis zur Größe. Die Regler verfeinern sie.`
+              : "Größe und Gewicht aus dem Steckbrief fließen in die Figur ein: die Größe in die Körperhöhe, das Gewicht im Verhältnis dazu in die Statur."}
+          </p>
         </>
       ) : null}
 

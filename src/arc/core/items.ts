@@ -10,12 +10,13 @@
 // without bending what the app measures.
 
 import type { ArcData, ArcState, Belt, QuestKind, Rarity, Session, Slot } from "./types.ts";
-import { DEFAULT_SEA, islandAt, rankIndex } from "./sea.ts";
+import { DEFAULT_SEA, ISLAND, rankIndex } from "./sea.ts";
 import type { SeaId } from "./sea.ts";
 import { COUNTRY } from "./countries.ts";
 import { TECH } from "./techniques.ts";
 import { ROMAN, SEALS } from "./lore.ts";
-import { dayNum } from "./model.ts";
+import { dayNum, isoOf } from "./model.ts";
+import { reachedIsles } from "./voyage.ts";
 
 export type Source =
   | { t: "start" }
@@ -27,8 +28,11 @@ export type Source =
   | { t: "arc"; n: number }
   | { t: "country"; code: string }
   | { t: "tokui"; tech: string }
-  /** Reaching a belt and stripe, i.e. an island on the sea chart. */
-  | { t: "rank"; belt: Belt; stripes: number }
+  /**
+   * Reaching an island on the sea chart (`home:2` is the third island of any
+   * home sea), or the belt and stripe that used to stand for it.
+   */
+  | { t: "rank"; belt: Belt; stripes: number; isle?: string }
   /** Competitions: first one, a placement, a submission win. */
   | { t: "comp"; what: "first" | "place" | "subwin"; n?: number };
 
@@ -129,7 +133,7 @@ export const ITEMS: ItemDef[] = [
   I("gi_koi", "Koi-Gi", "gi", "epic", { t: "drop" }, "Weiß mit orangefarbenem Revers, wie ein Koi im Teich.", { c: "#f4f1ea", lapel: "#e8743b", stitch: "#e8743b" }),
   I("gi_aizome", "Aizome-Gi", "gi", "epic", { t: "arc", n: 1 }, "Mit Indigo gefärbt, wie traditionelle Kampfkunst-Kleidung.", { c: "#2a3470", lapel: "#1c2452", stitch: "#8fb0ff" }),
   I("gi_mitternacht", "Mitternachts-Gi", "gi", "epic", { t: "level", n: 15 }, "Dunkelblau mit goldener Naht.", { c: "#141b3a", lapel: "#0d1330", stitch: "#f1bf57" }),
-  I("gi_sturm", "Sturmgrauer Gi", "gi", "epic", { t: "rank", belt: "braun", stripes: 1 }, "Grau wie der Himmel über der Sturmkrone.", { c: "#5a6070", lapel: "#3d4250", stitch: "#9cc3ff" }),
+  I("gi_sturm", "Sturmgrauer Gi", "gi", "epic", { t: "rank", belt: "braun", stripes: 1, isle: "c11" }, "Grau wie der Himmel über der Sturmkrone.", { c: "#5a6070", lapel: "#3d4250", stitch: "#9cc3ff" }),
   I("gi_gold", "Goldkragen-Gi", "gi", "legendary", { t: "seal", id: "tokui" }, "Weiß mit goldenem Revers. Für die erste Tokui-Waza.", { c: "#f4f1ea", lapel: "#f1bf57", stitch: "#d99b2c" }),
 
   // No-Gi tops
@@ -154,9 +158,9 @@ export const ITEMS: ItemDef[] = [
   I("rg_abendrot", "Rashguard Abendrot", "top", "rare", { t: "drop" }, "Sonnenuntergang über dem Abendmeer.", { c: "#2a1b4a", c2: "#ff8a3d", pattern: "sunset", sleeve: "short" }),
   I("rg_krake", "Rashguard Krake", "top", "epic", { t: "drop" }, "Acht Arme für mehr Griffe.", { c: "#101838", c2: "#9a73f0", pattern: "kraken" }),
   I("rg_seekarte", "Rashguard Seekarte", "top", "epic", { t: "drop" }, "Auf Pergament gedruckt: der Kurs zur nächsten Insel.", { c: "#e9dcc0", c2: "#6b4a2b", pattern: "chart", sleeve: "short" }),
-  I("rg_stroemung", "Rashguard Große Strömung", "top", "epic", { t: "rank", belt: "blau", stripes: 0 }, "Für alle, die durch das Tor der vier Strömungen gesegelt sind.", { c: "#0f3a6b", c2: "#9cc3ff", pattern: "wave" }),
-  I("rg_tiefsee", "Rashguard Tiefsee", "top", "epic", { t: "rank", belt: "braun", stripes: 0 }, "Aus der Tiefen Strömung hinter dem Kammpass.", { c: "#06121f", c2: "#26b5b0", pattern: "kraken" }),
-  I("rg_kuro", "Rashguard Schwarzkliff", "top", "legendary", { t: "rank", belt: "schwarz", stripes: 0 }, "Schwarz mit goldenen Sternen. Für die Klippe am Anfang des Schwarzgurts.", { c: "#0c0c10", c2: "#f1bf57", pattern: "stars" }),
+  I("rg_stroemung", "Rashguard Große Strömung", "top", "epic", { t: "rank", belt: "blau", stripes: 0, isle: "c0" }, "Für alle, die durch das Tor der vier Strömungen gesegelt sind.", { c: "#0f3a6b", c2: "#9cc3ff", pattern: "wave" }),
+  I("rg_tiefsee", "Rashguard Tiefsee", "top", "epic", { t: "rank", belt: "braun", stripes: 0, isle: "c10" }, "Aus der Tiefen Strömung hinter dem Kammpass.", { c: "#06121f", c2: "#26b5b0", pattern: "kraken" }),
+  I("rg_kuro", "Rashguard Schwarzkliff", "top", "legendary", { t: "rank", belt: "schwarz", stripes: 0, isle: "c15" }, "Schwarz mit goldenen Sternen. Für die Klippe, an der das eigentliche Lernen beginnt.", { c: "#0c0c10", c2: "#f1bf57", pattern: "stars" }),
   I("rg_champion", "Rashguard Champion", "top", "epic", { t: "comp", what: "place", n: 1 }, "Für Gold auf einem Turnier.", { c: "#1d1d26", c2: "#f1bf57", pattern: "bolt", sleeve: "short" }),
   I("rg_nebel", "Rashguard Nebel", "top", "common", { t: "drop" }, "Grau-blau wie die Matte um sechs Uhr morgens.", { c: "#2b2f4a", c2: "#9aa3c7", pattern: "solid" }),
   I("rg_welle", "Rashguard Welle", "top", "rare", { t: "drop" }, "Wellenmuster für Leute, die gern rollen.", { c: "#1e3f7a", c2: "#9cc3ff", pattern: "wave" }),
@@ -178,8 +182,8 @@ export const ITEMS: ItemDef[] = [
   I("sp_tarn", "Spats Tarnmuster", "bottom", "rare", { t: "sessions", n: 30 }, "Passt zum Tarn-Rashguard.", { c: "#3b4a2f", c2: "#7d8c56", style: "spats", pattern: "camo" }),
   I("sh_karo", "Shorts Schachbrett", "bottom", "rare", { t: "rolls", n: 100 }, "Für Strategen.", { c: "#23232e", c2: "#5a5f70", style: "shorts", pattern: "checker" }),
   I("sp_tiger", "Spats Tigerstreifen", "bottom", "epic", { t: "level", n: 15 }, "Orange mit schwarzen Streifen. Ab Level 15.", { c: "#e08a2c", c2: "#1d1d26", style: "spats", pattern: "tiger" }),
-  I("sh_matrose", "Shorts Matrose", "bottom", "rare", { t: "rank", belt: "weiss", stripes: 2 }, "Marineblau mit weißen Streifen. Für die dritte Insel deines Heimatmeers.", { c: "#1b2a55", c2: "#f4f1ea", style: "shorts", pattern: "stripes" }),
-  I("sp_kamm", "Spats Scharlachkamm", "bottom", "epic", { t: "rank", belt: "lila", stripes: 0 }, "Rot wie der große Kamm. Lilagurt.", { c: "#6b1320", c2: "#e0453c", style: "spats", pattern: "chevron" }),
+  I("sh_matrose", "Shorts Matrose", "bottom", "rare", { t: "rank", belt: "weiss", stripes: 2, isle: "home:2" }, "Marineblau mit weißen Streifen. Für die dritte Insel deines Heimatmeers.", { c: "#1b2a55", c2: "#f4f1ea", style: "shorts", pattern: "stripes" }),
+  I("sp_kamm", "Spats Scharlachkamm", "bottom", "epic", { t: "rank", belt: "lila", stripes: 0, isle: "c9" }, "Rot wie der große Kamm, vor dem die Wartende Mauer liegt.", { c: "#6b1320", c2: "#e0453c", style: "spats", pattern: "chevron" }),
   I("sp_waben", "Spats Waben", "bottom", "rare", { t: "drop" }, "Sechsecke bis zum Knöchel.", { c: "#141c34", c2: "#5f90ea", style: "spats", pattern: "hex" }),
   I("sh_flamme", "Shorts Flamme", "bottom", "rare", { t: "drop" }, "Heiß wie ein Scramble.", { c: "#1d1d26", c2: "#ff7a2c", style: "shorts", pattern: "flame" }),
   I("sp_schuppen", "Spats Fischschuppen", "bottom", "epic", { t: "drop" }, "Passt zum Schuppen-Rashguard.", { c: "#0e3b4a", c2: "#4fc3c9", style: "spats", pattern: "scales" }),
@@ -200,7 +204,7 @@ export const ITEMS: ItemDef[] = [
   I("hd_band_gold", "Hachimaki, gold", "head", "legendary", { t: "level", n: 30 }, "Ab Level 30.", { c: "#f1bf57", style: "band" }),
   I("hd_bandana_rot", "Bandana Rot", "head", "common", { t: "drop" }, "Für No-Gi-Tage mit Stil.", { c: "#b3261e", style: "bandana" }),
   I("hd_bandana_nacht", "Bandana Nacht", "head", "rare", { t: "sessions", n: 20 }, "Dunkel mit weißen Punkten.", { c: "#1b2a55", style: "bandana" }),
-  I("hd_piratentuch", "Piratentuch", "head", "epic", { t: "rank", belt: "weiss", stripes: 4 }, "Für die letzte Insel vor dem Tor.", { c: "#1d1d26", style: "bandana" }),
+  I("hd_piratentuch", "Piratentuch", "head", "epic", { t: "rank", belt: "weiss", stripes: 4, isle: "home:4" }, "Für die letzte Insel vor dem Tor.", { c: "#1d1d26", style: "bandana" }),
 
   // Accessories
   I("ex_tape", "Fingertape", "extra", "common", { t: "sessions", n: 10 }, "Gi-Grips haben ihren Preis.", { style: "tape" }),
@@ -231,7 +235,7 @@ export const ITEMS: ItemDef[] = [
   I("au_sakura", "Kirschblütenregen", "aura", "epic", { t: "arc", n: 2 }, "Ab Arc III.", { c: "#f3a6c0" }),
   I("au_sterne", "Sternenstaub", "aura", "epic", { t: "drop" }, "Funkelt bei jedem Sweep.", { c: "#b89cff" }),
   I("au_donner", "Donnerschlag", "aura", "legendary", { t: "level", n: 20 }, "Ab Level 20 knistert die Luft.", { c: "#ffe39a" }),
-  I("au_gischt", "Gischt", "aura", "legendary", { t: "rank", belt: "braun", stripes: 2 }, "Salzwasser und Wind der Tiefen Strömung.", { c: "#9cc3ff" }),
+  I("au_gischt", "Gischt", "aura", "legendary", { t: "rank", belt: "braun", stripes: 2, isle: "c12" }, "Salzwasser und Wind der Tiefen Strömung.", { c: "#9cc3ff" }),
 
   // Patches
   I("pa_waza", "Waza-Arc-Abzeichen", "patch", "common", { t: "start" }, "Das Zeichen der App.", { emblem: "logo" }),
@@ -239,9 +243,9 @@ export const ITEMS: ItemDef[] = [
   I("pa_welle", "Arc-Welle", "patch", "rare", { t: "arc", n: 1 }, "Für den zweiten Arc.", { emblem: "wave" }),
   I("pa_flamme", "Flammen-Abzeichen", "patch", "rare", { t: "seal", id: "flame4" }, "Vier Wochen Flamme.", { emblem: "flame" }),
   I("pa_krone", "Boss-Krone", "patch", "epic", { t: "seal", id: "boss" }, "Einen Wochenboss besiegt.", { emblem: "crown" }),
-  I("pa_anker", "Anker", "patch", "common", { t: "rank", belt: "weiss", stripes: 1 }, "Du bist nicht mehr ganz neu im Hafen.", { emblem: "anchor" }),
-  I("pa_kompass", "Kompass", "patch", "rare", { t: "rank", belt: "blau", stripes: 2 }, "Der Kurs stimmt.", { emblem: "compass" }),
-  I("pa_flagge", "Totenkopfflagge", "patch", "epic", { t: "rank", belt: "lila", stripes: 2 }, "Die alte Piratenflagge: Du segelst unter eigener Flagge.", { emblem: "skull", c: "#1d1d26", c2: "#f4f1ea" }),
+  I("pa_anker", "Anker", "patch", "common", { t: "rank", belt: "weiss", stripes: 1, isle: "home:1" }, "Du bist nicht mehr ganz neu im Hafen.", { emblem: "anchor" }),
+  I("pa_kompass", "Kompass", "patch", "rare", { t: "rank", belt: "blau", stripes: 2, isle: "c2" }, "Der Kurs stimmt.", { emblem: "compass" }),
+  I("pa_flagge", "Totenkopfflagge", "patch", "epic", { t: "rank", belt: "lila", stripes: 2, isle: "c7" }, "Die alte Piratenflagge: Du segelst unter eigener Flagge.", { emblem: "skull", c: "#1d1d26", c2: "#f4f1ea" }),
   I("pa_arena", "Arena-Abzeichen", "patch", "rare", { t: "comp", what: "first" }, "Für dein erstes Turnier.", { emblem: "star", c: "#6b1320", c2: "#f1bf57" }),
   I("pa_finisher", "Finisher", "patch", "epic", { t: "comp", what: "subwin" }, "Ein Turnierkampf per Aufgabe gewonnen.", { emblem: "flame", c: "#1d1d26" }),
 ];
@@ -288,8 +292,11 @@ export function unlockText(src: Source, sea: SeaId = DEFAULT_SEA): string {
       return "Land im Steckbrief";
     case "tokui":
       return "Tokui-Waza erreichen";
-    case "rank":
-      return `Insel ${islandAt(src.belt, src.stripes, sea).name} (${BELT_NAME[src.belt]}gurt${src.stripes ? `, ${src.stripes}. Streifen` : ""})`;
+    case "rank": {
+      const rank = `${BELT_NAME[src.belt]}gurt${src.stripes ? `, ${src.stripes}. Streifen` : ""}`;
+      const is = src.isle ? ISLAND[src.isle.startsWith("home:") ? `${sea}${src.isle.slice(5)}` : src.isle] : null;
+      return is ? `Insel ${is.name} erreichen oder ${rank}` : rank;
+    }
     case "comp":
       return src.what === "first" ? "Erstes Turnier eingetragen" : src.what === "subwin" ? "Turnierkampf per Aufgabe gewonnen" : `${src.n}. Platz auf einem Turnier`;
   }
@@ -332,6 +339,8 @@ export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
   const rank = p ? rankIndex(p.belt, p.stripes) : 0;
   const sea = p?.homeSea ?? DEFAULT_SEA;
   const comps = (data.competitions ?? []).filter((c) => dayNum(c.date) <= st.asOf);
+  const isles = reachedIsles(data, isoOf(st.asOf));
+  const reached = (id: string) => (id.startsWith("home:") ? [...isles].some((x) => /^(frost|morgen|abend|glut)\d$/.test(x) && x.endsWith(id.slice(5))) : isles.has(id));
   for (const x of [...ITEMS, ...dynamicItems(data, st)]) {
     const s = x.src;
     const ok =
@@ -343,7 +352,7 @@ export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
       (s.t === "rolls" && st.rolls >= s.n) ||
       (s.t === "seal" && got.has(s.id)) ||
       (s.t === "arc" && st.arc.index >= s.n) ||
-      (s.t === "rank" && rank >= rankIndex(s.belt, s.stripes)) ||
+      (s.t === "rank" && (rank >= rankIndex(s.belt, s.stripes) || (!!s.isle && reached(s.isle)))) ||
       (s.t === "comp" &&
         (s.what === "first"
           ? comps.length > 0

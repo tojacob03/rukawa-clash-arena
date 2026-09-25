@@ -479,6 +479,7 @@ function FoeView({
   const p = useMemo(() => (kind === "partner" ? partnerScan(data, st, belt, size, attire) : null), [kind, data, st, belt, size, attire]);
   const o = useMemo(() => (kind === "gegner" ? opponentScan(data, st, belt, attire) : null), [kind, data, st, belt, attire]);
   const s = (p ?? o)!;
+  const kg = data.profile?.weightKg;
   const ruleCaution = o?.weapons.some((id) => TECH[id].caution);
   return (
     <>
@@ -503,10 +504,15 @@ function FoeView({
                 />
               ))}
             </div>
-            {kind === "partner" ? <Seg label="Größe" value={size} onChange={setSize} options={SIZES} /> : null}
+            {kind === "partner" ? <Seg label="Gewicht" value={size} onChange={setSize} options={SIZES} /> : null}
             <Seg label="Gi oder No-Gi" value={attire} onChange={setAttire} options={ATTIRE} />
           </div>
-          <p className="sc-k">{kind === "partner" ? "Partner" : label ?? "Gegner"}, geschätzt nach Gürtel{kind === "partner" ? " und Größe" : ""}</p>
+          {kind === "partner" && kg ? (
+            <p className="sc-hint">
+              Gemessen an deinen {nf0.format(kg)} kg: leichter heißt unter {nf0.format(kg - 5)} kg, schwerer über {nf0.format(kg + 5)} kg.
+            </p>
+          ) : null}
+          <p className="sc-k">{kind === "partner" ? "Partner" : label ?? "Gegner"}, geschätzt nach Gürtel{kind === "partner" ? " und Gewicht" : ""}</p>
           <Reading value={s.power} />
           <p className="sc-tier">
             {s.tier}
@@ -561,7 +567,7 @@ function FoeView({
           </section>
         ) : null}
       </div>
-      <p className="sc-foot">Die Schätzung kennt nur Gürtel{kind === "partner" ? " und Größe" : ""}. Wie gut jemand wirklich ist, zeigt erst der Roll.</p>
+      <p className="sc-foot">Die Schätzung kennt nur Gürtel{kind === "partner" ? " und Gewicht" : ""}. Wie gut jemand wirklich ist, zeigt erst der Roll.</p>
     </>
   );
 }

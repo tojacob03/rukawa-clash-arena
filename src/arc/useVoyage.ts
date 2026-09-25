@@ -1,6 +1,7 @@
-// Where you last saw your ship on the chart, per storage slot. When your
-// trainings have moved it on since, the chart shows the voyage: the ship sails
-// from there to where it is now and the sea miles count up.
+// Where you last saw your ship on the chart, per storage slot and ship (your
+// own, or a crew's). When trainings have moved it on since, the chart shows
+// the voyage: the ship sails from there to where it is now and the sea miles
+// count up. Positions are steps of the voyage, laps included.
 
 import { useLayoutEffect, useRef, useState } from "react";
 import type { SeaId } from "./core/types.ts";
@@ -61,9 +62,9 @@ export function useVoyage({ slot, active, sea, u, miles, harbour }: { slot: stri
     const round = (x: number) => Math.round(x * 1000) / 1000;
     if (!prev) {
       // First look: out of the harbour, if the ship has left it.
-      if (u - Math.floor(u) > 0.05) setLeg({ id: ++ids, from: Math.floor(u), miles: harbour, first: true });
+      if (u - Math.floor(u) > 0.05) setLeg({ id: ++ids, from: Math.floor(u), to: u, miles: harbour, first: true });
     } else if (prev.sea === sea && round(u) - round(prev.u) >= 0.01) {
-      setLeg({ id: ++ids, from: Math.max(prev.u, Math.floor(u) - 3), miles: Math.min(prev.miles, miles), first: false });
+      setLeg({ id: ++ids, from: Math.max(prev.u, Math.floor(u) - 3), to: u, miles: Math.min(prev.miles, miles), first: false });
     }
   }, [active, key, sea, u, miles, harbour]);
 

@@ -100,6 +100,7 @@ Im Code fertig. Ohne die Migration zeigt der Crew-Reiter „Crew und Freundeskre
 
 1. **Migration: erledigt am 25. September 2026.** `supabase/migrations/20260926120000_arc_social.sql` ist angewendet (im Projekt als `arc_social`). Sie legt nur neue Tabellen und Funktionen an. Vorher in einer zurückgerollten Transaktion auf der echten Datenbank durchgespielt, danach geprüft: Row Level Security an allen sechs Tabellen, keine Tabellenrechte für `anon` oder `authenticated`, die 16 Funktionen nur für angemeldete Konten, die Hilfsfunktionen für niemanden von außen.
 2. **Prüfen, sobald das Frontend gemergt ist:** zwei Konten, im einen unter Seekarte → Crew einschalten und eine Crew gründen, den Link ans andere schicken, beitreten; im Gym-Bereich ein Gym anlegen und mit dem Code beitreten.
+3. **Migration fürs Crew-Schiff: noch offen.** `supabase/migrations/20260927120000_arc_crew_ship.sql` hält die Seemeilen von Leuten, die eine Crew verlassen oder von Bord geschickt werden, im Crew-Schiff fest (neue Spalte `arc.crews.banked`, ein Trigger vor dem Löschen einer Mitgliedschaft, `arc_social_state` liefert `banked` mit). Ohne sie funktioniert das Crew-Schiff auch, nur segelt es ein Stück zurück, wenn jemand geht. Lokal auf Postgres 16 mit allen Arc-Migrationen durchgespielt: Beitreten, Meilen sammeln, Austritt, Rauswurf, unbrauchbare Werte und das Auflösen der letzten Crew verhalten sich wie gewollt, die Trigger-Funktion kann niemand von außen aufrufen.
 
 ## 10. Registrierung einschalten (zuletzt)
 

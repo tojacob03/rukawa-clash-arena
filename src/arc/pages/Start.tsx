@@ -19,6 +19,7 @@ import { SPORT } from "../core/sports.ts";
 import { Belt, HeroKoma, Seg, Stepper } from "../components/ui.tsx";
 import { cloudConfigured, afterSignIn, useCloud } from "../cloud/state.ts";
 import { go } from "../store.ts";
+import { HEIGHT_CM } from "../core/body.ts";
 
 type Step = "hello" | "steckbrief" | "rang" | "klasse" | "aussehen" | "technik" | "sichern";
 const STEPS: Step[] = ["steckbrief", "rang", "klasse", "aussehen", "technik"];
@@ -38,6 +39,7 @@ export default function Start({ today }: { today: string }) {
   const [countries, setCountries] = useState<string[]>([]);
   const [birthYear, setBirthYear] = useState("");
   const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
   const [belt, setBelt] = useState<BeltId>("weiss");
   const [stripes, setStripes] = useState(0);
   const [since, setSince] = useState("");
@@ -56,6 +58,7 @@ export default function Start({ today }: { today: string }) {
   const byRaw = parseNum(birthYear, year - 90, year - 4);
   const by = byRaw === null ? null : Math.round(byRaw);
   const kg = parseNum(weight, 30, 200);
+  const cm = parseNum(height, HEIGHT_CM.min, HEIGHT_CM.max);
   const idx = steps.indexOf(step);
   const next = () => {
     const n = steps[idx + 1];
@@ -80,6 +83,7 @@ export default function Start({ today }: { today: string }) {
         countries,
         birthYear: by ?? undefined,
         weightKg: kg ?? undefined,
+        heightCm: cm === null ? undefined : Math.round(cm),
         trainingSince: since || undefined,
         cls,
         homeSea: sea,
@@ -141,7 +145,7 @@ export default function Start({ today }: { today: string }) {
 
   const gear = previewGear(countries[0]);
   const preview = (
-    <Avatar look={look} mode={mode} gear={gear} belt={belt} stripes={stripes} weightKg={kg ?? undefined} size={220} label={name ? `${name}, dein Charakter` : "Dein Charakter"} />
+    <Avatar look={look} mode={mode} gear={gear} belt={belt} stripes={stripes} weightKg={kg ?? undefined} heightCm={cm ?? undefined} size={220} label={name ? `${name}, dein Charakter` : "Dein Charakter"} />
   );
   const head = (title: string) => (
     <>
@@ -172,12 +176,16 @@ export default function Start({ today }: { today: string }) {
             <input id="arc-year" inputMode="numeric" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} placeholder={String(year - 28)} />
           </label>
           <label className="field">
+            <span className="fl">Größe in cm (optional)</span>
+            <input id="arc-height" inputMode="numeric" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="178" />
+          </label>
+          <label className="field">
             <span className="fl">Gewicht in kg (optional)</span>
             <input id="arc-weight" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="76" />
           </label>
         </div>
         <p className="muted small">
-          {div ? `Altersklasse nach IBJJF: ${div.name}. ` : ""}Das Gewicht bestimmt die Statur deines Charakters. Beides bleibt in diesem Browser und ist später im Steckbrief änderbar.
+          {div ? `Altersklasse nach IBJJF: ${div.name}. ` : ""}Größe und Gewicht formen deinen Charakter: die Größe seine Körperhöhe, das Gewicht im Verhältnis zur Größe seine Statur. Freunde und Crew sehen nur die Figur, nie die Zahlen. Später im Steckbrief änderbar.
         </p>
         <div className="field">
           <span className="fl">Land oder Länder</span>
@@ -192,9 +200,9 @@ export default function Start({ today }: { today: string }) {
         <div className="field">
           <span className="fl">Heimatmeer</span>
           <SeaPicker value={sea} onChange={setSea} />
-          <small className="muted">Hier beginnt deine Reise auf der Seekarte. Jeder Streifen ist eine Insel.</small>
+          <small className="muted">Hier legt dein Schiff ab. Jedes Training bringt es weiter, ob Gi oder No-Gi.</small>
         </div>
-        <Nav back={back} next={next} ok={!!name.trim() && (birthYear === "" || by !== null) && (weight === "" || kg !== null)} />
+        <Nav back={back} next={next} ok={!!name.trim() && (birthYear === "" || by !== null) && (weight === "" || kg !== null) && (height === "" || cm !== null)} />
       </main>
     );
   }
@@ -273,7 +281,7 @@ export default function Start({ today }: { today: string }) {
         {head("Wie siehst du aus?")}
         <div className="studio">
           <div className="studio-stage">{preview}</div>
-          <LookEditor look={look} onChange={setLook} mode={mode} onMode={setMode} />
+          <LookEditor look={look} onChange={setLook} mode={mode} onMode={setMode} heightCm={cm === null ? undefined : Math.round(cm)} />
         </div>
         <p className="muted small">Mehr Kleidung, Aufnäher, Talismane und Auren findest du im Training: als Beute, für Siegel und für Level.</p>
         <Nav back={back} next={next} ok />
@@ -287,7 +295,7 @@ export default function Start({ today }: { today: string }) {
         {head("Sichere deinen Charakter")}
         <div className="save-offer">
           <div className="save-offer-art">
-            <Avatar look={look} mode={mode} gear={gear} belt={belt} stripes={stripes} weightKg={kg ?? undefined} size={150} crop="head" label={name ? `${name}, dein Charakter` : "Dein Charakter"} />
+            <Avatar look={look} mode={mode} gear={gear} belt={belt} stripes={stripes} weightKg={kg ?? undefined} heightCm={cm ?? undefined} size={150} crop="head" label={name ? `${name}, dein Charakter` : "Dein Charakter"} />
           </div>
           <div className="save-offer-text">
             <p className="lede">Dein Charakter ist fertig. Ohne Konto lebt er nur in diesem Browser: Räumt der Browser auf oder wechselst du das Handy, ist der Fortschritt weg.</p>

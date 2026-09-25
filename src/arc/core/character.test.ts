@@ -5,13 +5,13 @@ import { TECH, TECHS } from "./techniques.ts";
 import { SEALS } from "./lore.ts";
 import { CLASSES } from "./classes.ts";
 import { COUNTRIES } from "./countries.ts";
-import { ITEM, ITEMS, SLOTS, inventory, talismanBonus } from "./items.ts";
+import { ITEM, ITEMS, SLOTS, inventory, talismanBonus, unlockText } from "./items.ts";
 import { buildDemo } from "./demo.ts";
 import { compXp, compute, crossXp, dayNum, diff, prologXp, questShape, rankAt, xpParts } from "./model.ts";
 import { CROSS_W } from "./sports.ts";
 import { ORGS } from "../compText.ts";
 import { bounty } from "./bounty.ts";
-import { ISLANDS, islandAt, rankIndex, route } from "./sea.ts";
+import { ISLANDS, rankIndex, route } from "./sea.ts";
 import { normalizeLook } from "../avatarOptions.ts";
 import { ageDivision } from "../character.ts";
 import type { ArcData, Session } from "./types.ts";
@@ -174,23 +174,32 @@ test("competitions: count double for the Power Level, submission wins are eviden
   assert.ok(bounty(withComp, after) > bounty(d, before));
 });
 
-test("sea chart: one island per belt and stripe, rank decides the island", () => {
+test("sea chart: 25 islands per route, island items by voyage or by belt", () => {
   assert.equal(ISLANDS.length, 40);
   assert.equal(new Set(ISLANDS.map((x) => x.id)).size, 40);
   for (const sea of ["frost", "morgen", "abend", "glut"] as const) {
     const r = route(sea);
     assert.equal(r.length, 25);
+    // The islands still follow the old belt order, as places along the way.
     r.forEach((is, i) => assert.equal(rankIndex(is.belt, is.stripe), i));
+    assert.equal(r[5].name, "Tor der vier Strömungen");
+    assert.equal(r[24].name, "Kap Kuro");
   }
-  assert.equal(islandAt("blau", 0, "frost").name, "Tor der vier Strömungen");
-  assert.equal(islandAt("schwarz", 4, "glut").name, "Kap Kuro");
   const d = base();
   d.promotions = [{ date: "2026-09-10", belt: "blau", stripes: 1 }];
   assert.deepEqual(rankAt(d, dayNum("2026-09-05")), { belt: "blau", stripes: 0 });
   assert.deepEqual(rankAt(d, dayNum("2026-09-12")), { belt: "blau", stripes: 1 });
-  // Blue belt profile: the gate item is unlocked, the purple one is not.
+  // Blue belt profile without a voyage: the gate item still comes with the belt, the purple one not.
   const inv = inventory(d, compute(d, TODAY));
   assert.ok(inv.has("rg_stroemung") && !inv.has("sp_kamm"));
+  // A white belt who never gets a stripe sails through the gate on trainings alone.
+  const white: ArcData = { ...base(), profile: { ...base().profile!, belt: "weiss", startBelt: "weiss" } };
+  white.sessions = Array.from({ length: 30 }, (_, i) => sess(new Date(Date.parse("2026-06-01T12:00:00Z") + i * 3 * 864e5).toISOString().slice(0, 10)));
+  const winv = inventory(white, compute(white, TODAY));
+  assert.ok(winv.has("rg_stroemung"), "reached the gate");
+  assert.ok(winv.has("pa_anker") && winv.has("hd_piratentuch"), "home sea items on the way");
+  assert.ok(!winv.has("sp_kamm"), "the ridge is still far");
+  assert.match(unlockText(ITEM.rg_stroemung.src, "frost"), /^Insel Tor der vier Strömungen erreichen oder Blaugurt$/);
 });
 
 test("other sports: XP and body values, but not the BJJ weekly goal", () => {

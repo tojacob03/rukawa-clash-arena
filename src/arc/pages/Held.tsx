@@ -22,6 +22,7 @@ import ItemIcon from "../components/ItemIcon.tsx";
 import { FlagIcon } from "../components/Flag.tsx";
 import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SportsPicker } from "../components/CharacterForms.tsx";
 import { DEFAULT_SEA } from "../core/sea.ts";
+import { HEIGHT_CM } from "../core/body.ts";
 import { Hexagon, PowerChart } from "../components/Charts.tsx";
 import { Belt, HeroKoma, Seg } from "../components/ui.tsx";
 import { BODY, SPORT, SPORTS } from "../core/sports.ts";
@@ -51,7 +52,7 @@ export default function Held({ data, st, today, arg }: Props) {
   const p = data.profile;
   if (!p) return null;
   const avatar = (size: number, still?: boolean) => (
-    <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={p.belt} stripes={p.stripes} weightKg={p.weightKg} size={size} still={still} label={`${p.name}, dein Charakter`} />
+    <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={p.belt} stripes={p.stripes} weightKg={p.weightKg} heightCm={p.heightCm} size={size} still={still} label={`${p.name}, dein Charakter`} />
   );
 
   return (
@@ -65,7 +66,7 @@ export default function Held({ data, st, today, arg }: Props) {
         ))}
       </nav>
       {tab === "aussehen" ? (
-        <LookTab look={g.character.look} mode={g.character.mode} avatar={avatar} />
+        <LookTab look={g.character.look} mode={g.character.mode} avatar={avatar} heightCm={p.heightCm} />
       ) : tab === "ausruestung" ? (
         <GearTab data={data} st={st} owned={g.owned} gear={g.gear} mode={g.character.mode} unseen={g.unseen} avatar={avatar} />
       ) : tab === "turniere" ? (
@@ -157,6 +158,12 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
                 <dd>
                   {div.name} <small>({div.age} Jahre)</small>
                 </dd>
+              </div>
+            ) : null}
+            {p.heightCm ? (
+              <div>
+                <dt>Größe</dt>
+                <dd>{nf0.format(p.heightCm)} cm</dd>
               </div>
             ) : null}
             {p.weightKg ? (
@@ -399,14 +406,14 @@ function BodyPanel({ data, st }: { data: ArcData; st: ArcState }) {
 
 /* ── Aussehen ──────────────────────────────────────────────────────────── */
 
-function LookTab({ look, mode, avatar }: { look: Look; mode: Attire; avatar: AvatarFn }) {
+function LookTab({ look, mode, avatar, heightCm }: { look: Look; mode: Attire; avatar: AvatarFn; heightCm?: number }) {
   return (
     <div className="studio">
       <div className="studio-stage">{avatar(260)}</div>
       <section className="panel">
         <h2 className="h3">Aussehen</h2>
-        <LookEditor look={look} onChange={setLook} mode={mode} onMode={setMode} />
-        <p className="muted small">Kleidung, Aufnäher und Auren wechselst du unter Ausrüstung. Dein Gewicht aus dem Steckbrief bestimmt die Statur.</p>
+        <LookEditor look={look} onChange={setLook} mode={mode} onMode={setMode} heightCm={heightCm} />
+        <p className="muted small">Kleidung, Aufnäher und Auren wechselst du unter Ausrüstung.</p>
       </section>
     </div>
   );
@@ -674,13 +681,14 @@ function ProfileTab({ data, st }: { data: ArcData; st: ArcState }) {
         </label>
         <div className="row wrap">
           <NumberField id="arc-held-year" label="Geburtsjahr" value={p.birthYear} min={year - 90} max={year - 4} onCommit={(v) => updateProfile({ birthYear: v === undefined ? undefined : Math.round(v) })} />
+          <NumberField id="arc-held-height" label="Größe (cm)" value={p.heightCm} min={HEIGHT_CM.min} max={HEIGHT_CM.max} onCommit={(v) => updateProfile({ heightCm: v === undefined ? undefined : Math.round(v) })} />
           <NumberField id="arc-held-weight" label="Gewicht (kg)" value={p.weightKg} min={30} max={200} onCommit={(v) => updateProfile({ weightKg: v })} />
           <label className="field">
             <span className="fl">Trainiert seit</span>
             <input id="arc-held-since" type="month" value={p.trainingSince ?? ""} max={new Date().toISOString().slice(0, 7)} onChange={(e) => updateProfile({ trainingSince: e.target.value || undefined })} />
           </label>
         </div>
-        <p className="muted small">Das Geburtsjahr ergibt deine Altersklasse nach IBJJF, das Gewicht die Statur deines Charakters. Beides bleibt in diesem Browser.</p>
+        <p className="muted small">Das Geburtsjahr ergibt deine Altersklasse nach IBJJF. Größe und Gewicht formen deinen Charakter: die Größe seine Körperhöhe, das Gewicht im Verhältnis zur Größe seine Statur. Freunde und Crew sehen nur die Figur, nie die Zahlen.</p>
       </section>
       <section className="panel form-panel">
         <h2 className="h3">Länder</h2>

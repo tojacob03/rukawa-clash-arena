@@ -1,8 +1,9 @@
 // Social cards: building your own, checking other people's.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildCard, cleanCode, crewWeek, gearItems, gymDay, parseInvite, readCard, readSnapshot, safeGear, safeLook, sharedSlots, weekOf } from "./social.ts";
-import type { Peer, SocialCard } from "./social.ts";
+import { buildCard, cleanCode, crewShip, crewWeek, gearItems, gymDay, parseInvite, readCard, readSnapshot, safeGear, safeLook, sharedSlots, weekOf } from "./social.ts";
+import type { CrewInfo, Peer, SocialCard } from "./social.ts";
+import { bodyOf } from "./body.ts";
 import { DEFAULT_LOOK } from "../avatarOptions.ts";
 import { weekNumber } from "./schedule.ts";
 import type { TrainingPlan } from "./schedule.ts";
@@ -23,6 +24,9 @@ const mine = () =>
     sea: "frost",
     island: 7,
     progress: 0.4567,
+    lap: 1,
+    aboard: { id: "00000000-0000-4000-8000-000000000009", miles: 123.456 },
+    body: bodyOf(186, 92),
     ship: "Nebelkrähe",
     sail: "#3a6ee8",
     flag: { bg: 1, fg: 1, emblem: 2, cross: 3, head: 0 },
@@ -36,6 +40,7 @@ test("social: own card survives the round trip through the checks", () => {
   const c = mine();
   assert.equal(c.pl, Math.round(1000 * Math.pow(2, 1.3146)));
   assert.equal(c.progress, 0.46);
+  assert.deepEqual(c.aboard, { id: "00000000-0000-4000-8000-000000000009", miles: 123.5 });
   assert.equal(c.wk, weekNumber(TODAY));
   const back = readCard(JSON.parse(JSON.stringify(c)));
   assert.deepEqual(back, c);
@@ -60,6 +65,9 @@ test("social: foreign cards cannot smuggle in odd values", () => {
     look: { skin: 400, skinHex: "red;background:url(x)", hair: 2.6, marks: ["blush", "constructor", 5], eyeColor2: -9 },
     gear: { gi: "constructor", patch1: "flag:__proto__", patch2: "tokui:toString", top: "gi_weiss", head: "" },
     cls: "hasOwnProperty",
+    lap: -3,
+    aboard: { id: "../../etc", miles: 9e9 },
+    body: { h: 3, b: "fat" },
   })!;
   assert.equal(evil.stripes, 4);
   assert.equal(evil.lvl, 1);
@@ -76,6 +84,10 @@ test("social: foreign cards cannot smuggle in odd values", () => {
   assert.deepEqual(evil.look.marks, ["blush"]);
   assert.equal(evil.look.eyeColor2, -1);
   assert.equal(evil.cls, null);
+  assert.equal(evil.lap, 0);
+  assert.equal(evil.aboard, null);
+  assert.equal(evil.body, null);
+  assert.deepEqual(readCard({ belt: "blau", body: { h: 3, b: 0.1 } })?.body, { h: 1.16, b: 0.86 });
   // Unknown items and items in the wrong slot are dropped, an empty slot stays empty.
   assert.deepEqual(evil.gear, { head: "" });
   assert.equal(readCard({ belt: "rot" }), null);
@@ -162,4 +174,34 @@ test("social: codes and invitations", () => {
   assert.deepEqual(parseInvite("G-ABCD-EFGH"), { kind: "g", code: "ABCD-EFGH" });
   assert.equal(parseInvite("x-ABCD-EFGH"), null);
   assert.equal(parseInvite(null), null);
+});
+
+test("social: the crew ship sails on everyone's miles on board, and keeps those of former members", () => {
+  const id = "00000000-0000-4000-8000-000000000009";
+  const m = (pid: string, card: Partial<SocialCard>, captain = false): Peer => ({ ...peer(pid, pid, card), captain });
+  const crew: CrewInfo = {
+    id,
+    name: "Strohhüte",
+    flag: mine().flag,
+    code: "WXYZ-2345",
+    captain: false,
+    banked: 40,
+    members: [
+      m("cap", { aboard: { id, miles: 100 }, sea: "glut", belt: "blau", sail: "#112233" }, true),
+      m("me", { aboard: { id, miles: 5 }, belt: "weiss" }),
+      m("old", { aboard: { id: "00000000-0000-4000-8000-000000000001", miles: 999 }, belt: "braun" }),
+    ],
+  };
+  // Your own miles come from your data, a card from another crew counts nothing.
+  assert.deepEqual(crewShip(crew, "me", 30), { miles: 170, sea: "glut", belt: "braun", sail: "#112233" });
+});
+
+test("body: height sets the figure, weight relative to height the build", () => {
+  const tall = bodyOf(195, 90);
+  const short = bodyOf(170, 90);
+  assert.ok(tall.h > 1 && short.h < 1);
+  assert.ok(tall.b < short.b, "90 kg look lighter on a tall frame");
+  assert.deepEqual(bodyOf(null, null), { h: 1, b: 1 });
+  assert.equal(bodyOf(250, 400).h, 1.16);
+  assert.equal(bodyOf(250, 400).b, 1.25);
 });

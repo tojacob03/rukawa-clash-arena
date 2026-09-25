@@ -2,11 +2,11 @@
 //
 // A world split by a scarlet ridge running north to south and a great current
 // running west to east. Where they cross lies the gate every sailor passes.
-// Four seas fill the quarters in between; each white belt starts in one of
-// them. From blue belt on you sail the great current: the outer current up to
-// the ridge pass (blue and purple), then the deep current (brown and black) all
-// the way round to Kap Kuro, the last island, just west of where you entered.
-// Every stripe is an island. All names are original.
+// Four seas fill the quarters in between; every voyage starts in the harbour
+// of one of them. Through the gate the ship enters the great current: the
+// outer current up to the ridge pass, then the deep current all the way round
+// to Kap Kuro, just west of the gate, and through the gate again, lap after
+// lap. Every training moves the ship (voyage.ts). All names are original.
 
 import type { Belt, SeaId } from "./types.ts";
 
@@ -119,26 +119,26 @@ const HOME_PATH: Record<SeaId, [number, number][]> = {
 };
 
 const CURRENT: [Belt, string, string, Island["kind"]?][] = [
-  ["blau", "Tor der vier Strömungen", "Hier treffen sich die Strömungen aller vier Meere und reißen dich in die Große Strömung. Blaugurt.", "tor"],
+  ["blau", "Tor der vier Strömungen", "Hier treffen sich die Strömungen aller vier Meere und reißen dich in die Große Strömung.", "tor"],
   ["blau", "Wirbelinsel", "Das Wasser dreht sich im Kreis. Wer die Hüfte nicht bewegt, dreht mit.", undefined],
   ["blau", "Nebelwald von Hakenstein", "Im Nebel findest du den Gegner nur mit den Haken.", undefined],
   ["blau", "Wüstenhafen Sandschleier", "Trockene Luft, lange Rolls, kein Schatten.", undefined],
   ["blau", "Insel Zweiter Atem", "Hier lernst du, dass die fünfte Runde anders ist als die erste.", undefined],
-  ["lila", "Wolkenriff", "Ein Riff, das aus dem Nebel ragt. Lilagurt: Du beginnst, dein eigenes Spiel zu bauen.", undefined],
+  ["lila", "Wolkenriff", "Ein Riff, das aus dem Nebel ragt. Hier beginnst du, dein eigenes Spiel zu bauen.", undefined],
   ["lila", "Glockenturm von Ashi", "Jede Stunde läutet eine Glocke. Jede Stunde ein Beinhebel-Drill.", undefined],
   ["lila", "Seeschlangenpass", "Eine Enge voller Strömungen. Wer sich windet, kommt durch.", undefined],
   ["lila", "Garnison Eiserne Klammer", "Eine Festung, die nichts loslässt. Du lernst Druck von oben.", undefined],
   ["lila", "Die Wartende Mauer", "Der rote Kamm ragt vor dir auf. Nur wer bereit ist, findet den Pass.", undefined],
-  ["braun", "Kammpass", "Der Weg über den Scharlachkamm. Dahinter liegt die Tiefe Strömung. Braungurt.", "pass"],
+  ["braun", "Kammpass", "Der Weg über den Scharlachkamm. Dahinter liegt die Tiefe Strömung.", "pass"],
   ["braun", "Sturmkrone", "Hier regnet es seitwärts. Deine Technik muss unter Druck halten.", undefined],
   ["braun", "Korallenpalast", "Unter Wasser ist alles langsamer, nur dein Timing nicht.", undefined],
   ["braun", "Insel der Tausend Griffe", "Jeder Stein hier ist ein Griff, den jemand vor dir gelernt hat.", undefined],
   ["braun", "Donnerbucht", "Das Meer grollt. Du unterrichtest die ersten Neuen auf deinem Schiff.", undefined],
-  ["schwarz", "Schwarzkliff", "Eine Klippe aus dunklem Stein. Schwarzgurt: Das eigentliche Lernen beginnt.", undefined],
+  ["schwarz", "Schwarzkliff", "Eine Klippe aus dunklem Stein. Hier beginnt das eigentliche Lernen.", undefined],
   ["schwarz", "Meer der Stille", "Kein Wind, keine Wellen. Nur du und deine Grundlagen.", undefined],
   ["schwarz", "Letzter Leuchtturm", "Sein Licht reicht bis zu den Häfen der vier Meere.", undefined],
   ["schwarz", "Tor des Meisters", "Ein Bogen aus Treibholz. Wer hindurchsegelt, sieht Kap Kuro.", undefined],
-  ["schwarz", "Kap Kuro", "Das Ende der Großen Strömung, gleich neben dem Tor, durch das du gekommen bist. Der Kreis schließt sich.", "kap"],
+  ["schwarz", "Kap Kuro", "Die letzte Insel der Großen Strömung, gleich neben dem Tor, durch das du gekommen bist. Von hier geht es in die nächste Runde um die Welt.", "kap"],
 ];
 
 function currentPos(i: number): [number, number] {
@@ -183,29 +183,35 @@ export const ISLAND = Object.fromEntries(ISLANDS.map((x) => [x.id, x])) as Recor
 /** Rank as one number: white 0 … black 4 = 24. */
 export const rankIndex = (belt: Belt, stripes: number) => ORDER.indexOf(belt) * 5 + Math.min(4, Math.max(0, stripes));
 
-/** The island for a belt and stripe; white belt islands depend on the home sea. */
-export function islandAt(belt: Belt, stripes: number, sea: SeaId): Island {
-  const s = Math.min(4, Math.max(0, stripes));
-  if (belt === "weiss") return ISLAND[`${sea}${s}`];
-  return ISLAND[`c${(ORDER.indexOf(belt) - 1) * 5 + s}`];
-}
 
-/** The islands of your route, in order. */
+/** The islands of your route, in order: the home sea, then the great current once round. */
 export function route(sea: SeaId): Island[] {
   return [...HOME[sea].map((_, i) => ISLAND[`${sea}${i}`]), ...CURRENT.map((_, i) => ISLAND[`c${i}`])];
 }
 
+/** Route length (home sea and the current once round) and where the round starts again. */
+export const ROUTE_LEN = 25;
+export const LOOP_START = 5;
+const LOOP = ROUTE_LEN - LOOP_START;
+/** The route index of a step of the voyage: after Kap Kuro the current starts again at the gate. */
+export const stepIndex = (step: number) => (step < ROUTE_LEN ? step : LOOP_START + ((step - LOOP_START) % LOOP));
+/** The island after a route index: after Kap Kuro the gate again. */
+export const nextIndex = (idx: number) => (idx === ROUTE_LEN - 1 ? LOOP_START : idx + 1);
+/** Laps of the great current completed at a step. */
+export const lapOf = (step: number) => (step < LOOP_START ? 0 : Math.floor((step - LOOP_START) / LOOP));
+
 export const DEFAULT_SEA: SeaId = "morgen";
 
 // ── Landmarks ─────────────────────────────────────────────────────────────
-// Every island has three: the landing (first training while docked there), a
-// landmark (8 trainings) and the island's secret (15 trainings). Discovered
-// only by training while your ship lies there, so the map keeps growing
-// between two stripes.
+// Every island has three: the landing (the first training in its waters), a
+// landmark (the third) and the island's secret (the sixth). Discovered only
+// by training while your ship is in its waters, that is after it reached the
+// island and before the next one. A fast passage leaves secrets behind; they
+// wait for the next lap round the world.
 
 export const LANDING = 1;
-export const LANDMARK = 8;
-export const SECRET = 15;
+export const LANDMARK = 3;
+export const SECRET = 6;
 
 export const LANDMARKS: Record<string, [string, string]> = {
   frost0: ["Das Bootshaus mit der ersten Matte", "Das Logbuch des alten Fischers"],
@@ -274,7 +280,8 @@ export const SHIPS: Record<Belt, { name: string; desc: string }> = {
 export function shipPos(r: Island[], idx: number, progress: number): { x: number; y: number; left: boolean } {
   const W = WORLD.w;
   const a = r[idx];
-  const b = r[idx + 1];
+  // From Kap Kuro through the gate into the next lap.
+  const b = r[idx + 1] ?? (idx === ROUTE_LEN - 1 ? r[LOOP_START] : undefined);
   const ax = a.x + 16;
   const ay = a.y - 6;
   if (!b || progress <= 0) return { x: ax, y: ay, left: false };
@@ -300,9 +307,10 @@ type Pt = { x: number; y: number };
  */
 export function voyageLegs(r: Island[], from: number, to: number): Pt[][] {
   const W = WORLD.w;
+  // Positions are steps of the voyage, laps included.
   const at = (u: number): Pt => {
-    const i = Math.max(0, Math.min(r.length - 1, Math.floor(u)));
-    const p = shipPos(r, i, u - i);
+    const k = Math.max(0, Math.floor(u));
+    const p = shipPos(r, stepIndex(k), u - k);
     return { x: p.x, y: p.y };
   };
   const legs: Pt[][] = [[at(from)]];
@@ -316,7 +324,7 @@ export function voyageLegs(r: Island[], from: number, to: number): Pt[][] {
     }
     legs[legs.length - 1].push(p);
   };
-  for (let i = Math.floor(from) + 1; i <= Math.min(r.length - 1, Math.floor(to)); i++) add(at(i));
+  for (let k = Math.floor(from) + 1; k <= Math.floor(to); k++) add(at(k));
   add(at(to));
   return legs.filter((l) => l.length > 1);
 }

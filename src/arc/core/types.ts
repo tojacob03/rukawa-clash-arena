@@ -133,6 +133,17 @@ export interface QuestResult {
   done: boolean;
 }
 
+/**
+ * Logged while you sailed on a crew ship: the miles go to the crew, and the
+ * island is where the crew ship lay at that moment. Without it the entry
+ * moves your own ship.
+ */
+export interface Aboard {
+  crew: string;
+  name: string;
+  isle: string;
+}
+
 export interface Session {
   id: string;
   date: string;
@@ -146,6 +157,7 @@ export interface Session {
   createdAt: number;
   /** XP from equipped talismans, fixed when the session was saved. */
   bonus?: number;
+  aboard?: Aboard;
 }
 
 export type CompResult = "win" | "loss" | "draw";
@@ -173,6 +185,7 @@ export interface Competition {
   /** 1–3 podium, 0 no placement. */
   place: number;
   createdAt: number;
+  aboard?: Aboard;
 }
 
 /** A session of another sport (strength, wrestling, running …). */
@@ -188,6 +201,7 @@ export interface CrossSession {
   att?: number;
   succ?: number;
   createdAt: number;
+  aboard?: Aboard;
 }
 
 export interface Profile {
@@ -203,6 +217,8 @@ export interface Profile {
   countries?: string[];
   birthYear?: number;
   weightKg?: number;
+  /** Body height; with the weight it shapes the character (height and build). */
+  heightCm?: number;
   /** YYYY-MM */
   trainingSince?: string;
   /** Chosen play style. */
@@ -219,6 +235,7 @@ export interface Promotion {
   date: string;
   belt: Belt;
   stripes: number;
+  aboard?: Aboard;
 }
 
 export interface AcceptedQuest {
