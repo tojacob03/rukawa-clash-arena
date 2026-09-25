@@ -7,7 +7,8 @@ export function getCharacter(data: ArcData): Character {
   const c = data.character;
   const flag = data.profile?.countries?.[0];
   const equipped = { ...DEFAULT_EQUIP, ...(flag ? { patch1: `flag:${flag}` } : {}), ...(c?.equipped ?? {}) };
-  return { look: { ...DEFAULT_LOOK, ...(c?.look ?? {}) }, equipped, mode: c?.mode ?? "gi", seen: c?.seen ?? [] };
+  // Keep every other field (crew flag, ship name) as it is.
+  return { ...c, look: { ...DEFAULT_LOOK, ...(c?.look ?? {}) }, equipped, mode: c?.mode ?? "gi", seen: c?.seen ?? [] };
 }
 
 /** The item worn in each slot, falling back to default gear when an item is not owned (any more). */

@@ -2,9 +2,11 @@
 // the scarlet ridge, islands, your route and your ship.
 
 import type { ReactNode } from "react";
-import type { SeaId } from "../core/types.ts";
+import type { Belt, FlagDesign, SeaId } from "../core/types.ts";
 import type { Island } from "../core/sea.ts";
 import { ISLANDS, SEAS, WORLD, route } from "../core/sea.ts";
+import type { WeatherKind } from "../core/voyage.ts";
+import { ShipArt } from "./ShipArt.tsx";
 
 export interface MapMarks {
   sea: SeaId;
@@ -16,6 +18,18 @@ export interface MapMarks {
   comps: Record<string, { n: number; best: number }>;
   shipColor: string;
   boss?: string | null;
+  /** Ship class follows the belt. */
+  belt: Belt;
+  flag?: Partial<FlagDesign> | null;
+  /** Share of the way to the next island (0 … 0.85). */
+  progress: number;
+  weather: WeatherKind;
+  /** Landmarks found per island id (0 … 3). */
+  explored: Record<string, number>;
+  /** Ship condition from other sports and rust. */
+  hull: number;
+  sails: number;
+  barnacles: number;
 }
 
 const { w: W, h: H, ridgeX: RX, currentY: CY, currentHalf: CH, calm: CALM } = WORLD;
@@ -61,6 +75,7 @@ export default function SeaMap({ marks, selected, onSelect }: { marks: MapMarks;
   };
   const ship = r[marks.current];
   const next = r[marks.current + 1];
+  const pos = shipPos(r, marks.current, marks.progress);
 
   return (
     <svg className="sea-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Seekarte deiner Reise">
@@ -187,6 +202,12 @@ export default function SeaMap({ marks, selected, onSelect }: { marks: MapMarks;
                 {is.name}
               </text>
             ) : null}
+            {(marks.explored[is.id] ?? 0) >= 3 ? (
+              <g transform={`translate(${is.x - 4} ${is.y - 30})`} className="isle-explored" aria-hidden="true">
+                <path d="M0 0 V16" stroke="#1c1526" strokeWidth={1.6} />
+                <path d="M0 0 L12 4 L0 8 Z" fill="#f3b000" stroke="#1c1526" strokeWidth={1} />
+              </g>
+            ) : null}
             {comp ? (
               <g transform={`translate(${is.x - 20} ${is.y - 20})`} className="isle-comp">
                 <circle r={8} className={comp.best ? `m${comp.best}` : "m0"} />
@@ -203,9 +224,9 @@ export default function SeaMap({ marks, selected, onSelect }: { marks: MapMarks;
       })}
 
       {/* Boss as a sea monster next to the ship */}
-      {marks.boss && ship ? <SeaMonster x={ship.x + 46} y={ship.y + 30} name={marks.boss} /> : null}
-      {/* Ship */}
-      {ship ? <Ship x={ship.x + 14} y={ship.y - 26} color={marks.shipColor} /> : null}
+      {marks.boss && ship ? <SeaMonster x={pos.x + 40} y={pos.y + 44} name={marks.boss} /> : null}
+      {/* Ship, on its way to the next island */}
+      {ship ? <ShipMark pos={pos} marks={marks} /> : null}
 
       <CompassRose x={W - 70} y={H - 110} />
     </svg>
@@ -240,17 +261,51 @@ function IslandGlyph({ is }: { is: Island }): ReactNode {
   );
 }
 
-function Ship({ x, y, color }: { x: number; y: number; color: string }) {
+/** Where the ship is: at its island, or part of the way to the next one. */
+function shipPos(r: Island[], idx: number, progress: number): { x: number; y: number; left: boolean } {
+  const a = r[idx];
+  const b = r[idx + 1];
+  const ax = a.x + 16;
+  const ay = a.y - 6;
+  if (!b || progress <= 0) return { x: ax, y: ay, left: false };
+  if (a.id === "c9" && b.id === "c10") {
+    // Over the ridge at the east edge, back in at the west edge.
+    const east = W - 10 - ax;
+    const west = b.x - 16 - 10;
+    const d = progress * (east + west);
+    return d <= east ? { x: ax + d, y: ay, left: false } : { x: 10 + (d - east), y: b.y - 6, left: false };
+  }
+  const bx = b.x - 16;
+  const by = b.y - 6;
+  return { x: ax + (bx - ax) * progress, y: ay + (by - ay) * progress, left: bx < ax };
+}
+
+function ShipMark({ pos, marks }: { pos: { x: number; y: number; left: boolean }; marks: MapMarks }) {
+  const back = pos.left ? 1 : -1;
+  const wind = { tailwind: 3, breeze: 2, light: 1, calm: 0, dock: 0 }[marks.weather];
   return (
-    <g className="ship" transform={`translate(${x} ${y})`}>
-      <g className="ship-bob">
-        <path d="M-16 8 L16 8 L11 16 L-11 16 Z" fill="#8a5a2b" stroke="#1c1526" strokeWidth={1.6} strokeLinejoin="round" />
-        <path d="M0 8 V-18" stroke="#1c1526" strokeWidth={1.8} />
-        <path d="M1 -16 L15 4 L1 4 Z" fill={color} stroke="#1c1526" strokeWidth={1.4} strokeLinejoin="round" />
-        <path d="M-1 -12 L-12 4 L-1 4 Z" fill="#f4f1ea" stroke="#1c1526" strokeWidth={1.4} strokeLinejoin="round" />
-        <path d="M0 -18 L8 -21 L0 -24 Z" fill="#c8302a" />
+    <g className="ship" aria-hidden="true">
+      {Array.from({ length: wind }, (_, i) => (
+        <path
+          key={i}
+          d={`M${pos.x + back * (40 + i * 5)} ${pos.y - 30 + i * 11} q${back * 10} -4 ${back * 24} 0`}
+          fill="none"
+          stroke="#f2f3ee"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          opacity={0.75}
+        />
+      ))}
+      {marks.weather === "calm" ? (
+        <g fill="none" stroke="#9cc3ff" strokeWidth={1.2} opacity={0.8}>
+          <ellipse cx={pos.x} cy={pos.y + 2} rx={40} ry={8} />
+          <ellipse cx={pos.x} cy={pos.y + 2} rx={54} ry={12} strokeDasharray="3 5" />
+        </g>
+      ) : null}
+      <g transform={`translate(${pos.x} ${pos.y}) scale(${pos.left ? -0.34 : 0.34} 0.34) translate(-100 -128)`}>
+        <ShipArt belt={marks.belt} sail={marks.shipColor} flag={marks.flag} hull={marks.hull} sails={marks.sails} barnacles={marks.barnacles} />
       </g>
-      <path d="M-20 18 q5 -3 10 0 t10 0 t10 0 t10 0" fill="none" stroke="#9cc3ff" strokeWidth={1.2} opacity={0.8} className="ship-wake" />
+      <path d={`M${pos.x - 36} ${pos.y + 5} q6 -3 12 0 t12 0 t12 0 t12 0 t12 0 t12 0`} fill="none" stroke="#9cc3ff" strokeWidth={1.2} opacity={0.8} />
     </g>
   );
 }

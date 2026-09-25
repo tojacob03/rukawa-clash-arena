@@ -27,6 +27,7 @@ import { Belt, HeroKoma, Seg } from "../components/ui.tsx";
 import { BODY, SPORT, SPORTS } from "../core/sports.ts";
 import { SPORT_ICON } from "../sportIcons.ts";
 import type { SportId } from "../core/types.ts";
+import { openScouter } from "../scan.ts";
 
 type Tab = "uebersicht" | "aussehen" | "ausruestung" | "turniere" | "steckbrief";
 const TABS: { id: Tab; label: string }[] = [
@@ -172,7 +173,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
             ) : null}
           </dl>
           <div className="row wrap">
-            <button type="button" className="btn small scan" onClick={() => window.dispatchEvent(new Event("arc:scan"))}>
+            <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "du" })}>
               <ScanEye size={16} aria-hidden="true" /> <span>Scouter aufsetzen</span>
             </button>
             <button type="button" className="btn small" onClick={() => go("held", "aussehen")}>

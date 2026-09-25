@@ -196,3 +196,76 @@ export function route(sea: SeaId): Island[] {
 }
 
 export const DEFAULT_SEA: SeaId = "morgen";
+
+// ── Landmarks ─────────────────────────────────────────────────────────────
+// Every island has three: the landing (first training while docked there), a
+// landmark (8 trainings) and the island's secret (15 trainings). Discovered
+// only by training while your ship lies there, so the map keeps growing
+// between two stripes.
+
+export const LANDING = 1;
+export const LANDMARK = 8;
+export const SECRET = 15;
+
+export const LANDMARKS: Record<string, [string, string]> = {
+  frost0: ["Das Bootshaus mit der ersten Matte", "Das Logbuch des alten Fischers"],
+  frost1: ["Die Robbenbank", "Die Shrimp-Grotte"],
+  frost2: ["Das Atemfeld unter dem Nordlicht", "Die grüne Grotte"],
+  frost3: ["Die Eistreppe", "Die Schriftrolle des stillen Meisters"],
+  frost4: ["Der Wachturm am Zahn", "Der Blick auf den roten Kamm"],
+  morgen0: ["Der Haken mit dem alten Gi", "Die Werft am Morgenkai"],
+  morgen1: ["Die Breakfall-Dünen", "Die Perlmuschel"],
+  morgen2: ["Die Wendeltreppe", "Das Tagebuch des Wärters"],
+  morgen3: ["Das Mühlrad", "Der Speicher unter den Flügeln"],
+  morgen4: ["Die Brandungsfelsen", "Der Pfad durchs Riff"],
+  abend0: ["Das Lagerhaus-Dōjō", "Der Laternenmacher"],
+  abend1: ["Die Allee der Escapes", "Die erste Laterne"],
+  abend2: ["Die Panzerbucht", "Das Nest der alten Schildkröte"],
+  abend3: ["Das Torhaus", "Der verborgene Burghof"],
+  abend4: ["Die Sternwarte", "Die Karte zum Tor"],
+  glut0: ["Der Markt am Kai", "Die Matte hinter dem Gewürzstand"],
+  glut1: ["Die heißen Quellen", "Der Pfad am Kraterrand"],
+  glut2: ["Das Kokosnuss-Gym", "Die Hängematte des Trainers"],
+  glut3: ["Die Stände der Griffhändler", "Das Kontor der Meistergriffe"],
+  glut4: ["Die glühende Klippe", "Das Leuchtfeuer der Zunge"],
+  c0: ["Der Wirbel am Tor", "Die Inschrift im Torbogen"],
+  c1: ["Der Kreiselstrand", "Das Auge des Wirbels"],
+  c2: ["Die Hakenbäume", "Die Lichtung im Nebel"],
+  c3: ["Die Oase", "Das Sandglas-Dōjō"],
+  c4: ["Der Rundenstein", "Die Quelle des zweiten Atems"],
+  c5: ["Die Wolkentreppe", "Das Nest über dem Riff"],
+  c6: ["Die Glockenstube", "Die Glocke ohne Klöppel"],
+  c7: ["Die Engstelle", "Die abgestreifte Schlangenhaut"],
+  c8: ["Der Exerzierhof", "Die Rüstkammer"],
+  c9: ["Das Lager am Fuß der Mauer", "Die Steinstufen zum Pass"],
+  c10: ["Die Passhöhe", "Der Gipfelstein mit den Gürteln"],
+  c11: ["Das Sturmhaus", "Das Auge des Sturms"],
+  c12: ["Der Korallengarten", "Der Thronsaal unter Wasser"],
+  c13: ["Die Wand der Griffe", "Der erste Griff"],
+  c14: ["Die Lehrmatte am Strand", "Die Donnerhöhle"],
+  c15: ["Die Klippenschule", "Der Stein der Anfänger"],
+  c16: ["Die spiegelnde See", "Der Grund der Stille"],
+  c17: ["Das Licht für die Häfen", "Die Namenswand"],
+  c18: ["Der Treibholzbogen", "Das Wort über dem Tor"],
+  c19: ["Die letzte Anlegestelle", "Der Kreis, der sich schließt"],
+};
+
+/** The three landmarks of an island with the number of trainings each needs. */
+export function landmarksOf(id: string): { name: string; need: number }[] {
+  const [mark, secret] = LANDMARKS[id] ?? ["Ein Aussichtspunkt", "Ein Geheimnis"];
+  return [
+    { name: "Die Anlegestelle", need: LANDING },
+    { name: mark, need: LANDMARK },
+    { name: secret, need: SECRET },
+  ];
+}
+
+// ── Ships ─────────────────────────────────────────────────────────────────
+
+export const SHIPS: Record<Belt, { name: string; desc: string }> = {
+  weiss: { name: "Beiboot", desc: "Klein und wendig, jede Welle spürbar. So fängt jede Reise an." },
+  blau: { name: "Schaluppe", desc: "Ein Mast, ein großes Segel, genug Platz für ein eigenes Spiel." },
+  lila: { name: "Brigantine", desc: "Zwei Masten. Du fängst an, andere mitzunehmen." },
+  braun: { name: "Fregatte", desc: "Drei Masten, schnell und schwer bewaffnet." },
+  schwarz: { name: "Flaggschiff", desc: "Das Schiff, nach dem sich die anderen richten." },
+};

@@ -17,6 +17,8 @@ import Avatar from "../components/Avatar.tsx";
 import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SportsPicker } from "../components/CharacterForms.tsx";
 import { SPORT } from "../core/sports.ts";
 import { Belt, HeroKoma, Seg, Stepper } from "../components/ui.tsx";
+import { cloudConfigured } from "../cloud/state.ts";
+import { go } from "../store.ts";
 
 type Step = "hello" | "steckbrief" | "rang" | "klasse" | "aussehen" | "technik";
 const STEPS: Step[] = ["steckbrief", "rang", "klasse", "aussehen", "technik"];
@@ -112,7 +114,15 @@ export default function Start({ today }: { today: string }) {
                 <span>Demo-Dōjō ansehen</span>
               </button>
             </div>
-            <p className="start-note">Deine Daten bleiben in diesem Browser. Im Profil kannst du sie jederzeit exportieren.</p>
+            {cloudConfigured ? (
+              <p className="start-note">
+                Schon ein Konto?{" "}
+                <button type="button" className="linkish strong" onClick={() => go("konto")}>
+                  Anmelden und Fortschritt laden
+                </button>
+              </p>
+            ) : null}
+            <p className="start-note">Ohne Konto bleiben deine Daten in diesem Browser. Mit Konto sind sie gesichert und auf jedem Gerät gleich.</p>
           </div>
         </div>
       </main>

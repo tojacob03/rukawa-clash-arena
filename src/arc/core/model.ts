@@ -28,6 +28,7 @@ import { COMBOS, NEIGH, SECTORS, TECH, TECHS, baseOf } from "./techniques.ts";
 import { EPITHET, SEALS } from "./lore.ts";
 import { CLASS, CLASSES, classXp } from "./classes.ts";
 import { BODY_W, CROSS_W, INTENSITY, SPORT } from "./sports.ts";
+import { fullyExplored } from "./voyage.ts";
 
 export const BELT_R: Record<Belt, number> = { weiss: 1000, blau: 1150, lila: 1300, braun: 1420, schwarz: 1520 };
 export const SIZE_R: Record<Size, number> = { leichter: -60, gleich: 0, schwerer: 60 };
@@ -523,6 +524,7 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     both: giN >= 5 && noGiN >= 5,
     arena: comps.length > 0,
     cross10: crossAll.length >= 10,
+    entdecker: fullyExplored(data, asOfIso) >= 3,
     podium: comps.some((c) => c.place >= 1 && c.place <= 3),
   };
   const matches = comps.flatMap((c) => c.matches);

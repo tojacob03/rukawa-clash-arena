@@ -1,4 +1,4 @@
-import { Flame, HeartPulse, Plus, RefreshCw } from "lucide-react";
+import { Flame, HeartPulse, Plus, RefreshCw, ScanEye } from "lucide-react";
 import type { ArcData, ArcState, Attire, QuestOffer } from "../core/types.ts";
 import { TECH, sectorName } from "../core/techniques.ts";
 import { ARCS, LEVELS, QUEST, ROMAN, STUCK } from "../core/lore.ts";
@@ -8,6 +8,7 @@ import { acceptQuest, markReroll, setTodayAttire, togglePause } from "../actions
 import { go } from "../store.ts";
 import { questTask } from "../questText.ts";
 import { KindBadge, SecTitle, Seg, Star } from "../components/ui.tsx";
+import { openScouter } from "../scan.ts";
 
 const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => string> = {
   prog: (st, q) => `Kurz vor Stufe ${st.nodes[q.node].level + 1}, ${LEVELS[st.nodes[q.node].level + 1] ?? ""}`,
@@ -204,6 +205,9 @@ function Boss({ st }: { st: ArcState }) {
         <p className="small">
           {b.hp}× hier festgehangen in 14 Tagen, davor {b.prev}×. Besiegt, wenn es in den nächsten 14 Tagen höchstens {Math.floor(b.hp / 2)}× passiert.
         </p>
+        <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "boss" })}>
+          <ScanEye size={14} aria-hidden="true" /> <span>Boss scannen</span>
+        </button>
         <div className="chips">
           {info.nodes.map((id) => (
             <button key={id} type="button" className="chip" onClick={() => go("karte", id)}>
