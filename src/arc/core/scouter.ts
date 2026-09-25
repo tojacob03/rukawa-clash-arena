@@ -5,7 +5,7 @@
 // you master, where you get stuck.
 
 import type { ArcData, ArcState, Attire, Belt, SectorId, Size, TechKind, Technique } from "./types.ts";
-import { BELT_R, FORM_WINDOW, K_COMP, K_ELO, SIZE_R, dayNum, expected, rankAt, rollScore } from "./model.ts";
+import { BELT_R, FORM_WINDOW, K_COMP, K_ELO, SIZE_R, dayNum, expected, powerOf, rankAt, rollScore } from "./model.ts";
 import { SECTORS, TECH, TECHS } from "./techniques.ts";
 import { STUCK } from "./lore.ts";
 
@@ -18,7 +18,7 @@ const TIERS: [number, string][] = [
 ];
 
 export const powerTier = (ru: number) => TIERS.find(([t]) => ru < t)![1];
-export const powerOf = (ru: number) => Math.round(ru * 10);
+export { powerOf };
 export const partnerR = (belt: Belt, size: Size) => BELT_R[belt] + SIZE_R[size];
 
 // ── Records against belts ─────────────────────────────────────────────────
@@ -75,14 +75,14 @@ export function matchesVs(data: ArcData, belt: Belt) {
 
 export interface Stake {
   label: string;
-  /** Change of the Power Level (Elo × 10). */
+  /** Change of the Power Level. */
   delta: number;
 }
 
 /** Power Level change of one roll for three typical outcomes. */
 export function rollStakes(ru: number, rp: number): Stake[] {
   const E = expected(ru, rp);
-  const d = (sf: number, sa: number, c: 0 | 0.5 | 1) => Math.round(10 * K_ELO * (rollScore({ belt: "weiss", size: "gleich", sf, sa, c }) - E));
+  const d = (sf: number, sa: number, c: 0 | 0.5 | 1) => powerOf(ru + K_ELO * (rollScore({ belt: "weiss", size: "gleich", sf, sa, c }) - E)) - powerOf(ru);
   return [
     { label: "Du tappst und führst", delta: d(1, 0, 1) },
     { label: "Ausgeglichen", delta: d(0, 0, 0.5) },
@@ -93,7 +93,7 @@ export function rollStakes(ru: number, rp: number): Stake[] {
 /** Power Level change of a competition match: win, draw, loss. */
 export function matchStakes(ru: number, rp: number): Stake[] {
   const E = expected(ru, rp);
-  const d = (s: number) => Math.round(10 * K_COMP * (s - E));
+  const d = (s: number) => powerOf(ru + K_COMP * (s - E)) - powerOf(ru);
   return [
     { label: "Sieg", delta: d(1) },
     { label: "Unentschieden", delta: d(0.5) },

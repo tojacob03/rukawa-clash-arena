@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildDemo } from "./demo.ts";
-import { compute, expected, K_COMP, K_ELO } from "./model.ts";
+import { BELT_R, compute, expected, K_COMP, powerOf } from "./model.ts";
 import { bossScan, defences, matchStakes, opponentScan, partnerScan, plan, powerTier, recordVs, rollStakes, selfScan, weapons } from "./scouter.ts";
 import { TECH } from "./techniques.ts";
 import { STUCK } from "./lore.ts";
@@ -21,9 +21,18 @@ test("stakes: a stronger partner risks little and offers a lot", () => {
   assert.ok(Math.abs(l2.delta) > w2.delta);
   // Competition matches weigh double and use win/draw/loss.
   const m = matchStakes(1150, 1150);
-  assert.equal(m[0].delta, Math.round(10 * K_COMP * 0.5));
+  assert.equal(m[0].delta, powerOf(1150 + K_COMP * 0.5) - powerOf(1150));
   assert.equal(m[1].delta, 0);
-  assert.equal(rollStakes(1150, 1150)[1].delta, Math.round(10 * K_ELO * (0.5 - expected(1150, 1150))));
+  assert.equal(rollStakes(1150, 1150)[1].delta, 0);
+});
+
+test("power level: belts are far apart, 100 rating points double it", () => {
+  assert.equal(powerOf(BELT_R.weiss), 1000);
+  assert.equal(powerOf(1100), 2000);
+  assert.ok(powerOf(BELT_R.schwarz) / powerOf(BELT_R.weiss) > 30);
+  assert.ok(powerOf(BELT_R.blau) > 2500 && powerOf(BELT_R.lila) === 8000);
+  // Losing still works: below the white belt start the value keeps falling.
+  assert.ok(powerOf(900) === 500);
 });
 
 test("records: rolls and matches against a belt add up", () => {
@@ -52,7 +61,7 @@ test("techniques: weapons are proven, defences start with the boss, no-gi drops 
 
 test("partner and opponent scans agree with the Elo model", () => {
   const p = partnerScan(demo, st, "braun", "schwerer", "gi");
-  assert.equal(p.power, Math.round((1420 + 60) * 10));
+  assert.equal(p.power, Math.round(1000 * Math.pow(2, (1420 + 60 - 1000) / 100)));
   assert.ok(Math.abs(p.E - expected(st.ru, 1480)) < 1e-9);
   assert.equal(p.tier, powerTier(1480));
   const o = opponentScan(demo, st, "blau", "nogi");

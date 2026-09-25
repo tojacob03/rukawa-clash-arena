@@ -14,7 +14,7 @@ const mine = () =>
     belt: "blau",
     stripes: 2,
     lvl: 14,
-    ru: 131.46,
+    ru: 1131.46,
     streak: 5,
     weekNow: 2,
     weekGoal: 3,
@@ -34,7 +34,7 @@ const mine = () =>
 
 test("social: own card survives the round trip through the checks", () => {
   const c = mine();
-  assert.equal(c.pl, 1315);
+  assert.equal(c.pl, Math.round(1000 * Math.pow(2, 1.3146)));
   assert.equal(c.progress, 0.46);
   assert.equal(c.wk, weekNumber(TODAY));
   const back = readCard(JSON.parse(JSON.stringify(c)));

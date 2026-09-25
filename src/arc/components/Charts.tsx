@@ -1,6 +1,6 @@
 import { SECTORS } from "../core/techniques.ts";
 import { polar, sectorAngle } from "../core/layout.ts";
-import { clamp } from "../core/model.ts";
+import { clamp, powerOf } from "../core/model.ts";
 import { nf0, shortDate } from "../format.ts";
 import { isoOf } from "../core/model.ts";
 
@@ -76,7 +76,7 @@ export function PowerChart({ series, today, extra }: { series: { d: number; r: n
   const b = 26;
   const all = [series, ...(extra ?? []).map((e) => e.series)].flat();
   if (series.length < 2) return <p className="muted small">Die Power-Level-Kurve erscheint nach den ersten Roll-Karten.</p>;
-  const ys = all.map((p) => p.r * 10);
+  const ys = all.map((p) => powerOf(p.r));
   const ymin = Math.min(...ys);
   const ymax = Math.max(...ys);
   const pad = (ymax - ymin) * 0.12 || 10;
@@ -86,12 +86,12 @@ export function PowerChart({ series, today, extra }: { series: { d: number; r: n
   const x1 = Math.max(today, x0 + 1);
   const X = (d: number) => l + ((d - x0) / (x1 - x0)) * (W - l - r);
   const Y = (v: number) => t + (1 - (v - y0) / (y1 - y0)) * (H - t - b);
-  const line = (s: { d: number; r: number }[]) => s.map((p) => `${X(p.d).toFixed(1)},${Y(p.r * 10).toFixed(1)}`).join(" ");
+  const line = (s: { d: number; r: number }[]) => s.map((p) => `${X(p.d).toFixed(1)},${Y(powerOf(p.r)).toFixed(1)}`).join(" ");
   const last = series[series.length - 1];
   const lx = X(last.d);
-  const ly = Y(last.r * 10);
+  const ly = Y(powerOf(last.r));
   return (
-    <svg className="ki-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Power Level von ${nf0.format(Math.round(series[0].r * 10))} auf ${nf0.format(Math.round(last.r * 10))}`}>
+    <svg className="ki-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Power Level von ${nf0.format(powerOf(series[0].r))} auf ${nf0.format(powerOf(last.r))}`}>
       <defs>
         <linearGradient id="kiFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#f0bf5a" stopOpacity=".35" />
@@ -111,7 +111,7 @@ export function PowerChart({ series, today, extra }: { series: { d: number; r: n
       <polyline className="kc-line main" points={line(series)} />
       <circle className="kc-end" cx={lx} cy={ly} r="5" />
       <text className="kc-val" x={lx + 9} y={ly + 4}>
-        {nf0.format(Math.round(last.r * 10))}
+        {nf0.format(powerOf(last.r))}
       </text>
       <text className="kc-txt" x={l} y={H - 6}>
         {shortDate(isoOf(x0))}

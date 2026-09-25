@@ -314,7 +314,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
             extra={cmp ? [{ series: cmp.gi.ruSeries, cls: "gi" }, { series: cmp.nogi.ruSeries, cls: "nogi" }] : undefined}
           />
           <p className="muted small">
-            Ein Elo-Rating aus allen Roll-Karten und Turnierkämpfen, mal 10. Es startet beim Wert deines Gürtels und deiner Streifen, bleibt privat und ist kein Ranking.
+            Kommt aus einem Elo-Rating über alle Roll-Karten und Turnierkämpfe: 100 Elo-Punkte mehr verdoppeln es. Ein Weißgurt startet bei 1.000, ein Schwarzgurt bei rund 37.000. Es bleibt privat und ist kein Ranking.
             {cmp ? " Die dünnen Linien zeigen Gi und No-Gi einzeln." : ""}
           </p>
         </section>

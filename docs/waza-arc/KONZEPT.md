@@ -86,7 +86,7 @@ Update         R_du ← R_du + 12 · (S − E)          pro Roll
 Turnierkampf   R_du ← R_du + 24 · (S − E)          S = 1 Sieg, 0,5 Unentschieden, 0 Niederlage; kampflos zählt nicht
                Gegner = Gürtel-Rating des angegebenen Gürtels (sonst des eigenen am Turniertag)
 Start          R_du = Gürtel-Rating des eigenen Gürtels + 20 pro Streifen
-Anzeige        Power Level = R_du × 10              (z. B. 12.080)
+Anzeige        Power Level = 1000 · 2^((R_du − 1000) / 100)   (100 Punkte mehr verdoppeln es)
 ```
 
 Kontrolle zählt mit, damit auch Rolls ohne Submission etwas aussagen. Das Power Level ist privat. Es gibt kein Ranking. „Power Level“ ist ein allgemeiner Begriff aus Spielen und Anime-Fankultur; die Anzeige („Scouter“, 6.8) ist eigenständig gestaltet, ohne Figuren, Logos oder Zitate aus einer Serie. Der Scouter ordnet den Wert einem Niveau zu (Weiß- bis Schwarzgurt-Niveau nach den Gürtel-Ratings) und schätzt vor einem Turnierkampf die Siegchance gegen einen Gürtel.
@@ -203,7 +203,7 @@ Level L ab 40 · (L − 1)² XP
 
 Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand ab, ohne die Messung zu verfälschen.
 
-- **Prolog:** Gürtel und Streifen beim Start setzen das Startlevel. Weiß 1, Blau 8, Lila 14, Braun 19, Schwarz 24, plus ein Level pro Streifen. Die XP dafür stehen als eigener Posten „Prolog“ im Charakter. Das Power Level startet bei Gürtel-Rating plus 20 pro Streifen (×10 angezeigt).
+- **Prolog:** Gürtel und Streifen beim Start setzen das Startlevel. Weiß 1, Blau 8, Lila 14, Braun 19, Schwarz 24, plus ein Level pro Streifen. Die XP dafür stehen als eigener Posten „Prolog“ im Charakter. Das Power Level startet bei Gürtel-Rating plus 20 pro Streifen (angezeigt nach 4.2: Weißgurt 1.000, Blau rund 2.800, Lila 8.000, Braun rund 18.000, Schwarz rund 37.000).
 - **Technik-Stand in drei Stufen:** „Kenne ich“ (gesehen, gedrillt: Stufe 2), „Klappt im Roll“ (Stufe 3) und „Stärke“ (Stufe 4, höchstens fünf). Ein Vorschlag nach Gürtel füllt „Kenne ich“ vor: Weiß nur Fundament (ab 2 Streifen plus Shoden), Blau bis Shoden (ab 2 Streifen bis Chūden), Lila bis Chūden, Braun und Schwarz bis Okuden.
 - **Erst Blöcke, dann Feinschliff:** Jeder Ring (Shoden bis Hiden), jeder Bereich (Fundament, Guard, Submission …) und jeder Zweig darin (Closed Guard, Beinhebel …) lässt sich mit einem Tipp auf „Nichts“, „Kenne ich“ oder „Klappt“ setzen. Der zuletzt gesetzte Block gewinnt; Stärken bleiben dabei stehen, nur „Nichts“ räumt sie mit weg. Ist ein Block gemischt, ist keine der drei Optionen markiert. Danach setzt ein Tipp auf eine einzelne Technik sie eine Stufe höher (Kenne ich, Klappt im Roll, Stärke, wieder leer); Stärken gibt es nur einzeln.
 - **Konto am Schluss:** Ist die Version mit Konto gebaut und niemand angemeldet, endet der Einstieg mit „Sichere deinen Charakter“. Beide Knöpfe legen den Charakter an; „Konto erstellen“ führt zur Anmeldung und nach erfolgreicher Anmeldung (auch nach einer Weiterleitung über Google und Co.) zurück ins Dōjō, „Ohne Konto weiter“ direkt dorthin.

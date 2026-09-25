@@ -1,4 +1,5 @@
 import type { Belt } from "./core/types.ts";
+import { powerOf } from "./core/model.ts";
 
 export const nf0 = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
 export const nf1 = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -9,7 +10,7 @@ export const signed = (x: number, digits = 0) => {
   return `${r > 0 ? "+" : r < 0 ? "−" : "±"}${f.format(Math.abs(r))}`;
 };
 /** Power Level: the Elo rating times ten. */
-export const power = (ru: number) => nf0.format(Math.round(ru * 10));
+export const power = (ru: number) => nf0.format(powerOf(ru));
 
 export const BELTS: { id: Belt; name: string; color: string; bar: string }[] = [
   { id: "weiss", name: "Weiß", color: "#f1eee6", bar: "#15151a" },
