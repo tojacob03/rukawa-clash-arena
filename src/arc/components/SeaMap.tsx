@@ -5,15 +5,16 @@
 // below the chart instead of on top of it.
 
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { CSSProperties, KeyboardEvent } from "react";
 import { LocateFixed, Maximize2, Minus, Plus } from "lucide-react";
 import type { Belt, FlagDesign, SeaId } from "../core/types.ts";
 import type { Island } from "../core/sea.ts";
-import { ISLAND, ISLANDS, SEAS, WORLD, route, shipPos } from "../core/sea.ts";
+import { ISLAND, ISLANDS, SEAS, SERPENT, WORLD, route, serpentWidth, shipPos } from "../core/sea.ts";
 import { placeLabels } from "../core/labels.ts";
 import type { LabelReq, PlacedLabel, Rect, Spot } from "../core/labels.ts";
 import type { WeatherKind } from "../core/voyage.ts";
-import { ShipArt } from "./ShipArt.tsx";
+import { DockArt, ShipArt } from "./ShipArt.tsx";
+import { SerpentArt } from "./SeaSerpent.tsx";
 
 export interface MapMarks {
   sea: SeaId;
@@ -25,6 +26,9 @@ export interface MapMarks {
   comps: Record<string, { n: number; best: number }>;
   shipColor: string;
   boss?: string | null;
+  /** Its life points (times stuck in 14 days) and the highest count: humps of the serpent. */
+  bossHp?: number;
+  bossMax?: number;
   /** Ship class follows the belt. */
   belt: Belt;
   flag?: Partial<FlagDesign> | null;
@@ -426,25 +430,30 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
     return out;
   }, [marks.explored, marks.comps]);
 
-  // The sea monster swims next to the ship, in open water.
+  // The boss swims next to the ship as a sea serpent, in open water. It is
+  // as long as its highest life points; its humps show the current ones.
   const boss = useMemo(() => {
     if (!marks.boss) return null;
+    const sc = 0.6;
+    const w = serpentWidth(marks.bossMax ?? 4) * sc;
+    const box = (x: number, y: number): Rect => ({ x0: x - w / 2, y0: y + SERPENT.top * sc, x1: x + w / 2, y1: y + SERPENT.bottom * sc });
+    const side = w / 2 + 22;
     const tries = [
-      [44, 46],
-      [-44, 46],
-      [70, 10],
-      [-70, 10],
-      [0, 64],
-      [60, -50],
+      [side, 44],
+      [-side, 44],
+      [0, 56],
+      [side + 20, 6],
+      [-side - 20, 6],
+      [side, -44],
+      [-side, -44],
     ];
-    const box = (x: number, y: number): Rect => ({ x0: x - 22, y0: y - 20, x1: x + 22, y1: y + 12 });
-    const busy = [...isleBoxes, ...fleet.map((f) => shipBox(f.x, f.y + 6, shipScale * 0.7))];
+    const busy = [...isleBoxes, shipBox(pos.x, pos.y, shipScale), ...fleet.map((f) => shipBox(f.x, f.y + 6, shipScale * 0.7))];
     for (const [dx, dy] of tries) {
       const b = box(pos.x + dx, pos.y + dy);
-      if (!busy.some((i) => b.x0 < i.x1 && b.x1 > i.x0 && b.y0 < i.y1 && b.y1 > i.y0)) return { x: pos.x + dx, y: pos.y + dy, box: b };
+      if (!busy.some((i) => b.x0 < i.x1 && b.x1 > i.x0 && b.y0 < i.y1 && b.y1 > i.y0)) return { x: pos.x + dx, y: pos.y + dy, box: b, w, sc };
     }
-    return { x: pos.x + 44, y: pos.y + 46, box: box(pos.x + 44, pos.y + 46) };
-  }, [marks.boss, pos.x, pos.y, isleBoxes, fleet, shipScale]);
+    return { x: pos.x + side, y: pos.y + 44, box: box(pos.x + side, pos.y + 44), w, sc };
+  }, [marks.boss, marks.bossMax, pos.x, pos.y, isleBoxes, fleet, shipScale]);
 
   // Which labels to show at this zoom, and where.
   const labels = useMemo(() => {
@@ -592,7 +601,11 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
           })}
 
           {/* Boss as a sea monster next to the ship */}
-          {boss ? <SeaMonster x={boss.x} y={boss.y} /> : null}
+          {boss ? (
+            <g transform={`translate(${boss.x - boss.w / 2} ${boss.y}) scale(${boss.sc})`} aria-hidden="true">
+              <SerpentArt hp={marks.bossHp ?? 1} max={marks.bossMax ?? 4} />
+            </g>
+          ) : null}
           {/* Ship, on its way to the next island */}
           <ShipMark pos={pos} marks={marks} scale={shipScale} />
 
@@ -691,8 +704,8 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
           </li>
           {marks.boss ? (
             <li>
-              <svg viewBox="0 0 40 30" aria-hidden="true">
-                <path d="M2 24 Q6 6 16 14 Q22 20 26 8 Q30 -4 38 6" fill="none" stroke="#b48be0" strokeWidth={3.4} strokeLinecap="round" />
+              <svg viewBox="-4 -24 70 34" aria-hidden="true">
+                <SerpentArt hp={2} max={2} />
               </svg>
               Wochenboss
             </li>
@@ -834,40 +847,35 @@ function IslandGlyph({ is }: { is: Island }) {
 
 function ShipMark({ pos, marks, scale }: { pos: { x: number; y: number; left: boolean }; marks: MapMarks; scale: number }) {
   const back = pos.left ? 1 : -1;
-  const wind = { tailwind: 3, breeze: 2, light: 1, calm: 0, dock: 0 }[marks.weather];
+  const gusts = { tailwind: 3, breeze: 2, light: 1, calm: 0, dock: 0 }[marks.weather];
   const k = scale / 0.34;
   return (
-    <g className="ship" aria-hidden="true">
-      {Array.from({ length: wind }, (_, i) => (
+    <g className={`ship w-${marks.weather}`} aria-hidden="true">
+      {/* Gusts from astern, as many and as fast as your training rhythm */}
+      {Array.from({ length: gusts }, (_, i) => (
         <path
           key={i}
-          d={`M${pos.x + back * (40 + i * 5) * k} ${pos.y + (-30 + i * 11) * k} q${back * 10 * k} ${-4 * k} ${back * 24 * k} 0`}
-          fill="none"
-          stroke="#f2f3ee"
+          className="gust"
+          pathLength={100}
+          style={{ ["--i" as string]: i } as CSSProperties}
+          d={`M${pos.x + back * (36 + i * 5) * k} ${pos.y + (-30 + i * 11) * k} q${back * 14 * k} ${-5 * k} ${back * 34 * k} 0`}
           strokeWidth={1.6 * k}
-          strokeLinecap="round"
-          opacity={0.7}
         />
       ))}
+      {/* Doldrums: the ship lies still, rings spread on flat water */}
       {marks.weather === "calm" ? (
-        <g fill="none" stroke="#9cc3ff" strokeWidth={1.2 * k} opacity={0.8}>
-          <ellipse cx={pos.x} cy={pos.y + 2 * k} rx={40 * k} ry={8 * k} />
-          <ellipse cx={pos.x} cy={pos.y + 2 * k} rx={54 * k} ry={12 * k} strokeDasharray="3 5" />
+        <g className="calm-rings" strokeWidth={1.2 * k}>
+          {[0, 1, 2].map((i) => (
+            <ellipse key={i} cx={pos.x} cy={pos.y + 2 * k} rx={46 * k} ry={10 * k} style={{ ["--i" as string]: i } as CSSProperties} />
+          ))}
         </g>
       ) : null}
       <g transform={`translate(${pos.x} ${pos.y}) scale(${pos.left ? -scale : scale} ${scale}) translate(-100 -128)`}>
-        <ShipArt belt={marks.belt} sail={marks.shipColor} flag={marks.flag} hull={marks.hull} sails={marks.sails} barnacles={marks.barnacles} />
+        {marks.weather === "dock" ? <DockArt belt={marks.belt} /> : null}
+        <g className="ship-roll">
+          <ShipArt belt={marks.belt} sail={marks.shipColor} flag={marks.flag} hull={marks.hull} sails={marks.sails} barnacles={marks.barnacles} />
+        </g>
       </g>
-    </g>
-  );
-}
-
-function SeaMonster({ x, y }: { x: number; y: number }) {
-  return (
-    <g className="monster" transform={`translate(${x} ${y})`} aria-hidden="true">
-      <path d="M-18 10 Q-14 -8 -4 0 Q2 6 6 -6 Q10 -18 18 -8" fill="none" stroke="#5b3a8e" strokeWidth={6} strokeLinecap="round" />
-      <path d="M-18 10 Q-14 -8 -4 0 Q2 6 6 -6 Q10 -18 18 -8" fill="none" stroke="#b48be0" strokeWidth={2} strokeLinecap="round" />
-      <circle cx={17} cy={-10} r={1.6} fill="#ffe39a" />
     </g>
   );
 }

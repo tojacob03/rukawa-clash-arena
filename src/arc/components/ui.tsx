@@ -1,17 +1,27 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Crosshair, Hammer, Repeat, Shield } from "lucide-react";
 import type { Belt as BeltId, QuestKind } from "../core/types.ts";
 import { LEVELS, QUEST } from "../core/lore.ts";
 import { BELT } from "../format.ts";
 
-export function Belt({ belt, stripes, width = 96 }: { belt: BeltId; stripes: number; width?: number }) {
+/**
+ * A belt with its stripes. Stripes are athletic tape the coach wraps around
+ * the black bar; with `tape` they are wrapped on one after the other when the
+ * belt appears (and a new stripe when it is added).
+ */
+export function Belt({ belt, stripes, width = 96, tape }: { belt: BeltId; stripes: number; width?: number; tape?: boolean }) {
   const b = BELT[belt];
   return (
-    <svg className="belt" width={width} height={(width / 96) * 16} viewBox="0 0 96 16" role="img" aria-label={`${b.name}gurt, ${stripes} Streifen`}>
+    <svg className={`belt${tape ? " tape" : ""}`} width={width} height={(width / 96) * 16} viewBox="0 0 96 16" role="img" aria-label={`${b.name}gurt, ${stripes} Streifen`}>
       <rect x="0.5" y="2.5" width="95" height="11" rx="2" fill={b.color} stroke="rgba(255,255,255,.28)" />
       <rect x="64" y="2.5" width="24" height="11" fill={b.bar} />
       {Array.from({ length: Math.min(4, stripes) }, (_, i) => (
-        <rect key={i} x={83 - i * 5.2} y="2.5" width="2.6" height="11" fill="#f6f3ea" />
+        <g key={i} className="stripe" style={{ ["--i" as string]: i } as CSSProperties}>
+          <rect x={83 - i * 5.2} y="2.5" width="2.6" height="11" fill="#f6f3ea" />
+          {/* The tape's edge and the end tucked around the bar */}
+          <rect x={83 - i * 5.2 + 2.1} y="2.5" width="0.5" height="11" fill="#c9c4b5" />
+          <rect x={83 - i * 5.2 - 0.2} y="12.9" width="3" height="1.1" fill="#e4dfd1" />
+        </g>
       ))}
     </svg>
   );

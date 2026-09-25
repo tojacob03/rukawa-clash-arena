@@ -124,6 +124,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
     return (
       <ChapterEnd
         kanji="記録"
+        seal={{ kind: "稽古", date: result.s.date }}
         title="Training eingetragen"
         before={result.before}
         after={result.after}

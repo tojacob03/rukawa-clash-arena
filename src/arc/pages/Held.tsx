@@ -117,7 +117,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
           <h1 className="hero-name">{p.name}</h1>
           {st.title ? <p className="hero-title">{st.title}</p> : null}
           <div className="row wrap">
-            <Belt belt={p.belt} stripes={p.stripes} width={120} />
+            <Belt belt={p.belt} stripes={p.stripes} width={120} tape />
             {p.countries?.map((c) => (
               <span key={c} title={COUNTRY[c]?.name}>
                 <FlagIcon code={c} width={30} />

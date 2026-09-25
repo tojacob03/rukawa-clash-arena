@@ -289,3 +289,7 @@ export function shipPos(r: Island[], idx: number, progress: number): { x: number
   const by = b.y - 6;
   return { x: ax + (bx - ax) * progress, y: ay + (by - ay) * progress, left: bx < ax };
 }
+
+/** The sea serpent (weekly boss): one hump per life point, at most eight. Waterline at y = 0. */
+export const SERPENT = { hump: 16, top: -27, bottom: 12 };
+export const serpentWidth = (max: number) => 36 + Math.max(1, Math.min(8, max)) * SERPENT.hump;

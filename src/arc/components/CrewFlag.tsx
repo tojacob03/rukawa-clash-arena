@@ -2,6 +2,8 @@
 // emblem wears. Drawn in a 120 × 80 box; CrewFlagArt can sit inside other SVG
 // (the mast of your ship on the sea chart).
 
+import { useId } from "react";
+import type { CSSProperties } from "react";
 import type { FlagDesign } from "../core/types.ts";
 import { FLAG_BG, FLAG_FG, WEARS, normalizeFlag } from "../core/crewflag.ts";
 
@@ -9,6 +11,8 @@ const INK = "#16171c";
 const RED = "#c8203f";
 const GOLD = "#f3b000";
 const PAPER = "#f2f3ee";
+/** The cloth outline, with a frayed free end. */
+const CLOTH = "M2 2 H114 Q109 22 117 40 Q110 58 115 78 H2 Z";
 
 const dark = (hex: string) => {
   const n = parseInt(hex.slice(1), 16);
@@ -33,7 +37,7 @@ export function CrewFlagArt({ design }: { design?: Partial<FlagDesign> | null })
   const hole = bg;
   return (
     <g>
-      <path d="M2 2 H114 Q109 22 117 40 Q110 58 115 78 H2 Z" fill={bg} stroke={INK} strokeWidth={3} strokeLinejoin="round" />
+      <path d={CLOTH} fill={bg} stroke={INK} strokeWidth={3} strokeLinejoin="round" />
       <Cross kind={f.cross} fg={fg} bg={hole} />
       <Emblem kind={f.emblem} fg={fg} bg={hole} />
       {WEARS.has(f.emblem) ? <Head kind={f.head} bg={bg} /> : null}
@@ -45,6 +49,69 @@ export default function CrewFlag({ design, width = 120, label }: { design?: Part
   return (
     <svg viewBox="0 0 120 80" width={width} height={(width * 80) / 120} className="crew-flag" role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
       <CrewFlagArt design={design} />
+    </svg>
+  );
+}
+
+/**
+ * The flag on its pole, in the wind. The cloth is cut into narrow strips that
+ * rise, fall and tilt one after another, so a wave runs from the pole to the
+ * free end. `wind` (0 … 1) is the same wind that moves your ship: your
+ * training rhythm, or the crew week for a crew flag. Without wind the flag
+ * hangs down the pole. With reduced motion it simply stands still.
+ */
+export function WavingFlag({ design, wind, width = 120, label }: { design?: Partial<FlagDesign> | null; wind: number; width?: number; label?: string }) {
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const w = Math.max(0, Math.min(1, wind));
+  const N = 20;
+  const sw = 120 / N;
+  const period = 2 - w * 1.05;
+  const lambda = 120 / 0.9;
+  return (
+    <svg
+      viewBox="-8 -12 134 108"
+      width={width}
+      height={(width * 108) / 134}
+      className={`crew-flag waving${w < 0.15 ? " limp" : ""}`}
+      style={{ ["--p" as string]: `${period.toFixed(2)}s` } as CSSProperties}
+      role={label ? "img" : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
+      <defs>
+        <g id={`${uid}art`}>
+          <CrewFlagArt design={design} />
+        </g>
+        <clipPath id={`${uid}cloth`}>
+          <path d={CLOTH} />
+        </clipPath>
+        {Array.from({ length: N }, (_, i) => (
+          <clipPath key={i} id={`${uid}c${i}`}>
+            <rect x={i * sw - (i ? 0.5 : 4)} y={-12} width={sw + (i ? 1 : 4.5) + (i === N - 1 ? 6 : 0)} height={112} />
+          </clipPath>
+        ))}
+      </defs>
+      <line className="flag-pole" x1={-2} y1={-8} x2={-2} y2={94} />
+      <circle className="flag-knob" cx={-2} cy={-9} r={3} />
+      <g className="flag-cloth">
+        {Array.from({ length: N }, (_, i) => {
+          const k = (i + 0.5) / N;
+          const amp = (0.6 + 4.6 * w) * k;
+          const tilt = (Math.atan((2 * Math.PI * amp) / lambda) * 180) / Math.PI;
+          const cx = i * sw + sw / 2;
+          const vars = { ["--a" as string]: `${amp.toFixed(2)}px`, ["--sk" as string]: `${tilt.toFixed(2)}deg`, ["--k" as string]: k.toFixed(3), transformOrigin: `${cx}px 40px` } as CSSProperties;
+          return (
+            <g key={i} clipPath={`url(#${uid}c${i})`}>
+              <g className="flag-rise" style={vars}>
+                <g className="flag-tilt" style={vars}>
+                  <use href={`#${uid}art`} />
+                  <rect className="flag-fold" x={i * sw} y={0} width={sw} height={82} clipPath={`url(#${uid}cloth)`} />
+                </g>
+              </g>
+            </g>
+          );
+        })}
+      </g>
     </svg>
   );
 }
