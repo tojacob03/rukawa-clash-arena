@@ -55,6 +55,9 @@ export default function Plan({ data }: { data: ArcData }) {
         {byDay.map((slots, d) => (
           <div key={d} className={`week-day${slots.length ? "" : " free"}`}>
             <h3>
+              <span className="wd-k" aria-hidden="true">
+                {"月火水木金土日"[d]}
+              </span>
               <span className="wd-short" aria-hidden="true">
                 {DAY_SHORT[d]}
               </span>
@@ -82,7 +85,7 @@ export default function Plan({ data }: { data: ArcData }) {
                 ))}
               </ul>
             ) : (
-              <p className="muted small">frei</p>
+              <p className="wd-free">frei</p>
             )}
           </div>
         ))}

@@ -40,7 +40,9 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         </section>
       ) : null}
 
-      <section className="panel form-panel">
+      <section className="reg" aria-label="Grundlagen">
+        <h2 className="h3 reg-h">Grundlagen</h2>
+        <div className="reg-b">
         <label className="field">
           <span className="fl">Name</span>
           <input id="arc-profile-name" value={name} maxLength={32} onChange={(e) => setName(e.target.value)} onBlur={() => name.trim() && updateProfile({ name: name.trim() })} />
@@ -56,10 +58,12 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
           </button>
           <small className="muted">Eine pausierte Woche bricht deine Flamme nicht. Es wird kein Grund gespeichert.</small>
         </div>
+              </div>
       </section>
 
-      <section className="panel form-panel" aria-label="Wochenplan">
-        <h2 className="h3">Wochenplan und Erinnerungen</h2>
+      <section className="reg" aria-label="Wochenplan">
+        <h2 className="h3 reg-h">Wochenplan und Erinnerungen</h2>
+        <div className="reg-b">
         <p className="small">
           {plan.slots.length
             ? `${plan.slots.length} ${plan.slots.length === 1 ? "Training" : "Trainings"} pro Woche im Plan, davon ${plan.slots.filter((x) => x.sport === "bjj").length} BJJ. Erinnerung ${plan.lead} Minuten vorher.`
@@ -68,11 +72,13 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         <button type="button" className="btn" onClick={() => go("plan")}>
           <span>{plan.slots.length ? "Wochenplan öffnen" : "Wochenplan anlegen"}</span>
         </button>
+              </div>
       </section>
 
       {cloud.configured ? (
-        <section className="panel form-panel" aria-label="Crew und Gym">
-          <h2 className="h3">Crew, Freundeskreis und Gym</h2>
+        <section className="reg" aria-label="Crew und Gym">
+        <h2 className="h3 reg-h">Crew, Freundeskreis und Gym</h2>
+        <div className="reg-b">
           <p className="small">Segelt als Crew zusammen, fügt euch per Code hinzu und seht, wer aus deinem Gym heute trainiert. Andere sehen nur deine Karte, nie dein Trainingstagebuch.</p>
           <div className="row wrap">
             <button type="button" className="btn" onClick={() => go("meer", "crew")}>
@@ -82,12 +88,14 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
               <span>Gym</span>
             </button>
           </div>
-        </section>
+                </div>
+      </section>
       ) : null}
 
       {cloud.configured ? (
-        <section className="panel form-panel konto-teaser">
-          <h2 className="h3">Konto und Sicherung</h2>
+        <section className="reg konto-teaser" aria-label="Konto und Sicherung">
+        <h2 className="h3 reg-h">Konto und Sicherung</h2>
+        <div className="reg-b">
           {signedIn ? (
             <p className="small">
               <Cloud size={16} aria-hidden="true" /> Angemeldet als {cloud.user?.email ?? cloud.user?.phone ?? (cloud.user?.anonymous ? "Gast" : "Konto")}.{" "}
@@ -99,11 +107,13 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
           <button type="button" className={`btn${signedIn ? "" : " primary"}`} onClick={() => go("konto")}>
             <span>{signedIn ? "Konto verwalten" : "Anmelden oder Konto erstellen"}</span>
           </button>
-        </section>
+                </div>
+      </section>
       ) : null}
 
-      <section className="panel form-panel" aria-label="Darstellung">
-        <h2 className="h3">Darstellung</h2>
+      <section className="reg" aria-label="Darstellung">
+        <h2 className="h3 reg-h">Darstellung</h2>
+        <div className="reg-b">
         <Seg
           label="Ausgabe"
           value={theme}
@@ -115,6 +125,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
           ]}
         />
         <small className="muted">Urushi ist schwarzer Lack mit Blattgold, Washi helles Papier mit Tusche.</small>
+              </div>
       </section>
 
       <HeroKoma label="Gürtelprüfung">
@@ -153,8 +164,9 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         </div>
       </HeroKoma>
 
-      <section className="panel form-panel">
-        <h2 className="h3">Daten</h2>
+      <section className="reg" aria-label="Daten">
+        <h2 className="h3 reg-h">Daten</h2>
+        <div className="reg-b">
         <p className="muted small">
           {signedIn
             ? `${APP_NAME} speichert in diesem Browser und in deinem Konto. Der Export ist eine zusätzliche Kopie als Datei.`
@@ -205,6 +217,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
             </button>
           )}
         </div>
+              </div>
       </section>
       <p className="muted small footnote">
         Technik-Namen wie auf deutschen Matten üblich, japanische Begriffe in Kodokan-Schreibweise. Beinhebel und riskante Techniken tragen einen Hinweis: kontrolliert
