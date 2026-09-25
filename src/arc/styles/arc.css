@@ -1106,26 +1106,107 @@ button.item:hover { background-color: var(--ink-4); }
 @media (min-width: 1000px) { .sea-layout { grid-template-columns: minmax(0, 1fr) 300px; } }
 .sea-stage { min-width: 0; }
 .sea-frame { position: relative; }
-.sea-view { position: relative; height: clamp(360px, 68vh, 640px); border: 3px solid #16171c; background: #0b2442; overflow: hidden; outline: none; touch-action: none; }
+.sea-chart { display: grid; }
+.sea-view { position: relative; height: clamp(360px, 66vh, 640px); border: 3px solid #16171c; background: #06172b; overflow: hidden; outline: none; touch-action: none; }
+.sea-view::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 70px rgba(2, 10, 22, 0.55); }
 .sea-view:focus-visible { box-shadow: 0 0 0 3px var(--gold); }
-.sea-map { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.sea-map { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; text-rendering: geometricPrecision; }
 .sea-map:active { cursor: grabbing; }
-.sea-name { font-family: var(--f-d); font-size: var(--ss, 30px); fill: #e9ecf7; opacity: 0.22; }
-.sea-name.mine { opacity: 0.6; fill: #f3b000; }
-.sea-cur { font-family: var(--f-b); font-size: var(--ls, 12px); font-weight: 800; fill: #cfe2ff; opacity: 0.65; }
-.sea-calm-lbl { font-family: var(--f-b); font-size: var(--ls, 11px); font-weight: 700; fill: #9cc3ff; opacity: 0.6; }
-.sea-ridge-lbl { font-family: var(--f-d); font-size: calc(var(--ls, 12px) * 1.1); fill: #ffd0c8; opacity: 0.9; }
-.sea-tools { position: absolute; top: 10px; right: 10px; display: grid; gap: 6px; }
-.sea-mini { position: absolute; left: 10px; bottom: 10px; width: 156px; height: auto; border: 2px solid #e9dcc0; cursor: pointer; box-shadow: 3px 3px 0 #16171c; }
-.sea-mini-view { fill: rgba(255, 227, 154, 0.16); stroke: #ffe39a; stroke-width: 12; }
-.sea-callout { position: absolute; left: 10px; right: 10px; bottom: 10px; display: none; align-items: center; gap: 10px; padding: 8px 10px 8px 12px; border: 2px solid #16171c; background: var(--paper); color: var(--ink); box-shadow: 4px 4px 0 #16171c; }
+.sea-margin { fill: #06172b; }
+.sea-grid path { stroke: #9cc3ff; stroke-width: 0.6; opacity: 0.08; }
+.sea-gate { fill: none; stroke: #ffe39a; stroke-width: 1.2; stroke-dasharray: 2 5; opacity: 0.55; }
+.sea-gate.outer { stroke-width: 0.8; stroke-dasharray: none; opacity: 0.3; }
+.sea-frame-art .line { fill: none; stroke: #e9dcc0; stroke-width: 1.6; opacity: 0.75; }
+.sea-frame-art .line.thin { stroke-width: 0.7; opacity: 0.6; }
+.sea-frame-art .tick { fill: #e9dcc0; opacity: 0.55; }
+
+/* Routes */
+.sea-lane { fill: none; stroke: #e9dcc0; stroke-width: 1.3; stroke-dasharray: 3 6; }
+.sea-trail { fill: none; stroke: #f1bf57; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.sea-trail.before { stroke-width: 2.8; stroke-dasharray: 7 6; opacity: 0.7; }
+.sea-next { fill: none; stroke: #ffe39a; stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; }
+
+/* Islands */
+.isle { cursor: pointer; outline: none; }
+.isle-shallow { fill: #3f8fc4; opacity: 0.22; }
+.isle-contour { fill: none; stroke: #9cc3ff; stroke-width: 0.7; stroke-dasharray: 2 3; opacity: 0.35; }
+.isle-shade { fill: #020a16; opacity: 0.35; }
+.isle-sand { fill: #dcc794; stroke: #16171c; stroke-width: 1.1; }
+.isle-green { fill: #5d9853; stroke: #1f3a22; stroke-width: 0.6; }
+.isle-hill { fill: #7fb66f; opacity: 0.65; }
+/* Islands ahead are paler, islands off your route paler still; the next one is in full colour. */
+.isle.future .isle-sand { fill: #c4b88f; }
+.isle.future .isle-green { fill: #6d9165; }
+.isle.future .isle-hill { fill: #83a878; }
+.isle.other .isle-sand { fill: #a8a68f; }
+.isle.other .isle-green, .isle.other .isle-hill { fill: #62765f; }
+.isle.future > g { opacity: 0.88; }
+.isle.other > g { opacity: 0.72; }
+.isle.next > g { opacity: 1; }
+.isle.next .isle-sand { fill: #dcc794; }
+.isle.next .isle-green { fill: #5d9853; }
+.isle.next .isle-hill { fill: #7fb66f; }
+.isle.here .isle-sand { stroke: #f3b000; stroke-width: 1.8; }
+.isle-next-ring { fill: none; stroke: #ffe39a; stroke-width: 1.5; stroke-dasharray: 4 4; opacity: 0.9; }
+.isle-sel-ring { fill: none; stroke: #f2f3ee; stroke-width: 1.6; opacity: 0.9; }
+.isle:focus-visible .isle-sand { stroke: #f3b000; stroke-width: 2.4; }
+.isle-comp circle { stroke: #16171c; stroke-width: 1.2; }
+.isle-comp .m0 { fill: #c8203f; }
+.isle-comp .m1 { fill: #f3b000; }
+.isle-comp .m2 { fill: #c9ced6; }
+.isle-comp .m3 { fill: #c98a55; }
+.isle-comp-n { font-family: var(--f-b); font-size: calc(var(--fs, 12px) * 0.8); font-weight: 800; fill: #fff; paint-order: stroke; stroke: #16171c; stroke-width: 2.5px; }
+
+/* Names: one layer on top, placed so that none covers another */
+.sea-labels text { pointer-events: none; paint-order: stroke; stroke-linejoin: round; }
+.isle-lbl { font-family: var(--f-b); font-size: var(--fs, 12px); font-weight: 700; fill: #eef2f8; stroke: #0b2442; stroke-width: calc(var(--fs, 12px) * 0.26); pointer-events: auto !important; cursor: pointer; }
+.isle-lbl.past { fill: #e9dcc0; }
+.isle-lbl.here { fill: #f3b000; font-weight: 800; font-size: calc(var(--fs, 12px) * 1.12); }
+.isle-lbl.next { fill: #fff6d6; font-weight: 800; }
+.isle-lbl.future { fill: #b9c6dc; font-weight: 600; }
+.isle-lbl.other { fill: #8ea0bd; font-weight: 600; font-size: calc(var(--fs, 12px) * 0.92); }
+.isle-lbl.sel { fill: #fff; }
+.isle-lbl:hover { fill: #fff; }
+.sea-name { font-family: var(--f-d); font-size: calc(var(--fs, 12px) * 1.92); fill: #e9ecf7; opacity: 0.2; stroke: none; }
+.sea-name.mine { opacity: 0.55; fill: #f3b000; }
+.sea-cur { font-family: var(--f-b); font-size: calc(var(--fs, 12px) * 0.88); font-style: italic; font-weight: 700; letter-spacing: 0.04em; fill: #cfe2ff; opacity: 0.75; stroke: #10365c; stroke-width: calc(var(--fs, 12px) * 0.2); }
+.sea-calm-lbl { font-family: var(--f-b); font-size: calc(var(--fs, 12px) * 0.88); font-style: italic; font-weight: 600; fill: #9cc3ff; opacity: 0.6; stroke: none; }
+.sea-ridge-lbl { font-family: var(--f-d); font-size: calc(var(--fs, 12px) * 0.97); letter-spacing: 0.08em; fill: #ffd8d0; stroke: #4a0d14; stroke-width: calc(var(--fs, 12px) * 0.18); }
+.ship-lbl { font-family: var(--f-b); font-size: calc(var(--fs, 12px) * 0.92); font-weight: 800; fill: #cfe2ff; stroke: #0b2442; stroke-width: calc(var(--fs, 12px) * 0.26); }
+.ship-lbl.crew { fill: #f3b000; }
+.monster-lbl { font-family: var(--f-b); font-size: calc(var(--fs, 12px) * 0.88); font-weight: 800; fill: #d7c2f5; stroke: #0b2442; stroke-width: calc(var(--fs, 12px) * 0.24); }
+.rose-n { font-family: var(--f-d); font-size: 12px; fill: #f3b000; }
+
+/* The bar under the chart: overview, view buttons, legend */
+.sea-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 8px 10px; border: 3px solid #16171c; border-top: 0; background: #0b2442; color: #e9dcc0; }
+.sea-mini { flex: none; width: 118px; height: auto; border: 1.5px solid rgba(233, 220, 192, 0.6); cursor: pointer; }
+.sea-mini-view { fill: rgba(255, 227, 154, 0.16); stroke: #ffe39a; stroke-width: 14; }
+.sea-zoom { display: flex; gap: 6px; }
+.sea-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 12px; border: 1.5px solid rgba(233, 220, 192, 0.45); background: rgba(233, 220, 192, 0.06); color: #f2f3ee; font-size: 13.5px; font-weight: 700; }
+.sea-btn:hover { border-color: #f3b000; }
+.sea-btn:focus-visible { outline: 3px solid #f3b000; outline-offset: 1px; }
+.sea-btn.icon { width: 40px; justify-content: center; padding: 0; }
+.sea-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 0 auto; padding: 0; list-style: none; font-size: 12.5px; font-weight: 700; color: #cfd6e4; }
+.sea-key li { display: inline-flex; align-items: center; gap: 6px; }
+.sea-key svg { width: auto; height: 14px; }
+.sea-callout { display: none; align-items: center; gap: 10px; padding: 10px 12px; border: 2px solid var(--ink); border-top: 0; background: var(--paper-3); color: var(--ink); }
 .sea-callout p { flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 1.3; }
 .sea-callout b { display: block; font-family: var(--f-d); font-weight: 400; font-size: 16px; overflow-wrap: anywhere; }
+/* On wide screens the chart has the world's proportions: "Ganze Welt" fills it. */
+@media (min-width: 1000px) { .sea-view { height: auto; aspect-ratio: 1200 / 760; max-height: 74vh; } }
 @media (max-width: 999px) {
-  .sea-mini { display: none; }
+  .sea-mini, .sea-key { display: none; }
   .sea-callout { display: flex; }
 }
-@media (max-width: 640px) { .sea-frame { margin: 0 -16px; } .sea-view { height: 64vh; border-left: 0; border-right: 0; } }
+@media (max-width: 640px) {
+  .sea-frame { margin: 0 -16px; }
+  .sea-view { height: clamp(320px, 58svh, 520px); border-left: 0; border-right: 0; }
+  .sea-bar { border-left: 0; border-right: 0; padding: 6px 12px; }
+  .sea-zoom { width: 100%; }
+  .sea-zoom .push { margin-left: auto; }
+  .sea-callout { border-left: 0; border-right: 0; }
+}
+@media (max-width: 420px) { .sea-btn-t { display: none; } .sea-btn { width: 44px; justify-content: center; padding: 0; } }
 .route-strip { display: flex; gap: 6px; margin: 0; padding: 10px 2px 6px; overflow-x: auto; list-style: none; scroll-snap-type: x proximity; scrollbar-width: thin; }
 .route-strip li { flex: 0 0 auto; scroll-snap-align: center; }
 .route-strip button { display: grid; gap: 1px; min-width: 104px; max-width: 160px; padding: 6px 10px; border: 1.5px solid var(--ink-3); background: var(--paper-3); color: var(--ink); text-align: left; font-size: 13px; font-weight: 700; line-height: 1.25; }
@@ -1134,29 +1215,6 @@ button.item:hover { background-color: var(--ink-4); }
 .route-strip .past button { color: var(--ink-2); }
 .route-strip .here button { border: 2px solid var(--ink); box-shadow: inset 0 -4px 0 var(--gold); }
 .route-strip .sel button { border-color: var(--ink); background: var(--ai-soft); }
-.ship-lbl { font-family: var(--f-b); font-size: calc(var(--fs, 12px) * 0.92); font-weight: 800; fill: #cfe2ff; paint-order: stroke; stroke: #0b2442; stroke-width: calc(var(--fs, 12px) * 0.28); stroke-linejoin: round; pointer-events: none; }
-.other-ship.crew .ship-lbl { fill: #f3b000; }
-.sea-trail { stroke-linecap: round; }
-.isle { cursor: pointer; outline: none; }
-.isle:focus-visible .isle-lbl { text-decoration: underline; }
-.isle-sand { fill: #d9c48f; stroke: #16171c; stroke-width: 1.2; }
-.isle-green { fill: #5f9a55; stroke: #16171c; stroke-width: 0.8; }
-.isle.future .isle-sand, .isle.future .isle-green, .isle.other .isle-sand, .isle.other .isle-green { opacity: 0.55; }
-.isle.other .isle-green { fill: #6f8a6a; }
-.isle-lbl { font-family: var(--f-b); font-size: var(--fs, 12px); font-weight: 800; fill: #f2f3ee; paint-order: stroke; stroke: #0b2442; stroke-width: calc(var(--fs, 12px) * 0.3); stroke-linejoin: round; }
-.isle.future .isle-lbl { fill: #b9c6dc; font-weight: 700; }
-.isle.other .isle-lbl { fill: #8ea0bd; font-weight: 600; font-size: calc(var(--fs, 12px) * 0.92); }
-.isle.here .isle-lbl { fill: #f3b000; font-size: calc(var(--fs, 12px) * 1.12); }
-.isle.sel .isle-lbl { text-decoration: underline; }
-.isle:hover .isle-lbl { fill: #fff; }
-.isle-comp circle { stroke: #16171c; stroke-width: 1.2; }
-.isle-comp .m0 { fill: #c8203f; }
-.isle-comp .m1 { fill: #f3b000; }
-.isle-comp .m2 { fill: #c9ced6; }
-.isle-comp .m3 { fill: #c98a55; }
-.isle-comp-n { font-family: var(--f-b); font-size: calc(var(--ls, 11px) * 0.9); font-weight: 800; fill: #fff; paint-order: stroke; stroke: #16171c; stroke-width: 2.5px; }
-.monster-lbl { font-family: var(--f-b); font-size: var(--ls, 11px); font-weight: 800; fill: #d7c2f5; paint-order: stroke; stroke: #0b2442; stroke-width: 3px; }
-.rose-n { font-family: var(--f-d); font-size: 12px; fill: #f3b000; }
 .sea-side { display: grid; gap: 18px; }
 @media (min-width: 1000px) { .sea-side { position: sticky; top: calc(var(--hud-h) + 16px); } }
 @media (max-width: 999px) { .sea-side { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
@@ -1492,8 +1550,9 @@ button.item:hover { background-color: var(--ink-4); }
   .sea-page .page-h { font-size: 24px; }
   .sea-page .map-head { display: grid; }
   .sea-page .map-head > div { min-width: 0; }
-  .sea-page .map-stats { min-width: 0; max-width: 100%; flex-wrap: nowrap; overflow-x: auto; gap: 6px 14px; padding-bottom: 2px; font-size: 13px; white-space: nowrap; scrollbar-width: none; }
-  .sea-page .map-stats::-webkit-scrollbar { display: none; }
+  .sea-page .map-stats { min-width: 0; max-width: 100%; gap: 4px 14px; font-size: 13px; }
+  /* The title already names the next island; tournaments are in the island card. */
+  .sea-page .map-stats li:nth-child(2), .sea-page .map-stats li:nth-child(4) { display: none; }
 }
 
 /* ── Crew, Freundeskreis, Gym ─────────────────────────────────────────── */
