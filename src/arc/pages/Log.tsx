@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Gift, Map as MapIcon, Minus, Plus, RotateCcw, ScanEye } from "lucide-react";
+import { Gift, Map as MapIcon, Minus, Plus, RotateCcw, ScanEye } from "lucide-react";
 import type { ReactNode } from "react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, Control, Format, QuestKind, Roll, Session, Size } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
@@ -169,7 +169,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
       <LogSwitch value="training" />
       <div className="log-grid">
         <form
-          className="log-form"
+          className="log-form washi-sheet"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -177,7 +177,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
         >
           <fieldset className="step">
             <legend>
-              <b>1</b> Check-in <small>1 Tipp</small>
+              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Check-in <small>1 Tipp</small>
             </legend>
             <div className="row wrap">
               <Seg label="Trainingsart" value={draft.format} onChange={(v) => set({ format: v })} options={[{ v: "class", label: "Kurs" }, { v: "open", label: "Open Mat" }]} />
@@ -191,7 +191,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <fieldset className="step">
             <legend>
-              <b>2</b> Roll-Karten <small>≈ 4 s pro Roll</small>
+              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Roll-Karten <small>≈ 4 s pro Roll</small>
             </legend>
             <p className="note-line">Gürtel und Größe des Partners, Subs in beide Richtungen, wer den Roll kontrolliert hat.</p>
             <div className="rolls">
@@ -250,7 +250,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <fieldset className="step quest-step">
             <legend>
-              <b>3</b> Quest-Zähler <small>im Training mitgezählt</small>
+              <b aria-hidden="true">三</b> <span className="sr-only">3.</span> Quest-Zähler <small>im Training mitgezählt</small>
             </legend>
             {draft.quest ? (
               <>
@@ -312,7 +312,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <fieldset className="step">
             <legend>
-              <b>4</b> Notiz <small>optional, +15 XP</small>
+              <b aria-hidden="true">四</b> <span className="sr-only">4.</span> Notiz <small>optional, +15 XP</small>
             </legend>
             <label className="field">
               <span className="fl">Hat funktioniert</span>
@@ -339,8 +339,10 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
                 </small>
               ) : null}
             </span>
-            <button type="submit" className="btn primary big">
-              <Check size={18} aria-hidden="true" />
+            <button type="submit" className="btn primary big seal-btn">
+              <span className="seal" aria-hidden="true">
+                記
+              </span>
               <span>Training speichern</span>
             </button>
           </div>

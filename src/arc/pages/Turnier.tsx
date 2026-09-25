@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Gift, Minus, Plus, RotateCcw, ScanEye, Trophy } from "lucide-react";
+import { Gift, Minus, Plus, RotateCcw, ScanEye, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, CompMatch, Competition } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
 import { inventory, itemById } from "../core/items.ts";
@@ -122,7 +122,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
       <LogSwitch value="turnier" />
       <div className="log-grid">
         <form
-          className="log-form"
+          className="log-form washi-sheet"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -130,7 +130,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
         >
           <fieldset className="step">
             <legend>
-              <b>1</b> Turnier
+              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Turnier
             </legend>
             <label className="field">
               <span className="fl">Name</span>
@@ -186,7 +186,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
           <fieldset className="step">
             <legend>
-              <b>2</b> Kämpfe <small>{draft.matches.length}</small>
+              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Kämpfe <small>{draft.matches.length}</small>
             </legend>
             <div className="rolls">
               {draft.matches.map((m, i) => (
@@ -257,7 +257,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
           <fieldset className="step quest-step">
             <legend>
-              <b>3</b> Platzierung
+              <b aria-hidden="true">三</b> <span className="sr-only">3.</span> Platzierung
             </legend>
             <div className="podium" role="radiogroup" aria-label="Platzierung">
               {[2, 1, 3].map((p) => (
@@ -277,8 +277,10 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
               <b>+{nf0.format(compXp(preview.c))} XP</b>
               <small>fürs Antreten, jeden Kampf und die Platzierung</small>
             </span>
-            <button type="submit" className="btn primary big">
-              <Check size={18} aria-hidden="true" />
+            <button type="submit" className="btn primary big seal-btn">
+              <span className="seal" aria-hidden="true">
+                試
+              </span>
               <span>Turnier speichern</span>
             </button>
           </div>

@@ -782,6 +782,50 @@ b, strong { font-weight: 650; }
 .log-grid { display: grid; gap: 26px; align-items: start; }
 @media (min-width: 960px) { .log-grid { grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 34px; } }
 .log-form { display: grid; gap: 30px; }
+/* The form is a page of the training book: washi laid on the lacquer desk,
+   in both editions, with a vermilion margin rule and the steps numbered in
+   the margin like a handwritten list. The page carries its own ink. */
+.washi-sheet {
+  color-scheme: light;
+  --ink: #1b1512;
+  --ink-2: #5d5147;
+  --ink-3: rgba(27, 21, 18, 0.17);
+  --ink-4: rgba(27, 21, 18, 0.055);
+  --paper: #efe6d3;
+  --paper-2: #e5dac5;
+  --paper-3: #f6f0e4;
+  --field: #fbf8f1;
+  --gold: #b88a2e;
+  --gold-ink: #7d5a17;
+  --gold-soft: #ecdfba;
+  --gold-line: rgba(160, 118, 38, 0.5);
+  --beni: #b3321d;
+  --beni-soft: #f3d8cf;
+  --asagi: #25706a;
+  --asagi-soft: #d4e8e3;
+  --ai: #33477f;
+  --shade: rgba(64, 44, 22, 0.22);
+  position: relative;
+  padding: 26px 20px 0 64px;
+  border-radius: 3px;
+  background-color: #f3ecdd;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .2 0 0 0 .08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--ink);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 44px 80px -40px rgba(0, 0, 0, 0.75);
+}
+.washi-sheet::before { content: ""; position: absolute; top: 0; bottom: 0; left: 46px; width: 1px; background: rgba(193, 56, 34, 0.4); pointer-events: none; }
+.washi-sheet .step { position: relative; border-top-color: var(--ink-3); }
+.washi-sheet .step legend b { position: absolute; left: -52px; top: 14px; width: 40px; min-width: 0; text-align: center; color: #b3321d; font-family: var(--f-d); font-weight: 800; font-size: 26px; line-height: 1; }
+.washi-sheet .savebar { margin: 0 -20px 0 -64px; padding: 14px 20px 14px 64px; border: 0; border-top: 1px solid var(--ink-3); border-radius: 0 0 3px 3px; background: #f6f0e4; box-shadow: 0 -18px 30px -24px rgba(64, 44, 22, 0.4); }
+@media (max-width: 560px) {
+  .washi-sheet { margin-inline: -8px; padding: 22px 14px 0 44px; }
+  .washi-sheet::before { left: 32px; }
+  .washi-sheet .step legend b { left: -42px; width: 34px; font-size: 22px; }
+  .washi-sheet .savebar { margin: 0 -14px 0 -44px; padding: 10px 14px 10px 44px; }
+}
+/* Saving is pressing the seal onto the page. */
+.seal-btn { gap: 12px; padding-left: 10px; }
+.seal-btn .seal { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 3px; box-shadow: inset 0 0 0 2px rgba(255, 246, 238, 0.85); font-family: var(--f-d); font-weight: 800; font-size: 22px; line-height: 1; }
 .step { display: grid; gap: 14px; margin: 0; padding: 18px 0 0; border: 0; border-top: 1px solid var(--ink-3); min-width: 0; }
 .step legend { float: left; width: 100%; padding: 0; display: flex; align-items: baseline; gap: 12px; font-family: var(--f-d); font-weight: 800; font-size: 22px; }
 .step legend b { min-width: 24px; color: var(--gold-ink); font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums lining-nums; }

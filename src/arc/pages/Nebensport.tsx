@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, RotateCcw, UserRound } from "lucide-react";
+import { RotateCcw, UserRound } from "lucide-react";
 import type { ArcData, ArcState, CrossSession, SportId } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
 import { inventory, itemById } from "../core/items.ts";
@@ -119,7 +119,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
       <LogSwitch value="nebensport" />
       <div className="log-grid">
         <form
-          className="log-form"
+          className="log-form washi-sheet"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -127,7 +127,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
         >
           <fieldset className="step">
             <legend>
-              <b>1</b> Sportart
+              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Sportart
             </legend>
             <div className="sport-tiles" role="radiogroup" aria-label="Sportart">
               {ordered.map((s) => {
@@ -150,7 +150,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
 
           <fieldset className="step">
             <legend>
-              <b>2</b> Umfang
+              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Umfang
             </legend>
             <div className="field">
               <span className="fl">Dauer in Minuten</span>
@@ -177,7 +177,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
           {sport.grappling ? (
             <fieldset className="step quest-step">
               <legend>
-                <b>3</b> Takedowns <small>optional</small>
+                <b aria-hidden="true">三</b> <span className="sr-only">3.</span> Takedowns <small>optional</small>
               </legend>
               <label className="field">
                 <span className="fl">Technik</span>
@@ -211,8 +211,10 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
               <b>+{nf0.format(crossXp(preview.c))} XP</b>
               <small>zählt nicht fürs BJJ-Wochenziel</small>
             </span>
-            <button type="submit" className="btn primary big">
-              <Check size={18} aria-hidden="true" />
+            <button type="submit" className="btn primary big seal-btn">
+              <span className="seal" aria-hidden="true">
+                鍛
+              </span>
               <span>Speichern</span>
             </button>
           </div>
