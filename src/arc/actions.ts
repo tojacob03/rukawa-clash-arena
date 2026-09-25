@@ -6,6 +6,7 @@ import { TECH } from "./core/techniques.ts";
 import { buildDemo } from "./core/demo.ts";
 import { dayNum, weekOf } from "./core/model.ts";
 import { arcStore, emptyData, isArcData } from "./store.ts";
+import { aboardFor } from "./ship.ts";
 
 export function acceptQuest(today: string, q: { node: string; kind: QuestKind; xp: number }) {
   arcStore.set((d) => ({ ...d, ui: { ...d.ui, accepted: { day: today, node: q.node, kind: q.kind, xp: q.xp } } }));
@@ -25,7 +26,10 @@ export function setTodayAttire(today: string, attire: Attire) {
 
 export function saveSession(s: Session) {
   // The mat counter for this day ends up in the session; clear it.
-  arcStore.set((d) => ({ ...d, sessions: [...d.sessions, s], ui: d.ui.mat?.day === s.date ? { ...d.ui, mat: undefined } : d.ui }));
+  arcStore.set((d) => {
+    const aboard = s.aboard ?? aboardFor(d, s.date, "session");
+    return { ...d, sessions: [...d.sessions, aboard ? { ...s, aboard } : s], ui: d.ui.mat?.day === s.date ? { ...d.ui, mat: undefined } : d.ui };
+  });
 }
 
 export function setPlan(plan: TrainingPlan) {
@@ -47,11 +51,20 @@ export function matSet(patch: Partial<Pick<MatCount, "att" | "succ" | "done">>) 
 }
 
 export function saveCompetition(c: Competition) {
-  arcStore.set((d) => ({ ...d, competitions: [...(d.competitions ?? []).filter((x) => x.id !== c.id), c] }));
+  arcStore.set((d) => {
+    // An edited entry stays on the ship it was logged on.
+    const prev = (d.competitions ?? []).find((x) => x.id === c.id);
+    const aboard = prev ? prev.aboard : (c.aboard ?? aboardFor(d, c.date, "comp"));
+    return { ...d, competitions: [...(d.competitions ?? []).filter((x) => x.id !== c.id), aboard ? { ...c, aboard } : c] };
+  });
 }
 
 export function saveCross(c: CrossSession) {
-  arcStore.set((d) => ({ ...d, cross: [...(d.cross ?? []).filter((x) => x.id !== c.id), c] }));
+  arcStore.set((d) => {
+    const prev = (d.cross ?? []).find((x) => x.id === c.id);
+    const aboard = prev ? prev.aboard : (c.aboard ?? aboardFor(d, c.date, "cross"));
+    return { ...d, cross: [...(d.cross ?? []).filter((x) => x.id !== c.id), aboard ? { ...c, aboard } : c] };
+  });
 }
 
 export function deleteCross(id: string) {
@@ -97,9 +110,11 @@ export function updateProfile(patch: Partial<Omit<Profile, "startBelt" | "startS
 }
 
 export function promote(today: string, belt: Belt, stripes: number) {
-  arcStore.set((d) =>
-    d.profile ? { ...d, profile: { ...d.profile, belt, stripes }, promotions: [...d.promotions, { date: today, belt, stripes }] } : d,
-  );
+  arcStore.set((d) => {
+    if (!d.profile) return d;
+    const aboard = aboardFor(d, today, belt !== d.profile.belt ? "belt" : "stripe");
+    return { ...d, profile: { ...d.profile, belt, stripes }, promotions: [...d.promotions, { date: today, belt, stripes, ...(aboard ? { aboard } : {}) }] };
+  });
 }
 
 export function togglePause(today: string) {

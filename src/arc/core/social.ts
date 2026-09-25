@@ -12,6 +12,7 @@ import { CLASSES } from "./classes.ts";
 import { powerOf } from "./model.ts";
 import { SEAS, route } from "./sea.ts";
 import { normalizeFlag } from "./crewflag.ts";
+import type { Body } from "./body.ts";
 import {
   BEARDS,
   BROWS,
@@ -44,10 +45,15 @@ export interface SocialCard {
   wk: number;
   bounty: number;
   cls: ClassId | null;
+  /** The ship they sail on (a crew ship, or their own): its sea, the route index of the island it came from, how far it has sailed on, and laps round the world. */
   sea: SeaId;
-  /** Route index of the island the ship is at, and how far it has sailed on. */
   island: number;
   progress: number;
+  lap: number;
+  /** Their miles on board their current crew ship, since they joined it. */
+  aboard: { id: string; miles: number } | null;
+  /** Figure height and build of their character, from height and weight (no raw numbers). */
+  body: Body | null;
   ship: string;
   sail: string;
   flag: FlagDesign;
@@ -73,6 +79,8 @@ export interface Peer {
   updated: string | null;
   captain?: boolean;
   since?: string | null;
+  /** Crew members: when they came on board. */
+  joined?: string | null;
 }
 
 export interface CrewInfo {
@@ -82,6 +90,8 @@ export interface CrewInfo {
   code: string;
   captain: boolean;
   members: Peer[];
+  /** Sea miles of former members, kept by the ship when they left. */
+  banked: number;
 }
 
 export interface GymInfo {
@@ -206,6 +216,9 @@ export function readCard(raw: unknown): SocialCard | null {
     sea,
     island: int(c.island, 0, route(sea).length - 1, 0),
     progress: num(c.progress, 0, 1, 0),
+    lap: int(c.lap, 0, 9999, 0),
+    aboard: uuid(obj(c.aboard).id) ? { id: obj(c.aboard).id as string, miles: num(obj(c.aboard).miles, 0, 1e6, 0) } : null,
+    body: readBody(c.body),
     ship: cleanText(c.ship, 40),
     sail: hex(c.sail) ?? "#f1bf57",
     flag: normalizeFlag(obj(c.flag) as Partial<FlagDesign>),
@@ -240,7 +253,13 @@ export function readPeer(raw: unknown): Peer | null {
     updated: date(p.updated),
     ...(typeof p.captain === "boolean" ? { captain: p.captain } : {}),
     ...(p.since !== undefined ? { since: date(p.since) } : {}),
+    ...(p.joined !== undefined ? { joined: date(p.joined) } : {}),
   };
+}
+
+function readBody(raw: unknown): Body | null {
+  const b = obj(raw);
+  return typeof b.h === "number" && typeof b.b === "number" ? { h: num(b.h, 0.84, 1.16, 1), b: num(b.b, 0.86, 1.25, 1) } : null;
 }
 
 const peers = (v: unknown) => (Array.isArray(v) ? v.map(readPeer).filter((x): x is Peer => !!x) : []);
@@ -264,7 +283,7 @@ export function readSnapshot(raw: unknown): SocialSnapshot {
       : [],
     crew:
       crew && uuid(crew.id)
-        ? { id: crew.id as string, name: cleanText(crew.name, 40), flag: normalizeFlag(obj(crew.flag) as Partial<FlagDesign>), code: code(crew.code), captain: crew.captain === true, members: peers(crew.members) }
+        ? { id: crew.id as string, name: cleanText(crew.name, 40), flag: normalizeFlag(obj(crew.flag) as Partial<FlagDesign>), code: code(crew.code), captain: crew.captain === true, members: peers(crew.members), banked: num(crew.banked, 0, 1e7, 0) }
         : null,
     gym:
       gym && uuid(gym.id)
@@ -296,6 +315,9 @@ export interface CardInput {
   sea: SeaId;
   island: number;
   progress: number;
+  lap: number;
+  aboard: { id: string; miles: number } | null;
+  body: Body | null;
   ship?: string;
   sail: string;
   flag?: Partial<FlagDesign> | null;
@@ -321,6 +343,9 @@ export function buildCard(x: CardInput): SocialCard {
     island: x.island,
     // Two decimals are plenty for a ship on the chart, and keep the card stable.
     progress: Math.round(x.progress * 100) / 100,
+    lap: x.lap,
+    aboard: x.aboard ? { id: x.aboard.id, miles: Math.round(x.aboard.miles * 10) / 10 } : null,
+    body: x.body ? { h: Math.round(x.body.h * 100) / 100, b: Math.round(x.body.b * 100) / 100 } : null,
     ship: cleanText(x.ship ?? "", 40),
     sail: hex(x.sail) ?? "#f1bf57",
     flag: normalizeFlag(x.flag),
@@ -339,6 +364,32 @@ export function sharedSlots(plan: TrainingPlan | null | undefined): SharedSlot[]
 }
 
 // ── Reading the crew and the gym ──────────────────────────────────────────
+
+export interface CrewShip {
+  miles: number;
+  /** The captain's home sea: the crew ship's route starts there. */
+  sea: SeaId;
+  /** Ship class of the best belt on board. */
+  belt: Belt;
+  sail: string;
+}
+
+/**
+ * The crew's ship: the miles every member logged on board since joining,
+ * yours counted from your own data (the published card may lag), plus the
+ * miles former members left with the ship.
+ */
+export function crewShip(crew: CrewInfo, me: string | null, mine: number): CrewShip {
+  let miles = crew.banked;
+  let best = 0;
+  for (const m of crew.members) {
+    if (m.id === me) miles += mine;
+    else if (m.card?.aboard?.id === crew.id) miles += m.card.aboard.miles;
+    if (m.card) best = Math.max(best, BELTS.indexOf(m.card.belt));
+  }
+  const captain = crew.members.find((m) => m.captain) ?? crew.members[0];
+  return { miles, sea: captain?.card?.sea ?? "morgen", belt: BELTS[best], sail: captain?.card?.sail ?? "#f1bf57" };
+}
 
 /** This week's trainings of a card; an old card counts as none. */
 export const weekOf = (c: SocialCard | null, today: string) => (c && c.wk === weekNumber(today) ? c.week : 0);

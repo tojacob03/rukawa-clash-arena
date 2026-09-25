@@ -207,7 +207,7 @@ export default function ArcApp() {
           data={data}
           st={st}
           onClose={() => setScan(null)}
-          portrait={<Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={data.profile.belt} stripes={data.profile.stripes} weightKg={data.profile.weightKg} size={180} still />}
+          portrait={<Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={data.profile.belt} stripes={data.profile.stripes} weightKg={data.profile.weightKg} heightCm={data.profile.heightCm} size={180} still />}
         />
       ) : null}
       <main id="arc-main" className="main" tabIndex={-1}>

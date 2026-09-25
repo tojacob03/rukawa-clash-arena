@@ -213,11 +213,11 @@ function EnableSocial({ data, st, today, intro }: { data: ArcData; st: ArcState;
           <p className="ch-name">
             <Eye size={16} aria-hidden="true" /> Das sehen andere
           </p>
-          <p className="small muted">Deinen Namen, Gurt, Level, Power Level, Flamme und Kopfgeld, wie viele Trainings du diese Woche hast, deinen Avatar, dein Schiff und wo es auf der Seekarte liegt.</p>
+          <p className="small muted">Deinen Namen, Gurt, Level, Power Level, Flamme und Kopfgeld, wie viele Trainings du diese Woche hast, deinen Avatar in deiner Figur, dein Schiff und wo es auf der Seekarte liegt, und in einer Crew, wie viele Seemeilen du dem Crew-Schiff gebracht hast.</p>
         </div>
         <div>
           <p className="ch-name">Das bleibt bei dir</p>
-          <p className="small muted">Dein Trainingstagebuch mit Techniken, Rolls und Notizen, dein Gewicht und dein Konto.</p>
+          <p className="small muted">Dein Trainingstagebuch mit Techniken, Rolls und Notizen, deine Größe und dein Gewicht als Zahlen und dein Konto.</p>
         </div>
         <div>
           <p className="ch-name">Wer es sieht</p>

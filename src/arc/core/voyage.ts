@@ -1,136 +1,254 @@
-// The voyage on the sea chart: where the ship lay and when, how far it has
-// sailed, the weather from your training rhythm, and what you discovered on
-// the way. Pure functions over the data; ISO dates compare as strings.
+// The voyage on the sea chart: how far the ship has sailed, where it lies,
+// the weather from your training rhythm, what you discovered on the way and
+// the ship's log. Pure functions over the data; ISO dates compare as strings.
 //
-// - Sea miles: 10 per BJJ training, 20 per competition, 3 per other-sport
-//   session.
-// - Between two islands the ship moves toward the next one with every mile,
-//   but never arrives before the stripe: at most 85 % of the way.
+// - Every training moves the ship, whatever you wear and whatever your belt:
+//   10 sea miles per BJJ training (gi, no-gi, open mat), 20 per competition,
+//   5 per session of another sport, each times the wind on that day (your
+//   rhythm of the 14 days up to it: fresh breeze ×1.25, strong tailwind ×1.5).
+//   A new stripe is a gust of 25 miles from astern, a new belt one of 50.
+// - The route: the home sea (legs of 30 to 80 miles, the first islands come
+//   quickly), through the gate into the great current and round the world
+//   (70 miles a leg, 90 over the ridge pass and from Kap Kuro back through the
+//   gate), and round again. At the weekly goal that is an island about every
+//   two weeks.
+// - On board a crew ship (entries with `aboard`) your miles move the crew's
+//   ship; your own ship waits where you left it.
 // - Weather: the last 14 days against the weekly goal. No training in two
 //   weeks means a calm (the ship drifts in the calm belt); healing mode puts
 //   it in dry dock.
-// - Exploration: while the ship lies at an island, your trainings there
-//   uncover its landing (1), a landmark (8) and its secret (15).
+// - Exploration: every BJJ training counts for the island whose waters the
+//   ship is in; the first lands, the third finds its landmark, the sixth its
+//   secret. Laps add up.
 
-import type { ArcData, Belt } from "./types.ts";
-import { DEFAULT_SEA, landmarksOf, rankIndex, route } from "./sea.ts";
+import type { Aboard, ArcData, Belt } from "./types.ts";
+import { DEFAULT_SEA, ISLAND, LOOP_START, ROUTE_LEN, landmarksOf, lapOf, rankIndex, route, stepIndex } from "./sea.ts";
 import type { Island } from "./sea.ts";
 
-export const MILES = { session: 10, comp: 20, cross: 3 };
-/** The ship covers this share of the way to the next island at most. */
-export const MAX_PASSAGE = 0.85;
-/** Sea miles for about 63 % of the way. */
-export const PASSAGE_SCALE = 150;
+export const MILES = { session: 10, comp: 20, cross: 5, stripe: 25, belt: 50 };
+/** How much faster the ship sails in each wind. */
+export const SPEED: Record<WeatherKind, number> = { dock: 1, calm: 1, light: 1, breeze: 1.25, tailwind: 1.5 };
+const HOME_LEGS = [30, 45, 60, 70, 80];
 
-const ORDER: Belt[] = ["weiss", "blau", "lila", "braun", "schwarz"];
 const DAY = 864e5;
 const dayOf = (iso: string) => Math.floor(Date.parse(iso + "T12:00:00Z") / DAY);
 const isoDay = (d: number) => new Date(d * DAY).toISOString().slice(0, 10);
 
-export const rankFromIndex = (idx: number): { belt: Belt; stripes: number } => ({ belt: ORDER[Math.min(4, Math.floor(idx / 5))], stripes: idx % 5 });
-
-export interface Stay {
-  /** Route index: 0 white belt no stripe … 24 black belt 4 stripes. */
-  idx: number;
-  from: string;
-  /** Date of the next promotion, null for the current stay. */
-  to: string | null;
-  /** Dates of BJJ trainings logged while the ship lay there. */
-  sessions: string[];
+/** Sea miles from the island at a step to the next one. */
+export function legMiles(step: number): number {
+  if (step < LOOP_START) return HOME_LEGS[step];
+  const j = (step - LOOP_START) % (ROUTE_LEN - LOOP_START);
+  // Over the ridge pass, and from Kap Kuro back through the gate.
+  return j === 9 || j === 19 ? 90 : 70;
 }
 
-/** Where the ship lay and when: one stay per rank, with the trainings logged there. */
-export function stays(data: ArcData, asOf: string): Stay[] {
+export interface Position {
+  miles: number;
+  /** Islands reached so far (0: still at the harbour), laps included. */
+  step: number;
+  /** Route index of the island the ship came from (0 … 24). */
+  idx: number;
+  /** Laps round the world completed. */
+  lap: number;
+  /** Miles since that island, and the length of the leg to the next one. */
+  into: number;
+  leg: number;
+  progress: number;
+  /** step + progress: the whole voyage as one number. */
+  u: number;
+}
+
+/** Sea miles from a position to an island of the route (its next visit), null if the route does not pass it again. */
+export function milesTo(pos: Position, idx: number): number | null {
+  let m = pos.leg - pos.into;
+  for (let k = pos.step + 1; k <= pos.step + ROUTE_LEN; k++) {
+    if (stepIndex(k) === idx) return m;
+    m += legMiles(k);
+  }
+  return null;
+}
+
+/** Where a ship is after a number of sea miles. */
+export function positionAt(miles: number): Position {
+  const m = Math.max(0, miles);
+  let step = 0;
+  let rest = m;
+  while (rest >= legMiles(step)) {
+    rest -= legMiles(step);
+    step++;
+  }
+  const leg = legMiles(step);
+  return { miles: m, step, idx: stepIndex(step), lap: lapOf(step), into: rest, leg, progress: rest / leg, u: step + rest / leg };
+}
+
+/** The wind on a day, from the trainings in the 14 days up to it. */
+function rhythm(data: ArcData, extra: string[] = []): (date: string) => WeatherKind {
+  const goal = data.profile?.weeklyGoal ?? 2;
+  const days = [...data.sessions.map((s) => s.date), ...(data.competitions ?? []).map((c) => c.date), ...extra].map(dayOf).sort((a, b) => a - b);
+  const upTo = (x: number) => {
+    let lo = 0;
+    let hi = days.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (days[mid] <= x) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+  return (date) => {
+    const a = dayOf(date);
+    const ratio = (upTo(a) - upTo(a - 14)) / (2 * goal);
+    return ratio >= 1.25 ? "tailwind" : ratio >= 0.75 ? "breeze" : "light";
+  };
+}
+
+export interface MileEntry {
+  date: string;
+  kind: "session" | "comp" | "cross" | "stripe" | "belt";
+  miles: number;
+  wind: WeatherKind;
+  /** For promotions: the new rank. */
+  belt?: Belt;
+  stripes?: number;
+  aboard?: Aboard;
+  /** Order within a day. */
+  at: number;
+  /** Id of the session, competition or other-sport session. */
+  id?: string;
+}
+
+/** Everything that moved a ship, oldest first, with its miles. */
+export function mileEntries(data: ArcData, asOf: string): MileEntry[] {
   const p = data.profile;
   if (!p) return [];
-  const dates = data.sessions
-    .map((s) => s.date)
-    .filter((d) => d <= asOf)
-    .sort();
-  let from = data.onboarding?.date ?? p.createdAt;
-  if (dates[0] && dates[0] < from) from = dates[0];
-  let idx = rankIndex(p.startBelt, p.startStripes ?? 0);
-  const out: Stay[] = [];
+  const wind = rhythm(data);
+  const out: MileEntry[] = [];
+  const add = (x: { id: string; date: string; createdAt: number; aboard?: Aboard }, kind: "session" | "comp" | "cross", base: number) => {
+    if (x.date > asOf) return;
+    const w = wind(x.date);
+    out.push({ date: x.date, kind, miles: base * SPEED[w], wind: w, aboard: x.aboard, at: x.createdAt, id: x.id });
+  };
+  for (const s of data.sessions) add(s, "session", MILES.session);
+  for (const c of data.competitions ?? []) add(c, "comp", MILES.comp);
+  for (const c of data.cross ?? []) add(c, "cross", MILES.cross);
+  // Promotions: a gust from astern (only upward, corrections do not count).
+  let rank = rankIndex(p.startBelt, p.startStripes ?? 0);
   const promos = data.promotions.filter((x) => x.date <= asOf).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   for (const pr of promos) {
     const next = rankIndex(pr.belt, pr.stripes);
-    if (next === idx) continue;
-    out.push({ idx, from, to: pr.date, sessions: [] });
-    idx = next;
-    from = pr.date;
-  }
-  out.push({ idx, from, to: null, sessions: [] });
-  for (const d of dates) {
-    for (let i = out.length - 1; i >= 0; i--) {
-      if (out[i].from <= d || i === 0) {
-        out[i].sessions.push(d);
-        break;
-      }
+    if (next > rank) {
+      const belt = Math.floor(next / 5) > Math.floor(rank / 5);
+      out.push({ date: pr.date, kind: belt ? "belt" : "stripe", miles: belt ? MILES.belt : MILES.stripe * Math.min(4, next - rank), wind: "tailwind", belt: pr.belt, stripes: pr.stripes, aboard: pr.aboard, at: 0 });
     }
+    rank = next;
   }
-  return out;
+  return out.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.at - b.at));
+}
+
+interface Walked extends MileEntry {
+  /** Island id whose waters the ship was in after this entry. */
+  isle: string;
+}
+
+/** Your own ship along all entries, and where each entry happened. */
+function walk(data: ArcData, asOf: string) {
+  const r = route(data.profile?.homeSea ?? DEFAULT_SEA);
+  let step = 0;
+  let into = 0;
+  let miles = 0;
+  const arrivals: { step: number; date: string }[] = [];
+  const entries: Walked[] = [];
+  for (const e of mileEntries(data, asOf)) {
+    if (e.aboard) {
+      entries.push({ ...e, isle: ISLAND[e.aboard.isle] ? e.aboard.isle : r[stepIndex(step)].id });
+      continue;
+    }
+    miles += e.miles;
+    into += e.miles;
+    while (into >= legMiles(step)) {
+      into -= legMiles(step);
+      step++;
+      arrivals.push({ step, date: e.date });
+    }
+    entries.push({ ...e, isle: r[stepIndex(step)].id });
+  }
+  return { entries, miles, arrivals };
+}
+
+export interface Voyage extends Position {
+  /** The day each island was reached, from step 1 on. */
+  arrivals: { step: number; date: string }[];
+}
+
+/** Your own ship: every entry not logged on board a crew ship. */
+export function voyage(data: ArcData, asOf: string): Voyage {
+  const w = walk(data, asOf);
+  return { ...positionAt(w.miles), arrivals: w.arrivals };
+}
+
+/** All your sea miles, on your own ship and on crew ships. */
+export const seaMiles = (data: ArcData, asOf: string) => mileEntries(data, asOf).reduce((s, e) => s + e.miles, 0);
+
+/** Your miles on board one crew ship, from a day on (the day you joined it). */
+export const crewMiles = (data: ArcData, asOf: string, crew: string, since = "") =>
+  mileEntries(data, asOf)
+    .filter((e) => e.aboard?.crew === crew && e.date >= since)
+    .reduce((s, e) => s + e.miles, 0);
+
+/** The miles one new entry would bring today. */
+export function entryMiles(data: ArcData, date: string, kind: "session" | "comp" | "cross"): number {
+  const base = kind === "session" ? MILES.session : kind === "comp" ? MILES.comp : MILES.cross;
+  // A new training counts for the wind of its own day.
+  return base * SPEED[rhythm(data, kind === "cross" ? [] : [date])(date)];
 }
 
 export interface Explored {
-  idx: number;
   island: Island;
   trainings: number;
+  /** First training in its waters. */
+  first: string;
   /** The three landmarks; date is when it was found, null while hidden. */
   found: { name: string; need: number; date: string | null }[];
 }
 
-/** Every island the ship lay at since the app started, with its landmarks. */
+/** Every island you trained in the waters of, with its landmarks, in the order you came there. */
 export function exploration(data: ArcData, asOf: string): Explored[] {
-  const sea = data.profile?.homeSea ?? DEFAULT_SEA;
-  const r = route(sea);
-  const by = new Map<number, string[]>();
-  for (const s of stays(data, asOf)) by.set(s.idx, [...(by.get(s.idx) ?? []), ...s.sessions]);
+  const by = new Map<string, string[]>();
+  for (const e of walk(data, asOf).entries) if (e.kind === "session") by.set(e.isle, [...(by.get(e.isle) ?? []), e.date]);
   return [...by.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .map(([idx, dates]) => {
+    .map(([id, dates]) => {
       const sorted = [...dates].sort();
-      const island = r[Math.min(idx, r.length - 1)];
       return {
-        idx,
-        island,
+        island: ISLAND[id],
         trainings: sorted.length,
-        found: landmarksOf(island.id).map((l) => ({ ...l, date: sorted[l.need - 1] ?? null })),
+        first: sorted[0],
+        found: landmarksOf(id).map((l) => ({ ...l, date: sorted[l.need - 1] ?? null })),
       };
-    });
+    })
+    .sort((a, b) => (a.first < b.first ? -1 : a.first > b.first ? 1 : 0));
+}
+
+/** For each competition: the island whose waters the ship was in that day. */
+export function competitionIsles(data: ArcData, asOf: string): Map<string, string> {
+  return new Map(
+    walk(data, asOf)
+      .entries.filter((e) => e.kind === "comp" && e.id)
+      .map((e) => [e.id!, e.isle]),
+  );
+}
+
+/** Every island your ship reached, or a crew ship you trained on. */
+export function reachedIsles(data: ArcData, asOf: string): Set<string> {
+  const r = route(data.profile?.homeSea ?? DEFAULT_SEA);
+  const w = walk(data, asOf);
+  const out = new Set<string>([r[0].id]);
+  for (const a of w.arrivals) out.add(r[stepIndex(a.step)].id);
+  for (const e of w.entries) out.add(e.isle);
+  return out;
 }
 
 /** Islands with all three landmarks found. */
 export const fullyExplored = (data: ArcData, asOf: string) => exploration(data, asOf).filter((e) => e.found.every((f) => f.date)).length;
-
-/** Sea miles sailed up to a day, optionally only from a day on. */
-export function seaMiles(data: ArcData, asOf: string, since = ""): number {
-  const inRange = (d: string) => d >= since && d <= asOf;
-  return (
-    MILES.session * data.sessions.filter((s) => inRange(s.date)).length +
-    MILES.comp * (data.competitions ?? []).filter((c) => inRange(c.date)).length +
-    MILES.cross * (data.cross ?? []).filter((c) => inRange(c.date)).length
-  );
-}
-
-export interface Passage {
-  /** Route index of the island the ship came from. */
-  idx: number;
-  next: Island | null;
-  /** Miles since the last island. */
-  miles: number;
-  /** 0 … MAX_PASSAGE of the way to the next island. */
-  progress: number;
-}
-
-export function passage(data: ArcData, asOf: string): Passage {
-  const sea = data.profile?.homeSea ?? DEFAULT_SEA;
-  const r = route(sea);
-  const all = stays(data, asOf);
-  const cur = all[all.length - 1] ?? { idx: 0, from: asOf };
-  const next = r[cur.idx + 1] ?? null;
-  const miles = seaMiles(data, asOf, cur.from);
-  return { idx: cur.idx, next, miles, progress: next ? Math.min(MAX_PASSAGE, 1 - Math.exp(-miles / PASSAGE_SCALE)) : 0 };
-}
 
 export type WeatherKind = "dock" | "calm" | "light" | "breeze" | "tailwind";
 
@@ -164,7 +282,7 @@ export function weather(data: ArcData, asOf: string, paused: boolean): Weather {
 
 export interface LogEntry {
   date: string;
-  kind: "start" | "island" | "land" | "mark" | "comp" | "milestone" | "dock" | "cross";
+  kind: "start" | "island" | "lap" | "gust" | "crew" | "land" | "mark" | "comp" | "milestone" | "dock" | "cross";
   text: string;
   /** Island id, when the entry belongs to one. */
   island?: string;
@@ -178,31 +296,41 @@ const MILESTONES = [10, 25, 50, 100, 150, 200, 300, 400, 500, 750, 1000];
 export function logbook(data: ArcData, asOf: string): LogEntry[] {
   const p = data.profile;
   if (!p) return [];
-  const sea = p.homeSea ?? DEFAULT_SEA;
-  const r = route(sea);
+  const r = route(p.homeSea ?? DEFAULT_SEA);
   const out: LogEntry[] = [];
-  const all = stays(data, asOf);
-  const first = all[0];
-  if (first) {
-    const is = r[first.idx];
-    out.push({
-      date: first.from,
-      kind: "start",
-      text: first.idx === 0 ? `Leinen los im ${is.name}. Die Reise beginnt.` : `Das Logbuch beginnt vor ${is.name}. Die Reise davor kennt nur deine Erinnerung.`,
-      island: is.id,
-    });
+  const w = walk(data, asOf);
+  const dates = data.sessions
+    .map((s) => s.date)
+    .filter((d) => d <= asOf)
+    .sort();
+  let start = data.onboarding?.date ?? p.createdAt;
+  if (dates[0] && dates[0] < start) start = dates[0];
+  out.push({ date: start, kind: "start", text: `Leinen los im ${r[0].name}. Die Reise beginnt.`, island: r[0].id });
+  for (const a of w.arrivals) {
+    const is = r[stepIndex(a.step)];
+    if (a.step >= ROUTE_LEN && stepIndex(a.step) === LOOP_START) {
+      out.push({ date: a.date, kind: "lap", text: `Einmal um die Welt! Wieder am ${is.name}, die ${lapOf(a.step) + 1}. Runde beginnt.`, island: is.id });
+    } else {
+      out.push({ date: a.date, kind: "island", text: `Anker geworfen vor ${is.name}.`, island: is.id });
+    }
   }
-  for (let i = 1; i < all.length; i++) {
-    const is = r[all[i].idx];
-    const rank = rankFromIndex(all[i].idx);
-    const prev = rankFromIndex(all[i - 1].idx);
-    const beltUp = rank.belt !== prev.belt;
-    out.push({
-      date: all[i].from,
-      kind: "island",
-      text: `${beltUp ? `${BELT_NAME[rank.belt]}gurt! ` : ""}Anker geworfen vor ${is.name}${rank.stripes ? `, ${rank.stripes}. Streifen` : ""}.`,
-      island: is.id,
-    });
+  const crews = new Set<string>();
+  const crewIsles = new Set<string>();
+  for (const e of w.entries) {
+    if (e.kind === "stripe" || e.kind === "belt") {
+      const what = e.kind === "belt" ? `${BELT_NAME[e.belt!]}gurt` : `${e.stripes}. Streifen`;
+      out.push({ date: e.date, kind: "gust", text: `${what}! Kräftiger Rückenwind: +${Math.round(e.miles)} Seemeilen${e.aboard ? ` für die Crew „${e.aboard.name}“` : ""}.` });
+    }
+    if (!e.aboard) continue;
+    if (!crews.has(e.aboard.crew)) {
+      crews.add(e.aboard.crew);
+      out.push({ date: e.date, kind: "crew", text: `An Bord der Crew „${e.aboard.name}“ gegangen. Ab jetzt segelt ihr gemeinsam, dein eigenes Schiff wartet im Hafen.` });
+    }
+    const key = `${e.aboard.crew}:${e.isle}`;
+    if (e.kind === "session" && !crewIsles.has(key) && ISLAND[e.isle]) {
+      crewIsles.add(key);
+      out.push({ date: e.date, kind: "island", text: `Mit der Crew „${e.aboard.name}“ vor ${ISLAND[e.isle].name}.`, island: e.isle });
+    }
   }
   for (const e of exploration(data, asOf)) {
     e.found.forEach((f, k) => {
@@ -215,29 +343,22 @@ export function logbook(data: ArcData, asOf: string): LogEntry[] {
       });
     });
   }
-  const at = (d: string) => {
-    let idx = first?.idx ?? 0;
-    for (const s of all) if (s.from <= d) idx = s.idx;
-    return r[idx];
-  };
+  // Where each competition took place: the island whose waters the ship was in that day.
+  const isleOf = new Map(w.entries.filter((e) => e.kind === "comp" && e.id).map((e) => [e.id!, e.isle]));
   for (const c of (data.competitions ?? []).filter((x) => x.date <= asOf)) {
-    const is = at(c.date);
+    const is = ISLAND[isleOf.get(c.id) ?? r[0].id];
     out.push({ date: c.date, kind: "comp", text: `Turnier bei ${is.name}: ${c.name}${c.place ? `, ${PLACE[c.place]}` : ""}.`, island: is.id });
   }
-  const dates = data.sessions
-    .map((s) => s.date)
-    .filter((d) => d <= asOf)
-    .sort();
   for (const n of MILESTONES) if (dates[n - 1]) out.push({ date: dates[n - 1], kind: "milestone", text: `${n}. Training an Bord.` });
   const cross = (data.cross ?? [])
     .map((c) => c.date)
     .filter((d) => d <= asOf)
     .sort();
   for (const n of [10, 50, 100]) if (cross[n - 1]) out.push({ date: cross[n - 1], kind: "cross", text: `${n}. Einheit Nebensport: Rumpf und Segel werden stärker.` });
-  for (const w of data.pauses) {
-    const d = isoDay(w * 7 + 4);
+  for (const wk of data.pauses) {
+    const d = isoDay(wk * 7 + 4);
     if (d <= asOf) out.push({ date: d, kind: "dock", text: "Eine Woche im Trockendock (Heilungsmodus)." });
   }
-  const rank: Record<LogEntry["kind"], number> = { start: 0, island: 1, land: 2, mark: 3, comp: 4, milestone: 5, cross: 6, dock: 7 };
+  const rank: Record<LogEntry["kind"], number> = { start: 0, crew: 1, gust: 2, island: 3, lap: 3, land: 4, mark: 5, comp: 6, milestone: 7, cross: 8, dock: 9 };
   return out.sort((a, b) => (a.date === b.date ? rank[b.kind] - rank[a.kind] : a.date < b.date ? 1 : -1));
 }

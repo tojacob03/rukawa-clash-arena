@@ -9,7 +9,7 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { LocateFixed, Maximize2, Minus, Plus } from "lucide-react";
 import type { Belt, FlagDesign, SeaId } from "../core/types.ts";
 import type { Island } from "../core/sea.ts";
-import { ISLAND, ISLANDS, SEAS, SERPENT, WORLD, courseLength, route, serpentWidth, shipPos, smoothPath, voyageLegs } from "../core/sea.ts";
+import { ISLAND, ISLANDS, LOOP_START, ROUTE_LEN, SEAS, nextIndex, SERPENT, WORLD, courseLength, route, serpentWidth, shipPos, smoothPath, voyageLegs } from "../core/sea.ts";
 import { placeLabels } from "../core/labels.ts";
 import type { LabelReq, PlacedLabel, Rect, Spot } from "../core/labels.ts";
 import type { WeatherKind } from "../core/voyage.ts";
@@ -20,10 +20,10 @@ import type { Timeline } from "../motion.ts";
 
 export interface MapMarks {
   sea: SeaId;
-  /** Route index of the island you are at (0 … 24). */
+  /** Route index of the island the ship came from (0 … 24). */
   current: number;
-  /** Route index where the app started (belt and stripes at sign-up). */
-  start: number;
+  /** Laps round the world completed: after the first the whole route is sailed. */
+  lap: number;
   /** Tournaments per island id, with the best placement. */
   comps: Record<string, { n: number; best: number }>;
   shipColor: string;
@@ -34,7 +34,7 @@ export interface MapMarks {
   /** Ship class follows the belt. */
   belt: Belt;
   flag?: Partial<FlagDesign> | null;
-  /** Share of the way to the next island (0 … 0.85). */
+  /** Share of the way to the next island (0 … 1). */
   progress: number;
   weather: WeatherKind;
   /** Landmarks found per island id (0 … 3). */
@@ -59,10 +59,11 @@ export interface OtherShip {
   crew: boolean;
 }
 
-/** A voyage to show: the ship sails from `from` (island index plus the share of the way) to where it is now. */
+/** A voyage to show: the ship sails from `from` to `to`, steps of the voyage (islands reached plus the share of the way, laps included). */
 export interface Voyage {
   id: number;
   from: number;
+  to: number;
 }
 export type VoyageEvent = { kind: "start"; seconds: number } | { kind: "done" };
 
@@ -120,6 +121,10 @@ function routePath(r: Island[], from: number, to: number) {
   }
   return seg.join(" ");
 }
+
+/** Your route so far; after a lap round the world, all of it, closed at the gate. */
+const trailPath = (r: Island[], current: number, lap: number) =>
+  lap ? `${routePath(r, 0, ROUTE_LEN - 1)} L${r[LOOP_START].x} ${r[LOOP_START].y}` : current > 0 ? routePath(r, 0, current) : null;
 
 /** Where a sea's name may stand: along the outer edge of its quarter first, then the inner one. */
 function seaSpots(id: SeaId, fs: number): Spot[] {
@@ -201,10 +206,10 @@ export default function SeaMap({
   /** The visible part of the map once it stops moving, so labels stay inside. */
   const [seen, setSeen] = useState<Rect | null>(null);
   const r = route(marks.sea);
-  const next = r[marks.current + 1];
+  const nextI = nextIndex(marks.current);
+  const next = r[nextI];
   const pos = shipPos(r, marks.current, marks.progress);
-  const target = marks.current + marks.progress;
-  const legs = useMemo(() => (voyage ? voyageLegs(route(marks.sea), voyage.from, target) : null), [voyage, marks.sea, target]);
+  const legs = useMemo(() => (voyage ? voyageLegs(route(marks.sea), voyage.from, voyage.to) : null), [voyage, marks.sea]);
   const sailing = !!legs?.length;
   // While a voyage waits to start, the ship lies where you saw it last.
   const start = sailing ? { x: legs[0][0].x, y: legs[0][0].y, left: legs[0][1].x < legs[0][0].x } : pos;
@@ -580,13 +585,15 @@ export default function SeaMap({
     const out: Rect[] = [];
     for (const is of ISLANDS) {
       const rr = isleR(is);
-      out.push({ x0: is.x - rr * 1.25 - 6, y0: is.y - rr * 0.85 - 6, x1: is.x + rr * 1.25 + 6 + (is.kind === "hafen" ? 12 : 0), y1: is.y + rr * 0.85 + 6, owner: is.id });
+      // The next island wears a wider ring.
+      const g = is.id === next.id ? 13 : 6;
+      out.push({ x0: is.x - rr * 1.25 - g, y0: is.y - rr * 0.85 - g, x1: is.x + rr * 1.25 + g + (is.kind === "hafen" ? 12 : 0), y1: is.y + rr * 0.85 + g, owner: is.id });
       if (is.kind === "kap") out.push({ x0: is.x - 2, y0: is.y - 28, x1: is.x + 16, y1: is.y - 14 });
       if ((marks.explored[is.id] ?? 0) >= 3) out.push({ x0: is.x - 6, y0: is.y - 32, x1: is.x + 10, y1: is.y - 12 });
       if (marks.comps[is.id]) out.push({ x0: is.x - 30, y0: is.y - 30, x1: is.x - 10, y1: is.y - 10 });
     }
     return out;
-  }, [marks.explored, marks.comps]);
+  }, [marks.explored, marks.comps, next.id]);
 
   // The boss swims next to the ship as a sea serpent, in open water. It is
   // as long as its highest life points; its humps show the current ones.
@@ -604,13 +611,29 @@ export default function SeaMap({
       [-side - 20, 6],
       [side, -44],
       [-side, -44],
+      [0, -60],
+      [side * 2, 44],
+      [-side * 2, 44],
     ];
-    const busy = [...isleBoxes, shipBox(pos.x, pos.y, shipScale), ...fleet.map((f) => shipBox(f.x, f.y + 6, shipScale * 0.7))];
+    // Islands and ships, and the ridge in the middle and at both edges: it swims in open water.
+    const busy = [
+      ...isleBoxes,
+      shipBox(pos.x, pos.y, shipScale),
+      ...fleet.map((f) => shipBox(f.x, f.y + 6, shipScale * 0.7)),
+      { x0: RX - 26, y0: 0, x1: RX + 26, y1: H },
+      { x0: -W, y0: -H, x1: 22, y1: H * 2 },
+      { x0: W - 22, y0: -H, x1: W * 2, y1: H * 2 },
+      { x0: -W, y0: -H, x1: W * 2, y1: 16 },
+      { x0: -W, y0: H - 16, x1: W * 2, y1: H * 2 },
+    ];
+    const hit = (b: Rect) => busy.some((i) => b.x0 < i.x1 && b.x1 > i.x0 && b.y0 < i.y1 && b.y1 > i.y0);
     for (const [dx, dy] of tries) {
       const b = box(pos.x + dx, pos.y + dy);
-      if (!busy.some((i) => b.x0 < i.x1 && b.x1 > i.x0 && b.y0 < i.y1 && b.y1 > i.y0)) return { x: pos.x + dx, y: pos.y + dy, box: b, w, sc };
+      if (!hit(b)) return { x: pos.x + dx, y: pos.y + dy, box: b, w, sc };
     }
-    return { x: pos.x + side, y: pos.y + 44, box: box(pos.x + side, pos.y + 44), w, sc };
+    // Everything taken: at least inside the world.
+    const x = clampN(pos.x + side, w / 2 + 24, W - w / 2 - 24);
+    return { x, y: pos.y + 44, box: box(x, pos.y + 44), w, sc };
   }, [marks.boss, marks.bossMax, pos.x, pos.y, isleBoxes, fleet, shipScale]);
 
   // Which labels to show at this zoom, and where.
@@ -621,7 +644,7 @@ export default function SeaMap({
     for (const is of ISLANDS) {
       const idx = r.findIndex((x) => x.id === is.id);
       const here = idx === marks.current;
-      const isNext = idx === marks.current + 1;
+      const isNext = idx === nextI;
       const special = !!is.kind;
       const onRoute = idx >= 0;
       const show = here || isNext || selected === is.id || special || (onRoute && ppu >= 0.7) || ppu >= 1.15;
@@ -629,11 +652,12 @@ export default function SeaMap({
       const prio = here ? 100 : selected === is.id ? 90 : isNext ? 80 : special ? 60 : onRoute ? 40 - Math.abs(idx - marks.current) : 10;
       // Same sizes as the CSS: the current island a bit bigger, islands off your route a bit smaller.
       const size = here ? 1.12 : onRoute ? 1 : 0.92;
-      reqs.push({ id: is.id, text: is.name, x: is.x, y: is.y, prio, size, force: here || selected === is.id, above: !is.sea && is.y < CY });
+      reqs.push({ id: is.id, text: is.name, x: is.x, y: is.y, prio, size, force: here || isNext || selected === is.id, above: !is.sea && is.y < CY });
     }
     // Who sails there matters more than the name of a distant island.
     others.forEach((o, i) => reqs.push({ id: `ship:${o.id}`, text: o.name, x: fleet[i].x, y: fleet[i].y - 4, prio: o.crew ? 72 : 55, size: 0.92 }));
-    if (boss && marks.boss) reqs.push({ id: "boss", text: marks.boss, x: boss.x, y: boss.y - 2, prio: 75, size: SMALL, force: true });
+    // The serpent explains itself (and the legend names it): its name gives way to the islands.
+    if (boss && marks.boss) reqs.push({ id: "boss", text: marks.boss, x: boss.x, y: boss.y - 2, prio: 75, size: SMALL });
     // The world's own names: seas, the currents, the calm belts, the ridge.
     for (const s of SEAS) reqs.push({ id: `sea:${s.id}`, text: s.name, x: 0, y: 0, prio: s.id === marks.sea ? 66 : 46, size: SEA_NAME * 1.3, spots: seaSpots(s.id, fs) });
     if (ppu >= 0.55) {
@@ -688,22 +712,21 @@ export default function SeaMap({
           {/* Great current route */}
           <path d={routePath(r, 5, 24)} className="sea-lane" opacity={0.4} />
 
-          {/* Your journey: before the app dashed, since then solid */}
-          {marks.start > 0 ? <path d={routePath(r, 0, Math.min(marks.start, marks.current))} className="sea-trail before" /> : null}
-          {marks.current > marks.start ? <path d={routePath(r, marks.start, marks.current)} className="sea-trail" /> : null}
-          {next ? <path d={routePath(r, marks.current, marks.current + 1)} className="sea-next" /> : null}
+          {/* Your journey so far, and the leg ahead */}
+          {trailPath(r, marks.current, marks.lap) ? <path d={trailPath(r, marks.current, marks.lap)!} className="sea-trail" /> : null}
+          <path d={`M${r[marks.current].x} ${r[marks.current].y} L${next.x} ${next.y}`} className="sea-next" />
 
           {/* Islands */}
           {ISLANDS.map((is) => {
             const idx = r.findIndex((x) => x.id === is.id);
             const onRoute = idx >= 0;
-            const state = !onRoute ? "other" : idx < marks.current ? "past" : idx === marks.current ? "here" : "future";
+            const state = !onRoute ? "other" : idx === marks.current ? "here" : idx < marks.current || marks.lap ? "past" : "future";
             const comp = marks.comps[is.id];
             const rr = isleR(is);
             return (
               <g
                 key={is.id}
-                className={`isle ${state}${selected === is.id ? " sel" : ""}${idx === marks.current + 1 ? " next" : ""}`}
+                className={`isle ${state}${selected === is.id ? " sel" : ""}${idx === nextI ? " next" : ""}`}
                 role="button"
                 tabIndex={onRoute || is.sea ? 0 : -1}
                 aria-label={`${is.name}${state === "here" ? ", dein Schiff" : ""}`}
@@ -721,7 +744,7 @@ export default function SeaMap({
                 }}
               >
                 <circle cx={is.x} cy={is.y} r={hitR} fill="transparent" />
-                {idx === marks.current + 1 ? <circle cx={is.x} cy={is.y} r={rr * 1.25 + 11} className="isle-next-ring" /> : null}
+                {idx === nextI ? <circle cx={is.x} cy={is.y} r={rr * 1.25 + 11} className="isle-next-ring" /> : null}
                 {selected === is.id && state !== "here" ? <circle cx={is.x} cy={is.y} r={rr * 1.25 + 7} className="isle-sel-ring" /> : null}
                 <IslandGlyph is={is} />
                 <title>{is.name}</title>
@@ -798,7 +821,7 @@ export default function SeaMap({
             {text(labels.ridge, "sea-ridge-lbl", "Scharlachkamm")}
             {ISLANDS.map((is) => {
               const idx = r.findIndex((x) => x.id === is.id);
-              const state = idx < 0 ? "other" : idx < marks.current ? "past" : idx === marks.current ? "here" : idx === marks.current + 1 ? "next" : "future";
+              const state = idx < 0 ? "other" : idx === marks.current ? "here" : idx === nextI ? "next" : idx < marks.current || marks.lap ? "past" : "future";
               return text(labels[is.id], `isle-lbl ${state}${selected === is.id ? " sel" : ""}`, is.name, () => onSelect(is.id));
             })}
             {others.map((o) => text(labels[`ship:${o.id}`], `ship-lbl${o.crew ? " crew" : ""}`, o.name))}
@@ -830,7 +853,7 @@ export default function SeaMap({
           })}
           <rect x={0} y={CY - CH} width={W} height={CH * 2} fill="#1d5a8f" />
           <rect x={RX - 10} y={0} width={20} height={H} fill="#b8333a" />
-          <path d={routePath(r, 0, marks.current)} fill="none" stroke="#f1bf57" strokeWidth={10} strokeLinecap="round" />
+          {trailPath(r, marks.current, marks.lap) ? <path d={trailPath(r, marks.current, marks.lap)!} fill="none" stroke="#f1bf57" strokeWidth={10} strokeLinecap="round" /> : null}
           <circle cx={pos.x} cy={pos.y} r={22} fill="#f3b000" stroke="#16171c" strokeWidth={6} />
           <rect ref={miniRef} className="sea-mini-view" x={0} y={0} width={W} height={H} />
         </svg>
@@ -857,14 +880,6 @@ export default function SeaMap({
             </svg>
             Deine Route
           </li>
-          {marks.start > 0 ? (
-            <li>
-              <svg viewBox="0 0 28 10" aria-hidden="true">
-                <path d="M3 5 H25" stroke="#f1bf57" strokeWidth={3} strokeDasharray="5 4" opacity={0.8} />
-              </svg>
-              Vor der App
-            </li>
-          ) : null}
           <li>
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <circle cx={8} cy={8} r={6} fill="none" stroke="#ffe39a" strokeWidth={1.6} strokeDasharray="3 2.5" />

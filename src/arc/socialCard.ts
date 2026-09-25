@@ -5,8 +5,7 @@ import { useEffect, useMemo } from "react";
 import type { ArcData, ArcState } from "./core/types.ts";
 import { SLOTS, inventory } from "./core/items.ts";
 import { CLASS } from "./core/classes.ts";
-import { DEFAULT_SEA, rankIndex } from "./core/sea.ts";
-import { passage } from "./core/voyage.ts";
+import { bodyOf } from "./core/body.ts";
 import { bounty } from "./core/bounty.ts";
 import { normalizePlan } from "./core/schedule.ts";
 import { buildCard, inviteArg, sharedSlots } from "./core/social.ts";
@@ -14,18 +13,20 @@ import type { InviteKind, Peer, SocialCard } from "./core/social.ts";
 import { BELT } from "./format.ts";
 import { getCharacter, resolveGear } from "./character.ts";
 import { cloudState, loadCloud } from "./cloud/state.ts";
-import { refreshSocial, useSocial } from "./cloud/social.ts";
+import { refreshSocial, socialStore, useSocial } from "./cloud/social.ts";
+import type { SocialView } from "./cloud/social.ts";
+import { crewNow, shipNow } from "./ship.ts";
 import type { OtherShip } from "./components/SeaMap.tsx";
 import type { CrewInfo } from "./core/social.ts";
 
-export function cardFor(data: ArcData, st: ArcState, today: string): SocialCard | null {
+export function cardFor(data: ArcData, st: ArcState, today: string, view: SocialView = socialStore.get()): SocialCard | null {
   const p = data.profile;
   if (!p) return null;
   const ch = getCharacter(data);
   const gear = resolveGear(data, st, inventory(data, st));
-  const island = rankIndex(p.belt, p.stripes);
-  const pas = passage(data, today);
   const cls = p.cls ?? st.clsDetected;
+  // Where the ship you sail on is: the crew's ship, or your own.
+  const ship = shipNow(data, today, { sail: CLASS[cls]?.color ?? "#f1bf57", flag: ch.flag }, crewNow(view));
   return buildCard({
     belt: p.belt,
     stripes: p.stripes,
@@ -36,9 +37,12 @@ export function cardFor(data: ArcData, st: ArcState, today: string): SocialCard 
     weekGoal: st.weekGoal,
     bounty: bounty(data, st),
     cls,
-    sea: p.homeSea ?? DEFAULT_SEA,
-    island,
-    progress: pas.idx === island ? pas.progress : 0,
+    sea: ship.sea,
+    island: ship.pos.idx,
+    progress: ship.pos.progress,
+    lap: ship.pos.lap,
+    aboard: ship.crew ? { id: ship.crew.id, miles: ship.mine } : null,
+    body: p.heightCm || p.weightKg ? bodyOf(p.heightCm, p.weightKg) : null,
     ship: ch.shipName,
     sail: CLASS[cls]?.color ?? "#f1bf57",
     flag: ch.flag,
@@ -78,7 +82,8 @@ function markPublished(uid: string, sig: string) {
  */
 export function useSocialPublish(data: ArcData, st: ArcState, today: string) {
   const social = useSocial();
-  const card = useMemo(() => (data.profile && !data.demo ? cardFor(data, st, today) : null), [data, st, today]);
+  // The crew ship moves with the others' miles too, so the card follows the loaded state.
+  const card = useMemo(() => (data.profile && !data.demo ? cardFor(data, st, today, social) : null), [data, st, today, social]);
   const slots = useMemo(() => sharedSlots(normalizePlan(data.plan)), [data.plan]);
   const me = social.me;
   const uid = social.uid;
@@ -119,18 +124,19 @@ export async function enableSocial(data: ArcData, st: ArcState, today: string, n
   await refreshSocial(true);
 }
 
-/** Crewmates and friends as ships on the sea chart. Crewmates fly the crew flag. */
+/**
+ * Friends as ships on the sea chart, where the ship they sail on is.
+ * Crewmates sail on your crew ship with you, so they get no ship of their own.
+ */
 export function shipsOf(self: string | null, crew: CrewInfo | null, friends: Peer[]): OtherShip[] {
   const out: OtherShip[] = [];
-  const seen = new Set<string>(self ? [self] : []);
-  const add = (p: Peer, inCrew: boolean) => {
-    if (seen.has(p.id) || !p.card) return;
-    seen.add(p.id);
-    const c = p.card;
-    out.push({ id: p.id, name: p.name, sea: c.sea, island: c.island, progress: c.progress, belt: c.belt, sail: c.sail, flag: inCrew && crew ? crew.flag : c.flag, crew: inCrew });
-  };
-  for (const m of crew?.members ?? []) add(m, true);
-  for (const f of friends) add(f, false);
+  const seen = new Set<string>([...(self ? [self] : []), ...(crew?.members ?? []).map((m) => m.id)]);
+  for (const f of friends) {
+    if (seen.has(f.id) || !f.card) continue;
+    seen.add(f.id);
+    const c = f.card;
+    out.push({ id: f.id, name: f.name, sea: c.sea, island: c.island, progress: c.progress, belt: c.belt, sail: c.sail, flag: c.flag, crew: false });
+  }
   return out;
 }
 
