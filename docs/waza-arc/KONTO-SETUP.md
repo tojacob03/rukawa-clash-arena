@@ -6,6 +6,7 @@ Was im Code fertig ist und was nur im Supabase-Dashboard geht. Die App zeigt auf
 
 - Sicherheitsprüfung des Projekts und Schließen der Lücken (`supabase/migrations/20260925090000_portal_lock_down_public_access.sql`, KONZEPT.md 8.3).
 - Schema `arc` mit Tabelle, Zugriffsregeln und den Funktionen `arc_pull`, `arc_push`, `arc_delete_account` (`supabase/migrations/20260925100000_arc_cloud_save.sql`).
+- Erinnerungen: Push-Abos, Versandprotokoll, Cron-Job und Edge Function `arc-reminders` (Abschnitt 8).
 - supabase-js 2.106.2, dieselbe Version wie im Lovable-Build.
 
 Alles Folgende passiert im Dashboard des Projekts „Rukawa Portfolio“ (`jtpiybdcuawhnfibrdho`). Die Reihenfolge ist Absicht: Registrierung erst am Schluss einschalten.
@@ -86,7 +87,7 @@ TOTP (Authenticator-App) ist standardmäßig an. Nichts zu tun, außer es wurde 
 
 Im Code fertig: Wochenplan, Benachrichtigungen (Web Push), E-Mail, Kalender-Datei. Der Kalender funktioniert sofort und ohne Server. Für Push und Mail:
 
-1. **Datenbank und Function** (braucht eine Freigabe, dann erledige ich das): Migration `supabase/migrations/20260926090000_arc_reminders.sql` anwenden und die Edge Function `arc-reminders` mit `verify_jwt = false` deployen (`supabase functions deploy arc-reminders`). Der Cron-Job läuft danach alle fünf Minuten, die Schlüssel für Web Push erzeugt die Function beim ersten Lauf selbst. Ab dann zeigt der Wochenplan „Auf diesem Gerät einschalten“.
+1. **Datenbank und Function: erledigt am 25. September 2026.** Migration `supabase/migrations/20260926090000_arc_reminders.sql` ist angewendet (im Projekt als `arc_reminders`), die Edge Function `arc-reminders` läuft mit `verify_jwt = false` (sie prüft Cron-Geheimnis und Anmeldung selbst), der Cron-Job `arc-reminders` alle fünf Minuten, die VAPID-Schlüssel sind erzeugt (privat nur im Vault). Nach Änderungen an der Function neu deployen mit `supabase functions deploy arc-reminders`. Sobald das Frontend gemergt ist, zeigt der Wochenplan „Auf diesem Gerät einschalten“.
 2. **E-Mail (optional):** ein Konto bei [Resend](https://resend.com) anlegen, die Domain `rukawaanalytics.com` verifizieren (drei DNS-Einträge beim Domain-Anbieter), einen API-Key erzeugen. Dann unter Edge Functions → Secrets setzen:
    - `RESEND_API_KEY`: der Key
    - `ARC_MAIL_FROM`: z. B. `Waza Arc <arc@rukawaanalytics.com>`
