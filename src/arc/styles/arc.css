@@ -1584,6 +1584,9 @@ button.item:hover { background-color: var(--ink-4); }
 @media (min-width: 760px) { .shown-to { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
 .social-inline { align-items: flex-end; }
 .field.grow { flex: 1 1 220px; }
+/* Training since: year and month side by side */
+.since-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.since-pick select { flex: 1 1 130px; min-width: 0; }
 .field input.code-field { max-width: 220px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
 .field input.code-field::placeholder { font-weight: 400; letter-spacing: 0.08em; }
 .confirm-row { padding: 8px 10px; border: 2px solid var(--beni); background: var(--beni-soft); }

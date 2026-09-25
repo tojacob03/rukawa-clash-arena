@@ -14,7 +14,7 @@ import { createProfile, loadDemo } from "../actions.ts";
 import { DEFAULT_LOOK } from "../avatarOptions.ts";
 import { ageDivision } from "../character.ts";
 import Avatar from "../components/Avatar.tsx";
-import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SportsPicker } from "../components/CharacterForms.tsx";
+import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SincePicker, SportsPicker } from "../components/CharacterForms.tsx";
 import { SPORT } from "../core/sports.ts";
 import { Belt, HeroKoma, Seg, Stepper } from "../components/ui.tsx";
 import { cloudConfigured, afterSignIn, useCloud } from "../cloud/state.ts";
@@ -229,10 +229,7 @@ export default function Start({ today }: { today: string }) {
             <span className="fl">Streifen</span>
             <Stepper value={stripes} onChange={setStripes} max={4} label="Streifen" />
           </div>
-          <label className="field">
-            <span className="fl">Trainiert seit (optional)</span>
-            <input id="arc-since" type="month" value={since} max={today.slice(0, 7)} onChange={(e) => setSince(e.target.value)} />
-          </label>
+          <SincePicker id="arc-since" label="Trainiert seit (optional)" value={since || undefined} today={today} onChange={(v) => setSince(v ?? "")} />
           <div className="field">
             <span className="fl">Trainings pro Woche (Ziel)</span>
             <Seg value={goal} onChange={(v) => setGoal(v)} label="Wochenziel" options={[1, 2, 3, 4, 5].map((v) => ({ v, label: String(v) }))} />
