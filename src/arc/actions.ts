@@ -1,4 +1,4 @@
-import type { ArcData, Attire, Belt, Character, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import type { ArcData, Attire, Belt, Character, Competition, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
 import { getCharacter } from "./character.ts";
 import { ITEMS } from "./core/items.ts";
 import { TECH } from "./core/techniques.ts";
@@ -26,6 +26,14 @@ export function saveSession(s: Session) {
   arcStore.set((d) => ({ ...d, sessions: [...d.sessions, s] }));
 }
 
+export function saveCompetition(c: Competition) {
+  arcStore.set((d) => ({ ...d, competitions: [...(d.competitions ?? []).filter((x) => x.id !== c.id), c] }));
+}
+
+export function deleteCompetition(id: string) {
+  arcStore.set((d) => ({ ...d, competitions: (d.competitions ?? []).filter((x) => x.id !== id) }));
+}
+
 export function deleteSession(id: string) {
   arcStore.set((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== id) }));
 }
@@ -36,13 +44,14 @@ export function createProfile(
   known: string[],
   claims: Record<string, number>,
   look: Look,
+  mode: Attire = "gi",
 ) {
   arcStore.set({
     ...emptyData(),
     profile: { ...p, startBelt: p.belt, startStripes: p.stripes, createdAt: today },
     onboarding: { date: today, known, claims },
     // Start gear and flags are not "new"; only what you find later is.
-    character: { ...getCharacter(emptyData()), look, seen: [...ITEMS.filter((x) => x.src.t === "start").map((x) => x.id), ...(p.countries ?? []).map((c) => `flag:${c}`)] },
+    character: { ...getCharacter(emptyData()), look, mode, seen: [...ITEMS.filter((x) => x.src.t === "start").map((x) => x.id), ...(p.countries ?? []).map((c) => `flag:${c}`)] },
   });
 }
 

@@ -28,6 +28,7 @@ create table arc.profiles (
   weight_kg    numeric(4, 1) check (weight_kg between 30 and 200),
   training_since text check (training_since ~ '^[0-9]{4}-[0-9]{2}$'),
   cls          text check (cls in ('netzweber', 'druckwalze', 'anker', 'schatten', 'jaeger', 'ferse', 'sturm', 'festung', 'wandler')),
+  home_sea     text check (home_sea in ('frost', 'morgen', 'abend', 'glut')),
   created_at   date not null default current_date
 );
 
@@ -67,6 +68,20 @@ create table arc.sessions (
 );
 create index sessions_user_date on arc.sessions (user_id, date);
 
+-- Turniere. matches: [{ result: win|loss|draw, method: sub|points|adv|ref|dq|wo, tech, oppBelt }, ...]
+create table arc.competitions (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  date        date not null,
+  name        text not null check (length(name) between 1 and 60),
+  org         text check (length(org) <= 40),
+  attire      text not null check (attire in ('gi', 'nogi')),
+  weight      text check (length(weight) <= 20),
+  place       smallint not null default 0 check (place between 0 and 3),
+  matches     jsonb not null default '[]' check (jsonb_typeof(matches) = 'array' and jsonb_array_length(matches) <= 10),
+  created_at  timestamptz not null default now()
+);
+
 create table arc.pauses (
   user_id  uuid not null references auth.users (id) on delete cascade,
   week     integer not null,
@@ -85,7 +100,7 @@ create table arc.promotions (
 do $$
 declare t text;
 begin
-  foreach t in array array['profiles', 'onboarding', 'characters', 'sessions', 'pauses', 'promotions'] loop
+  foreach t in array array['profiles', 'onboarding', 'characters', 'sessions', 'competitions', 'pauses', 'promotions'] loop
     execute format('alter table arc.%I enable row level security', t);
     execute format('revoke all on arc.%I from public, anon', t);
     execute format('grant select, insert, update, delete on arc.%I to authenticated', t);

@@ -8,6 +8,7 @@ import { useCompare } from "../useCompare.ts";
 import StarMap from "../components/StarMap.tsx";
 import TechniqueSheet from "../components/TechniqueSheet.tsx";
 import { Star } from "../components/ui.tsx";
+import { MapSwitch } from "./SeaPage.tsx";
 
 export default function MapPage({ data, st, today, arg }: { data: ArcData; st: ArcState; today: string; arg: string | null }) {
   const selected = arg && TECH[arg] ? arg : null;
@@ -20,6 +21,7 @@ export default function MapPage({ data, st, today, arg }: { data: ArcData; st: A
     <div className="page map-page">
       <div className="map-head">
         <div>
+          <MapSwitch value="karte" />
           <p className="eyebrow">Skilltree · Sternkarte</p>
           <h1 className="page-h">
             {st.discovered} von {TECHS.length} Sternen entdeckt

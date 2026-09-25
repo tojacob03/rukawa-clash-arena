@@ -6,6 +6,7 @@
 import type { ArcData, Attire, Belt, Control, QuestResult, Roll, Session, Size } from "./types.ts";
 import { TECH, baseOf } from "./techniques.ts";
 import { inventory } from "./items.ts";
+import { DEFAULT_LOOK } from "../avatarOptions.ts";
 import { BELT_R, SIZE_R, clamp, compute, dayNum, expected, isoOf, partnerWeight, pickCards, questShape, weekOf } from "./model.ts";
 
 function mulberry32(seed: number) {
@@ -91,7 +92,7 @@ export function buildDemo(todayIsoStr: string, seed = DEMO_SEED): ArcData {
     promotions: [{ date: isoOf(monday0 + 7 * 13 + 2), belt: "blau", stripes: 2 }],
     ui: {},
     character: {
-      look: { skin: 2, hair: 3, hairColor: 0, eyeColor: 0, face: 0, beard: 1 },
+      look: { ...DEFAULT_LOOK, skin: 2, hair: 3, hairColor: 0, hairTips: 10, eyeShape: 3, eyeColor: 1, brows: 4, nose: 5, mouth: 2, beard: 5, muscle: 2, marks: ["blush", "matburn"], tattoo: 2, tattooSide: 1, earring: 1 },
       equipped: { patch1: "flag:DE", patch3: "flag:BR", talisman: "tl_omamori", head: "" },
       mode: "gi",
       seen: [],
@@ -174,6 +175,38 @@ export function buildDemo(todayIsoStr: string, seed = DEMO_SEED): ArcData {
       data.sessions.push(s);
     }
   }
+  // Two tournaments on Saturdays in past weeks.
+  data.competitions = [
+    {
+      id: "demo-comp-1",
+      date: isoOf(monday0 + 7 * 8 + 5),
+      name: "Rhein-Ruhr Open",
+      org: "AJP",
+      attire: "gi",
+      weight: "-82,3 kg",
+      place: 3,
+      matches: [
+        { result: "win", method: "points", oppBelt: "blau" },
+        { result: "loss", method: "sub", tech: "s_bowarrow", oppBelt: "blau" },
+      ],
+      createdAt: (monday0 + 7 * 8 + 5) * 1000,
+    },
+    {
+      id: "demo-comp-2",
+      date: isoOf(monday0 + 7 * 16 + 5),
+      name: "Berlin Grappling Cup",
+      org: "Grappling Industries",
+      attire: "nogi",
+      weight: "-82,3 kg",
+      place: 2,
+      matches: [
+        { result: "win", method: "sub", tech: "s_triangle", oppBelt: "blau" },
+        { result: "win", method: "points", oppBelt: "blau" },
+        { result: "loss", method: "adv", oppBelt: "blau" },
+      ],
+      createdAt: (monday0 + 7 * 16 + 5) * 1000,
+    },
+  ];
   // Everything found up to ten days ago has been looked at; newer loot shows as new.
   const earlier = isoOf(today - 10);
   data.character!.seen = [...inventory(data, compute(data, earlier)).keys()];

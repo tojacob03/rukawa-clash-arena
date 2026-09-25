@@ -1,5 +1,5 @@
 // The Waza Arc model: turns logged trainings into levels, mastery, attributes,
-// Ki, XP and the day's quest offers. Pure functions, no DOM, no storage, so
+// Power Level, XP and the day's quest offers. Pure functions, no DOM, no storage, so
 // the same code runs in the browser, in tests and later on a server.
 //
 // The formulas are documented in docs/waza-arc/KONZEPT.md (section 4).
@@ -11,6 +11,8 @@ import type {
   Attire,
   Attr,
   Belt,
+  Competition,
+  Control,
   NodeState,
   QuestKind,
   QuestOffer,
@@ -28,6 +30,8 @@ import { CLASS, CLASSES, classXp } from "./classes.ts";
 export const BELT_R: Record<Belt, number> = { weiss: 1000, blau: 1150, lila: 1300, braun: 1420, schwarz: 1520 };
 export const SIZE_R: Record<Size, number> = { leichter: -60, gleich: 0, schwerer: 60 };
 export const K_ELO = 12;
+/** Competition matches move the Power Level twice as much as a roll. */
+export const K_COMP = 24;
 export const PRIOR = 4;
 export const Z80 = 0.84;
 export const FORM_WINDOW = 56;
@@ -130,22 +134,43 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
   const sess = opt.attire ? all.filter((s) => s.attire === opt.attire) : all;
   const onb = data.onboarding ? dayNum(data.onboarding.date) : null;
 
-  // Ki: an Elo rating over every roll card.
+  // Power Level: an Elo rating over every roll card and competition match.
   const startBelt = profile?.startBelt ?? "weiss";
   const startStripes = profile?.startStripes ?? 0;
   let ru = BELT_R[startBelt] + 20 * startStripes;
   const claims = data.onboarding?.claims ?? {};
+  const compsAll = (data.competitions ?? [])
+    .filter((c) => dayNum(c.date) <= asOf)
+    .sort((a, b) => (a.date === b.date ? a.createdAt - b.createdAt : a.date < b.date ? -1 : 1));
+  const comps = opt.attire ? compsAll.filter((c) => c.attire === opt.attire) : compsAll;
   const ruSeries = [{ d: onb ?? (sess[0] ? dayNum(sess[0].date) : asOf), r: ru }];
-  const der = sess.map((s) => {
-    const rolls = s.rolls.map((r) => {
-      const E = expected(ru, partnerRating(r));
-      const w = partnerWeight(E);
-      ru += K_ELO * (rollScore(r) - E);
-      return { E, w, sf: r.sf, sa: r.sa, c: r.c };
-    });
-    ruSeries.push({ d: dayNum(s.date), r: ru });
-    return { s, day: dayNum(s.date), rolls, wbar: rolls.length ? mean(rolls.map((x) => x.w)) : 1 };
-  });
+  // Rolls and competition matches in time order; competitions count after the trainings of the same day.
+  const timeline = [
+    ...sess.map((s) => ({ day: dayNum(s.date), t: s.createdAt, s, c: null })),
+    ...comps.map((c) => ({ day: dayNum(c.date), t: c.createdAt + 1e15, s: null, c })),
+  ].sort((a, b) => a.day - b.day || a.t - b.t);
+  const der: { s: Session; day: number; rolls: { E: number; w: number; sf: number; sa: number; c: Control }[]; wbar: number }[] = [];
+  for (const it of timeline) {
+    if (it.s) {
+      const s = it.s;
+      const rolls = s.rolls.map((r) => {
+        const E = expected(ru, partnerRating(r));
+        const w = partnerWeight(E);
+        ru += K_ELO * (rollScore(r) - E);
+        return { E, w, sf: r.sf, sa: r.sa, c: r.c };
+      });
+      ruSeries.push({ d: it.day, r: ru });
+      der.push({ s, day: it.day, rolls, wbar: rolls.length ? mean(rolls.map((x) => x.w)) : 1 });
+    } else if (it.c) {
+      const own = rankAt(data, it.day).belt;
+      for (const m of it.c.matches) {
+        if (m.method === "wo") continue;
+        const E = expected(ru, BELT_R[m.oppBelt ?? own]);
+        ru += K_COMP * ((m.result === "win" ? 1 : m.result === "draw" ? 0.5 : 0) - E);
+      }
+      ruSeries.push({ d: it.day, r: ru });
+    }
+  }
 
   // Evidence per technique.
   const ev: Record<string, Ev> = {};
@@ -203,6 +228,28 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
       e.sd += w * d;
       e.last = Math.max(e.last ?? -1e9, day);
       e.lastAny = day;
+    }
+  }
+
+  // Competition submission wins: strong evidence against a resisting opponent.
+  for (const c of comps) {
+    const day = dayNum(c.date);
+    const age = asOf - day;
+    for (const m of c.matches) {
+      if (m.result !== "win" || m.method !== "sub" || !m.tech || !ev[m.tech]) continue;
+      const e = ev[m.tech];
+      const d = halfLife(age, 120);
+      e.exp++;
+      e.KE += halfLife(age, 60);
+      e.rawAtt += 1;
+      e.rawSucc += 1;
+      e.nw += 2;
+      e.sw += 2;
+      e.nd += 2 * d;
+      e.sd += 2 * d;
+      e.sStrong += 1;
+      e.last = Math.max(e.last ?? -1e9, day);
+      e.lastAny = Math.max(e.lastAny ?? -1e9, day);
     }
   }
 
@@ -317,6 +364,11 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     const w = weekOf(day);
     wk.set(w, (wk.get(w) ?? 0) + 1);
   }
+  for (const c of comps) {
+    xp += compXp(c);
+    const w = weekOf(dayNum(c.date));
+    wk.set(w, (wk.get(w) ?? 0) + 1);
+  }
   for (const c of wk.values()) if (c >= goal) xp += 100;
   for (const x of TECHS) xp += levelXp(nodes[x.id].dataLevel);
   const lvl = Math.floor(Math.sqrt(xp / 40)) + 1;
@@ -426,7 +478,10 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     // Only stars reached on the mat count, not the ones marked at the start.
     map50: TECHS.filter((x) => nodes[x.id].exp > nodes[x.id].expOnb || nodes[x.id].rawAtt > 0).length >= 50,
     both: giN >= 5 && noGiN >= 5,
+    arena: comps.length > 0,
+    podium: comps.some((c) => c.place >= 1 && c.place <= 3),
   };
+  const matches = comps.flatMap((c) => c.matches);
 
   const arcStart = onb ?? (der[0]?.day ?? asOf);
   const weeksIn = Math.max(0, weekOf(asOf) - weekOf(arcStart));
@@ -459,7 +514,30 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     activeCombos: combosActive,
     seals: SEALS.map((s) => ({ id: s.id, got: !!got[s.id] })),
     arc: { index: Math.floor(weeksIn / 8), week: (weeksIn % 8) + 1 },
+    comps: {
+      events: comps.length,
+      w: matches.filter((m) => m.result === "win").length,
+      l: matches.filter((m) => m.result === "loss").length,
+      d: matches.filter((m) => m.result === "draw").length,
+      subs: matches.filter((m) => m.result === "win" && m.method === "sub").length,
+      medals: [1, 2, 3].map((p) => comps.filter((c) => c.place === p).length) as [number, number, number],
+    },
   };
+}
+
+/** XP for a competition: showing up counts most. */
+export function compXp(c: Competition) {
+  const place = [0, 300, 200, 120][c.place] ?? 0;
+  const subs = c.matches.filter((m) => m.result === "win" && m.method === "sub").length;
+  return 150 + 50 * c.matches.length + place + 40 * subs;
+}
+
+/** Belt and stripes on a given day, from the start rank and the promotions. */
+export function rankAt(data: ArcData, day: number): { belt: Belt; stripes: number } {
+  const p = data.profile;
+  let r = { belt: p?.startBelt ?? p?.belt ?? ("weiss" as Belt), stripes: p?.startStripes ?? 0 };
+  for (const pr of [...data.promotions].sort((a, b) => (a.date < b.date ? -1 : 1))) if (dayNum(pr.date) <= day) r = { belt: pr.belt, stripes: pr.stripes };
+  return r;
 }
 
 /** Three cards from three sectors, at most one Schmiede and one Kata card. */
@@ -489,7 +567,8 @@ export interface Diff {
   streakFrom: number;
   streakTo: number;
   weekGoal: boolean;
-  ki: number;
+  /** Change of the Power Level (Elo × 10). */
+  power: number;
   levels: { id: string; from: number; to: number }[];
   /** Changes of the data level, which is what earns XP. */
   dataLevels: { id: string; from: number; to: number }[];
@@ -523,7 +602,7 @@ export function diff(a: ArcState, b: ArcState): Diff {
     streakFrom: a.streak,
     streakTo: b.streak,
     weekGoal: a.weekNow < a.weekGoal && b.weekNow >= b.weekGoal,
-    ki: Math.round(b.ru * 10) - Math.round(a.ru * 10),
+    power: Math.round(b.ru * 10) - Math.round(a.ru * 10),
     levels,
     dataLevels,
     confirmed,

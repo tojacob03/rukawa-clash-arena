@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Lock, Star as StarIcon } from "lucide-react";
+import { Lock, ScanEye, Star as StarIcon, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Look, Slot } from "../core/types.ts";
 import type { ItemDef, Owned } from "../core/items.ts";
 import { ITEMS, RARITY, SLOTS, dynamicItems, perkText, unlockText } from "../core/items.ts";
@@ -9,8 +9,9 @@ import { COUNTRY } from "../core/countries.ts";
 import { SECTORS, TECH } from "../core/techniques.ts";
 import { SEALS, rankOf } from "../core/lore.ts";
 import { PROLOG_LEVEL, compute, dayNum } from "../core/model.ts";
-import { BELT, ki, nf0, signed } from "../format.ts";
-import { equip, markSeen, setLook, setMode, updateProfile } from "../actions.ts";
+import { BELT, nf0, power, shortDate, signed } from "../format.ts";
+import { deleteCompetition, equip, markSeen, setLook, setMode, updateProfile } from "../actions.ts";
+import { METHOD_NAME } from "../compText.ts";
 import { go } from "../store.ts";
 import { useCompare } from "../useCompare.ts";
 import { useGear } from "../useGear.ts";
@@ -19,15 +20,17 @@ import { CLASS_ICON } from "../classIcons.ts";
 import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
 import { FlagIcon } from "../components/Flag.tsx";
-import { ClassPicker, CountryPicker, LookEditor } from "../components/CharacterForms.tsx";
-import { Hexagon, KiChart } from "../components/Charts.tsx";
+import { ClassPicker, CountryPicker, LookEditor, SeaPicker } from "../components/CharacterForms.tsx";
+import { DEFAULT_SEA } from "../core/sea.ts";
+import { Hexagon, PowerChart } from "../components/Charts.tsx";
 import { Belt, Seg } from "../components/ui.tsx";
 
-type Tab = "uebersicht" | "aussehen" | "ausruestung" | "steckbrief";
+type Tab = "uebersicht" | "aussehen" | "ausruestung" | "turniere" | "steckbrief";
 const TABS: { id: Tab; label: string }[] = [
   { id: "uebersicht", label: "Übersicht" },
   { id: "aussehen", label: "Aussehen" },
   { id: "ausruestung", label: "Ausrüstung" },
+  { id: "turniere", label: "Turniere" },
   { id: "steckbrief", label: "Steckbrief" },
 ];
 
@@ -61,6 +64,8 @@ export default function Held({ data, st, today, arg }: Props) {
         <LookTab look={g.character.look} mode={g.character.mode} avatar={avatar} />
       ) : tab === "ausruestung" ? (
         <GearTab data={data} st={st} owned={g.owned} gear={g.gear} mode={g.character.mode} unseen={g.unseen} avatar={avatar} />
+      ) : tab === "turniere" ? (
+        <CompTab data={data} st={st} />
       ) : tab === "steckbrief" ? (
         <ProfileTab data={data} st={st} />
       ) : (
@@ -107,6 +112,9 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
             <p className="eyebrow">{rankOf(st.lvl)}</p>
           </div>
           <h1 className="hero-name">{p.name}</h1>
+          <button type="button" className="btn small scan" onClick={() => window.dispatchEvent(new Event("arc:scan"))}>
+            <ScanEye size={15} aria-hidden="true" /> <span>Scouter</span>
+          </button>
           <p className="hero-title">{st.title}</p>
           <div className="row wrap">
             <Belt belt={p.belt} stripes={p.stripes} width={110} />
@@ -167,8 +175,8 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
         </div>
         <dl className="hero-stats">
           <div>
-            <dt>Ki</dt>
-            <dd>{ki(st.ru)}</dd>
+            <dt>Power Level</dt>
+            <dd>{power(st.ru)}</dd>
           </div>
           <div>
             <dt>Trainings</dt>
@@ -291,14 +299,14 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
           <p className="muted small">
             Baum: Breite und Tiefe deiner Techniken im Sektor. Form: was du in den letzten 8 Wochen im Roll zeigst.{claimed ? " *: enthält Selbsteinschätzung." : ""}
           </p>
-          <h2 className="h3">Ki</h2>
-          <KiChart
+          <h2 className="h3">Power Level</h2>
+          <PowerChart
             series={st.ruSeries}
             today={st.asOf}
             extra={cmp ? [{ series: cmp.gi.ruSeries, cls: "gi" }, { series: cmp.nogi.ruSeries, cls: "nogi" }] : undefined}
           />
           <p className="muted small">
-            Ein Elo-Rating aus allen Roll-Karten, mal 10. Es startet beim Wert deines Gürtels und deiner Streifen, bleibt privat und ist kein Ranking.
+            Ein Elo-Rating aus allen Roll-Karten und Turnierkämpfen, mal 10. Es startet beim Wert deines Gürtels und deiner Streifen, bleibt privat und ist kein Ranking.
             {cmp ? " Die dünnen Linien zeigen Gi und No-Gi einzeln." : ""}
           </p>
         </section>
@@ -466,7 +474,7 @@ function GearTab({
                 <b>{x.src.t === "drop" ? "???" : x.name}</b>
                 <small className="rar">{RARITY[x.rarity].name}</small>
                 {x.perk ? <small className="perk">{perkText(x.perk)}</small> : null}
-                <small className="via">{unlockText(x.src)}</small>
+                <small className="via">{unlockText(x.src, p.homeSea)}</small>
               </div>
             ))}
           </div>
@@ -484,6 +492,112 @@ function GearTab({
           ) : null}
         </section>
       </div>
+    </div>
+  );
+}
+
+/* ── Turniere ──────────────────────────────────────────────────────────── */
+
+function CompTab({ data, st }: { data: ArcData; st: ArcState }) {
+  const [confirm, setConfirm] = useState<string | null>(null);
+  const list = [...(data.competitions ?? [])].sort((a, b) => (a.date === b.date ? b.createdAt - a.createdAt : a.date < b.date ? 1 : -1));
+  const c = st.comps;
+  const fights = c.w + c.l + c.d;
+  return (
+    <div className="steckbrief">
+      <section className="panel">
+        <div className="row wrap between">
+          <h2 className="h3">Kampfrekord</h2>
+          <button type="button" className="btn primary small" onClick={() => go("log", "turnier")}>
+            <Trophy size={15} aria-hidden="true" /> <span>Turnier eintragen</span>
+          </button>
+        </div>
+        <dl className="hero-stats comp-stats">
+          <div>
+            <dt>Turniere</dt>
+            <dd>{c.events}</dd>
+          </div>
+          <div>
+            <dt>Bilanz</dt>
+            <dd>
+              {c.w}-{c.l}
+              {c.d ? `-${c.d}` : ""}
+            </dd>
+          </div>
+          <div>
+            <dt>Per Aufgabe</dt>
+            <dd>{c.subs}</dd>
+          </div>
+          <div>
+            <dt>Siegquote</dt>
+            <dd>{fights ? `${nf0.format((100 * c.w) / fights)} %` : "–"}</dd>
+          </div>
+        </dl>
+        <div className="medals" aria-label="Medaillen">
+          {[1, 2, 3].map((p) => (
+            <span key={p} className="medal-count">
+              <span className={`medal m${p}`}>{p}</span> × {c.medals[p - 1]}
+            </span>
+          ))}
+        </div>
+        <p className="muted small">
+          Jeder Kampf zählt für dein Power Level doppelt so stark wie ein Roll. Aufgabe-Siege mit Technik zählen als harter Beleg für diese Technik (wie zwei Treffer gegen einen
+          Stärkeren). Turniere zählen fürs Wochenziel.
+        </p>
+      </section>
+      {list.length ? (
+        <ul className="comp-list">
+          {list.map((x) => {
+            const w = x.matches.filter((m) => m.result === "win").length;
+            const l = x.matches.filter((m) => m.result === "loss").length;
+            return (
+              <li key={x.id} className="panel comp">
+                <div className="comp-head">
+                  {x.place ? <span className={`medal m${x.place}`}>{x.place}</span> : <span className="medal none">–</span>}
+                  <div className="grow">
+                    <b>{x.name}</b>
+                    <small className="muted">
+                      {shortDate(x.date)} {x.date.slice(0, 4)} · {x.attire === "gi" ? "Gi" : "No-Gi"}
+                      {x.org ? ` · ${x.org}` : ""}
+                      {x.weight ? ` · ${x.weight}` : ""}
+                    </small>
+                  </div>
+                  <span className="comp-rec">
+                    {w}-{l}
+                  </span>
+                </div>
+                <div className="chips">
+                  {x.matches.map((m, i) => (
+                    <span key={i} className={`chip res-${m.result}`}>
+                      {m.result === "win" ? "S" : m.result === "loss" ? "N" : "U"} · {METHOD_NAME[m.method]}
+                      {m.tech && TECH[m.tech] ? ` (${TECH[m.tech].name})` : ""}
+                      {m.oppBelt ? <small>{BELT[m.oppBelt].name}</small> : null}
+                    </span>
+                  ))}
+                </div>
+                <div className="row">
+                  {confirm === x.id ? (
+                    <>
+                      <button type="button" className="btn ghost small" onClick={() => setConfirm(null)}>
+                        Abbrechen
+                      </button>
+                      <button type="button" className="btn small danger-btn" onClick={() => deleteCompetition(x.id)}>
+                        Löschen
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" className="linkish" onClick={() => setConfirm(x.id)}>
+                      Eintrag löschen
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="muted">Noch kein Turnier eingetragen. Das erste bringt das Siegel „Arena“ und einen Aufnäher.</p>
+      )}
     </div>
   );
 }
@@ -516,6 +630,11 @@ function ProfileTab({ data, st }: { data: ArcData; st: ArcState }) {
         <h2 className="h3">Länder</h2>
         <p className="muted small">Wo du herkommst, wo du lebst oder trainierst. Jedes Land wird ein Aufnäher für Gi und Rashguard.</p>
         <CountryPicker value={p.countries ?? []} onChange={(countries) => updateProfile({ countries })} />
+      </section>
+      <section className="panel form-panel">
+        <h2 className="h3">Heimatmeer</h2>
+        <p className="muted small">Wo deine Reise auf der Seekarte beginnt. Als Weißgurt segelst du hier von Insel zu Insel, mit dem Blaugurt geht es durchs Tor in die Große Strömung.</p>
+        <SeaPicker value={p.homeSea ?? DEFAULT_SEA} onChange={(homeSea) => updateProfile({ homeSea })} />
       </section>
       <section className="panel form-panel">
         <h2 className="h3">Klasse</h2>

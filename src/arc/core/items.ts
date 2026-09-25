@@ -9,7 +9,9 @@
 // Talismans only add XP (effort), never mastery: they make training more fun
 // without bending what the app measures.
 
-import type { ArcData, ArcState, QuestKind, Rarity, Session, Slot } from "./types.ts";
+import type { ArcData, ArcState, Belt, QuestKind, Rarity, Session, Slot } from "./types.ts";
+import { DEFAULT_SEA, islandAt, rankIndex } from "./sea.ts";
+import type { SeaId } from "./sea.ts";
 import { COUNTRY } from "./countries.ts";
 import { TECH } from "./techniques.ts";
 import { ROMAN, SEALS } from "./lore.ts";
@@ -24,7 +26,11 @@ export type Source =
   | { t: "seal"; id: string }
   | { t: "arc"; n: number }
   | { t: "country"; code: string }
-  | { t: "tokui"; tech: string };
+  | { t: "tokui"; tech: string }
+  /** Reaching a belt and stripe, i.e. an island on the sea chart. */
+  | { t: "rank"; belt: Belt; stripes: number }
+  /** Competitions: first one, a placement, a submission win. */
+  | { t: "comp"; what: "first" | "place" | "subwin"; n?: number };
 
 export type Perk =
   | { t: "session"; xp: number }
@@ -32,14 +38,40 @@ export type Perk =
   | { t: "roll"; xp: number }
   | { t: "open"; xp: number };
 
+export type PatternKind =
+  | "solid"
+  | "rank"
+  | "wave"
+  | "bolt"
+  | "petals"
+  | "tiger"
+  | "stars"
+  | "flame"
+  | "stripes"
+  | "split"
+  | "camo"
+  | "hex"
+  | "sunset"
+  | "chevron"
+  | "kraken"
+  | "chart"
+  | "checker"
+  | "scales"
+  | "side"
+  | "plain";
+
 export interface ItemArt {
   c?: string;
   c2?: string;
+  /** Spats colour under shorts (style "combo"). */
+  c3?: string;
   lapel?: string;
   stitch?: string;
-  pattern?: "solid" | "rank" | "wave" | "bolt" | "petals" | "tiger" | "stars" | "flame";
+  pattern?: PatternKind;
+  /** Tops: sleeve length. */
+  sleeve?: "long" | "short" | "none";
   style?: string;
-  emblem?: "logo" | "flame" | "crown" | "wave" | "star" | "flag" | "tokui";
+  emblem?: "logo" | "flame" | "crown" | "wave" | "star" | "flag" | "tokui" | "anchor" | "skull" | "compass";
   code?: string;
 }
 
@@ -97,11 +129,35 @@ export const ITEMS: ItemDef[] = [
   I("gi_koi", "Koi-Gi", "gi", "epic", { t: "drop" }, "Weiß mit orangefarbenem Revers, wie ein Koi im Teich.", { c: "#f4f1ea", lapel: "#e8743b", stitch: "#e8743b" }),
   I("gi_aizome", "Aizome-Gi", "gi", "epic", { t: "arc", n: 1 }, "Mit Indigo gefärbt, wie traditionelle Kampfkunst-Kleidung.", { c: "#2a3470", lapel: "#1c2452", stitch: "#8fb0ff" }),
   I("gi_mitternacht", "Mitternachts-Gi", "gi", "epic", { t: "level", n: 15 }, "Dunkelblau mit goldener Naht.", { c: "#141b3a", lapel: "#0d1330", stitch: "#f1bf57" }),
+  I("gi_sturm", "Sturmgrauer Gi", "gi", "epic", { t: "rank", belt: "braun", stripes: 1 }, "Grau wie der Himmel über der Sturmkrone.", { c: "#5a6070", lapel: "#3d4250", stitch: "#9cc3ff" }),
   I("gi_gold", "Goldkragen-Gi", "gi", "legendary", { t: "seal", id: "tokui" }, "Weiß mit goldenem Revers. Für die erste Tokui-Waza.", { c: "#f4f1ea", lapel: "#f1bf57", stitch: "#d99b2c" }),
 
   // No-Gi tops
-  I("rg_rang", "Rang-Rashguard", "top", "common", { t: "start" }, "In der Farbe deines Gürtels.", { pattern: "rank" }),
+  I("rg_rang", "Rang-Rashguard", "top", "common", { t: "start" }, "In der Farbe deines Gürtels, kurze Ärmel.", { pattern: "rank", sleeve: "short" }),
   I("rg_schwarz", "Rashguard Schwarz", "top", "common", { t: "start" }, "Passt zu allem, vor allem zu Schweiß.", { c: "#1d1d26", c2: "#34406b", pattern: "solid" }),
+  I("rg_weiss_k", "Rashguard Weiß, kurz", "top", "common", { t: "start" }, "Kurze Ärmel, damit man die Tattoos sieht.", { c: "#f4f1ea", c2: "#c3cbe0", pattern: "side", sleeve: "short" }),
+  I("rg_navy_k", "Rashguard Navy, kurz", "top", "common", { t: "start" }, "Dunkelblau mit hellen Seitenstreifen.", { c: "#1b2a55", c2: "#f4f1ea", pattern: "side", sleeve: "short" }),
+  I("ts_grau", "Trainingsshirt Grau", "top", "common", { t: "start" }, "Das Shirt, das in jeder Sporttasche liegt.", { c: "#6b7080", pattern: "plain", sleeve: "short" }),
+  I("tt_schwarz", "Tanktop Schwarz", "top", "common", { t: "start" }, "Für Drills an heißen Tagen.", { c: "#1d1d26", pattern: "plain", sleeve: "none" }),
+  I("rg_rot_k", "Rashguard Rot, kurz", "top", "common", { t: "sessions", n: 3 }, "Rot mit schwarzen Seiten.", { c: "#b3261e", c2: "#1d1d26", pattern: "side", sleeve: "short" }),
+  I("rg_split", "Rashguard Zweifarbig", "top", "rare", { t: "sessions", n: 8 }, "Halb Nacht, halb Gold.", { c: "#1d1d26", c2: "#f1bf57", pattern: "split" }),
+  I("rg_ringel", "Rashguard Ringel", "top", "common", { t: "sessions", n: 15 }, "Matrosenstreifen für Leute, die bald in See stechen.", { c: "#f4f1ea", c2: "#1b2a55", pattern: "stripes", sleeve: "short" }),
+  I("rg_waben", "Rashguard Waben", "top", "rare", { t: "sessions", n: 25 }, "Sechsecke wie auf der Sternkarte.", { c: "#141c34", c2: "#5f90ea", pattern: "hex" }),
+  I("rg_zickzack", "Rashguard Zickzack", "top", "rare", { t: "sessions", n: 40 }, "Pink auf Nacht. Laut und stolz.", { c: "#2a1b2e", c2: "#e46aa6", pattern: "chevron", sleeve: "short" }),
+  I("rg_tarn", "Rashguard Tarnmuster", "top", "rare", { t: "rolls", n: 50 }, "Tarnt nicht, aber sieht nach Arbeit aus.", { c: "#3b4a2f", c2: "#7d8c56", pattern: "camo" }),
+  I("rg_schuppen", "Rashguard Fischschuppen", "top", "epic", { t: "rolls", n: 300 }, "Glatt wie ein Fisch, schwer zu greifen.", { c: "#0e3b4a", c2: "#4fc3c9", pattern: "scales" }),
+  I("rg_nachtgold", "Rashguard Nachtgold", "top", "rare", { t: "level", n: 10 }, "Dunkelblau mit goldenen Streifen. Ab Level 10.", { c: "#141c34", c2: "#f1bf57", pattern: "stripes" }),
+  I("tt_rot", "Tanktop Rot", "top", "common", { t: "drop" }, "Zeigt Arme und Absichten.", { c: "#b3261e", pattern: "plain", sleeve: "none" }),
+  I("ts_blau", "Trainingsshirt Blau", "top", "common", { t: "drop" }, "Weich, bequem, nach drei Rolls nass.", { c: "#2d55a8", pattern: "plain", sleeve: "short" }),
+  I("rg_oliv_k", "Rashguard Oliv, kurz", "top", "common", { t: "drop" }, "Schlicht, dunkelgrün.", { c: "#4a5630", c2: "#1d1d26", pattern: "side", sleeve: "short" }),
+  I("rg_karo", "Rashguard Schachbrett", "top", "rare", { t: "drop" }, "Jeder Zug geplant.", { c: "#23232e", c2: "#5a5f70", pattern: "checker" }),
+  I("rg_abendrot", "Rashguard Abendrot", "top", "rare", { t: "drop" }, "Sonnenuntergang über dem Abendmeer.", { c: "#2a1b4a", c2: "#ff8a3d", pattern: "sunset", sleeve: "short" }),
+  I("rg_krake", "Rashguard Krake", "top", "epic", { t: "drop" }, "Acht Arme für mehr Griffe.", { c: "#101838", c2: "#9a73f0", pattern: "kraken" }),
+  I("rg_seekarte", "Rashguard Seekarte", "top", "epic", { t: "drop" }, "Auf Pergament gedruckt: der Kurs zur nächsten Insel.", { c: "#e9dcc0", c2: "#6b4a2b", pattern: "chart", sleeve: "short" }),
+  I("rg_stroemung", "Rashguard Große Strömung", "top", "epic", { t: "rank", belt: "blau", stripes: 0 }, "Für alle, die durch das Tor der vier Strömungen gesegelt sind.", { c: "#0f3a6b", c2: "#9cc3ff", pattern: "wave" }),
+  I("rg_tiefsee", "Rashguard Tiefsee", "top", "epic", { t: "rank", belt: "braun", stripes: 0 }, "Aus der Tiefen Strömung hinter dem Kammpass.", { c: "#06121f", c2: "#26b5b0", pattern: "kraken" }),
+  I("rg_kuro", "Rashguard Schwarzkliff", "top", "legendary", { t: "rank", belt: "schwarz", stripes: 0 }, "Schwarz mit goldenen Sternen. Für die Klippe am Anfang des Schwarzgurts.", { c: "#0c0c10", c2: "#f1bf57", pattern: "stars" }),
+  I("rg_champion", "Rashguard Champion", "top", "epic", { t: "comp", what: "place", n: 1 }, "Für Gold auf einem Turnier.", { c: "#1d1d26", c2: "#f1bf57", pattern: "bolt", sleeve: "short" }),
   I("rg_nebel", "Rashguard Nebel", "top", "common", { t: "drop" }, "Grau-blau wie die Matte um sechs Uhr morgens.", { c: "#2b2f4a", c2: "#9aa3c7", pattern: "solid" }),
   I("rg_welle", "Rashguard Welle", "top", "rare", { t: "drop" }, "Wellenmuster für Leute, die gern rollen.", { c: "#1e3f7a", c2: "#9cc3ff", pattern: "wave" }),
   I("rg_koi", "Rashguard Koi", "top", "rare", { t: "drop" }, "Orangefarbene Wellen auf Weiß.", { c: "#f4f1ea", c2: "#e8743b", pattern: "wave" }),
@@ -114,7 +170,21 @@ export const ITEMS: ItemDef[] = [
 
   // No-Gi bottoms
   I("sh_schwarz", "Shorts Schwarz", "bottom", "common", { t: "start" }, "Grappling-Shorts ohne Taschen.", { c: "#1d1d26", style: "shorts" }),
-  I("sp_schwarz", "Spats Schwarz", "bottom", "common", { t: "sessions", n: 5 }, "Lange Leggings unter oder statt Shorts.", { c: "#1d1d26", style: "spats" }),
+  I("sp_schwarz", "Spats Schwarz", "bottom", "common", { t: "start" }, "Lange Leggings unter oder statt Shorts.", { c: "#1d1d26", style: "spats" }),
+  I("sh_navy", "Shorts Navy", "bottom", "common", { t: "start" }, "Mit weißen Seitenstreifen.", { c: "#1b2a55", c2: "#f4f1ea", style: "shorts", pattern: "side" }),
+  I("cb_schwarz", "Shorts über Spats", "bottom", "common", { t: "start" }, "Die klassische Kombi.", { c: "#1d1d26", c3: "#34406b", style: "combo" }),
+  I("sh_streifen", "Shorts Seitenstreifen", "bottom", "common", { t: "sessions", n: 5 }, "Grau mit roten Streifen.", { c: "#5a5f70", c2: "#c8302a", style: "shorts", pattern: "side" }),
+  I("cb_blau", "Combo Blau", "bottom", "common", { t: "sessions", n: 12 }, "Blaue Shorts über schwarzen Spats.", { c: "#2d55a8", c3: "#1d1d26", style: "combo" }),
+  I("sp_tarn", "Spats Tarnmuster", "bottom", "rare", { t: "sessions", n: 30 }, "Passt zum Tarn-Rashguard.", { c: "#3b4a2f", c2: "#7d8c56", style: "spats", pattern: "camo" }),
+  I("sh_karo", "Shorts Schachbrett", "bottom", "rare", { t: "rolls", n: 100 }, "Für Strategen.", { c: "#23232e", c2: "#5a5f70", style: "shorts", pattern: "checker" }),
+  I("sp_tiger", "Spats Tigerstreifen", "bottom", "epic", { t: "level", n: 15 }, "Orange mit schwarzen Streifen. Ab Level 15.", { c: "#e08a2c", c2: "#1d1d26", style: "spats", pattern: "tiger" }),
+  I("sh_matrose", "Shorts Matrose", "bottom", "rare", { t: "rank", belt: "weiss", stripes: 2 }, "Marineblau mit weißen Streifen. Für die dritte Insel deines Heimatmeers.", { c: "#1b2a55", c2: "#f4f1ea", style: "shorts", pattern: "stripes" }),
+  I("sp_kamm", "Spats Scharlachkamm", "bottom", "epic", { t: "rank", belt: "lila", stripes: 0 }, "Rot wie der große Kamm. Lilagurt.", { c: "#6b1320", c2: "#e0453c", style: "spats", pattern: "chevron" }),
+  I("sp_waben", "Spats Waben", "bottom", "rare", { t: "drop" }, "Sechsecke bis zum Knöchel.", { c: "#141c34", c2: "#5f90ea", style: "spats", pattern: "hex" }),
+  I("sh_flamme", "Shorts Flamme", "bottom", "rare", { t: "drop" }, "Heiß wie ein Scramble.", { c: "#1d1d26", c2: "#ff7a2c", style: "shorts", pattern: "flame" }),
+  I("sp_schuppen", "Spats Fischschuppen", "bottom", "epic", { t: "drop" }, "Passt zum Schuppen-Rashguard.", { c: "#0e3b4a", c2: "#4fc3c9", style: "spats", pattern: "scales" }),
+  I("cb_koi", "Combo Koi", "bottom", "rare", { t: "drop" }, "Weiße Shorts über orangen Spats.", { c: "#f4f1ea", c3: "#e8743b", style: "combo" }),
+  I("sh_abendrot", "Shorts Abendrot", "bottom", "common", { t: "drop" }, "Die Sonne geht unten weiter.", { c: "#2a1b4a", c2: "#ff8a3d", style: "shorts", pattern: "sunset" }),
   I("sh_rot", "Shorts Rot", "bottom", "common", { t: "drop" }, "Signalfarbe.", { c: "#b3261e", style: "shorts" }),
   I("sh_blau", "Shorts Blau", "bottom", "common", { t: "drop" }, "Passt zum blauen Gürtel, den man im No-Gi nicht trägt.", { c: "#2d55a8", style: "shorts" }),
   I("sp_grau", "Spats Grau", "bottom", "common", { t: "drop" }, "Unauffällig. Genau richtig für Leglocks.", { c: "#5a5f70", style: "spats" }),
@@ -128,12 +198,18 @@ export const ITEMS: ItemDef[] = [
   I("hd_band_schwarz", "Hachimaki, schwarz", "head", "common", { t: "drop" }, "Ernst gemeint.", { c: "#1d1d26", style: "band" }),
   I("hd_band_rot", "Hachimaki, rot", "head", "rare", { t: "drop" }, "Rot heißt: heute wird gejagt.", { c: "#c8302a", style: "band" }),
   I("hd_band_gold", "Hachimaki, gold", "head", "legendary", { t: "level", n: 30 }, "Ab Level 30.", { c: "#f1bf57", style: "band" }),
+  I("hd_bandana_rot", "Bandana Rot", "head", "common", { t: "drop" }, "Für No-Gi-Tage mit Stil.", { c: "#b3261e", style: "bandana" }),
+  I("hd_bandana_nacht", "Bandana Nacht", "head", "rare", { t: "sessions", n: 20 }, "Dunkel mit weißen Punkten.", { c: "#1b2a55", style: "bandana" }),
+  I("hd_piratentuch", "Piratentuch", "head", "epic", { t: "rank", belt: "weiss", stripes: 4 }, "Für die letzte Insel vor dem Tor.", { c: "#1d1d26", style: "bandana" }),
 
   // Accessories
   I("ex_tape", "Fingertape", "extra", "common", { t: "sessions", n: 10 }, "Gi-Grips haben ihren Preis.", { style: "tape" }),
   I("ex_knie", "Kniebandagen", "extra", "common", { t: "drop" }, "Sichtbar im No-Gi.", { c: "#2a2a36", style: "knee" }),
   I("ex_handtuch", "Handtuch", "extra", "rare", { t: "drop" }, "Über der Schulter, zwischen den Runden.", { c: "#6fb3c9", style: "towel" }),
   I("ex_medaille", "Medaille", "extra", "epic", { t: "seal", id: "strong" }, "Drei Quest-Treffer gegen Stärkere.", { c: "#f1bf57", style: "medal" }),
+  I("ex_bronze", "Turniermedaille Bronze", "extra", "rare", { t: "comp", what: "place", n: 3 }, "Dritter Platz auf einem Turnier.", { c: "#c47a3a", style: "medal" }),
+  I("ex_silber", "Turniermedaille Silber", "extra", "epic", { t: "comp", what: "place", n: 2 }, "Zweiter Platz auf einem Turnier.", { c: "#c9ced6", style: "medal" }),
+  I("ex_gold", "Turniermedaille Gold", "extra", "legendary", { t: "comp", what: "place", n: 1 }, "Erster Platz auf einem Turnier.", { c: "#f1bf57", style: "medal" }),
 
   // Traits
   I("tr_ohr", "Blumenkohlohr", "trait", "rare", { t: "rolls", n: 200 }, "Nach 200 Rolls. Ein Abzeichen, das man nicht mehr ablegt.", { style: "ear" }),
@@ -155,6 +231,7 @@ export const ITEMS: ItemDef[] = [
   I("au_sakura", "Kirschblütenregen", "aura", "epic", { t: "arc", n: 2 }, "Ab Arc III.", { c: "#f3a6c0" }),
   I("au_sterne", "Sternenstaub", "aura", "epic", { t: "drop" }, "Funkelt bei jedem Sweep.", { c: "#b89cff" }),
   I("au_donner", "Donnerschlag", "aura", "legendary", { t: "level", n: 20 }, "Ab Level 20 knistert die Luft.", { c: "#ffe39a" }),
+  I("au_gischt", "Gischt", "aura", "legendary", { t: "rank", belt: "braun", stripes: 2 }, "Salzwasser und Wind der Tiefen Strömung.", { c: "#9cc3ff" }),
 
   // Patches
   I("pa_waza", "Waza-Arc-Abzeichen", "patch", "common", { t: "start" }, "Das Zeichen der App.", { emblem: "logo" }),
@@ -162,6 +239,11 @@ export const ITEMS: ItemDef[] = [
   I("pa_welle", "Arc-Welle", "patch", "rare", { t: "arc", n: 1 }, "Für den zweiten Arc.", { emblem: "wave" }),
   I("pa_flamme", "Flammen-Abzeichen", "patch", "rare", { t: "seal", id: "flame4" }, "Vier Wochen Flamme.", { emblem: "flame" }),
   I("pa_krone", "Boss-Krone", "patch", "epic", { t: "seal", id: "boss" }, "Einen Wochenboss besiegt.", { emblem: "crown" }),
+  I("pa_anker", "Anker", "patch", "common", { t: "rank", belt: "weiss", stripes: 1 }, "Du bist nicht mehr ganz neu im Hafen.", { emblem: "anchor" }),
+  I("pa_kompass", "Kompass", "patch", "rare", { t: "rank", belt: "blau", stripes: 2 }, "Der Kurs stimmt.", { emblem: "compass" }),
+  I("pa_flagge", "Totenkopfflagge", "patch", "epic", { t: "rank", belt: "lila", stripes: 2 }, "Die alte Piratenflagge: Du segelst unter eigener Flagge.", { emblem: "skull", c: "#1d1d26", c2: "#f4f1ea" }),
+  I("pa_arena", "Arena-Abzeichen", "patch", "rare", { t: "comp", what: "first" }, "Für dein erstes Turnier.", { emblem: "star", c: "#6b1320", c2: "#f1bf57" }),
+  I("pa_finisher", "Finisher", "patch", "epic", { t: "comp", what: "subwin" }, "Ein Turnierkampf per Aufgabe gewonnen.", { emblem: "flame", c: "#1d1d26" }),
 ];
 
 /** Items that depend on the profile or on progress: flags and Tokui patches. */
@@ -182,7 +264,9 @@ export const itemById = (id: string, data: ArcData, st: ArcState) => ITEM[id] ??
 
 export const DEFAULT_EQUIP: Partial<Record<Slot, string>> = { gi: "gi_weiss", top: "rg_rang", bottom: "sh_schwarz", patch2: "pa_waza" };
 
-export function unlockText(src: Source): string {
+const BELT_NAME: Record<Belt, string> = { weiss: "Weiß", blau: "Blau", lila: "Lila", braun: "Braun", schwarz: "Schwarz" };
+
+export function unlockText(src: Source, sea: SeaId = DEFAULT_SEA): string {
   switch (src.t) {
     case "start":
       return "Startausrüstung";
@@ -202,6 +286,10 @@ export function unlockText(src: Source): string {
       return "Land im Steckbrief";
     case "tokui":
       return "Tokui-Waza erreichen";
+    case "rank":
+      return `${BELT_NAME[src.belt]}gurt${src.stripes ? `, ${src.stripes}. Streifen` : ""} · Insel ${islandAt(src.belt, src.stripes, sea).name}`;
+    case "comp":
+      return src.what === "first" ? "Erstes Turnier eingetragen" : src.what === "subwin" ? "Turnierkampf per Aufgabe gewonnen" : `${src.n}. Platz auf einem Turnier`;
   }
 }
 
@@ -238,6 +326,10 @@ export interface Owned {
 export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
   const owned = new Map<string, Owned>();
   const got = new Set(st.seals.filter((s) => s.got).map((s) => s.id));
+  const p = data.profile;
+  const rank = p ? rankIndex(p.belt, p.stripes) : 0;
+  const sea = p?.homeSea ?? DEFAULT_SEA;
+  const comps = (data.competitions ?? []).filter((c) => dayNum(c.date) <= st.asOf);
   for (const x of [...ITEMS, ...dynamicItems(data, st)]) {
     const s = x.src;
     const ok =
@@ -248,8 +340,15 @@ export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
       (s.t === "sessions" && st.sessions >= s.n) ||
       (s.t === "rolls" && st.rolls >= s.n) ||
       (s.t === "seal" && got.has(s.id)) ||
-      (s.t === "arc" && st.arc.index >= s.n);
-    if (ok) owned.set(x.id, { id: x.id, via: unlockText(s) });
+      (s.t === "arc" && st.arc.index >= s.n) ||
+      (s.t === "rank" && rank >= rankIndex(s.belt, s.stripes)) ||
+      (s.t === "comp" &&
+        (s.what === "first"
+          ? comps.length > 0
+          : s.what === "subwin"
+            ? comps.some((c) => c.matches.some((m) => m.result === "win" && m.method === "sub"))
+            : comps.some((c) => c.place === s.n)));
+    if (ok) owned.set(x.id, { id: x.id, via: unlockText(s, sea) });
   }
 
   // Random drops, in order of the trainings. A drop can be a duplicate of an

@@ -4,7 +4,7 @@ Eine BJJ-Fortschritts-App im Stil eines Anime-RPGs. Der Arbeitstitel war „Tata
 
 **Stand:** Die App läuft unter `/arc/` als eigener Einstiegspunkt im Portfolio (Code in `src/arc/`, Tests in `src/arc/core/model.test.ts`). Die Daten liegen vorerst nur im Browser (localStorage, Export und Import als JSON). Das Supabase-Schema ist als Entwurf in [`schema.sql`](schema.sql) beschrieben und noch nicht angewendet (siehe 8.3).
 
-**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Ki.
+**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere und eine Seekarte deiner Reise.
 
 Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](prototyp.html).
 
@@ -26,7 +26,7 @@ Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](proto
 |---|---|---|---|---|
 | 1 Check-in | Kurs oder Open Mat, Gi oder No-Gi. Aus dem Kursplan vorausgewählt, Datum und Dauer ebenfalls | 1 | 2 s | XP, Wochenserie, Mattenzeit, Gi/No-Gi-Vergleich |
 | 2 Heute im Kurs | Technik aus der Liste, zuletzt genutzte oben. Im Gym-Modus trägt der Coach sie ein, dann 0 Tipps | 0–2 | 2 s | Wissen |
-| 3 Roll-Karten | Pro Roll: Gürtel des Partners, Größe (leichter/gleich/schwerer), Subs ich, Subs Partner, Kontrolle (Partner/gleich/ich). Standardwerte: gleich groß, 0, 0, gleich | 2–4 pro Roll | 4 s pro Roll | Ki, Form, Partnergewicht |
+| 3 Roll-Karten | Pro Roll: Gürtel des Partners, Größe (leichter/gleich/schwerer), Subs ich, Subs Partner, Kontrolle (Partner/gleich/ich). Standardwerte: gleich groß, 0, 0, gleich | 2–4 pro Roll | 4 s pro Roll | Power Level, Form, Partnergewicht |
 | 4 Quest-Zähler | Versuche und Treffer (bei Überleben: Escapes, bei Drill: erledigt) | 2–6 | 5 s | Meisterung |
 | 5 Notiz, optional | „Hat funktioniert“ (Technik) und „Festgehangen in“ (6 Positions-Chips) | 2 | 6 s | Bonus-Evidenz, Wochenboss, +15 XP |
 
@@ -46,7 +46,8 @@ Alle Tabellen liegen im Schema `arc` des bestehenden Portfolio-Projekts (Abschni
 
 ```text
 profiles        id, name, belt, stripes, start_belt, start_stripes, weekly_goal (Standard 2),
-                countries[], birth_year, weight_kg, training_since, class, gym_id
+                countries[], birth_year, weight_kg, training_since, class, home_sea, gym_id
+competitions    id, user_id, date, name, org, attire, weight, place, matches (jsonb)
 characters      user_id, look (jsonb), equipped (jsonb), mode (gi | nogi), seen[]   -- Inventar wird nicht gespeichert
 gyms            id, name, schedule (jsonb)
 positions       id, name, side (top | bottom | neutral)          -- für Wochenboss und später die Weltkarte
@@ -86,16 +87,18 @@ Gegen einen gleich starken Partner ist w = 1. Gegen einen deutlich stärkeren st
 
 Der Gürtel ist bewusst die Hauptgröße: Er ist objektiv und mit einem Tipp erfasst. Eine subjektive Angabe wie „stärker/schwächer“ würde sich verschieben, während man selbst besser wird.
 
-### 4.2 Ki (Elo)
+### 4.2 Power Level (Elo)
 
 ```text
 Roll-Ergebnis  S = 0,5 + 0,2 · (Subs ich − Subs Partner) + 0,3 · (Kontrolle − 0,5), begrenzt auf 0 … 1
 Update         R_du ← R_du + 12 · (S − E)          pro Roll
-Start          R_du = Gürtel-Rating des eigenen Gürtels
-Anzeige        Ki = R_du × 10                       (z. B. 12.080)
+Turnierkampf   R_du ← R_du + 24 · (S − E)          S = 1 Sieg, 0,5 Unentschieden, 0 Niederlage; kampflos zählt nicht
+               Gegner = Gürtel-Rating des angegebenen Gürtels (sonst des eigenen am Turniertag)
+Start          R_du = Gürtel-Rating des eigenen Gürtels + 20 pro Streifen
+Anzeige        Power Level = R_du × 10              (z. B. 12.080)
 ```
 
-Kontrolle zählt mit, damit auch Rolls ohne Submission etwas aussagen. Das Ki ist privat. Es gibt kein Ranking. Im ersten Entwurf hieß der Wert „Kampfkraft“. Er wurde umbenannt, weil das Wort in der deutschen Fassung einer bekannten Anime-Serie für genau diese Idee steht.
+Kontrolle zählt mit, damit auch Rolls ohne Submission etwas aussagen. Das Power Level ist privat. Es gibt kein Ranking. „Power Level“ ist ein allgemeiner Begriff aus Spielen und Anime-Fankultur; die Anzeige („Scouter“, 6.8) ist eigenständig gestaltet, ohne Figuren, Logos oder Zitate aus einer Serie. Der Scouter ordnet den Wert einem Niveau zu (Weiß- bis Schwarzgurt-Niveau nach den Gürtel-Ratings) und schätzt vor einem Turnierkampf die Siegchance gegen einen Gürtel.
 
 ### 4.3 Meisterung einer Technik
 
@@ -197,18 +200,18 @@ Level L ab 40 · (L − 1)² XP
 
 ### 4.7 Gi und No-Gi
 
-**Grundsatz: Alles wird zusammen gerechnet.** Ki, Meisterung, Stufen, Hexagon, Quests und XP beruhen auf allen Trainings. Jede Session trägt aber `attire` (Gi oder No-Gi), deshalb lässt sich jederzeit ein Vergleich berechnen, ohne ein zweites Modell zu pflegen.
+**Grundsatz: Alles wird zusammen gerechnet.** Power Level, Meisterung, Stufen, Hexagon, Quests und XP beruhen auf allen Trainings. Jede Session trägt aber `attire` (Gi oder No-Gi), deshalb lässt sich jederzeit ein Vergleich berechnen, ohne ein zweites Modell zu pflegen.
 
 - **Vergleichsansicht:** erscheint, sobald beide Seiten genug Daten haben, also mindestens 20 Rolls je Seite in den letzten 8 Wochen. Darunter zeigt die App „Noch zu wenig Daten für einen Vergleich“ statt wackliger Zahlen.
 - **Hexagon:** Gi und No-Gi übereinandergelegt, jeweils mit `compute(…, { attire })` berechnet.
-- **Ki:** zwei zusätzliche Verläufe mit demselben Elo, einmal nur über Gi-Rolls, einmal nur über No-Gi-Rolls, beide ab demselben Startwert. Die Hauptzahl bleibt die gemeinsame.
+- **Power Level:** zwei zusätzliche Verläufe mit demselben Elo, einmal nur über Gi-Rolls, einmal nur über No-Gi-Rolls, beide ab demselben Startwert. Die Hauptzahl bleibt die gemeinsame.
 - **Pro Technik:** Quote und Untergrenze je Seite, sobald je Seite mindestens 5 Versuche vorliegen. Im Detailfeld als zwei Balken.
 
 ### 4.8 Einstieg mit Vorerfahrung
 
 Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand ab, ohne die Messung zu verfälschen.
 
-- **Prolog:** Gürtel und Streifen beim Start setzen das Startlevel. Weiß 1, Blau 8, Lila 14, Braun 19, Schwarz 24, plus ein Level pro Streifen. Die XP dafür stehen als eigener Posten „Prolog“ im Charakter. Ki startet bei Gürtel-Rating plus 20 pro Streifen (Ki ×10 angezeigt).
+- **Prolog:** Gürtel und Streifen beim Start setzen das Startlevel. Weiß 1, Blau 8, Lila 14, Braun 19, Schwarz 24, plus ein Level pro Streifen. Die XP dafür stehen als eigener Posten „Prolog“ im Charakter. Das Power Level startet bei Gürtel-Rating plus 20 pro Streifen (×10 angezeigt).
 - **Technik-Stand in drei Stufen:** „Kenne ich“ (gesehen, gedrillt: Stufe 2), „Klappt im Roll“ (Stufe 3) und „Stärke“ (Stufe 4, höchstens fünf). Ein Vorschlag nach Gürtel füllt „Kenne ich“ vor: Weiß nur Fundament (ab 2 Streifen plus Shoden), Blau bis Shoden (ab 2 Streifen bis Chūden), Lila bis Chūden, Braun und Schwarz bis Okuden.
 - **Selbsteinschätzung zählt vorläufig:** Die Karte zeigt die eingeschätzte Stufe gestrichelt, im Baum-Wert zählt sie mit einer vorläufigen Meisterung von 25 (Stufe 3) bzw. 45 (Stufe 4). Das Hexagon markiert Achsen mit Einschätzung. XP, Siegel, Kombos und Titel hängen nur an der Daten-Stufe.
 - **Bestätigen:** Die Tagesquest bevorzugt eingeschätzte Techniken („Beweise deine Einschätzung“, P + 0,8). Erreichen die Daten die Stufe, gibt es die Stufen-XP und im Ergebnis „Einschätzung bestätigt“.
@@ -281,19 +284,49 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 
 ### 6.5 Charakter und Ausrüstung
 
-- **Charakter:** eine eigene Chibi-Figur als SVG, frei gestaltbar: Hautton, Frisur, Haar- und Augenfarbe, Gesicht, Bart. Das Gewicht aus dem Steckbrief bestimmt die Statur, der Gürtel samt Streifen sitzt am Gi. Vorschau in Gi oder No-Gi.
+- **Charakter-Editor** in sieben Kategorien, beim Anlegen und jederzeit im Charakter:
+  - Körper: Hautton (14 Töne plus freie Farbe), Größe, Statur und Muskeln als Regler; das Gewicht aus dem Steckbrief fließt in die Statur ein.
+  - Gesicht: 6 Gesichtsformen, 7 Nasen (inklusive Boxernase), 8 Münder (inklusive Kampfschrei und Mundschutz), 4 Ohrformen.
+  - Augen: 7 Augenformen, 12 Farben plus freie Farbe, zweifarbige Augen, Größe und Abstand als Regler, Wimpern, 7 Brauenformen.
+  - Haare: 22 Frisuren (von Buzzcut über Cornrows und Afro bis Samurai-Knoten), 18 Farben plus freie Farbe, farbige Spitzen.
+  - Bart: 8 Varianten.
+  - Merkmale (mehrfach): Wangenröte, Sommersprossen, Muttermal, Augenringe, Narben, Pflaster, Mattenbrand, Kriegsbemalung.
+  - Tattoo und Schmuck: 6 Arm-Tattoos (links, rechts, beide), Hals-Tattoo, Ohrringe. Tattoos sieht man im No-Gi mit kurzen Ärmeln oder Tanktop.
+  Jede Option zeigt eine Vorschau des eigenen Kopfes. Ältere Speicherstände werden beim Laden übernommen.
 - **Plätze:** Gi, Oberteil und Unterteil (No-Gi), Kopf, Accessoire, Merkmal, Talisman, Aura und drei Aufnäher (Schulter, Brust, Bein).
-- **Items:** rund 60 in vier Seltenheiten (gewöhnlich, selten, episch, legendär). Quellen: Startausrüstung, Meilensteine (Level, Trainings, Rolls, Siegel, Arcs), Länder aus dem Steckbrief (Flaggen-Aufnäher), Tokui-Waza (eigener Aufnäher pro Technik) und Zufallsbeute nach dem Training.
+- **Items:** 108 feste Items plus Flaggen- und Tokui-Aufnäher, in vier Seltenheiten (gewöhnlich, selten, episch, legendär). No-Gi hat die größte Auswahl: 34 Oberteile (Rashguards lang und kurz, Shirts, Tanktops, 18 Muster von Ringel über Waben und Tarn bis Krake und Seekarte) und 22 Unterteile (Shorts, Spats, Shorts über Spats). Zum Start liegen 6 Oberteile und 4 Unterteile bereit. Quellen: Startausrüstung, Meilensteine (Level, Trainings, Rolls, Siegel, Arcs), Inseln der Seekarte (also Gürtel und Streifen), Turniere, Länder aus dem Steckbrief (Flaggen-Aufnäher), Tokui-Waza und Zufallsbeute nach dem Training.
 - **Beute:** Das Inventar wird nicht gespeichert, sondern aus den Daten berechnet. Ob ein Training etwas abwirft, entscheidet ein Hash aus Datum und Position des Trainings am Tag: gleiche Daten, gleiche Beute, und Löschen und neu Speichern würfelt nicht neu. Chance 12 %, mehr bei Quest-Treffern (+13 %), erledigter Kata (+8 %) und Notiz (+4 %). Seltenheit: 3 % legendär, 12 % episch, 30 % selten, 55 % gewöhnlich. Duplikate bringen nichts, dadurch bleiben seltene Stücke selten.
 - **Talismane** geben nur XP für Einsatz, nie Meisterung, z. B. +10 XP pro Training, +50 % auf Kata-Quests oder +3 XP pro Roll-Karte. Der Bonus wird beim Speichern festgeschrieben, damit ein späterer Wechsel die Vergangenheit nicht umschreibt.
-- **Flaggen:** 55 Länder plus England und Schottland. Flaggen mit Wappen oder feinen Emblemen sind vereinfacht, wo es eine Zivilflagge gibt, wird sie verwendet.
+- **Flaggen:** 125 Länder und Regionen (u. a. Iran, Palästina, Aserbaidschan, Albanien, Kosovo, Kurdistan, Dagestan, England, Schottland, Wales), alphabetisch mit Suche. Flaggen mit Wappen oder feinen Emblemen sind vereinfacht, wo es eine Zivilflagge gibt, wird sie verwendet.
 
-### 6.6 Gym-Modus (später)
+### 6.7 Turniere
+
+- **Eingabe** im Log über den Umschalter „Training | Turnier“: Name, Datum, Veranstalter oder Regelwerk (IBJJF, AJP, ADCC, Grappling Industries, NAGA, Verband, Hausturnier), Gi oder No-Gi, Gewichtsklasse, die Kämpfe (Sieg, Niederlage, Unentschieden; Aufgabe mit Technik, Punkte, Vorteile, Kampfrichter, DQ, kampflos; Gürtel des Gegners) und die Platzierung.
+- **Rechnung:** Jeder Kampf geht mit doppeltem K-Faktor ins Power Level (4.2). Ein Aufgabe-Sieg mit Technik zählt als Versuch und Treffer mit Gewicht 2 und als Treffer gegen Stärkere. Turniere zählen fürs Wochenziel. XP: 150 fürs Antreten, 50 pro Kampf, 40 pro Aufgabe-Sieg, 300/200/120 für Gold/Silber/Bronze.
+- **Belohnungen:** Siegel „Arena“ und „Podest“, Turniermedaillen in Bronze, Silber und Gold (Accessoire), Arena- und Finisher-Aufnäher, Champion-Rashguard.
+- **Kampfrekord** im Charakter: Bilanz, Aufgabe-Siege, Siegquote, Medaillen und die Liste aller Turniere.
+
+### 6.8 Scouter
+
+Ein Tipp auf das Power Level im Kopfbereich (oder der Knopf im Charakter) setzt den Scouter auf: eine grün leuchtende Linse scannt die Figur, zählt das Power Level hoch und liest Achsen, Level, Klasse, Division, Turnierbilanz und Kopfgeld aus. Vor einem Turnierkampf scannt er den Gegner (Silhouette, geschätztes Power Level nach Gürtel, deine Siegchance). Bei reduzierter Bewegung erscheinen die Werte sofort.
+
+### 6.9 Seekarte
+
+Die Reise als Seefahrt, als zweite Karte neben der Sternkarte. Der Aufbau der Welt ist an bekannte Piraten-Anime angelehnt (vier Meere, ein großer Seeweg quer über die Welt, ein Gebirgskamm, windstille Gürtel). Alle Namen, Inseln und Texte sind eigene, damit keine geschützten Namen oder Motive übernommen werden:
+
+- **Welt:** Der Scharlachkamm teilt die Welt von Nord nach Süd, die Große Strömung umrundet sie von West nach Ost. Wo sich beide kreuzen, liegt das Tor der vier Strömungen. Zu beiden Seiten der Strömung liegen die Kalmengürtel (der reale Begriff für die Windstillen am Äquator).
+- **Vier Heimatmeere:** Frostmeer, Morgenmeer, Abendmeer, Glutmeer. Man wählt eins im Steckbrief.
+- **Jeder Streifen ist eine Insel** (40 Inseln): Weißgurt im Heimatmeer (fünf Inseln vom Hafen zum Tor), Blau- und Lilagurt in der Äußeren Strömung bis zur Wartenden Mauer, Braungurt über den Kammpass in die Tiefe Strömung, Schwarzgurt bis Kap Kuro, dem letzten Ziel gleich neben dem Tor.
+- **Auf der Karte:** der gefahrene Kurs (gestrichelt vor der App, durchgezogen seit dem Start), das Schiff in der Farbe der Klasse, der Kurs zur nächsten Insel, Turniere als gekreuzte Klingen an der Insel, an der man damals lag, und der Wochenboss als Seeungeheuer neben dem Schiff.
+- **Inselkarte:** Beschreibung, Status (erreicht am, hier liegt dein Schiff, noch n Streifen), Turniere dort und Items, die dort warten.
+- **Kopfgeld-Steckbrief:** ein Fahndungsplakat mit Kopfbild und Kopfgeld in Gold. Das Kopfgeld wächst mit Leistung, nicht mit Fleiß allein: Level, Gürtel und Streifen, Tokui-Waza, Siegel, Turniere, Siege und Medaillen.
+
+### 6.10 Gym-Modus (später)
 
 - Der Coach pflegt den Kursplan, dann entfällt Schritt 2 für alle.
 - Der Coach kann Techniken „siegeln“, als externe Bestätigung von Stufe 4 oder 5.
 - Gym-Quests für alle, z. B. „Diese Woche: Mount Escapes“.
-- Bewusst keine öffentliche Rangliste für das Ki, höchstens eine Anwesenheits-Serie (opt-in).
+- Bewusst keine öffentliche Rangliste für das Power Level, höchstens eine Anwesenheits-Serie (opt-in).
 - Ein Dashboard für Gym-Betreiber: Anwesenheit, Abwanderungsrisiko in den ersten Monaten. Das ist der Teil, für den ein Gym bezahlen würde.
 
 ---
@@ -301,10 +334,11 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 ## 7. Screens
 
 1. **Heute:** drei Quest-Karten, Wochenboss, Wochenziel, Knopf „Training loggen“.
-2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach ein Ergebnis-Screen mit XP-Aufschlüsselung, Stufenaufstiegen, Ki-Änderung und pulsierenden Sternen.
+2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach ein Ergebnis-Screen mit XP-Aufschlüsselung, Stufenaufstiegen, Power-Level-Änderung, Beute und pulsierenden Sternen. Ein Umschalter führt zur Turnier-Eingabe (6.7).
 3. **Sternkarte:** zoombar, Sektor-Fokus, Detailfeld.
-4. **Charakter:** vier Reiter. Übersicht (Figur, Steckbrief, gewählte und erkannte Klasse, Hexagon, Ki-Verlauf, Siegel), Aussehen (Editor), Ausrüstung (Plätze, Inventar, gesperrte Items mit Freischalt-Bedingung) und Steckbrief (Name, Länder, Geburtsjahr, Gewicht, Klasse).
-5. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
+4. **Charakter:** fünf Reiter. Übersicht (Figur, Scouter, Steckbrief-Daten, gewählte und erkannte Klasse, Hexagon, Power-Level-Verlauf, Siegel), Aussehen (Editor), Ausrüstung (Plätze, Inventar, gesperrte Items mit Freischalt-Bedingung), Turniere (Kampfrekord) und Steckbrief (Name, Länder, Geburtsjahr, Gewicht, Heimatmeer, Klasse).
+5. **Seekarte:** umschaltbar mit der Sternkarte (6.9).
+6. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
 
 Die App zeigt Heute, Log-Flow mit Live-Vorschau und Beute, Sternkarte, Codex und Charakter. Der Einstieg führt in fünf Schritten durch Steckbrief, Rang, Klasse, Aussehen und Technik-Stand.
 
@@ -376,7 +410,7 @@ Das ist der Teil, der aus der App ein vorzeigbares Datenprojekt macht.
 
 1. **Coach-Abgleich:** Der Coach bewertet die Pilot-Teilnehmenden einmal pro Achse auf einer Skala von 1 bis 10. Verglichen wird die Rangkorrelation (Spearman) mit den berechneten Achsen.
 2. **Stabilität:** Wie stark springen Meisterung und Achsen von Woche zu Woche ohne echte Veränderung? Ziel: glatte Verläufe, klare Sprünge nur bei Stufenaufstiegen.
-3. **Vorhersage:** Steigen Ki und Achsen in den Wochen vor einer Streifen- oder Gürtelvergabe? Bei kleinen Zahlen ist das deskriptiv, aber gut erzählbar.
+3. **Vorhersage:** Steigen Power Level und Achsen in den Wochen vor einer Streifen- oder Gürtelvergabe? Bei kleinen Zahlen ist das deskriptiv, aber gut erzählbar.
 4. **Partner-Ratings kalibrieren:** Die Gürtel-Ratings werden aus den Roll-Ergebnissen aller Teilnehmenden per Maximum Likelihood geschätzt, statt sie gesetzt zu lassen.
 5. **Sensitivität:** Wie ändern sich die Rangfolgen, wenn man Gewichte (0,65/0,35, Prior-Stärke 4, Halbwertszeiten) um ±30 % verschiebt? Robuste Rangfolgen sind ein gutes Zeichen.
 6. **Log-Treue:** Anteil der Trainings, die geloggt wurden, und Median der Eingabezeit. Das misst, ob das Kernversprechen „realistisch zu merken“ hält.
@@ -408,9 +442,12 @@ Entschieden:
 - **Im Portfolio** mit eigenem Frontend unter `/arc/` und demselben Supabase-Projekt (Abschnitt 8).
 - **Einstieg mit Vorerfahrung:** Prolog-XP aus dem Gürtel, Selbsteinschätzung bis Stufe 4, aber vorläufig und ohne XP, bis die Rolls sie bestätigen (4.8).
 - **Klassen** wählt man selbst, die Daten zeigen daneben die erkannte Klasse (6.4).
-- **Ausrüstung** beeinflusst nur XP und Aussehen, nie Meisterung, Stufen oder Ki (6.5).
+- **Ausrüstung** beeinflusst nur XP und Aussehen, nie Meisterung, Stufen oder Power Level (6.5).
+- **Power Level statt Ki**, mit Scouter-Anzeige (4.2, 6.8).
+- **Turniere** werden geloggt und zählen im Rechenmodell mit (6.7).
+- **Seekarte** mit eigener Welt, deren Aufbau an bekannte Piraten-Anime angelehnt ist, aber nur eigene Namen verwendet (6.9).
 
 Offen:
 
-- Positional Sparring (Start in einer Position) als eigener Roll-Typ, der nicht ins Ki eingeht?
+- Positional Sparring (Start in einer Position) als eigener Roll-Typ, der nicht ins Power Level eingeht?
 - Offline-Start über einen Service Worker (Scope `/arc/`), damit die App auch ohne Netz im Gym-Keller öffnet.

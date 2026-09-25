@@ -7,7 +7,7 @@ import type { Belt } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { shade } from "../avatarOptions.ts";
-import { Patch } from "./Avatar.tsx";
+import { Patch, Pattern } from "./Avatar.tsx";
 
 const OL = "#1c1526";
 
@@ -39,56 +39,90 @@ function art(item: ItemDef, belt: Belt, uid: string): ReactNode {
       const rank = a.pattern === "rank";
       const c = rank ? BELT[belt].color : a.c ?? "#1d1d26";
       const c2 = rank ? "#15151a" : a.c2 ?? "#34406b";
+      const sl = a.sleeve ?? "long";
+      const body =
+        sl === "none"
+          ? "M16 8 L13 14 L13 42 L35 42 L35 14 L32 8 Q24 16 16 8 Z"
+          : sl === "short"
+            ? "M15 8 L6 14 L4 22 L12 24 L13 20 L13 42 L35 42 L35 20 L36 24 L44 22 L42 14 L33 8 Q24 13 15 8 Z"
+            : "M15 8 L6 14 L3 28 L10 30 L13 20 L13 42 L35 42 L35 20 L38 30 L45 28 L42 14 L33 8 Q24 13 15 8 Z";
       return (
         <g strokeLinejoin="round">
           <clipPath id={`t${uid}`}>
-            <path d="M15 8 L6 14 L3 28 L10 30 L13 20 L13 42 L35 42 L35 20 L38 30 L45 28 L42 14 L33 8 Q24 13 15 8 Z" />
+            <path d={body} />
           </clipPath>
-          <path d="M15 8 L6 14 L3 28 L10 30 L13 20 L13 42 L35 42 L35 20 L38 30 L45 28 L42 14 L33 8 Q24 13 15 8 Z" fill={c} />
-          <g clipPath={`url(#t${uid})`} fill={c2} stroke={c2}>
+          <path d={body} fill={c} />
+          <g clipPath={`url(#t${uid})`}>
             {rank ? (
-              <>
-                <rect x={3} y={8} width={9} height={34} stroke="none" />
-                <rect x={36} y={8} width={9} height={34} stroke="none" />
-              </>
-            ) : a.pattern === "wave" ? (
-              <path d="M4 24 q5 -4 10 0 t10 0 t10 0 t10 0 M4 32 q5 -4 10 0 t10 0 t10 0 t10 0" fill="none" strokeWidth={2} />
-            ) : a.pattern === "bolt" ? (
-              <polygon points="27,12 17,26 23,26 19,40 31,22 25,22 29,12" stroke="none" />
-            ) : a.pattern === "tiger" ? (
-              <path d="M3 18 L18 22 L3 24 Z M45 26 L30 30 L45 32 Z M3 32 L16 35 L3 37 Z" stroke="none" />
-            ) : a.pattern === "petals" || a.pattern === "stars" ? (
-              [16, 30, 22, 34, 18, 28].map((x, i) => <circle key={i} cx={x} cy={16 + i * 4.5} r={a.pattern === "stars" ? (i % 2 ? 0.9 : 1.6) : 2} stroke="none" />)
-            ) : a.pattern === "flame" ? (
-              <path d="M14 42 Q13 30 19 24 Q22 32 24 26 Q28 32 30 22 Q36 30 34 42 Z" stroke="none" />
+              <g fill={c2}>
+                <rect x={3} y={8} width={9} height={34} />
+                <rect x={36} y={8} width={9} height={34} />
+              </g>
             ) : (
-              <path d="M3 34 L45 22 L45 26 L3 38 Z" stroke="none" opacity={0.8} />
+              <Pattern kind={a.pattern ?? "solid"} c2={c2} x={3} y={8} w={42} h={34} />
             )}
           </g>
-          <path d="M15 8 L6 14 L3 28 L10 30 L13 20 L13 42 L35 42 L35 20 L38 30 L45 28 L42 14 L33 8 Q24 13 15 8 Z" fill="none" stroke={OL} strokeWidth={2} />
+          <path d={body} fill="none" stroke={OL} strokeWidth={2} />
         </g>
       );
     }
     case "bottom": {
       const c = a.c ?? "#1d1d26";
-      const spats = a.style === "spats";
+      const style = a.style ?? "shorts";
+      const legs = "M12 6 L36 6 L35 44 L27 44 L24 18 L21 44 L13 44 Z";
+      const shorts = "M8 8 L40 8 L44 32 L28 34 L24 20 L20 34 L4 32 Z";
+      const patterned = a.pattern && a.pattern !== "solid";
       return (
         <g strokeLinejoin="round">
-          {spats ? (
-            <path d="M12 6 L36 6 L35 44 L27 44 L24 18 L21 44 L13 44 Z" fill={c} stroke={OL} strokeWidth={2} />
-          ) : (
-            <path d="M8 10 L40 10 L44 34 L28 36 L24 22 L20 36 L4 34 Z" fill={c} stroke={OL} strokeWidth={2} />
-          )}
-          {a.c2 ? (
-            spats ? (
-              <path d="M14 20 q3 -3 6 0 M28 26 q3 -3 6 0 M14 34 q3 -3 6 0 M28 38 q3 -3 6 0" fill="none" stroke={a.c2} strokeWidth={1.6} />
-            ) : null
+          {style === "spats" || style === "combo" ? (
+            <g>
+              <clipPath id={`l${uid}`}>
+                <path d={legs} />
+              </clipPath>
+              <path d={legs} fill={style === "combo" ? a.c3 ?? "#1d1d26" : c} />
+              {style === "spats" && patterned ? (
+                <g clipPath={`url(#l${uid})`}>
+                  <Pattern kind={a.pattern!} c2={a.c2 ?? "#9cc3ff"} x={10} y={6} w={28} h={38} />
+                </g>
+              ) : null}
+              <path d={legs} fill="none" stroke={OL} strokeWidth={2} />
+            </g>
           ) : null}
-          <path d={spats ? "M12 10 L36 10" : "M8 14 L40 14"} stroke={shade(c, 0.25)} strokeWidth={2} />
+          {style === "shorts" || style === "combo" ? (
+            <g>
+              <clipPath id={`s${uid}`}>
+                <path d={shorts} />
+              </clipPath>
+              <path d={shorts} fill={c} />
+              {patterned ? (
+                <g clipPath={`url(#s${uid})`}>
+                  <Pattern kind={a.pattern!} c2={a.c2 ?? "#9cc3ff"} x={4} y={8} w={40} h={26} />
+                </g>
+              ) : null}
+              <path d={shorts} fill="none" stroke={OL} strokeWidth={2} />
+              <path d="M8 12 L40 12" stroke={shade(c, 0.25)} strokeWidth={2} />
+            </g>
+          ) : (
+            <path d="M12 10 L36 10" stroke={shade(c, 0.25)} strokeWidth={2} />
+          )}
         </g>
       );
     }
     case "head":
+      if (a.style === "bandana")
+        return (
+          <g strokeLinejoin="round">
+            <path d="M6 30 Q4 8 24 6 Q44 8 42 30 Q24 24 6 30 Z" fill={a.c} stroke={OL} strokeWidth={2} />
+            <g fill="#fff" opacity={0.7}>
+              <circle cx={16} cy={16} r={1.6} />
+              <circle cx={24} cy={12} r={1.6} />
+              <circle cx={32} cy={16} r={1.6} />
+              <circle cx={20} cy={22} r={1.2} />
+              <circle cx={28} cy={22} r={1.2} />
+            </g>
+            <path d="M40 26 Q46 32 44 42 Q40 34 36 30 Z" fill={a.c} stroke={OL} strokeWidth={1.8} />
+          </g>
+        );
       return a.style === "ears" ? (
         <g>
           <path d="M11 26 Q11 6 24 6 Q37 6 37 26" fill="none" stroke={a.c} strokeWidth={4} />
