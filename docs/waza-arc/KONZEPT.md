@@ -18,6 +18,22 @@ Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](proto
 4. **Pausen werden nicht bestraft.** Wochenserie statt Tagesserie, Heilungsmodus bei Verletzung. Stufen fallen nicht durch Pausen, Sterne rosten nur.
 5. **Unsicherheit wird ehrlich gezeigt.** Jede Quote ist eine Schätzung mit Untergrenze. 3 Treffer aus 3 Versuchen sind noch keine Meisterschaft.
 
+### 1.1 Fünf Wege, fünf Fragen
+
+Die Fortschritts-Systeme konkurrieren nicht: Jedes misst etwas, das die anderen nicht messen, beantwortet genau eine Frage, hat ein Zuhause in der App und sagt offen, ob es sinken kann. Die Festlegung steht als eine Quelle im Code (`src/arc/core/systems.ts`) und im Charakterbogen als Reihe „Fünf Wege, fünf Fragen“.
+
+| System | Zeichen | Frage | Was es bewegt | Kann es sinken? | Zuhause |
+|---|---|---|---|---|---|
+| Level (XP) | 稽 | Wie viel steckst du hinein? | Jedes Training, jede Quest, Notiz, Turnier | Nie. Einsatz bleibt Einsatz. | Goldnaht oben, Level-Siegel, Titel, Ausrüstung |
+| Power Level | 測 | Wie stark bist du gerade, verglichen mit anderen? | Rolls und Turnierkämpfe, nach Gürtel und Größe gewichtet (Elo) | Ja, mit den Ergebnissen | Oben rechts, Scouter |
+| Zweig | 技 | Was kannst du, und woran arbeitest du? | Versuche und Treffer pro Technik | Techniken welken nach 60 Tagen ohne Training; die Stufe fällt nicht | Karte, Zweig |
+| Hexagon | 型 | Wie kämpfst du, wo bist du stark und wo schwach? | Breite des Zweigs je Sektor und Form der letzten acht Wochen | Die Form folgt den letzten Rolls | Held, Übersicht |
+| Seekarte | 海 | Bleibst du dran, und mit wem? | Seemeilen aus jedem Training (auch Nebensport), schneller mit Rhythmus; Gürtel und Streifen als Häfen | Nie; in der Flaute langsamer | Karte, Seekarte, Crew |
+
+Abgrenzung der zwei Systeme, die beide mit Trainingsmenge wachsen: **XP belohnt, was du einträgst** (Quests, Rolls, Notizen, Wochenziel), **Seemeilen belohnen, dass du hingehst**, egal welcher Sport, und wie regelmäßig. Wer nur kurz „Training war“ einträgt, segelt gleich weit wie jemand mit zehn Roll-Karten, bekommt aber weniger XP. Umgekehrt bringt ein langer Eintrag keine zusätzliche Meile.
+
+Für Belohnungsmomente gilt dieselbe Reihenfolge: erst Einsatz (XP, Level), dann Können (Zweig, Hexagon), dann Stärke (Power Level), zuletzt die Reise (Seemeilen, Insel).
+
 ---
 
 ## 2. Was geloggt wird

@@ -1219,6 +1219,19 @@ svg.scroll:active { cursor: grabbing; }
 .hero-stats dt { font-size: 12.5px; color: var(--ink-2); }
 .hero-stats dd { margin: 0; font-family: var(--f-d); font-weight: 800; font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums lining-nums; }
 @media (max-width: 520px) { .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hero-stats div:nth-child(3) { border-left: 0; } .hero-stats div:nth-child(n + 3) { border-top: 1px solid var(--ink-3); } }
+/* The five progress systems, one question each (core/systems.ts). */
+.ways { display: grid; gap: 14px; }
+.ways-h { margin: 0; font-family: var(--f-d); font-weight: 800; font-size: 22px; }
+.ways-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--ink-3); border-bottom: 1px solid var(--ink-3); }
+.ways-list li + li { border-left: 1px solid var(--ink-4); }
+@media (max-width: 560px) { .ways-list { grid-template-columns: minmax(0, 1fr); } .ways-list li + li { border-left: 0; border-top: 1px solid var(--ink-4); } }
+.way { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "k n" "k v" "k s" "q q"; align-items: baseline; gap: 2px 12px; width: 100%; height: 100%; padding: 16px 14px 18px; border: 0; background: none; color: var(--ink); text-align: left; transition: background-color 0.2s; }
+.way:hover { background: var(--ink-4); }
+.way-k { grid-area: k; align-self: start; font-family: var(--f-d); font-weight: 800; font-size: 38px; line-height: 1; color: var(--gold); }
+.way-n { grid-area: n; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.way-v { grid-area: v; font-family: var(--f-d); font-weight: 800; font-size: 28px; line-height: 1.1; font-variant-numeric: lining-nums; }
+.way-s { grid-area: s; font-size: 12.5px; color: var(--ink-2); }
+.way-q { grid-area: q; margin-top: 10px; font-family: var(--f-d); font-weight: 600; font-size: 15px; line-height: 1.35; }
 .held-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; align-items: start; }
 @media (min-width: 900px) { .held-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 34px; } }
 .hex { display: block; width: 100%; height: auto; }

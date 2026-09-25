@@ -6,7 +6,7 @@ import type { ItemDef, Owned } from "../core/items.ts";
 import { ITEMS, RARITY, SLOTS, dynamicItems, perkText, unlockText } from "../core/items.ts";
 import { CLASS } from "../core/classes.ts";
 import { COUNTRY } from "../core/countries.ts";
-import { SECTORS, TECH } from "../core/techniques.ts";
+import { SECTORS, TECH, TECHS } from "../core/techniques.ts";
 import { SEALS, rankOf } from "../core/lore.ts";
 import { PROLOG_LEVEL, compute, dayNum, isoOf } from "../core/model.ts";
 import { BELT, nf0, power, shortDate, signed } from "../format.ts";
@@ -30,6 +30,9 @@ import { BODY, SPORT, SPORTS } from "../core/sports.ts";
 import { SPORT_ICON } from "../sportIcons.ts";
 import type { SportId } from "../core/types.ts";
 import { openScouter } from "../scan.ts";
+import { SYSTEMS } from "../core/systems.ts";
+import type { SystemId } from "../core/systems.ts";
+import { voyage } from "../core/voyage.ts";
 
 type Tab = "uebersicht" | "aussehen" | "ausruestung" | "turniere" | "steckbrief";
 const TABS: { id: Tab; label: string }[] = [
@@ -193,24 +196,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
           </div>
         </div>
       </section>
-      <dl className="hero-stats">
-        <div>
-          <dt>Power Level</dt>
-          <dd>{power(st.ru)}</dd>
-        </div>
-        <div>
-          <dt>Trainings</dt>
-          <dd>{st.sessions}</dd>
-        </div>
-        <div>
-          <dt>Rolls</dt>
-          <dd>{st.rolls}</dd>
-        </div>
-        <div>
-          <dt>Techniken entdeckt</dt>
-          <dd>{st.discovered}</dd>
-        </div>
-      </dl>
+      <Ways data={data} st={st} today={today} />
       <p className="bubble">
         {chosen && chosen.id !== detected.id
           ? `Gewählt hast du ${chosen.name}. Deine stärksten Techniken sprechen gerade für ${detected.name}: ${detected.style}.`
@@ -409,6 +395,42 @@ function BodyPanel({ data, st }: { data: ArcData; st: ArcState }) {
 }
 
 /* ── Aussehen ──────────────────────────────────────────────────────────── */
+
+/**
+ * The five progress systems side by side, each with the one question it
+ * answers (core/systems.ts) and where it stands now; each leads to its home.
+ */
+function Ways({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
+  const strongest = [...SECTORS].sort((a, b) => st.attrs[b.id].val - st.attrs[a.id].val)[0];
+  const miles = voyage(data, today).miles;
+  const value: Record<SystemId, { v: string; sub: string; go: () => void }> = {
+    level: { v: String(st.lvl), sub: `${rankOf(st.lvl)}, ${st.sessions} Trainings`, go: () => go("held", "ausruestung") },
+    power: { v: power(st.ru), sub: `${st.rolls} Rolls gewertet`, go: () => openScouter({ mode: "du" }) },
+    branch: { v: `${st.discovered}`, sub: `von ${TECHS.length} Techniken entdeckt`, go: () => go("karte") },
+    hexagon: { v: String(Math.round(st.attrs[strongest.id].val)), sub: `stärkste Achse: ${strongest.name}`, go: () => document.querySelector(".held-grid")?.scrollIntoView({ block: "start" }) },
+    sea: { v: nf0.format(miles), sub: "Seemeilen gesegelt", go: () => go("meer") },
+  };
+  return (
+    <section className="ways" aria-label="Deine fünf Wege">
+      <h2 className="ways-h">Fünf Wege, fünf Fragen</h2>
+      <ol className="ways-list">
+        {SYSTEMS.map((x) => (
+          <li key={x.id}>
+            <button type="button" className="way" onClick={value[x.id].go} title={`${x.grows} ${x.falls}`}>
+              <span className="way-k" aria-hidden="true">
+                {x.kanji}
+              </span>
+              <span className="way-n">{x.name}</span>
+              <b className="way-v">{value[x.id].v}</b>
+              <small className="way-s">{value[x.id].sub}</small>
+              <span className="way-q">{x.question}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 function LookTab({ look, mode, avatar, heightCm }: { look: Look; mode: Attire; avatar: AvatarFn; heightCm?: number }) {
   return (
