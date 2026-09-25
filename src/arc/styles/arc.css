@@ -1104,14 +1104,38 @@ button.item:hover { background-color: var(--ink-4); }
 /* ── Sea chart ───────────────────────────────────────────────────────── */
 .sea-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (min-width: 1000px) { .sea-layout { grid-template-columns: minmax(0, 1fr) 300px; } }
-.sea-scroll { overflow-x: auto; border: 3px solid #16171c; background: #0b2442; -webkit-overflow-scrolling: touch; }
-.sea-map { display: block; width: 100%; height: auto; }
-@media (max-width: 760px) { .sea-map { min-width: 860px; } }
-.sea-name { font-family: var(--f-d); font-size: 30px; fill: #e9ecf7; opacity: 0.22; }
+.sea-stage { min-width: 0; }
+.sea-frame { position: relative; }
+.sea-view { position: relative; height: clamp(360px, 68vh, 640px); border: 3px solid #16171c; background: #0b2442; overflow: hidden; outline: none; touch-action: none; }
+.sea-view:focus-visible { box-shadow: 0 0 0 3px var(--gold); }
+.sea-map { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.sea-map:active { cursor: grabbing; }
+.sea-name { font-family: var(--f-d); font-size: var(--ss, 30px); fill: #e9ecf7; opacity: 0.22; }
 .sea-name.mine { opacity: 0.6; fill: #f3b000; }
-.sea-cur { font-family: var(--f-b); font-size: 12px; font-weight: 800; fill: #cfe2ff; opacity: 0.65; }
-.sea-calm-lbl { font-family: var(--f-b); font-size: 11px; font-weight: 700; fill: #9cc3ff; opacity: 0.6; }
-.sea-ridge-lbl { font-family: var(--f-d); font-size: 13px; fill: #ffd0c8; opacity: 0.9; }
+.sea-cur { font-family: var(--f-b); font-size: var(--ls, 12px); font-weight: 800; fill: #cfe2ff; opacity: 0.65; }
+.sea-calm-lbl { font-family: var(--f-b); font-size: var(--ls, 11px); font-weight: 700; fill: #9cc3ff; opacity: 0.6; }
+.sea-ridge-lbl { font-family: var(--f-d); font-size: calc(var(--ls, 12px) * 1.1); fill: #ffd0c8; opacity: 0.9; }
+.sea-tools { position: absolute; top: 10px; right: 10px; display: grid; gap: 6px; }
+.sea-mini { position: absolute; left: 10px; bottom: 10px; width: 156px; height: auto; border: 2px solid #e9dcc0; cursor: pointer; box-shadow: 3px 3px 0 #16171c; }
+.sea-mini-view { fill: rgba(255, 227, 154, 0.16); stroke: #ffe39a; stroke-width: 12; }
+.sea-callout { position: absolute; left: 10px; right: 10px; bottom: 10px; display: none; align-items: center; gap: 10px; padding: 8px 10px 8px 12px; border: 2px solid #16171c; background: var(--paper); color: var(--ink); box-shadow: 4px 4px 0 #16171c; }
+.sea-callout p { flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 1.3; }
+.sea-callout b { display: block; font-family: var(--f-d); font-weight: 400; font-size: 16px; overflow-wrap: anywhere; }
+@media (max-width: 999px) {
+  .sea-mini { display: none; }
+  .sea-callout { display: flex; }
+}
+@media (max-width: 640px) { .sea-frame { margin: 0 -16px; } .sea-view { height: 64vh; border-left: 0; border-right: 0; } }
+.route-strip { display: flex; gap: 6px; margin: 0; padding: 10px 2px 6px; overflow-x: auto; list-style: none; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.route-strip li { flex: 0 0 auto; scroll-snap-align: center; }
+.route-strip button { display: grid; gap: 1px; min-width: 104px; max-width: 160px; padding: 6px 10px; border: 1.5px solid var(--ink-3); background: var(--paper-3); color: var(--ink); text-align: left; font-size: 13px; font-weight: 700; line-height: 1.25; }
+.route-strip button:hover { border-color: var(--ink); }
+.route-strip small { font-size: 11.5px; font-weight: 600; color: var(--ink-2); }
+.route-strip .past button { color: var(--ink-2); }
+.route-strip .here button { border: 2px solid var(--ink); box-shadow: inset 0 -4px 0 var(--gold); }
+.route-strip .sel button { border-color: var(--ink); background: var(--ai-soft); }
+.ship-lbl { font-family: var(--f-b); font-size: calc(var(--fs, 12px) * 0.92); font-weight: 800; fill: #cfe2ff; paint-order: stroke; stroke: #0b2442; stroke-width: calc(var(--fs, 12px) * 0.28); stroke-linejoin: round; pointer-events: none; }
+.other-ship.crew .ship-lbl { fill: #f3b000; }
 .sea-trail { stroke-linecap: round; }
 .isle { cursor: pointer; outline: none; }
 .isle:focus-visible .isle-lbl { text-decoration: underline; }
@@ -1119,10 +1143,10 @@ button.item:hover { background-color: var(--ink-4); }
 .isle-green { fill: #5f9a55; stroke: #16171c; stroke-width: 0.8; }
 .isle.future .isle-sand, .isle.future .isle-green, .isle.other .isle-sand, .isle.other .isle-green { opacity: 0.55; }
 .isle.other .isle-green { fill: #6f8a6a; }
-.isle-lbl { font-family: var(--f-b); font-size: 12px; font-weight: 800; fill: #f2f3ee; paint-order: stroke; stroke: #0b2442; stroke-width: 3.5px; stroke-linejoin: round; }
+.isle-lbl { font-family: var(--f-b); font-size: var(--fs, 12px); font-weight: 800; fill: #f2f3ee; paint-order: stroke; stroke: #0b2442; stroke-width: calc(var(--fs, 12px) * 0.3); stroke-linejoin: round; }
 .isle.future .isle-lbl { fill: #b9c6dc; font-weight: 700; }
-.isle.other .isle-lbl { fill: #8ea0bd; font-weight: 600; font-size: 11px; }
-.isle.here .isle-lbl { fill: #f3b000; font-size: 13.5px; }
+.isle.other .isle-lbl { fill: #8ea0bd; font-weight: 600; font-size: calc(var(--fs, 12px) * 0.92); }
+.isle.here .isle-lbl { fill: #f3b000; font-size: calc(var(--fs, 12px) * 1.12); }
 .isle.sel .isle-lbl { text-decoration: underline; }
 .isle:hover .isle-lbl { fill: #fff; }
 .isle-comp circle { stroke: #16171c; stroke-width: 1.2; }
@@ -1130,8 +1154,8 @@ button.item:hover { background-color: var(--ink-4); }
 .isle-comp .m1 { fill: #f3b000; }
 .isle-comp .m2 { fill: #c9ced6; }
 .isle-comp .m3 { fill: #c98a55; }
-.isle-comp-n { font-family: var(--f-b); font-size: 10px; font-weight: 800; fill: #fff; paint-order: stroke; stroke: #16171c; stroke-width: 2.5px; }
-.monster-lbl { font-family: var(--f-b); font-size: 11px; font-weight: 800; fill: #d7c2f5; paint-order: stroke; stroke: #0b2442; stroke-width: 3px; }
+.isle-comp-n { font-family: var(--f-b); font-size: calc(var(--ls, 11px) * 0.9); font-weight: 800; fill: #fff; paint-order: stroke; stroke: #16171c; stroke-width: 2.5px; }
+.monster-lbl { font-family: var(--f-b); font-size: var(--ls, 11px); font-weight: 800; fill: #d7c2f5; paint-order: stroke; stroke: #0b2442; stroke-width: 3px; }
 .rose-n { font-family: var(--f-d); font-size: 12px; fill: #f3b000; }
 .sea-side { display: grid; gap: 18px; }
 @media (min-width: 1000px) { .sea-side { position: sticky; top: calc(var(--hud-h) + 16px); } }
@@ -1463,3 +1487,11 @@ button.item:hover { background-color: var(--ink-4); }
 .mat-card:hover { border-color: var(--ai); }
 .mat-card b { font-family: var(--f-d); font-weight: 400; font-size: 22px; }
 .mat-card small { color: var(--ink-2); font-size: 14px; }
+@media (max-width: 640px) {
+  .sea-page .map-head .eyebrow { display: none; }
+  .sea-page .page-h { font-size: 24px; }
+  .sea-page .map-head { display: grid; }
+  .sea-page .map-head > div { min-width: 0; }
+  .sea-page .map-stats { min-width: 0; max-width: 100%; flex-wrap: nowrap; overflow-x: auto; gap: 6px 14px; padding-bottom: 2px; font-size: 13px; white-space: nowrap; scrollbar-width: none; }
+  .sea-page .map-stats::-webkit-scrollbar { display: none; }
+}
