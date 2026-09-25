@@ -1,10 +1,13 @@
-import { Flame, HeartPulse, Plus, RefreshCw, ScanEye } from "lucide-react";
+import { CalendarClock, Flame, HeartPulse, Plus, RefreshCw, ScanEye, Timer } from "lucide-react";
 import type { ArcData, ArcState, Attire, QuestOffer } from "../core/types.ts";
 import { TECH, sectorName } from "../core/techniques.ts";
 import { ARCS, LEVELS, QUEST, ROMAN, STUCK } from "../core/lore.ts";
 import { pickCards } from "../core/model.ts";
 import { longDate, shortDate } from "../format.ts";
-import { acceptQuest, markReroll, setTodayAttire, togglePause } from "../actions.ts";
+import { acceptQuest, markReroll, matStart, setTodayAttire, togglePause } from "../actions.ts";
+import { DAY_NAMES, addDays, nextTraining, weekdayOf } from "../core/schedule.ts";
+import type { Occurrence } from "../core/schedule.ts";
+import { getPlan, plannedAttire } from "../plan.ts";
 import { go } from "../store.ts";
 import { questTask } from "../questText.ts";
 import { KindBadge, SecTitle, Seg, Star } from "../components/ui.tsx";
@@ -22,7 +25,7 @@ const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => stri
 
 export default function Today({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const lastAttire = [...data.sessions].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.attire ?? "gi";
-  const attire: Attire = data.ui.todayAttire?.day === today ? data.ui.todayAttire.attire : lastAttire;
+  const attire: Attire = data.ui.todayAttire?.day === today ? data.ui.todayAttire.attire : plannedAttire(data, today) ?? lastAttire;
   const first = pickCards(st.offers, { attire });
   const rerolled = data.ui.rerollDay === today;
   const cards = rerolled ? pickCards(st.offers, { attire, exclude: new Set(first.map((c) => c.node)) }) : first;
@@ -82,6 +85,8 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
           </button>
         </section>
       </div>
+
+      <NextTraining data={data} today={today} />
 
       <SecTitle kanji="今日" eyebrow="Tagesquest" title="Zieh deine Karte">
         Eine Karte nimmst du mit auf die Matte. Im Training zählst du nur sie mit, das macht die Quest zur Messung.
@@ -148,8 +153,19 @@ function QuestCard({ q, st, today, accepted, done, own }: { q: QuestOffer; st: A
       <p className="why">{own ? "Von dir auf der Karte gewählt" : REASON[q.reason](st, q)}</p>
       <div className="qcard-foot">
         <span className="xp">+{q.xp} XP</span>
-        {accepted ? (
-          <span className="taken-label">{done ? "Erfüllt" : "Angenommen"}</span>
+        {accepted && !done ? (
+          <button
+            type="button"
+            className="btn small"
+            onClick={() => {
+              matStart(today, q);
+              go("matte");
+            }}
+          >
+            <Timer size={15} aria-hidden="true" /> <span>Auf die Matte</span>
+          </button>
+        ) : accepted ? (
+          <span className="taken-label">Erfüllt</span>
         ) : (
           <button type="button" className="btn primary small" onClick={() => acceptQuest(today, q)}>
             <span>Annehmen</span>
@@ -165,6 +181,52 @@ function QuestCard({ q, st, today, accepted, done, own }: { q: QuestOffer; st: A
         </span>
       ) : null}
     </article>
+  );
+}
+
+const dayWord = (date: string, today: string) => (date === today ? "Heute" : date === addDays(today, 1) ? "Morgen" : `Am ${DAY_NAMES[weekdayOf(date)]}`);
+
+/** The next planned training, with the way onto the mat when it is close. */
+function NextTraining({ data, today }: { data: ArcData; today: string }) {
+  const plan = getPlan(data);
+  const now = Date.now();
+  const o: Occurrence | null = plan.slots.length ? nextTraining(plan, now) : null;
+  if (!plan.slots.length) {
+    return (
+      <section className="plan-strip" aria-label="Wochenplan">
+        <CalendarClock size={20} aria-hidden="true" />
+        <p>Trag ein, wann du trainierst. Dann erinnert dich Waza Arc vor jedem Training an deine Quest.</p>
+        <button type="button" className="btn small" onClick={() => go("plan")}>
+          Wochenplan anlegen
+        </button>
+      </section>
+    );
+  }
+  const soon = !!o && o.slot.sport === "bjj" && o.start - now < 90 * 60_000;
+  return (
+    <section className="plan-strip" aria-label="Nächstes Training">
+      <CalendarClock size={20} aria-hidden="true" />
+      <p>
+        {o ? (
+          <>
+            {o.start <= now ? "Läuft gerade" : `${dayWord(o.date, today)} um ${o.slot.start}`}: <b>{o.slot.label}</b>
+            {o.slot.place ? `, ${o.slot.place}` : ""}
+          </>
+        ) : (
+          "In den nächsten sieben Tagen steht kein Training im Plan."
+        )}
+      </p>
+      <div className="row wrap">
+        {soon ? (
+          <button type="button" className="btn small" onClick={() => go("matte")}>
+            <Timer size={15} aria-hidden="true" /> <span>Auf die Matte</span>
+          </button>
+        ) : null}
+        <button type="button" className="linkish" onClick={() => go("plan")}>
+          Wochenplan
+        </button>
+      </div>
+    </section>
   );
 }
 

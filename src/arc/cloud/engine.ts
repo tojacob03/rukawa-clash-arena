@@ -323,6 +323,7 @@ export async function removeFactor(factorId: string) {
 export async function signOut(opts: { everywhere?: boolean; wipe?: boolean } = {}) {
   const uid = syncUser;
   if (uid && !arcStore.get().demo) await syncOnce().catch(() => undefined);
+  await dropDevicePush().catch(() => undefined);
   stopSync();
   arcStore.switchTo(null);
   if (opts.wipe && uid) forget(uid);
@@ -338,6 +339,51 @@ export async function deleteAccount() {
   arcStore.switchTo(null);
   if (uid) forget(uid);
   await sb.auth.signOut({ scope: "local" }).catch(() => undefined);
+}
+
+// ── Reminders ─────────────────────────────────────────────────────────────
+
+export interface ReminderConfig {
+  /** Public VAPID key for web push, once the reminder function has set itself up. */
+  vapid: string | null;
+  /** The mail service is configured on the server. */
+  email: boolean;
+}
+
+export async function reminderConfig(): Promise<ReminderConfig> {
+  const { data, error } = await sb.rpc("arc_reminder_config");
+  fail(error);
+  const d = (data ?? {}) as { vapid?: string | null; email?: boolean };
+  return { vapid: d.vapid ?? null, email: !!d.email };
+}
+
+export async function pushSubscribe(sub: PushSubscriptionJSON) {
+  const { error } = await sb.rpc("arc_push_subscribe", { p_endpoint: sub.endpoint, p_p256dh: sub.keys?.p256dh, p_auth: sub.keys?.auth });
+  fail(error);
+}
+
+export async function pushUnsubscribe(endpoint: string) {
+  const { error } = await sb.rpc("arc_push_unsubscribe", { p_endpoint: endpoint });
+  fail(error);
+}
+
+/** Sends a test reminder to every channel of this account that is switched on. */
+export async function testReminder(): Promise<{ push: number; email: boolean }> {
+  const { data, error } = await sb.functions.invoke("arc-reminders", { body: { action: "test" } });
+  if (error) {
+    const body = (await (error as { context?: Response }).context?.json?.().catch(() => null)) as { error?: string } | null;
+    throw Object.assign(new Error(body?.error ?? error.message), { code: body?.error });
+  }
+  return data as { push: number; email: boolean };
+}
+
+/** This device stops receiving the account's reminders (on sign-out). */
+async function dropDevicePush() {
+  const reg = await navigator.serviceWorker?.getRegistration("/arc/");
+  const sub = await reg?.pushManager?.getSubscription();
+  if (!sub) return;
+  await pushUnsubscribe(sub.endpoint).catch(() => undefined);
+  await sub.unsubscribe().catch(() => undefined);
 }
 
 function forget(uid: string) {
@@ -557,6 +603,8 @@ function wireSyncTriggers() {
 // ── Messages ──────────────────────────────────────────────────────────────
 
 const MESSAGES: Record<string, string> = {
+  arc_test_limit: "Eine Test-Erinnerung pro Stunde. Versuch es später noch mal.",
+  arc_push_bad_subscription: "Dieser Browser liefert keine gültige Adresse für Benachrichtigungen.",
   invalid_credentials: "E-Mail oder Passwort stimmt nicht.",
   email_not_confirmed: "Bitte bestätige zuerst deine E-Mail-Adresse.",
   otp_expired: "Der Code ist abgelaufen oder falsch. Fordere einen neuen an.",

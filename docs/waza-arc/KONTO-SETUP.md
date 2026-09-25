@@ -82,12 +82,23 @@ TOTP (Authenticator-App) ist standardmäßig an. Nichts zu tun, außer es wurde 
 - **Leaked password protection:** prüft Passwörter gegen HaveIBeenPwned. Nur in bezahlten Plänen.
 - **Postgres-Update:** Der Security-Advisor meldet offene Sicherheitsupdates für die Datenbankversion (Settings → Infrastructure).
 
-## 8. Registrierung einschalten (zuletzt)
+## 8. Erinnerungen vor dem Training
+
+Im Code fertig: Wochenplan, Benachrichtigungen (Web Push), E-Mail, Kalender-Datei. Der Kalender funktioniert sofort und ohne Server. Für Push und Mail:
+
+1. **Datenbank und Function** (braucht eine Freigabe, dann erledige ich das): Migration `supabase/migrations/20260926090000_arc_reminders.sql` anwenden und die Edge Function `arc-reminders` mit `verify_jwt = false` deployen (`supabase functions deploy arc-reminders`). Der Cron-Job läuft danach alle fünf Minuten, die Schlüssel für Web Push erzeugt die Function beim ersten Lauf selbst. Ab dann zeigt der Wochenplan „Auf diesem Gerät einschalten“.
+2. **E-Mail (optional):** ein Konto bei [Resend](https://resend.com) anlegen, die Domain `rukawaanalytics.com` verifizieren (drei DNS-Einträge beim Domain-Anbieter), einen API-Key erzeugen. Dann unter Edge Functions → Secrets setzen:
+   - `RESEND_API_KEY`: der Key
+   - `ARC_MAIL_FROM`: z. B. `Waza Arc <arc@rukawaanalytics.com>`
+   Beim nächsten Lauf meldet die Function „Mail bereit“, und der Wochenplan bietet E-Mail an. Der kostenlose Tarif reicht für 100 Mails am Tag.
+3. **Prüfen:** Im Wochenplan „Test-Erinnerung schicken“. Fehlgeschlagene Läufe stehen in `cron.job_run_details`, Details in den Logs der Function.
+
+## 9. Registrierung einschalten (zuletzt)
 
 Authentication → Sign In / Providers → **Allow new users to sign up:** an.
 
 Danach einmal selbst durchspielen: auf `https://rukawaanalytics.com/arc/` im Profil „Anmelden oder Konto erstellen“, mit Code anmelden, im Konto einen Passkey und den zweiten Faktor hinzufügen, auf einem zweiten Gerät anmelden und ein Training eintragen.
 
-## 9. Datenschutzerklärung
+## 10. Datenschutzerklärung
 
-Die Seite `/datenschutz` des Portfolios braucht einen Abschnitt zu Waza Arc: welche Daten mit Konto gespeichert werden (Anmeldedaten, Trainingsdaten), wo (Supabase, Frankfurt), wozu (Sicherung und Abgleich zwischen Geräten), welche Anbieter bei der Anmeldung beteiligt sein können (Google, Apple, Discord, GitHub, Cloudflare bei aktiviertem CAPTCHA), wie lange (bis zur Löschung des Kontos) und wie man das Konto löscht (in der App unter Konto). Den Text sollte jemand prüfen, der sich mit der DSGVO auskennt.
+Die Seite `/datenschutz` des Portfolios braucht einen Abschnitt zu Waza Arc: welche Daten mit Konto gespeichert werden (Anmeldedaten, Trainingsdaten), wo (Supabase, Frankfurt), wozu (Sicherung und Abgleich zwischen Geräten), welche Anbieter bei der Anmeldung beteiligt sein können (Google, Apple, Discord, GitHub, Cloudflare bei aktiviertem CAPTCHA), wie lange (bis zur Löschung des Kontos) und wie man das Konto löscht (in der App unter Konto). Für Erinnerungen dazu: Der Server liest den Wochenplan, speichert pro Gerät die Push-Adresse beim Push-Dienst des Browsers (Google, Apple, Mozilla oder Microsoft stellen die Nachricht zu), Mails verschickt Resend, das Versandprotokoll wird nach 30 Tagen gelöscht. Den Text sollte jemand prüfen, der sich mit der DSGVO auskennt.

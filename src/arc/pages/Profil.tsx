@@ -9,6 +9,7 @@ import { Belt, HeroKoma, SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import { useTheme } from "../theme.ts";
 import { useCloud } from "../cloud/state.ts";
 import { go } from "../store.ts";
+import { getPlan } from "../plan.ts";
 
 export default function Profil({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const p = data.profile;
@@ -19,6 +20,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
   const [msg, setMsg] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const [theme, setTheme] = useTheme();
+  const plan = getPlan(data);
   const cloud = useCloud();
   const signedIn = cloud.status === "signedIn";
   if (!p) return null;
@@ -54,6 +56,18 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
           </button>
           <small className="muted">Eine pausierte Woche bricht deine Flamme nicht. Es wird kein Grund gespeichert.</small>
         </div>
+      </section>
+
+      <section className="panel form-panel" aria-label="Wochenplan">
+        <h2 className="h3">Wochenplan und Erinnerungen</h2>
+        <p className="small">
+          {plan.slots.length
+            ? `${plan.slots.length} ${plan.slots.length === 1 ? "Training" : "Trainings"} pro Woche im Plan, davon ${plan.slots.filter((x) => x.sport === "bjj").length} BJJ. Erinnerung ${plan.lead} Minuten vorher.`
+            : "Noch kein Plan. Mit Trainingszeiten erinnert dich Waza Arc vor jedem Training an deine Quest, per Benachrichtigung, E-Mail oder Kalender."}
+        </p>
+        <button type="button" className="btn" onClick={() => go("plan")}>
+          <span>{plan.slots.length ? "Wochenplan öffnen" : "Wochenplan anlegen"}</span>
+        </button>
       </section>
 
       {cloud.configured ? (

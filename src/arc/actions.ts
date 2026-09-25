@@ -1,4 +1,5 @@
-import type { ArcData, Attire, Belt, Character, Competition, CrossSession, FlagDesign, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import type { ArcData, Attire, Belt, Character, Competition, CrossSession, FlagDesign, Look, MatCount, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import type { TrainingPlan } from "./core/schedule.ts";
 import { getCharacter } from "./character.ts";
 import { ITEMS } from "./core/items.ts";
 import { TECH } from "./core/techniques.ts";
@@ -23,7 +24,26 @@ export function setTodayAttire(today: string, attire: Attire) {
 }
 
 export function saveSession(s: Session) {
-  arcStore.set((d) => ({ ...d, sessions: [...d.sessions, s] }));
+  // The mat counter for this day ends up in the session; clear it.
+  arcStore.set((d) => ({ ...d, sessions: [...d.sessions, s], ui: d.ui.mat?.day === s.date ? { ...d.ui, mat: undefined } : d.ui }));
+}
+
+export function setPlan(plan: TrainingPlan) {
+  arcStore.set((d) => ({ ...d, plan }));
+}
+
+/** Start or continue counting a quest on the mat. Also accepts the quest for the day. */
+export function matStart(today: string, q: { node: string; kind: QuestKind; xp: number }) {
+  arcStore.set((d) => {
+    const cur = d.ui.mat;
+    const same = cur && cur.day === today && cur.node === q.node;
+    const mat: MatCount = same ? cur : { day: today, node: q.node, kind: q.kind, xp: q.xp, att: 0, succ: 0, done: false };
+    return { ...d, ui: { ...d.ui, accepted: { day: today, node: q.node, kind: q.kind, xp: q.xp }, mat } };
+  });
+}
+
+export function matSet(patch: Partial<Pick<MatCount, "att" | "succ" | "done">>) {
+  arcStore.set((d) => (d.ui.mat ? { ...d, ui: { ...d.ui, mat: { ...d.ui.mat, ...patch } } } : d));
 }
 
 export function saveCompetition(c: Competition) {

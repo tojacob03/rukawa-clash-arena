@@ -1,3 +1,4 @@
+import type { TrainingPlan } from "./schedule.ts";
 // Shared types for Waza Arc. Everything the app stores is plain JSON so it
 // can live in localStorage today and move to Supabase (schema "arc") later.
 
@@ -227,6 +228,17 @@ export interface AcceptedQuest {
   xp: number;
 }
 
+/** The mat-side counter for today's quest, kept until the training is logged. */
+export interface MatCount {
+  day: string;
+  node: string;
+  kind: QuestKind;
+  xp: number;
+  att: number;
+  succ: number;
+  done: boolean;
+}
+
 export interface ArcData {
   v: 1;
   profile: Profile | null;
@@ -240,7 +252,10 @@ export interface ArcData {
     accepted?: AcceptedQuest;
     rerollDay?: string;
     todayAttire?: { day: string; attire: Attire };
+    mat?: MatCount;
   };
+  /** Weekly training plan with reminders (see core/schedule.ts). */
+  plan?: TrainingPlan;
   character?: Character;
   competitions?: Competition[];
   cross?: CrossSession[];

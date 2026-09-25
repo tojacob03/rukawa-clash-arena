@@ -18,6 +18,7 @@ import ChapterEnd from "../components/ChapterEnd.tsx";
 import { trainingRows } from "../chapterRows.tsx";
 import { LogSwitch } from "./Turnier.tsx";
 import { openScouter } from "../scan.ts";
+import { plannedAttire } from "../plan.ts";
 
 interface Draft {
   format: Format;
@@ -42,16 +43,23 @@ const CTRL: { v: Control; label: string }[] = [
 
 function initialDraft(data: ArcData, st: ArcState, today: string): Draft {
   const last = [...data.sessions].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
-  const attire: Attire = data.ui.todayAttire?.day === today ? data.ui.todayAttire.attire : last?.attire ?? "gi";
+  const attire: Attire = data.ui.todayAttire?.day === today ? data.ui.todayAttire.attire : plannedAttire(data, today) ?? last?.attire ?? "gi";
   const acc = data.ui.accepted?.day === today ? data.ui.accepted : null;
   const top = acc ?? pickCards(st.offers, { attire })[0] ?? null;
+  // Counted on the mat: the numbers come along.
+  const mat = data.ui.mat?.day === today && data.ui.mat.node === top?.node ? data.ui.mat : null;
+  const counted = mat
+    ? mat.kind === "kata"
+      ? { att: 0, succ: 0, done: mat.done || mat.att >= 3 }
+      : { att: mat.att, succ: Math.min(mat.succ, mat.att), done: false }
+    : { att: 0, succ: 0, done: false };
   const own: BeltId = data.profile?.belt ?? "weiss";
   return {
     format: "class",
     attire,
     taught: "",
     rolls: Array.from({ length: 5 }, () => ({ belt: own, size: "gleich" as Size, sf: 0, sa: 0, c: 0.5 as Control })),
-    quest: top ? { node: top.node, kind: top.kind, xp: top.xp, att: 0, succ: 0, done: false } : null,
+    quest: top ? { node: top.node, kind: top.kind, xp: top.xp, ...counted } : null,
     worked: "",
     stuck: "",
   };
