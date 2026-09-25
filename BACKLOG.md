@@ -10,7 +10,7 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
   - [x] Charakter-Bühne (Held)
 - [x] **Stufe 3 des UI-Reworks:** Codex, Profil, Konto, Plan, Onboarding
 - [x] **Rollen der Fortschritts-Systeme festlegen:** Level/XP, Power Level, Skilltree (früher Sternkarte), Seekarte, Hexagon
-- [ ] **Mobile UI ausbessern**
+- [x] **Mobile UI ausbessern**
 - [ ] **Traditionelle Kopfbedeckungen je Land**
   - [ ] Eine Kopfbedeckung pro Land (wo es keine passende gibt, etwas anderes, etwa ein Stirnband in den Landesfarben)
   - [ ] Jeder bekommt die seines Landes bzw. seiner Länder direkt

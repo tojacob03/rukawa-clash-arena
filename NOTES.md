@@ -39,3 +39,13 @@ Festgelegt als „Fünf Wege, fünf Fragen“, eine Quelle im Code (`src/arc/cor
 - **Seekarte (海):** Bleibst du dran, und mit wem? Sinkt nie.
 
 *Warum so:* XP und Seemeilen wachsen beide mit Training und wirkten doppelt. Jetzt ist die Grenze klar: XP belohnt, was du einträgst, Seemeilen belohnen, dass du hingehst (jeder Sport, Rhythmus zählt). Die Reihenfolge Einsatz, Können, Stärke, Reise gilt auch für das Kapitelende (nächster Punkt „Belohnungsmoment“). *Entscheidung ohne Rückfrage:* Die Werte-Zeile im Charakterbogen (Power Level, Trainings, Rolls, Sterne) wurde durch diese Reihe ersetzt; Trainings und Rolls stehen jetzt als Unterzeile bei Level und Power Level.
+
+### Mobile UI
+
+Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf, Elemente außerhalb des Bildes, Tippflächen unter 24 px) plus Sichtprüfung der 320-px-Bilder. Kein Überlauf gefunden. Behoben:
+
+- „Demo verlassen“ war 21 px hoch → 32 px.
+- Gürtelwahl in den Roll-Karten war 20 px hoch → 24 px sichtbar, Tippfläche reicht per Pseudo-Element 10 px darüber und darunter.
+- Wochenziel-Knöpfe (1–5) waren bei 320 px nur 23 px breit → Mindestbreite 36 px für alle Auswahlreihen.
+- „Woche 5 von 8“ brach bei 320 px um → kürzere Striche, kein Umbruch.
+- Icons in Tabs (Seekarte: Karte, Schiff, Logbuch, Crew) wurden auf schmalen Bildschirmen zu Punkten zusammengedrückt → Icons in Bedienelementen schrumpfen nicht mehr.
