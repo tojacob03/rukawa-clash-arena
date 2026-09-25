@@ -588,6 +588,9 @@ b, strong { font-weight: 650; }
 
 .form-page { display: grid; gap: 24px; align-content: start; max-width: 780px; margin: 0 auto; padding: 32px 16px 20px; }
 .form-page.wide { max-width: 1060px; }
+.onb-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 0 clamp(14px, 3vw, 26px); }
+.onb-k { padding-right: clamp(12px, 2.4vw, 22px); border-right: 1px solid var(--gold-line); font-family: var(--f-d); font-weight: 800; font-size: clamp(56px, 9vw, 96px); line-height: 0.9; color: var(--gold); }
+.onb-t { display: grid; gap: 14px; min-width: 0; }
 .stepper-dots { display: flex; align-items: center; gap: 6px; }
 .stepper-dots i { width: 28px; height: 2px; background: var(--ink-3); }
 .stepper-dots i.done { background: var(--ink-2); }
@@ -1743,7 +1746,9 @@ button.item:hover { border-color: var(--ink-2); }
 .sync-line.offline svg { color: var(--gold); }
 .sync-line.error { border-color: var(--beni); }
 .sync-line.error svg { color: var(--beni); }
-.konto-cols { display: grid; gap: 20px; align-items: start; }
+.konto-cols { display: grid; gap: 0 40px; align-items: start; }
+.konto-cols > .panel { padding: 22px 0 24px; border: 0; border-top: 1px solid var(--ink-3); border-radius: 0; background: none; }
+.konto-cols > .panel.danger-panel { border-top-color: color-mix(in srgb, var(--beni) 55%, transparent); }
 .konto-cols .panel > .btn, .konto-teaser > .btn, .guest-up > .btn { justify-self: start; }
 @media (min-width: 900px) { .konto-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .identity-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
