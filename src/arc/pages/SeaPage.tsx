@@ -187,7 +187,7 @@ export default function SeaPage({
   };
 
   return (
-    <div className="page sea-page">
+    <div className={`page sea-page${view === "karte" ? " chart" : ""}`}>
       <div className="map-head">
         <div>
           <MapSwitch value="meer" />
@@ -413,7 +413,7 @@ function ChartView({
 
   return (
     <>
-      <div className="sea-layout">
+      <div className="sea-room">
         <div className="sea-stage">
           <div className="sea-frame">
             <SeaMap
@@ -446,6 +446,7 @@ function ChartView({
               voyage={voyage}
               onVoyage={onVoyage}
               note={note}
+              overlay
             />
             <div className="sea-callout" aria-live="polite">
               <p>
@@ -494,7 +495,7 @@ function ChartView({
             })}
           </ol>
         </div>
-        <aside className="sea-side">
+        <aside className="sea-card">
           <IslandCard
             is={ISLAND[selected]}
             data={data}
@@ -504,17 +505,20 @@ function ChartView({
             comps={comps[selected]?.list ?? []}
             explored={expl.find((e) => e.island.id === selected) ?? null}
           />
-          {ship.crew ? (
-            <CrewShipCard data={data} today={today} ship={ship} />
-          ) : (
-            <Wanted
-              name={p.name}
-              bounty={bounty(data, st)}
-              line={`${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt, ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
-              portrait={avatar}
-            />
-          )}
         </aside>
+      </div>
+
+      <div className="sea-below">
+        {ship.crew ? (
+          <CrewShipCard data={data} today={today} ship={ship} />
+        ) : (
+          <Wanted
+            name={p.name}
+            bounty={bounty(data, st)}
+            line={`${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt, ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
+            portrait={avatar}
+          />
+        )}
       </div>
 
       {ship.crew && ship.crew.members.length ? (

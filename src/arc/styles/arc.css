@@ -1279,8 +1279,26 @@ button.item:hover { border-color: var(--ink-2); }
 .form-panel { gap: 16px; }
 
 /* ── Sea chart: an ink chart on lacquer ──────────────────────────────── */
-.sea-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: start; }
-@media (min-width: 1000px) { .sea-layout { grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; } }
+/* The chart is a room of its own, edge to edge; the island card floats over it on wide screens. */
+.sea-page.chart { max-width: none; padding-inline: 0; grid-template-columns: minmax(0, 1fr); }
+.sea-page.chart > :not(.sea-room) { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: 16px; }
+@media (min-width: 720px) { .sea-page.chart > :not(.sea-room) { padding-inline: 32px; } }
+.sea-room { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); background: #0b0d0e; border-top: 1px solid rgba(212, 169, 79, 0.28); border-bottom: 1px solid rgba(212, 169, 79, 0.28); }
+.sea-room .sea-view { height: max(420px, calc(100dvh - var(--hud-h) - var(--nav-h) - 230px)); border: 0; border-radius: 0; }
+@media (min-width: 1100px) { .sea-room .sea-view { height: max(540px, calc(100dvh - var(--hud-h) - 210px)); aspect-ratio: auto; max-height: none; } }
+.sea-room .sea-bar { border: 0; border-top: 1px solid rgba(212, 169, 79, 0.2); border-radius: 0; }
+.sea-room .sea-callout { border: 0; border-top: 1px solid rgba(212, 169, 79, 0.2); border-radius: 0; background: #100d0b; color: #ede3d1; }
+.sea-room .route-strip { padding: 12px 16px 14px; }
+.sea-room .route-strip button { border-color: rgba(237, 227, 209, 0.18); color: #ede3d1; }
+.sea-room .route-strip button:hover { border-color: rgba(237, 227, 209, 0.45); }
+.sea-room .route-strip small, .sea-room .route-strip .past button { color: #a3968a; }
+.sea-room .route-strip .sel button { border-color: #ede3d1; background: rgba(237, 227, 209, 0.06); }
+.sea-card { padding: 0 16px 18px; }
+@media (min-width: 1000px) {
+  .sea-card { position: absolute; top: 16px; right: 16px; z-index: 3; width: 330px; max-height: calc(100% - 160px); padding: 0; overflow: auto; }
+  .sea-card .isle-card { box-shadow: 0 40px 70px -30px rgba(0, 0, 0, 0.85); }
+}
+.sea-below { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 22px; align-items: start; }
 .sea-stage { min-width: 0; }
 .sea-frame { position: relative; }
 .sea-chart { display: grid; }
@@ -1296,6 +1314,14 @@ button.item:hover { border-color: var(--ink-2); }
 .sea-frame-art .line { fill: none; stroke: #d4a94f; stroke-width: 1.2; opacity: 0.6; }
 .sea-frame-art .line.thin { stroke-width: 0.6; opacity: 0.45; }
 .sea-frame-art .tick { fill: #d4a94f; opacity: 0.4; }
+
+/* Mist (SeaMap MistBanks): drifting slowly; the layers move apart when the chart is pulled. */
+.mist { pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .mist .puff { animation: mist-drift 34s ease-in-out infinite alternate; animation-delay: calc(var(--i, 0) * -3.7s); }
+  .mist.near .puff { animation-duration: 26s; }
+}
+@keyframes mist-drift { from { transform: translate(-18px, 3px); } to { transform: translate(22px, -4px); } }
 
 /* Routes: the course is a gold brush line, the lanes a dotted ink trace. */
 .sea-lane { fill: none; stroke: #cfc3b1; stroke-width: 1.1; stroke-dasharray: 2 6; stroke-linecap: round; opacity: 0.7; }
@@ -1372,7 +1398,7 @@ button.item:hover { border-color: var(--ink-2); }
 .sea-callout p { flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 1.3; }
 .sea-callout b { display: block; font-family: var(--f-d); font-weight: 800; font-size: 17px; overflow-wrap: anywhere; }
 /* On wide screens the chart has the world's proportions: "Ganze Welt" fills it. */
-@media (min-width: 1000px) { .sea-view { height: auto; aspect-ratio: 1200 / 760; max-height: 74vh; } }
+@media (min-width: 1000px) { .sea-view { height: auto; aspect-ratio: 1200 / 760; max-height: 74vh; } .sea-room .sea-callout { display: none; } }
 @media (max-width: 999px) {
   .sea-mini, .sea-key { display: none; }
   .sea-callout { display: flex; }
@@ -1380,7 +1406,6 @@ button.item:hover { border-color: var(--ink-2); }
   .sea-callout { border-radius: 0 0 4px 4px; }
 }
 @media (max-width: 640px) {
-  .sea-frame { margin: 0 -16px; }
   .sea-view { height: clamp(320px, 58svh, 520px); border-left: 0; border-right: 0; border-radius: 0; }
   .sea-bar { border-left: 0; border-right: 0; padding: 6px 12px; }
   .sea-zoom { width: 100%; }
@@ -1396,9 +1421,6 @@ button.item:hover { border-color: var(--ink-2); }
 .route-strip .past button { color: var(--ink-2); }
 .route-strip .here button { border-color: var(--gold); box-shadow: inset 0 -2px 0 var(--gold); }
 .route-strip .sel button { border-color: var(--ink); background: var(--paper-3); }
-.sea-side { display: grid; gap: 20px; }
-@media (min-width: 1000px) { .sea-side { position: sticky; top: calc(var(--hud-h) + 20px); } }
-@media (max-width: 999px) { .sea-side { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
 .isle-card p { margin: 0; }
 .isle-title { margin: 0; font-family: var(--f-d); font-weight: 800; font-size: 25px; line-height: 1.1; }
 .isle-status { font-size: 14px; font-weight: 600; }
