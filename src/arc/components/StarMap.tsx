@@ -352,7 +352,7 @@ export default function StarMap({
                 <title>{n.fog ? "Unentdeckt" : `${x.name}, ${LEVELS[n.level]}`}</title>
                 <g className="n-in">
                   <circle className="hit" r="20" />
-                  {n.level === 5 && !n.fog ? <circle className="aura" r={R + 8} /> : null}
+                  {n.level === 5 && !n.fog ? <TokuiSpikes r={R} /> : null}
                   {!n.fog && n.level >= 1 && n.level <= 4 && n.prog > 0.01 ? (
                     <circle className="n-prog" r={R + 4.5} strokeDasharray={`${(n.prog * C).toFixed(1)} ${C.toFixed(1)}`} transform="rotate(-90)" />
                   ) : null}
@@ -390,6 +390,27 @@ export default function StarMap({
         </g>
       </svg>
     </div>
+  );
+}
+
+/**
+ * Tokui-Waza is the last level of the star map (Hiden, the secret teaching):
+ * the star shines like the brightest star in the night sky, with diffraction
+ * spikes that scintillate, instead of a ring.
+ */
+function TokuiSpikes({ r }: { r: number }) {
+  const ray = (len: number, w: number, deg: number) => <path d={`M0 ${-len} L${w} 0 L0 ${len} L${-w} 0 Z`} transform={`rotate(${deg})`} />;
+  return (
+    <g className="spikes" aria-hidden="true">
+      <g className="spikes-long">
+        {ray(r * 3.6, 2.1, 0)}
+        {ray(r * 3.6, 2.1, 90)}
+      </g>
+      <g className="spikes-short">
+        {ray(r * 2.2, 1.4, 45)}
+        {ray(r * 2.2, 1.4, 135)}
+      </g>
+    </g>
   );
 }
 

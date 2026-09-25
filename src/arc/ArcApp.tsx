@@ -180,7 +180,7 @@ export default function ArcApp() {
           </span>
         </button>
         <div className="hud-stats">
-          <button type="button" className="hud-stat pl" title="Power Level: Elo-Rating aus deinen Rolls, mal 10. Tippen öffnet den Scouter." onClick={() => setScan({ mode: "du" })}>
+          <button type="button" className="hud-stat pl" title="Power Level aus deinen Rolls und Turnierkämpfen: 100 Elo-Punkte mehr verdoppeln es. Tippen öffnet den Scouter." onClick={() => setScan({ mode: "du" })}>
             <small>Power Level</small>
             <b>{power(st.ru)}</b>
           </button>

@@ -1,7 +1,7 @@
-// Kapitelende: the summary after saving. It is the only place in the app
-// with orchestrated motion: the XP stamps in, the bar fills, the results
-// appear in order and new items turn over. Skippable; instant with reduced
-// motion.
+// Kapitelende: the summary after saving, with the app's most orchestrated
+// motion: the XP stamps in, the dōjō date stamp is pressed onto the page, the
+// bar fills, the results appear in order and new items turn over. Skippable;
+// instant with reduced motion.
 
 import { useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
@@ -11,6 +11,7 @@ import { RARITY, SLOTS } from "../core/items.ts";
 import { rankOf } from "../core/lore.ts";
 import { nf0 } from "../format.ts";
 import ItemIcon from "./ItemIcon.tsx";
+import Hanko from "./Hanko.tsx";
 import { HeroKoma, LvlStep, SecTitle } from "./ui.tsx";
 
 export interface ChapterRow {
@@ -28,6 +29,7 @@ export default function ChapterEnd({
   loot,
   belt,
   actions,
+  seal,
 }: {
   kanji: string;
   title: string;
@@ -37,6 +39,8 @@ export default function ChapterEnd({
   loot: ItemDef[];
   belt: Belt;
   actions: ReactNode;
+  /** The dōjō stamp for the book: kind of session and its date. */
+  seal?: { kind: string; date: string };
 }) {
   const [skip, setSkip] = useState(false);
   const [running, setRunning] = useState(true);
@@ -55,6 +59,7 @@ export default function ChapterEnd({
       <SecTitle kanji={kanji} eyebrow="Kapitelende" title={title} />
       <HeroKoma label="Erfahrung">
         <div className="chapter-xp">
+          {seal ? <Hanko kind={seal.kind} date={seal.date} className="ch-seal" /> : null}
           <p className="xp-gain ch-stamp">
             +{nf0.format(gained)}
             <small>XP</small>

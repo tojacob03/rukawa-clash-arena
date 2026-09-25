@@ -9,6 +9,7 @@ import { weekNumber, weekdayOf } from "./schedule.ts";
 import { ITEM, SLOTS, dynamicItem } from "./items.ts";
 import type { ItemDef } from "./items.ts";
 import { CLASSES } from "./classes.ts";
+import { powerOf } from "./model.ts";
 import { SEAS, route } from "./sea.ts";
 import { normalizeFlag } from "./crewflag.ts";
 import {
@@ -33,7 +34,7 @@ export interface SocialCard {
   belt: Belt;
   stripes: number;
   lvl: number;
-  /** Power level, as shown in the HUD (Elo × 10). */
+  /** Power level, as shown in the HUD. */
   pl: number;
   /** Weeks in a row with the weekly goal met. */
   flame: number;
@@ -195,7 +196,7 @@ export function readCard(raw: unknown): SocialCard | null {
     belt: c.belt as Belt,
     stripes: int(c.stripes, 0, 4, 0),
     lvl: int(c.lvl, 1, 999, 1),
-    pl: int(c.pl, 0, 99999, 0),
+    pl: int(c.pl, 0, 1e7, 0),
     flame: int(c.flame, 0, 9999, 0),
     week: int(c.week, 0, 99, 0),
     goal: int(c.goal, 1, 14, 3),
@@ -309,7 +310,7 @@ export function buildCard(x: CardInput): SocialCard {
     belt: x.belt,
     stripes: x.stripes,
     lvl: x.lvl,
-    pl: Math.round(x.ru * 10),
+    pl: powerOf(x.ru),
     flame: x.streak,
     week: x.weekNow,
     goal: x.weekGoal,

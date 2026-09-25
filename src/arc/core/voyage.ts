@@ -134,6 +134,9 @@ export function passage(data: ArcData, asOf: string): Passage {
 
 export type WeatherKind = "dock" | "calm" | "light" | "breeze" | "tailwind";
 
+/** Wind strength 0 … 1 for each kind of weather: how hard flags fly and ships roll. */
+export const WIND: Record<WeatherKind, number> = { dock: 0, calm: 0.05, light: 0.35, breeze: 0.65, tailwind: 1 };
+
 export interface Weather {
   kind: WeatherKind;
   name: string;

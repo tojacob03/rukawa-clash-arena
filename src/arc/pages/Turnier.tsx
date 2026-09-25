@@ -81,6 +81,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
     return (
       <ChapterEnd
         kanji="試合"
+        seal={{ kind: "試合", date: result.c.date }}
         title="Turnier eingetragen"
         before={result.before}
         after={result.after}

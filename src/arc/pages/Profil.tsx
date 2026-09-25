@@ -121,7 +121,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         <div className="exam">
           <h2 className="h2">Gürtelprüfung</h2>
           <div className="belt-hero">
-            <Belt belt={belt} stripes={stripes} width={360} />
+            <Belt belt={belt} stripes={stripes} width={360} tape />
           </div>
           <p className="muted small">Neuer Streifen oder Gürtel? Trag ihn hier ein. Das Datum wird gespeichert, damit sich später prüfen lässt, ob deine Werte vor einer Prüfung steigen. Auf der Seekarte segelt dein Schiff damit zur nächsten Insel.</p>
           <div className="belt-pick" role="radiogroup" aria-label="Gürtel">

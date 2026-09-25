@@ -86,7 +86,7 @@ Update         R_du ← R_du + 12 · (S − E)          pro Roll
 Turnierkampf   R_du ← R_du + 24 · (S − E)          S = 1 Sieg, 0,5 Unentschieden, 0 Niederlage; kampflos zählt nicht
                Gegner = Gürtel-Rating des angegebenen Gürtels (sonst des eigenen am Turniertag)
 Start          R_du = Gürtel-Rating des eigenen Gürtels + 20 pro Streifen
-Anzeige        Power Level = R_du × 10              (z. B. 12.080)
+Anzeige        Power Level = 1000 · 2^((R_du − 1000) / 100)   (100 Punkte mehr verdoppeln es)
 ```
 
 Kontrolle zählt mit, damit auch Rolls ohne Submission etwas aussagen. Das Power Level ist privat. Es gibt kein Ranking. „Power Level“ ist ein allgemeiner Begriff aus Spielen und Anime-Fankultur; die Anzeige („Scouter“, 6.8) ist eigenständig gestaltet, ohne Figuren, Logos oder Zitate aus einer Serie. Der Scouter ordnet den Wert einem Niveau zu (Weiß- bis Schwarzgurt-Niveau nach den Gürtel-Ratings) und schätzt vor einem Turnierkampf die Siegchance gegen einen Gürtel.
@@ -203,7 +203,7 @@ Level L ab 40 · (L − 1)² XP
 
 Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand ab, ohne die Messung zu verfälschen.
 
-- **Prolog:** Gürtel und Streifen beim Start setzen das Startlevel. Weiß 1, Blau 8, Lila 14, Braun 19, Schwarz 24, plus ein Level pro Streifen. Die XP dafür stehen als eigener Posten „Prolog“ im Charakter. Das Power Level startet bei Gürtel-Rating plus 20 pro Streifen (×10 angezeigt).
+- **Prolog:** Gürtel und Streifen beim Start setzen das Startlevel. Weiß 1, Blau 8, Lila 14, Braun 19, Schwarz 24, plus ein Level pro Streifen. Die XP dafür stehen als eigener Posten „Prolog“ im Charakter. Das Power Level startet bei Gürtel-Rating plus 20 pro Streifen (angezeigt nach 4.2: Weißgurt 1.000, Blau rund 2.800, Lila 8.000, Braun rund 18.000, Schwarz rund 37.000).
 - **Technik-Stand in drei Stufen:** „Kenne ich“ (gesehen, gedrillt: Stufe 2), „Klappt im Roll“ (Stufe 3) und „Stärke“ (Stufe 4, höchstens fünf). Ein Vorschlag nach Gürtel füllt „Kenne ich“ vor: Weiß nur Fundament (ab 2 Streifen plus Shoden), Blau bis Shoden (ab 2 Streifen bis Chūden), Lila bis Chūden, Braun und Schwarz bis Okuden.
 - **Erst Blöcke, dann Feinschliff:** Jeder Ring (Shoden bis Hiden), jeder Bereich (Fundament, Guard, Submission …) und jeder Zweig darin (Closed Guard, Beinhebel …) lässt sich mit einem Tipp auf „Nichts“, „Kenne ich“ oder „Klappt“ setzen. Der zuletzt gesetzte Block gewinnt; Stärken bleiben dabei stehen, nur „Nichts“ räumt sie mit weg. Ist ein Block gemischt, ist keine der drei Optionen markiert. Danach setzt ein Tipp auf eine einzelne Technik sie eine Stufe höher (Kenne ich, Klappt im Roll, Stärke, wieder leer); Stärken gibt es nur einzeln.
 - **Konto am Schluss:** Ist die Version mit Konto gebaut und niemand angemeldet, endet der Einstieg mit „Sichere deinen Charakter“. Beide Knöpfe legen den Charakter an; „Konto erstellen“ führt zur Anmeldung und nach erfolgreicher Anmeldung (auch nach einer Weiterleitung über Google und Co.) zurück ins Dōjō, „Ohne Konto weiter“ direkt dorthin.
@@ -310,7 +310,7 @@ Eine Linse mit Fadenkreuz, die Kämpfer ausliest. Sie hat vier Modi, zwischen de
 - **Gegner** (Knopf „Scannen“ an jedem Turnierkampf): wie Partner, aber mit Turnier-Einsatz (doppelter K-Faktor, Sieg, Unentschieden, Niederlage), deiner Turnierbilanz und deinen Rolls gegen diesen Gürtel, deinen Waffen im gewählten Regelwerk (Gi oder No-Gi) und einem Hinweis, worauf du achten musst (Position des Wochenbosses oder schwächste Achse). Bei Beinhebeln erinnert er ans Regelwerk.
 - **Boss** (Knopf am Wochenboss auf Heute): Name, Position, Lebenspunkte, Trend gegenüber den 14 Tagen davor, das Ziel zum Besiegen und die Techniken, die dagegen helfen, mit ihrer Stufe.
 
-Alle Zahlen kommen aus demselben Rechenkern wie der Rest der App (`src/arc/core/scouter.ts`, mit Tests). Die Schätzung eines Partners kennt nur Gürtel und Größe; das sagt der Scouter auch so. Er ist bewusst statisch: Die einzige inszenierte Bewegung der App bleibt das Kapitelende (7.1). Er ist ein echter Dialog mit Tab-Leiste, Escape schließt ihn, der Fokus bleibt in der Linse und springt danach zurück.
+Alle Zahlen kommen aus demselben Rechenkern wie der Rest der App (`src/arc/core/scouter.ts`, mit Tests). Die Schätzung eines Partners kennt nur Gürtel und Größe; das sagt der Scouter auch so. Er ist bewusst statisch (zu Bewegung siehe 7.1). Er ist ein echter Dialog mit Tab-Leiste, Escape schließt ihn, der Fokus bleibt in der Linse und springt danach zurück.
 
 ### 6.9 Seekarte
 
@@ -421,7 +421,16 @@ Die App soll sich wie ein hochwertiges Spiel anfühlen, nicht wie ein Dashboard.
 **Leitprinzipien:**
 
 1. **Ein mutiges Element pro Screen, der Rest ist ruhig.** Heute: die Quest-Karten. Log: das Kapitelende. Charakter: die Figur auf der Heldenbühne. Karte: die Karte selbst. Schiff: das Schiff mit Flagge. Konto: das Anmelde-Panel, angemeldet der Kontoausweis. Scouter: die Power-Level-Zahl. Das Heldenelement bekommt das schräg angeschnittene Panel mit hartem Tuscheschatten, alles andere bleibt flach mit dünner Kontur.
-2. **Bewegung nur an einer Stelle.** Nach dem Speichern eines Trainings, Turniers oder Nebensports läuft das Kapitelende: Stempel, XP-Balken, Zeilen der Reihe nach, Beute. Nur bei `prefers-reduced-motion: no-preference`, mit Knopf zum Überspringen. Sonst gibt es keine Übergänge, kein Hover-Gleiten, kein Pulsieren. Einzige Ausnahme ist Bedienung, keine Inszenierung: Die Sternkarte fährt beim Fokussieren eines Sterns die Kamera hin, damit man auf der gezoomten Karte die Orientierung behält. Bei reduzierter Bewegung springt sie.
+2. **Bewegung nur, wo sie etwas aus der Welt zeigt.** Jede Animation muss sich in einem Satz auf ein Stück Waza Arc zurückführen lassen (Gürtel, Techniken, die vier Meere, Sterne, Dōjō und Matte, das Waza-Vokabular); sonst fliegt sie raus. Keine Partikel, kein Konfetti, keine Glow-Ringe, keine schwebenden Formen, kein Hover-Gleiten. Alles läuft nur bei `prefers-reduced-motion: no-preference`; mit reduzierter Bewegung steht jede Seite still (per Browser-Test geprüft: null laufende Animationen). Was es gibt:
+   - **Kapitelende** nach Training, Turnier oder Nebensport: XP-Stempel, Balken, Zeilen der Reihe nach, Beute, überspringbar. Dazu ein roter **Dōjō-Datumsstempel** (稽古 Training, 試合 Turnier, 鍛錬 Nebensport, darunter 道場), weil im Dōjō jede Einheit ins Trainingsheft gestempelt wird.
+   - **Flagge im Wind** (Schiff-Reiter, Crew): Sie weht so kräftig wie der Wind, und Wind ist in Waza Arc der Trainingsrhythmus der letzten 14 Tage, bei der Crew die Crew-Woche. In der Flaute hängt sie am Mast.
+   - **Schiff im Wetter** (Seekarte, Schiff-Reiter): Rollen, Dünung und Böen von achtern je nach Wetter; in der Flaute breiten sich nur Ringe auf glattem Wasser aus, in der Heilungswoche steht das Schiff im Trockendock auf Pallen und nichts bewegt sich.
+   - **Wochenboss als Seeschlange** (Seekarte, Heute): Jeder Buckel über Wasser ist ein Mal, das du in 14 Tagen in seiner Position festgehangen hast, die untergetauchten sind die, die er schon verloren hat. Eine Welle läuft vom Kopf zum Schwanz.
+   - **Kombos laufen** (Sternkarte): Aktive Kombos sind Technik-Ketten; die Linie läuft in der Richtung, in der man die Kette im Roll ausführt.
+   - **Tokui-Waza funkelt** (Sternkarte): die höchste Stufe (Hiden) als hellster Stern mit Beugungsstrahlen, die unruhig funkeln wie echte Sterne, statt eines Rings.
+   - **Streifen als Tape** (Charakter, Gürtelprüfung): Streifen sind Tape, das der Coach um das schwarze Gürtelende wickelt; genau so kommen sie auf den Gürtel, einer nach dem anderen.
+   - **Mattenmodus**: Ein Submission-Treffer zeigt das doppelte Abklopfen des Partners (und vibriert zweimal), Sweep, Takedown, Pass und Rücken zeigen die Punkte wie im Wettkampf (2, 2, 3, 4) und vibrieren so oft.
+   - Bedienung: Sternkarte und Seekarte fahren beim Fokussieren die Kamera hin, damit man die Orientierung behält; bei reduzierter Bewegung springen sie.
 3. **Text wie in einem Buch, nicht wie in einem Formular.** Keine Großbuchstaben-Überzeilen, keine Mittelpunkt-Reihen („A · B · C“), keine Monospace-Etiketten, keine Pfeile hinter Knöpfen. Überzeilen sind kleine Beschriftungskästen in normaler Schreibweise, Metadaten stehen als Satz.
 
 **Grundqualität:** Kontrast mindestens 4,5 : 1 für Text in beiden Themes (Goldgelb nie als Textfarbe auf Papier, nur als Fläche mit Tusche darauf), sichtbarer Fokusrahmen, echte Knöpfe statt klickbarer Flächen, Umschalter als Radiogruppe, Chips mit `aria-pressed`, Dialoge mit Fokusfalle und Escape, Zielgrößen über dem WCAG-2.2-Minimum von 24 px (Hauptknöpfe 46 px), Layout ab 320 px Breite ohne waagrechtes Scrollen.
@@ -471,7 +480,7 @@ Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `au
 
 ### 8.4 Weitere Technik
 
-- **Stack:** React, TypeScript, Vite. Die eine Animation (Kapitelende) ist reines CSS.
+- **Stack:** React, TypeScript, Vite. Alle Animationen sind reines CSS in eigenen SVGs (7.1), ohne Animationsbibliothek.
 - **Plattform:** mobile-first PWA, offline-fähig (lokal zuerst, Sync bei Netz, 8.5), später Web Push für die Erinnerung zum Kursende.
 - **Rechenkern:** `compute(history, asOf, filter?)` als reine Funktionen mit Unit-Tests für jede Formel und jede Stufenschwelle.
 - **Sternkarte:** SVG mit festem radialem Layout (Ring × Sektor), berechnet aus `techniques.ring` und der Reihenfolge im Sektor. Kein Force-Layout, damit die Karte stabil bleibt.
@@ -567,7 +576,7 @@ Entschieden:
 - **Turniere** werden geloggt und zählen im Rechenmodell mit (6.7).
 - **Seekarte** mit eigener Welt, deren Aufbau an bekannte Piraten-Anime angelehnt ist, aber nur eigene Namen verwendet (6.9).
 - **Nebensport** zählt nicht fürs Wochenziel. Takedowns aus Ringen, Judo und Sambo zählen mit Gewicht 0,75 für Stand-Techniken (6.10).
-- **Gestaltung** als Manga-Band in zwei Themes, Papier und Nachtausgabe, mit Bewegung nur im Kapitelende (7.1).
+- **Gestaltung** als Manga-Band in zwei Themes, Papier und Nachtausgabe, mit Bewegung nur dort, wo sie etwas aus der Welt zeigt (7.1).
 - **Konto und Sync** über dieselbe Supabase-Instanz, als Datensätze mit Revisionen und Dreiwege-Abgleich statt einer Tabelle pro Objekt (3, 8.5). Die Anmeldeseite zeigt, was im Dashboard eingeschaltet ist.
 - **Scouter** mit vier Modi: du, Partner, Gegner, Boss (6.8).
 - **Seekarte** mit Reise zwischen den Inseln, Schiff nach Gürtel, eigener Flagge, Wetter, Erkundung und Logbuch (6.9).

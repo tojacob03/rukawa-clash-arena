@@ -31,6 +31,14 @@ import { BODY_W, CROSS_W, INTENSITY, SPORT } from "./sports.ts";
 import { fullyExplored } from "./voyage.ts";
 
 export const BELT_R: Record<Belt, number> = { weiss: 1000, blau: 1150, lila: 1300, braun: 1420, schwarz: 1520 };
+
+/**
+ * Power Level shown in the app, from the Elo rating: every 100 rating points
+ * double it. White belt starts at 1.000, blue at about 2.800, purple at 8.000,
+ * brown at about 18.000, black at about 37.000. The rating itself stays
+ * linear, so win chances keep the usual Elo meaning.
+ */
+export const powerOf = (ru: number) => Math.round(1000 * Math.pow(2, (ru - 1000) / 100));
 export const SIZE_R: Record<Size, number> = { leichter: -60, gleich: 0, schwerer: 60 };
 export const K_ELO = 12;
 /** Competition matches move the Power Level twice as much as a roll. */
@@ -620,7 +628,7 @@ export interface Diff {
   streakFrom: number;
   streakTo: number;
   weekGoal: boolean;
-  /** Change of the Power Level (Elo × 10). */
+  /** Change of the Power Level. */
   power: number;
   levels: { id: string; from: number; to: number }[];
   /** Changes of the data level, which is what earns XP. */
@@ -656,7 +664,7 @@ export function diff(a: ArcState, b: ArcState): Diff {
     streakFrom: a.streak,
     streakTo: b.streak,
     weekGoal: a.weekNow < a.weekGoal && b.weekNow >= b.weekGoal,
-    power: Math.round(b.ru * 10) - Math.round(a.ru * 10),
+    power: powerOf(b.ru) - powerOf(a.ru),
     levels,
     dataLevels,
     confirmed,

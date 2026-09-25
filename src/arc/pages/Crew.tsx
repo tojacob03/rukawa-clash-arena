@@ -13,7 +13,7 @@ import type { SocialView } from "../cloud/social.ts";
 import { CodeBox, FlameCount, PeerRow, SocialGate, SocialSettings } from "../components/Social.tsx";
 import { beltLine } from "../socialCard.ts";
 import { useAct } from "../useAct.tsx";
-import CrewFlag from "../components/CrewFlag.tsx";
+import CrewFlag, { WavingFlag } from "../components/CrewFlag.tsx";
 import { HeroKoma } from "../components/ui.tsx";
 
 export default function CrewView({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
@@ -117,7 +117,7 @@ function CrewHome({ s, data, today }: { s: SocialView; data: ArcData; today: str
     <>
       <HeroKoma label={`Crew ${crew.name}`} className="crew-koma">
         <div className="crew-hero">
-          <CrewFlag design={crew.flag} width={132} label={`Flagge der ${crew.name}`} />
+          <WavingFlag design={crew.flag} wind={wk.goal ? wk.done / wk.goal : 0} width={150} label={`Flagge der ${crew.name}`} />
           <div className="crew-hero-main">
             <h2 className="crew-name">{crew.name}</h2>
             <p className="muted">

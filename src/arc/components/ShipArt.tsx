@@ -3,6 +3,7 @@
 // techniques). Drawn in a 200 × 150 box; ShipArt can sit inside the sea chart.
 
 import type { Belt, FlagDesign } from "../core/types.ts";
+import type { WeatherKind } from "../core/voyage.ts";
 import { CrewFlagArt } from "./CrewFlag.tsx";
 
 const INK = "#16171c";
@@ -121,13 +122,47 @@ export function ShipArt({ belt, sail, flag, hull = 50, sails = 50, barnacles = 0
   }
 }
 
-/** Standalone picture of the ship on the water. */
-export default function Ship({ look, width = 320, label }: { look: ShipLook; width?: number; label?: string }) {
+/** Hull ends at the waterline for each ship class, where the dock shores rest. */
+const HULL_X: Record<Belt, [number, number]> = { weiss: [60, 140], blau: [40, 160], lila: [30, 170], braun: [22, 178], schwarz: [22, 178] };
+
+/**
+ * Dry dock: the ship on keel blocks, held by shores. This is the week in
+ * Heilungsmodus: the ship is being mended instead of sailing.
+ */
+export function DockArt({ belt = "braun" }: { belt?: Belt }) {
+  const [a, b] = HULL_X[belt];
   return (
-    <svg viewBox="-10 -12 220 170" width={width} height={(width * 170) / 220} className="ship-art" role="img" aria-label={label}>
-      <ShipArt {...look} />
-      <path d="M-10 136 Q5 130 20 136 T50 136 T80 136 T110 136 T140 136 T170 136 T200 136 T230 136 V160 H-10 Z" fill="#177384" stroke={INK} strokeWidth={2.4} />
-      <path d="M0 146 Q12 142 24 146 T48 146 M120 150 Q132 146 144 150 T168 150" fill="none" stroke="#f2f3ee" strokeWidth={1.6} opacity={0.7} />
+    <g className="dock">
+      <rect x={4} y={134} width={192} height={12} fill="#8d8a80" stroke={INK} strokeWidth={2} />
+      <path d="M12 140 h14 M40 142 h18 M80 140 h12 M118 142 h20 M156 140 h16" stroke="#6d6a62" strokeWidth={1.4} strokeLinecap="round" />
+      {[a + 12, (a + b) / 2 - 6, b - 24].map((x) => (
+        <rect key={x} x={x} y={128} width={12} height={7} fill={WOOD2} stroke={INK} strokeWidth={1.4} />
+      ))}
+      <path d={`M${a - 26} 134 L${a - 2} 112 M${a - 10} 134 L${a + 6} 118 M${b + 26} 134 L${b + 2} 112 M${b + 10} 134 L${b - 6} 118`} stroke={WOOD} strokeWidth={3.4} strokeLinecap="round" />
+    </g>
+  );
+}
+
+/**
+ * Standalone picture of the ship on the water. With `weather` it moves the
+ * way the map ship does: it rolls and the swell runs past as strongly as the
+ * wind from your training rhythm, and in the dry dock nothing moves.
+ */
+export default function Ship({ look, width = 320, label, weather }: { look: ShipLook; width?: number; label?: string; weather?: WeatherKind }) {
+  const dock = weather === "dock";
+  return (
+    <svg viewBox="-10 -12 220 170" width={width} height={(width * 170) / 220} className={`ship-art${weather ? ` w-${weather}` : ""}`} role="img" aria-label={label}>
+      {dock ? <DockArt belt={look.belt} /> : null}
+      <g className="ship-roll">
+        <ShipArt {...look} />
+      </g>
+      {dock ? null : (
+        <g className="swell">
+          {/* The hull sits a little in the water, so rolling never lifts it clear. */}
+          <path d="M-40 131 Q-25 125 -10 131 T20 131 T50 131 T80 131 T110 131 T140 131 T170 131 T200 131 T230 131 T260 131 V160 H-40 Z" fill="#177384" stroke={INK} strokeWidth={2.4} />
+          <path d="M-30 143 Q-18 139 -6 143 T18 143 M90 148 Q102 144 114 148 T138 148 M190 143 Q202 139 214 143 T238 143" fill="none" stroke="#f2f3ee" strokeWidth={1.6} opacity={0.7} />
+        </g>
+      )}
     </svg>
   );
 }

@@ -12,6 +12,7 @@ import { go } from "../store.ts";
 import { questTask } from "../questText.ts";
 import { KindBadge, SecTitle, Seg, Star } from "../components/ui.tsx";
 import { openScouter } from "../scan.ts";
+import SeaSerpent from "../components/SeaSerpent.tsx";
 import { useSocial } from "../cloud/social.ts";
 import { crewWeek, gymDay } from "../core/social.ts";
 
@@ -316,11 +317,7 @@ function Boss({ st }: { st: ArcState }) {
             {b.hp} von {max}
           </span>
         </div>
-        <div className="hp" aria-hidden="true">
-          {Array.from({ length: max }, (_, i) => (
-            <i key={i} className={i < b.hp ? "on" : ""} />
-          ))}
-        </div>
+        <SeaSerpent hp={b.hp} max={max} height={84} label={`${info.boss}: ${b.hp} Buckel über Wasser, ${max - b.hp} schon untergetaucht`} />
         <p className="small">
           {b.hp}× hier festgehangen in 14 Tagen, davor {b.prev}×. Besiegt, wenn es in den nächsten 14 Tagen höchstens {Math.floor(b.hp / 2)}× passiert.
         </p>

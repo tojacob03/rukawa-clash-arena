@@ -79,6 +79,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
     return (
       <ChapterEnd
         kanji="鍛"
+        seal={{ kind: "鍛錬", date: result.c.date }}
         title={`${SPORT[result.c.sport].name} eingetragen`}
         before={result.before}
         after={result.after}

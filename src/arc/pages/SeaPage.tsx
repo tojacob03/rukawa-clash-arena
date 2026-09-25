@@ -38,6 +38,7 @@ import {
   weather,
 } from "../core/voyage.ts";
 import type { Explored, LogEntry, Weather } from "../core/voyage.ts";
+import { WIND } from "../core/voyage.ts";
 import {
   CROSSES,
   EMBLEMS,
@@ -57,7 +58,7 @@ import type { OtherShip } from "../components/SeaMap.tsx";
 import Wanted from "../components/Wanted.tsx";
 import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
-import CrewFlag from "../components/CrewFlag.tsx";
+import CrewFlag, { WavingFlag } from "../components/CrewFlag.tsx";
 import Ship from "../components/ShipArt.tsx";
 import { HeroKoma, Seg } from "../components/ui.tsx";
 import CrewView from "./Crew.tsx";
@@ -314,6 +315,8 @@ function ChartView({
                 ),
                 shipColor: shipSail(data, st),
                 boss: st.boss ? STUCK[st.boss.key].boss : null,
+                bossHp: st.boss?.hp,
+                bossMax: st.boss ? Math.max(st.boss.hp, st.boss.prev, 4) : undefined,
                 belt: p.belt,
                 flag: data.character?.flag,
                 progress,
@@ -626,6 +629,7 @@ function ShipView({
                 barnacles,
               }}
               width={420}
+              weather={wx.kind}
               label={`${cls.name} mit deiner Flagge`}
             />
           </div>
@@ -723,7 +727,7 @@ function ShipView({
         </section>
       </div>
 
-      <FlagEditor flag={flag} />
+      <FlagEditor flag={flag} wind={WIND[wx.kind]} />
     </>
   );
 }
@@ -753,7 +757,7 @@ function Swatch({
   );
 }
 
-function FlagEditor({ flag }: { flag: FlagDesign }) {
+function FlagEditor({ flag, wind }: { flag: FlagDesign; wind: number }) {
   const set = (patch: Partial<FlagDesign>) => setFlag({ ...flag, ...patch });
   const group = (
     title: string,
@@ -800,12 +804,14 @@ function FlagEditor({ flag }: { flag: FlagDesign }) {
         <div>
           <h2 className="h3">Deine Flagge</h2>
           <p className="small muted">
-            Sie weht auf deinem Schiff auf der Seekarte.
+            Sie weht auf deinem Schiff auf der Seekarte, so kräftig wie dein
+            Wind: je regelmäßiger du trainierst, desto mehr Fahrt.
           </p>
         </div>
-        <CrewFlag
+        <WavingFlag
           design={flag}
-          width={180}
+          wind={wind}
+          width={200}
           label={`Deine Flagge: ${EMBLEMS[flag.emblem]}`}
         />
       </div>
