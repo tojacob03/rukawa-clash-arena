@@ -4,10 +4,10 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
 
 ## Aus dem Auftrag
 
-- [ ] **Stufe 2 des UI-Reworks**
-  - [ ] Seekarte randlos mit Nebel-Parallax
-  - [ ] „Eintragen“ als Seite im Trainingsheft
-  - [ ] Charakter-Bühne (Held)
+- [x] **Stufe 2 des UI-Reworks**
+  - [x] Seekarte randlos mit Nebel-Parallax
+  - [x] „Eintragen“ als Seite im Trainingsheft
+  - [x] Charakter-Bühne (Held)
 - [ ] **Stufe 3 des UI-Reworks:** Codex, Profil, Konto, Plan, Onboarding
 - [ ] **Rollen der Fortschritts-Systeme festlegen:** Level/XP, Power Level, Skilltree (früher Sternkarte), Seekarte, Hexagon
 - [ ] **Mobile UI ausbessern**

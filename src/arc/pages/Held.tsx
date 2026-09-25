@@ -105,8 +105,11 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
 
   return (
     <>
-      <HeroKoma className="stage-card" label="Charakter">
-        <div className="stage">{avatar(230, true)}</div>
+      <section className="held-stage" aria-label="Charakter">
+        <div className="hs-fighter">
+          <div className="tatami" aria-hidden="true" />
+          <div className="stage">{avatar(300, true)}</div>
+        </div>
         <div className="hero-main">
           <div className="row wrap">
             <span className="hex-badge" aria-hidden="true">
@@ -189,7 +192,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
             </button>
           </div>
         </div>
-      </HeroKoma>
+      </section>
       <dl className="hero-stats">
         <div>
           <dt>Power Level</dt>
@@ -204,7 +207,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
           <dd>{st.rolls}</dd>
         </div>
         <div>
-          <dt>Sterne</dt>
+          <dt>Techniken entdeckt</dt>
           <dd>{st.discovered}</dd>
         </div>
       </dl>
