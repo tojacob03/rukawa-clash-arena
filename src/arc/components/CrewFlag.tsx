@@ -7,10 +7,10 @@ import type { CSSProperties } from "react";
 import type { FlagDesign } from "../core/types.ts";
 import { FLAG_BG, FLAG_FG, WEARS, normalizeFlag } from "../core/crewflag.ts";
 
-const INK = "#16171c";
-const RED = "#c8203f";
-const GOLD = "#f3b000";
-const PAPER = "#f2f3ee";
+const INK = "#1b1512";
+const RED = "#c93a25";
+const GOLD = "#d4a94f";
+const PAPER = "#efe6d3";
 /** The cloth outline, with a frayed free end. */
 const CLOTH = "M2 2 H114 Q109 22 117 40 Q110 58 115 78 H2 Z";
 

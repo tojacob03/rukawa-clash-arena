@@ -1,12 +1,12 @@
 Die Schriften in diesem Ordner sind Teilmengen (Subsets) von Google Fonts und stehen unter der SIL Open Font License 1.1.
-Dela Gothic One und M PLUS Rounded 1c. Lizenztexte der jeweiligen Projekte:
+Albert Sans (variable, 400 bis 700) und Shippori Mincho B1 (600, 800; die Kanji nur mit den Zeichen, die Waza Arc benutzt). Lizenztexte der jeweiligen Projekte:
 
-===== delagothicone =====
-Copyright 2020 The Dela Gothic Project Authors (https://github.com/syakuzen/DelaGothic)
+===== albertsans =====
+Copyright 2021 The Albert Sans Project Authors (https://github.com/usted/Albert-Sans)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-https://openfontlicense.org
+https://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------
@@ -96,12 +96,12 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 
-===== mplusrounded1c =====
-Copyright 2021 The M+ FONTS Project Authors (https://github.com/coz-m/MPLUS_FONTS)
+===== shipporiminchob1 =====
+Copyright 2021 The Shippori Mincho Project Authors (https://github.com/fontdasu/ShipporiMincho)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-https://scripts.sil.org/OFL
+http://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------

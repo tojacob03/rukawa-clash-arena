@@ -26,7 +26,7 @@ export function cardFor(data: ArcData, st: ArcState, today: string, view: Social
   const gear = resolveGear(data, st, inventory(data, st));
   const cls = p.cls ?? st.clsDetected;
   // Where the ship you sail on is: the crew's ship, or your own.
-  const ship = shipNow(data, today, { sail: CLASS[cls]?.color ?? "#f1bf57", flag: ch.flag }, crewNow(view));
+  const ship = shipNow(data, today, { sail: CLASS[cls]?.color ?? "#d4a94f", flag: ch.flag }, crewNow(view));
   return buildCard({
     belt: p.belt,
     stripes: p.stripes,
@@ -44,7 +44,7 @@ export function cardFor(data: ArcData, st: ArcState, today: string, view: Social
     aboard: ship.crew ? { id: ship.crew.id, miles: ship.mine } : null,
     body: p.heightCm || p.weightKg ? bodyOf(p.heightCm, p.weightKg) : null,
     ship: ch.shipName,
-    sail: CLASS[cls]?.color ?? "#f1bf57",
+    sail: CLASS[cls]?.color ?? "#d4a94f",
     flag: ch.flag,
     look: ch.look,
     mode: ch.mode,

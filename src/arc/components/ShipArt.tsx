@@ -6,11 +6,11 @@ import type { Belt, FlagDesign } from "../core/types.ts";
 import type { WeatherKind } from "../core/voyage.ts";
 import { CrewFlagArt } from "./CrewFlag.tsx";
 
-const INK = "#16171c";
+const INK = "#1b1512";
 const WOOD = "#8a5a2b";
 const WOOD2 = "#6b4220";
-const SAIL = "#f4f1ea";
-const GOLD = "#f3b000";
+const SAIL = "#efe6d3";
+const GOLD = "#d4a94f";
 
 export interface ShipLook {
   belt: Belt;
@@ -159,8 +159,8 @@ export default function Ship({ look, width = 320, label, weather }: { look: Ship
       {dock ? null : (
         <g className="swell">
           {/* The hull sits a little in the water, so rolling never lifts it clear. */}
-          <path d="M-40 131 Q-25 125 -10 131 T20 131 T50 131 T80 131 T110 131 T140 131 T170 131 T200 131 T230 131 T260 131 V160 H-40 Z" fill="#177384" stroke={INK} strokeWidth={2.4} />
-          <path d="M-30 143 Q-18 139 -6 143 T18 143 M90 148 Q102 144 114 148 T138 148 M190 143 Q202 139 214 143 T238 143" fill="none" stroke="#f2f3ee" strokeWidth={1.6} opacity={0.7} />
+          <path d="M-40 131 Q-25 125 -10 131 T20 131 T50 131 T80 131 T110 131 T140 131 T170 131 T200 131 T230 131 T260 131 V160 H-40 Z" fill="#22363a" stroke={INK} strokeWidth={2.4} />
+          <path d="M-30 143 Q-18 139 -6 143 T18 143 M90 148 Q102 144 114 148 T138 148 M190 143 Q202 139 214 143 T238 143" fill="none" stroke="#ede3d1" strokeWidth={1.4} opacity={0.55} />
         </g>
       )}
     </svg>

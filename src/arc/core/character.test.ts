@@ -9,6 +9,7 @@ import { ITEM, ITEMS, SLOTS, inventory, talismanBonus, unlockText } from "./item
 import { buildDemo } from "./demo.ts";
 import { compXp, compute, crossXp, dayNum, diff, prologXp, questShape, rankAt, xpParts } from "./model.ts";
 import { CROSS_W } from "./sports.ts";
+import { formatSince, parseSince, yearsSince } from "./since.ts";
 import { ORGS } from "../compText.ts";
 import { bounty } from "./bounty.ts";
 import { ISLANDS, rankIndex, route } from "./sea.ts";
@@ -232,4 +233,18 @@ test("other sports: wrestling takedowns count for stand-up techniques at 0.75", 
 
 test("competition organisers include AGF", () => {
   assert.ok(ORGS.includes("AGF"));
+});
+
+test("training since: year, year and month, and old entries that cannot be read", () => {
+  assert.deepEqual(parseSince("2003"), { y: 2003, m: null });
+  assert.deepEqual(parseSince("2003-05"), { y: 2003, m: 5 });
+  assert.equal(parseSince("03"), null);
+  assert.equal(parseSince("2003-13"), null);
+  assert.equal(parseSince(undefined), null);
+  // What a browser without a month field stored: a plain year now counts, junk shows nothing.
+  assert.equal(yearsSince("2003", TODAY), 23);
+  assert.equal(yearsSince("2024-09", TODAY), 2);
+  assert.equal(yearsSince("Mai 2003", TODAY), null);
+  assert.equal(formatSince({ y: 2003, m: 5 }), "2003-05");
+  assert.equal(formatSince({ y: 2003, m: null }), "2003");
 });

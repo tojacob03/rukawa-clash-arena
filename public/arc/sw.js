@@ -5,7 +5,7 @@
 // - Reminders: shows push messages and opens the right screen on tap.
 // Everything else (Supabase, the portfolio pages) passes through untouched.
 
-const SHELL = "arc-shell-v1";
+const SHELL = "arc-shell-v2";
 const ASSETS = "arc-assets-v1";
 const KEEP = [SHELL, ASSETS];
 const MAX_ASSETS = 120;

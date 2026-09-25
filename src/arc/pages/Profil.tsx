@@ -109,12 +109,12 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
           value={theme}
           onChange={setTheme}
           options={[
+            { v: "nacht", label: "Urushi" },
+            { v: "papier", label: "Washi" },
             { v: "system", label: "Wie das System" },
-            { v: "papier", label: "Papier" },
-            { v: "nacht", label: "Nacht\u00adausgabe" },
           ]}
         />
-        <small className="muted">Papier ist die helle Ausgabe, die Nachtausgabe druckt auf Indigo.</small>
+        <small className="muted">Urushi ist schwarzer Lack mit Blattgold, Washi helles Papier mit Tusche.</small>
       </section>
 
       <HeroKoma label="Gürtelprüfung">

@@ -245,7 +245,7 @@ function QuestCard({ q, st, today, accepted, done, own, onTake }: { q: QuestOffe
         ) : accepted ? (
           <span className="taken-label">Erfüllt</span>
         ) : (
-          <button type="button" className="btn primary small" onClick={() => (onTake ? onTake(q) : acceptQuest(today, q))}>
+          <button type="button" className="btn small take" onClick={() => (onTake ? onTake(q) : acceptQuest(today, q))}>
             <span>Annehmen</span>
           </button>
         )}

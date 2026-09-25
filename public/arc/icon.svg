@@ -1,13 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <pattern id="tone" width="16" height="16" patternUnits="userSpaceOnUse">
-      <circle cx="8" cy="8" r="2.6" fill="#16171c" fill-opacity=".16"/>
-    </pattern>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="#2a3a8f"/>
-  <polygon points="118,112 364,112 412,160 412,420 118,420" fill="#16171c"/>
-  <polygon points="100,94 346,94 394,142 394,402 100,402" fill="#f2f3ee" stroke="#16171c" stroke-width="14" stroke-linejoin="miter"/>
-  <polygon points="100,94 346,94 394,142 394,402 100,402" fill="url(#tone)"/>
-  <polygon points="247,138 340,192 340,300 247,354 154,300 154,192" fill="#f3b000" stroke="#16171c" stroke-width="14" stroke-linejoin="round"/>
-  <path d="M247 186 L263 232 L309 246 L263 260 L247 306 L231 260 L185 246 L231 232 Z" fill="#16171c"/>
+  <rect width="512" height="512" rx="112" fill="#110d0b"/>
+  <polygon points="256,92 398,174 398,338 256,420 114,338 114,174" fill="#5e1414" stroke="#d4a94f" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M256 164 L281 231 L348 256 L281 281 L256 348 L231 281 L164 256 L231 231 Z" fill="#d4a94f"/>
 </svg>

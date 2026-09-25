@@ -94,8 +94,8 @@ export function PowerChart({ series, today, extra }: { series: { d: number; r: n
     <svg className="ki-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Power Level von ${nf0.format(powerOf(series[0].r))} auf ${nf0.format(powerOf(last.r))}`}>
       <defs>
         <linearGradient id="kiFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f0bf5a" stopOpacity=".35" />
-          <stop offset="1" stopColor="#f0bf5a" stopOpacity="0" />
+          <stop offset="0" stopColor="#d4a94f" stopOpacity=".35" />
+          <stop offset="1" stopColor="#d4a94f" stopOpacity="0" />
         </linearGradient>
       </defs>
       {[ymax, ymin].map((v) => (

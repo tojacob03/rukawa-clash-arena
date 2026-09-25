@@ -8,7 +8,7 @@ import { CLASS } from "../core/classes.ts";
 import { COUNTRY } from "../core/countries.ts";
 import { SECTORS, TECH } from "../core/techniques.ts";
 import { SEALS, rankOf } from "../core/lore.ts";
-import { PROLOG_LEVEL, compute, dayNum } from "../core/model.ts";
+import { PROLOG_LEVEL, compute, dayNum, isoOf } from "../core/model.ts";
 import { BELT, nf0, power, shortDate, signed } from "../format.ts";
 import { deleteCompetition, equip, markSeen, setLook, setMode, updateProfile } from "../actions.ts";
 import { METHOD_NAME } from "../compText.ts";
@@ -20,7 +20,8 @@ import { CLASS_ICON } from "../classIcons.ts";
 import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
 import { FlagIcon } from "../components/Flag.tsx";
-import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SportsPicker } from "../components/CharacterForms.tsx";
+import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SincePicker, SportsPicker } from "../components/CharacterForms.tsx";
+import { yearsSince } from "../core/since.ts";
 import { DEFAULT_SEA } from "../core/sea.ts";
 import { HEIGHT_CM } from "../core/body.ts";
 import { Hexagon, PowerChart } from "../components/Charts.tsx";
@@ -98,7 +99,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
   const chosen = p.cls ? CLASS[p.cls] : null;
   const detected = CLASS[st.clsDetected];
   const div = ageDivision(p.birthYear, Number(today.slice(0, 4)));
-  const years = p.trainingSince ? yearsSince(p.trainingSince, today) : null;
+  const years = yearsSince(p.trainingSince, today);
   const claimed = SECTORS.some((s) => st.attrs[s.id].claimed);
   const ChosenIcon = chosen ? CLASS_ICON[chosen.id] : null;
 
@@ -671,6 +672,7 @@ function ProfileTab({ data, st }: { data: ArcData; st: ArcState }) {
   const p = data.profile!;
   const [name, setName] = useState(p.name);
   const year = new Date().getFullYear();
+  const today = isoOf(st.asOf);
   return (
     <div className="steckbrief">
       <section className="panel form-panel">
@@ -683,10 +685,7 @@ function ProfileTab({ data, st }: { data: ArcData; st: ArcState }) {
           <NumberField id="arc-held-year" label="Geburtsjahr" value={p.birthYear} min={year - 90} max={year - 4} onCommit={(v) => updateProfile({ birthYear: v === undefined ? undefined : Math.round(v) })} />
           <NumberField id="arc-held-height" label="Größe (cm)" value={p.heightCm} min={HEIGHT_CM.min} max={HEIGHT_CM.max} onCommit={(v) => updateProfile({ heightCm: v === undefined ? undefined : Math.round(v) })} />
           <NumberField id="arc-held-weight" label="Gewicht (kg)" value={p.weightKg} min={30} max={200} onCommit={(v) => updateProfile({ weightKg: v })} />
-          <label className="field">
-            <span className="fl">Trainiert seit</span>
-            <input id="arc-held-since" type="month" value={p.trainingSince ?? ""} max={new Date().toISOString().slice(0, 7)} onChange={(e) => updateProfile({ trainingSince: e.target.value || undefined })} />
-          </label>
+          <SincePicker id="arc-held-since" label="Trainiert seit" value={p.trainingSince} today={today} onChange={(v) => updateProfile({ trainingSince: v })} />
         </div>
         <p className="muted small">Das Geburtsjahr ergibt deine Altersklasse nach IBJJF. Größe und Gewicht formen deinen Charakter: die Größe seine Körperhöhe, das Gewicht im Verhältnis zur Größe seine Statur. Freunde und Crew sehen nur die Figur, nie die Zahlen.</p>
       </section>
@@ -734,8 +733,4 @@ function isoMinus(iso: string, days: number) {
   return new Date((dayNum(iso) - days) * 864e5).toISOString().slice(0, 10);
 }
 
-function yearsSince(ym: string, today: string) {
-  const [y, m] = ym.split("-").map(Number);
-  const [ty, tm] = today.split("-").map(Number);
-  return Math.max(0, (ty - y) + (tm - m) / 12);
-}
+

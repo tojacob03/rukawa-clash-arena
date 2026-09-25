@@ -1,12 +1,13 @@
 // Editors shared by the onboarding and the character page: look, countries
 // and class.
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Dices, Palette, RotateCcw, Search, X } from "lucide-react";
 import type { Attire, ClassId, Look, SeaId, SportId } from "../core/types.ts";
 import { SPORT, SPORTS } from "../core/sports.ts";
 import { SPORT_ICON } from "../sportIcons.ts";
 import { SEAS } from "../core/sea.ts";
+import { formatSince, parseSince } from "../core/since.ts";
 import { CLASSES } from "../core/classes.ts";
 import { COUNTRIES, COUNTRY } from "../core/countries.ts";
 import {
@@ -375,6 +376,47 @@ export function ClassPicker({ value, detected, onChange }: { value?: ClassId; de
           </button>
         );
       })}
+    </div>
+  );
+}
+
+const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+/**
+ * "Training since" as two lists, year and (optionally) month. A month field
+ * does not exist in Firefox and desktop Safari: there it is a bare text box.
+ * Nothing in the future can be picked.
+ */
+export function SincePicker({ id, label, value, today, onChange }: { id: string; label: string; value: string | undefined; today: string; onChange: (v: string | undefined) => void }) {
+  const lid = useId();
+  const cur = parseSince(value);
+  const ty = Number(today.slice(0, 4));
+  const tm = Number(today.slice(5, 7));
+  const years = Array.from({ length: 71 }, (_, i) => ty - i);
+  const pick = (y: number | null, m: number | null) => onChange(y ? formatSince({ y, m: m && !(y === ty && m > tm) ? m : null }) : undefined);
+  return (
+    <div className="field" role="group" aria-labelledby={lid}>
+      <span className="fl" id={lid}>
+        {label}
+      </span>
+      <div className="since-pick">
+        <select id={id} aria-label="Jahr" value={cur?.y ?? ""} onChange={(e) => pick(e.target.value ? Number(e.target.value) : null, cur?.m ?? null)}>
+          <option value="">Jahr wählen</option>
+          {years.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+        <select id={`${id}-month`} aria-label="Monat" value={cur?.m ?? ""} disabled={!cur} onChange={(e) => pick(cur!.y, e.target.value ? Number(e.target.value) : null)}>
+          <option value="">Monat (optional)</option>
+          {MONTHS.map((n, i) => (
+            <option key={n} value={i + 1} disabled={cur?.y === ty && i + 1 > tm}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }
