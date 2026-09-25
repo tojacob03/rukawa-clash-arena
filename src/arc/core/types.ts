@@ -12,14 +12,53 @@ export type Tier = 0 | 1 | 2 | 3 | 4;
 export type ClassId = "netzweber" | "druckwalze" | "anker" | "schatten" | "jaeger" | "ferse" | "sturm" | "festung" | "wandler";
 export type Slot = "gi" | "top" | "bottom" | "head" | "extra" | "trait" | "talisman" | "aura" | "patch1" | "patch2" | "patch3";
 export type Rarity = "common" | "rare" | "epic" | "legendary";
+export type SeaId = "frost" | "morgen" | "abend" | "glut";
 
+/** Character look. Indices point into the palettes and option lists in avatarOptions.ts; *Hex fields are custom colours. */
 export interface Look {
+  // Body
   skin: number;
+  skinHex?: string;
+  /** -2 … 2: leg length. */
+  height: number;
+  /** -2 … 2: width, on top of the weight from the profile. */
+  build: number;
+  /** 0 … 3: arm and shoulder size. */
+  muscle: number;
+  // Head
+  faceShape: number;
+  ears: number;
+  // Eyes
+  eyeShape: number;
+  eyeColor: number;
+  eyeHex?: string;
+  /** Second eye colour (heterochromia), -1 for none. */
+  eyeColor2: number;
+  /** -2 … 2 */
+  eyeSize: number;
+  /** -2 … 2 */
+  eyeGap: number;
+  lashes: number;
+  brows: number;
+  // Nose and mouth
+  nose: number;
+  mouth: number;
+  // Hair
   hair: number;
   hairColor: number;
-  eyeColor: number;
-  face: number;
+  hairHex?: string;
+  /** Highlight colour for tips and strands, -1 for none. */
+  hairTips: number;
   beard: number;
+  // Marks and decoration
+  marks: string[];
+  tattoo: number;
+  /** 0 left, 1 right, 2 both arms. */
+  tattooSide: number;
+  neckTattoo: boolean;
+  earring: number;
+  /** Legacy expression from the first editor, only read when migrating. */
+  face?: number;
 }
 
 export interface Character {
@@ -95,11 +134,38 @@ export interface Session {
   bonus?: number;
 }
 
+export type CompResult = "win" | "loss" | "draw";
+/** Submission, points, advantages, referee decision, disqualification, walkover. */
+export type CompMethod = "sub" | "points" | "adv" | "ref" | "dq" | "wo";
+
+export interface CompMatch {
+  result: CompResult;
+  method: CompMethod;
+  /** Technique that finished the match (own submission win or the one you lost to). */
+  tech?: string | null;
+  oppBelt?: Belt;
+}
+
+export interface Competition {
+  id: string;
+  date: string;
+  name: string;
+  /** Organiser or rule set, free text (e.g. IBJJF, ADCC, AJP, local). */
+  org?: string;
+  attire: Attire;
+  /** Weight class as written on the bracket, e.g. "-76 kg" or "Absolute". */
+  weight?: string;
+  matches: CompMatch[];
+  /** 1–3 podium, 0 no placement. */
+  place: number;
+  createdAt: number;
+}
+
 export interface Profile {
   name: string;
   belt: Belt;
   stripes: number;
-  /** Belt at sign-up; the Ki rating and the prologue start from it. */
+  /** Belt at sign-up; the Power Level and the prologue start from it. */
   startBelt: Belt;
   startStripes?: number;
   weeklyGoal: number;
@@ -112,6 +178,8 @@ export interface Profile {
   trainingSince?: string;
   /** Chosen play style. */
   cls?: ClassId;
+  /** Home sea on the sea chart (white belt route). */
+  homeSea?: SeaId;
 }
 
 export interface Promotion {
@@ -142,6 +210,7 @@ export interface ArcData {
     todayAttire?: { day: string; attire: Attire };
   };
   character?: Character;
+  competitions?: Competition[];
   demo?: boolean;
 }
 
@@ -227,4 +296,6 @@ export interface ArcState {
   activeCombos: number;
   seals: { id: string; got: boolean }[];
   arc: { index: number; week: number };
+  /** Competition record. */
+  comps: { events: number; w: number; l: number; d: number; subs: number; medals: [number, number, number] };
 }

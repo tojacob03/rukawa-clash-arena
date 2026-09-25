@@ -14,6 +14,7 @@ import { useGear } from "../useGear.ts";
 import { questTask, successLabel } from "../questText.ts";
 import { KindBadge, SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import Burst from "../components/Burst.tsx";
+import { LogSwitch } from "./Turnier.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
 import type { BurstEvent } from "../components/Burst.tsx";
 
@@ -151,6 +152,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
       <SecTitle kanji="記録" eyebrow="Nach dem Training" title="Training eintragen">
         Standardwerte sind vorausgefüllt, du tippst nur, was abweicht. Rechts siehst du live, was das Training bewegt.
       </SecTitle>
+      <LogSwitch value="training" />
       <div className="log-grid">
         <form
           className="log-form"
@@ -406,7 +408,7 @@ function ResultPanel({ s, D, saved, loot, belt }: { s: Session; D: Diff; saved?:
               {TECH[m.id].name} · Meisterung {signed(m.d, 1)}
             </li>
           ))}
-        <li className={D.ki >= 0 ? "up" : "down"}>Ki {signed(D.ki)}</li>
+        <li className={D.power >= 0 ? "up" : "down"}>Power Level {signed(D.power)}</li>
         {D.seals.map((id) => (
           <li key={id} className="up">
             Siegel: {SEALS.find((x) => x.id === id)?.name}

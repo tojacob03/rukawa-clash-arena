@@ -2,56 +2,211 @@
 // and class.
 
 import { useMemo, useState } from "react";
-import { Dices, Search, X } from "lucide-react";
-import type { Attire, ClassId, Look } from "../core/types.ts";
+import { Dices, Palette, RotateCcw, Search, X } from "lucide-react";
+import type { Attire, ClassId, Look, SeaId } from "../core/types.ts";
+import { SEAS } from "../core/sea.ts";
 import { CLASSES } from "../core/classes.ts";
 import { COUNTRIES, COUNTRY } from "../core/countries.ts";
-import { BEARDS, EYE_COLORS, FACES, HAIR_COLORS, HAIR_STYLES, SKIN, randomLook } from "../avatarOptions.ts";
+import {
+  BEARDS,
+  BROWS,
+  DEFAULT_LOOK,
+  EARRINGS,
+  EARS,
+  EYE_COLORS,
+  EYE_SHAPES,
+  FACE_SHAPES,
+  HAIR_COLORS,
+  HAIR_STYLES,
+  LASHES,
+  MARKS,
+  MOUTHS,
+  NOSES,
+  SKIN,
+  TATTOOS,
+  TATTOO_SIDES,
+  normalizeLook,
+  randomLook,
+} from "../avatarOptions.ts";
+import Avatar from "./Avatar.tsx";
 import { CLASS_ICON } from "../classIcons.ts";
 import { FlagIcon } from "./Flag.tsx";
 import { Seg } from "./ui.tsx";
 
 export const MAX_COUNTRIES = 4;
 
-export function LookEditor({ look, onChange, mode, onMode }: { look: Look; onChange: (l: Look) => void; mode: Attire; onMode: (m: Attire) => void }) {
+type Cat = "koerper" | "gesicht" | "augen" | "haare" | "bart" | "merkmale" | "tattoo";
+const CATS: { id: Cat; label: string }[] = [
+  { id: "koerper", label: "Körper" },
+  { id: "gesicht", label: "Gesicht" },
+  { id: "augen", label: "Augen" },
+  { id: "haare", label: "Haare" },
+  { id: "bart", label: "Bart" },
+  { id: "merkmale", label: "Merkmale" },
+  { id: "tattoo", label: "Tattoo & Schmuck" },
+];
+
+/** Full character editor: categories, face thumbnails, sliders and custom colours. */
+export function LookEditor({ look: raw, onChange, mode, onMode }: { look: Look; onChange: (l: Look) => void; mode: Attire; onMode: (m: Attire) => void }) {
+  const look = normalizeLook(raw);
+  const [cat, setCat] = useState<Cat>("koerper");
   const set = (patch: Partial<Look>) => onChange({ ...look, ...patch });
+  const thumbs = (label: string, names: string[], key: keyof Look, crop: "head" | "face" = "head") => (
+    <OptionGrid label={label} names={names} value={look[key] as number} onPick={(i) => set({ [key]: i } as Partial<Look>)} render={(i) => ({ ...look, [key]: i })} crop={crop} />
+  );
   return (
     <div className="look-editor">
       <div className="row wrap between">
         <Seg value={mode} onChange={onMode} label="Kleidung in der Vorschau" options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
-        <button type="button" className="btn ghost small" onClick={() => onChange(randomLook())}>
-          <Dices size={15} aria-hidden="true" /> <span>Zufall</span>
-        </button>
+        <div className="row">
+          <button type="button" className="btn ghost small" onClick={() => onChange(randomLook())}>
+            <Dices size={15} aria-hidden="true" /> <span>Zufall</span>
+          </button>
+          <button type="button" className="btn ghost small" onClick={() => onChange(DEFAULT_LOOK)}>
+            <RotateCcw size={14} aria-hidden="true" /> <span>Standard</span>
+          </button>
+        </div>
       </div>
-      <Swatches label="Hautton" colors={SKIN} value={look.skin} onPick={(skin) => set({ skin })} />
-      <ChipPick label="Frisur" names={HAIR_STYLES} value={look.hair} onPick={(hair) => set({ hair })} />
-      <Swatches label="Haarfarbe" colors={HAIR_COLORS} value={look.hairColor} onPick={(hairColor) => set({ hairColor })} />
-      <Swatches label="Augenfarbe" colors={EYE_COLORS} value={look.eyeColor} onPick={(eyeColor) => set({ eyeColor })} />
-      <ChipPick label="Gesicht" names={FACES} value={look.face} onPick={(face) => set({ face })} />
-      <ChipPick label="Bart" names={BEARDS} value={look.beard} onPick={(beard) => set({ beard })} />
+      <nav className="cat-tabs" aria-label="Kategorien">
+        {CATS.map((c) => (
+          <button key={c.id} type="button" className={cat === c.id ? "on" : ""} aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>
+            {c.label}
+          </button>
+        ))}
+      </nav>
+
+      {cat === "koerper" ? (
+        <>
+          <ColorPick label="Hautton" colors={SKIN} value={look.skin} hex={look.skinHex} onPick={(skin) => set({ skin, skinHex: undefined })} onHex={(skinHex) => set({ skinHex })} />
+          <Slider label="Größe" min={-2} max={2} value={look.height} left="klein" right="groß" onChange={(height) => set({ height })} />
+          <Slider label="Statur" min={-2} max={2} value={look.build} left="schmal" right="breit" onChange={(build) => set({ build })} />
+          <Slider label="Muskeln" min={0} max={3} value={look.muscle} left="drahtig" right="massiv" onChange={(muscle) => set({ muscle })} />
+          <p className="muted small">Das Gewicht aus dem Steckbrief fließt zusätzlich in die Statur ein.</p>
+        </>
+      ) : null}
+
+      {cat === "gesicht" ? (
+        <>
+          {thumbs("Gesichtsform", FACE_SHAPES, "faceShape")}
+          {thumbs("Nase", NOSES, "nose", "face")}
+          {thumbs("Mund", MOUTHS, "mouth", "face")}
+          {thumbs("Ohren", EARS, "ears")}
+        </>
+      ) : null}
+
+      {cat === "augen" ? (
+        <>
+          {thumbs("Augenform", EYE_SHAPES, "eyeShape", "face")}
+          <ColorPick label="Augenfarbe" colors={EYE_COLORS} value={look.eyeColor} hex={look.eyeHex} onPick={(eyeColor) => set({ eyeColor, eyeHex: undefined })} onHex={(eyeHex) => set({ eyeHex })} />
+          <div className="field">
+            <span className="fl">Zweite Augenfarbe (rechtes Auge)</span>
+            <div className="swatches" role="radiogroup" aria-label="Zweite Augenfarbe">
+              <button type="button" role="radio" aria-checked={look.eyeColor2 < 0} className={`swatch none${look.eyeColor2 < 0 ? " on" : ""}`} aria-label="Keine" onClick={() => set({ eyeColor2: -1 })} />
+              {EYE_COLORS.map((c, i) => (
+                <button key={c} type="button" role="radio" aria-checked={look.eyeColor2 === i} aria-label={`Farbe ${i + 1}`} className={`swatch${look.eyeColor2 === i ? " on" : ""}`} style={{ ["--c" as string]: c }} onClick={() => set({ eyeColor2: i })} />
+              ))}
+            </div>
+          </div>
+          <Slider label="Augengröße" min={-2} max={2} value={look.eyeSize} left="klein" right="groß" onChange={(eyeSize) => set({ eyeSize })} />
+          <Slider label="Augenabstand" min={-2} max={2} value={look.eyeGap} left="eng" right="weit" onChange={(eyeGap) => set({ eyeGap })} />
+          <ChipPick label="Wimpern" names={LASHES} value={look.lashes} onPick={(lashes) => set({ lashes })} />
+          {thumbs("Augenbrauen", BROWS, "brows", "face")}
+        </>
+      ) : null}
+
+      {cat === "haare" ? (
+        <>
+          {thumbs("Frisur", HAIR_STYLES, "hair")}
+          <ColorPick label="Haarfarbe" colors={HAIR_COLORS} value={look.hairColor} hex={look.hairHex} onPick={(hairColor) => set({ hairColor, hairHex: undefined })} onHex={(hairHex) => set({ hairHex })} />
+          <div className="field">
+            <span className="fl">Spitzen und Strähnen</span>
+            <div className="swatches" role="radiogroup" aria-label="Spitzen">
+              <button type="button" role="radio" aria-checked={look.hairTips < 0} className={`swatch none${look.hairTips < 0 ? " on" : ""}`} aria-label="Keine" onClick={() => set({ hairTips: -1 })} />
+              {HAIR_COLORS.map((c, i) => (
+                <button key={c} type="button" role="radio" aria-checked={look.hairTips === i} aria-label={`Farbe ${i + 1}`} className={`swatch${look.hairTips === i ? " on" : ""}`} style={{ ["--c" as string]: c }} onClick={() => set({ hairTips: i })} />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {cat === "bart" ? thumbs("Bart", BEARDS, "beard") : null}
+
+      {cat === "merkmale" ? (
+        <div className="field">
+          <span className="fl">Merkmale (mehrere möglich)</span>
+          <div className="chips">
+            {MARKS.map((mk) => {
+              const on = look.marks.includes(mk.id);
+              return (
+                <button key={mk.id} type="button" className={`chip${on ? " on" : ""}`} aria-pressed={on} onClick={() => set({ marks: on ? look.marks.filter((x) => x !== mk.id) : [...look.marks, mk.id] })}>
+                  {mk.name}
+                </button>
+              );
+            })}
+          </div>
+          <small className="muted">Blumenkohlohr und Narbe gibt es zusätzlich als Merkmal-Items, die man sich auf der Matte verdient.</small>
+        </div>
+      ) : null}
+
+      {cat === "tattoo" ? (
+        <>
+          <ChipPick label="Tattoo am Arm" names={TATTOOS} value={look.tattoo} onPick={(tattoo) => set({ tattoo })} />
+          {look.tattoo ? <ChipPick label="Arm" names={TATTOO_SIDES} value={look.tattooSide} onPick={(tattooSide) => set({ tattooSide })} /> : null}
+          <label className="check">
+            <input type="checkbox" checked={look.neckTattoo} onChange={(e) => set({ neckTattoo: e.target.checked })} /> Tattoo am Hals
+          </label>
+          <ChipPick label="Ohrringe" names={EARRINGS} value={look.earring} onPick={(earring) => set({ earring })} />
+          <p className="muted small">Tattoos am Arm sieht man im No-Gi mit kurzen Ärmeln oder Tanktop.</p>
+        </>
+      ) : null}
     </div>
   );
 }
 
-function Swatches({ label, colors, value, onPick }: { label: string; colors: string[]; value: number; onPick: (i: number) => void }) {
+function OptionGrid({ label, names, value, onPick, render, crop }: { label: string; names: string[]; value: number; onPick: (i: number) => void; render: (i: number) => Look; crop: "head" | "face" }) {
+  return (
+    <div className="field">
+      <span className="fl">{label}</span>
+      <div className={`opt-grid${crop === "face" ? " face" : ""}`} role="radiogroup" aria-label={label}>
+        {names.map((n, i) => (
+          <button key={n} type="button" role="radio" aria-checked={value === i} className={`opt${value === i ? " on" : ""}`} onClick={() => onPick(i)}>
+            <Avatar look={render(i)} mode="gi" gear={{}} belt="weiss" stripes={0} size={crop === "face" ? 70 : 64} crop={crop} still label={n} />
+            <span>{n}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ColorPick({ label, colors, value, hex, onPick, onHex }: { label: string; colors: string[]; value: number; hex?: string; onPick: (i: number) => void; onHex: (h: string) => void }) {
   return (
     <div className="field">
       <span className="fl">{label}</span>
       <div className="swatches" role="radiogroup" aria-label={label}>
         {colors.map((c, i) => (
-          <button
-            key={c}
-            type="button"
-            role="radio"
-            aria-checked={value === i}
-            aria-label={`${label} ${i + 1}`}
-            className={`swatch${value === i ? " on" : ""}`}
-            style={{ ["--c" as string]: c }}
-            onClick={() => onPick(i)}
-          />
+          <button key={c} type="button" role="radio" aria-checked={!hex && value === i} aria-label={`${label} ${i + 1}`} className={`swatch${!hex && value === i ? " on" : ""}`} style={{ ["--c" as string]: c }} onClick={() => onPick(i)} />
         ))}
+        <label className={`swatch custom${hex ? " on" : ""}`} style={hex ? { ["--c" as string]: hex } : undefined} title="Eigene Farbe">
+          <Palette size={15} aria-hidden="true" />
+          <input type="color" value={hex ?? colors[value] ?? "#888888"} onChange={(e) => onHex(e.target.value)} aria-label={`${label}: eigene Farbe`} />
+        </label>
       </div>
     </div>
+  );
+}
+
+function Slider({ label, min, max, value, left, right, onChange }: { label: string; min: number; max: number; value: number; left: string; right: string; onChange: (v: number) => void }) {
+  return (
+    <label className="field slider">
+      <span className="fl">{label}</span>
+      <span className="slider-row">
+        <small>{left}</small>
+        <input type="range" min={min} max={max} step={1} value={value} onChange={(e) => onChange(Number(e.target.value))} />
+        <small>{right}</small>
+      </span>
+    </label>
   );
 }
 
@@ -127,6 +282,19 @@ export function CountryPicker({ value, onChange }: { value: string[]; onChange: 
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+export function SeaPicker({ value, onChange }: { value: SeaId; onChange: (s: SeaId) => void }) {
+  return (
+    <div className="sea-pick" role="radiogroup" aria-label="Heimatmeer">
+      {SEAS.map((s) => (
+        <button key={s.id} type="button" role="radio" aria-checked={value === s.id} className={`sea-opt${value === s.id ? " on" : ""}`} style={{ ["--sc" as string]: s.color }} onClick={() => onChange(s.id)}>
+          <b>{s.name}</b>
+          <small>{s.desc}</small>
+        </button>
+      ))}
     </div>
   );
 }

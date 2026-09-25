@@ -8,7 +8,8 @@ export const signed = (x: number, digits = 0) => {
   const r = digits ? Math.round(x * 10) / 10 : Math.round(x);
   return `${r > 0 ? "+" : r < 0 ? "−" : "±"}${f.format(Math.abs(r))}`;
 };
-export const ki = (ru: number) => nf0.format(Math.round(ru * 10));
+/** Power Level: the Elo rating times ten. */
+export const power = (ru: number) => nf0.format(Math.round(ru * 10));
 
 export const BELTS: { id: Belt; name: string; color: string; bar: string }[] = [
   { id: "weiss", name: "Weiß", color: "#f1eee6", bar: "#15151a" },

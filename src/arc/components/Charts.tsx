@@ -67,7 +67,7 @@ export function Hexagon({ series, labelIndex = 0 }: { series: HexSeries[]; label
   );
 }
 
-export function KiChart({ series, today, extra }: { series: { d: number; r: number }[]; today: number; extra?: { series: { d: number; r: number }[]; cls: string }[] }) {
+export function PowerChart({ series, today, extra }: { series: { d: number; r: number }[]; today: number; extra?: { series: { d: number; r: number }[]; cls: string }[] }) {
   const W = 560;
   const H = 180;
   const l = 54;
@@ -75,7 +75,7 @@ export function KiChart({ series, today, extra }: { series: { d: number; r: numb
   const t = 16;
   const b = 26;
   const all = [series, ...(extra ?? []).map((e) => e.series)].flat();
-  if (series.length < 2) return <p className="muted small">Die Ki-Kurve erscheint nach den ersten Roll-Karten.</p>;
+  if (series.length < 2) return <p className="muted small">Die Power-Level-Kurve erscheint nach den ersten Roll-Karten.</p>;
   const ys = all.map((p) => p.r * 10);
   const ymin = Math.min(...ys);
   const ymax = Math.max(...ys);
@@ -91,7 +91,7 @@ export function KiChart({ series, today, extra }: { series: { d: number; r: numb
   const lx = X(last.d);
   const ly = Y(last.r * 10);
   return (
-    <svg className="ki-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Ki von ${nf0.format(Math.round(series[0].r * 10))} auf ${nf0.format(Math.round(last.r * 10))}`}>
+    <svg className="ki-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Power Level von ${nf0.format(Math.round(series[0].r * 10))} auf ${nf0.format(Math.round(last.r * 10))}`}>
       <defs>
         <linearGradient id="kiFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#f0bf5a" stopOpacity=".35" />

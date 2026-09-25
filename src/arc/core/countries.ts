@@ -22,7 +22,7 @@ const nordic = (bg: string, cross: string, inner?: string): FlagSpec => ({ t: "n
 const custom: FlagSpec = { t: "custom" };
 const W = "#FFFFFF";
 
-export const COUNTRIES: Country[] = [
+const LIST: Country[] = [
   { code: "DE", name: "Deutschland", flag: h(["#000000", "#DD0000", "#FFCC00"]) },
   { code: "AT", name: "Österreich", flag: h(["#C8102E", W, "#C8102E"]) },
   { code: "CH", name: "Schweiz", flag: custom },
@@ -59,7 +59,6 @@ export const COUNTRIES: Country[] = [
   { code: "IS", name: "Island", flag: nordic("#02529C", W, "#DC1E35") },
   { code: "GE", name: "Georgien", flag: custom },
   { code: "AM", name: "Armenien", flag: h(["#D90012", "#0033A0", "#F2A800"]) },
-  { code: "IL", name: "Israel", flag: custom },
   { code: "AE", name: "Vereinigte Arabische Emirate", flag: custom },
   { code: "MA", name: "Marokko", flag: custom },
   { code: "NG", name: "Nigeria", flag: v(["#008751", W, "#008751"]) },
@@ -78,6 +77,86 @@ export const COUNTRIES: Country[] = [
   { code: "ID", name: "Indonesien", flag: h(["#FF0000", W]) },
   { code: "IN", name: "Indien", flag: custom, simplified: true },
   { code: "AU", name: "Australien", flag: custom, simplified: true },
+  // Europe
+  { code: "AL", name: "Albanien", flag: custom, simplified: true },
+  { code: "XK", name: "Kosovo", flag: custom, simplified: true },
+  { code: "MK", name: "Nordmazedonien", flag: custom },
+  { code: "ME", name: "Montenegro", flag: custom, simplified: true },
+  { code: "SI", name: "Slowenien", flag: custom, simplified: true },
+  { code: "SK", name: "Slowakei", flag: custom, simplified: true },
+  { code: "MD", name: "Moldau", flag: custom, simplified: true },
+  { code: "CY", name: "Zypern", flag: custom, simplified: true },
+  { code: "MT", name: "Malta", flag: custom, simplified: true },
+  { code: "MC", name: "Monaco", flag: h(["#CE1126", W]) },
+  { code: "WAL", name: "Wales", flag: custom, simplified: true },
+  // Caucasus and Central Asia
+  { code: "AZ", name: "Aserbaidschan", flag: custom },
+  { code: "DAG", name: "Dagestan", flag: h(["#1E9A3E", "#1B5DB5", "#D8261E"]) },
+  { code: "KZ", name: "Kasachstan", flag: custom, simplified: true },
+  { code: "UZ", name: "Usbekistan", flag: custom, simplified: true },
+  { code: "KG", name: "Kirgisistan", flag: custom, simplified: true },
+  { code: "TJ", name: "Tadschikistan", flag: custom, simplified: true },
+  { code: "MN", name: "Mongolei", flag: custom, simplified: true },
+  // Middle East
+  { code: "IR", name: "Iran", flag: custom, simplified: true },
+  { code: "IQ", name: "Irak", flag: custom, simplified: true },
+  { code: "SY", name: "Syrien", flag: custom },
+  { code: "LB", name: "Libanon", flag: custom, simplified: true },
+  { code: "JO", name: "Jordanien", flag: custom },
+  { code: "PS", name: "Palästina", flag: custom },
+  { code: "SA", name: "Saudi-Arabien", flag: custom, simplified: true },
+  { code: "QA", name: "Katar", flag: custom },
+  { code: "KW", name: "Kuwait", flag: custom },
+  { code: "BH", name: "Bahrain", flag: custom },
+  { code: "OM", name: "Oman", flag: custom, simplified: true },
+  { code: "YE", name: "Jemen", flag: h(["#CE1126", W, "#000000"]) },
+  { code: "KUR", name: "Kurdistan", flag: custom },
+  // South, East and Southeast Asia, Pacific
+  { code: "PK", name: "Pakistan", flag: custom },
+  { code: "BD", name: "Bangladesch", flag: custom },
+  { code: "LK", name: "Sri Lanka", flag: custom, simplified: true },
+  { code: "KR", name: "Südkorea", flag: custom, simplified: true },
+  { code: "TW", name: "Taiwan", flag: custom },
+  { code: "MY", name: "Malaysia", flag: custom, simplified: true },
+  { code: "SG", name: "Singapur", flag: custom, simplified: true },
+  { code: "KH", name: "Kambodscha", flag: custom, simplified: true },
+  { code: "NZ", name: "Neuseeland", flag: custom, simplified: true },
+  { code: "WS", name: "Samoa", flag: custom },
+  { code: "TO", name: "Tonga", flag: custom },
+  // Africa
+  { code: "EG", name: "Ägypten", flag: custom, simplified: true },
+  { code: "TN", name: "Tunesien", flag: custom },
+  { code: "DZ", name: "Algerien", flag: custom },
+  { code: "LY", name: "Libyen", flag: custom },
+  { code: "SO", name: "Somalia", flag: custom },
+  { code: "ET", name: "Äthiopien", flag: custom, simplified: true },
+  { code: "KE", name: "Kenia", flag: custom, simplified: true },
+  { code: "GH", name: "Ghana", flag: custom },
+  { code: "SN", name: "Senegal", flag: custom },
+  { code: "CI", name: "Elfenbeinküste", flag: v(["#F77F00", W, "#009E60"]) },
+  { code: "CM", name: "Kamerun", flag: custom },
+  { code: "CD", name: "Kongo (Dem. Rep.)", flag: custom },
+  { code: "ZA", name: "Südafrika", flag: custom },
+  // Americas
+  { code: "CL", name: "Chile", flag: custom },
+  { code: "UY", name: "Uruguay", flag: custom, simplified: true },
+  { code: "PY", name: "Paraguay", flag: custom, simplified: true },
+  { code: "BO", name: "Bolivien", flag: h(["#D52B1E", "#F9E300", "#007934"]) },
+  { code: "EC", name: "Ecuador", flag: custom, simplified: true },
+  { code: "VE", name: "Venezuela", flag: custom, simplified: true },
+  { code: "CU", name: "Kuba", flag: custom },
+  { code: "DO", name: "Dominikanische Republik", flag: custom, simplified: true },
+  { code: "PR", name: "Puerto Rico", flag: custom },
+  { code: "JM", name: "Jamaika", flag: custom },
+  { code: "CR", name: "Costa Rica", flag: h(["#002B7F", W, "#CE1126", W, "#002B7F"], [1, 1, 2, 1, 1]) },
+  { code: "PA", name: "Panama", flag: custom },
+  { code: "GT", name: "Guatemala", flag: custom, simplified: true },
+  { code: "HN", name: "Honduras", flag: custom },
+  { code: "SV", name: "El Salvador", flag: custom, simplified: true },
+  { code: "HT", name: "Haiti", flag: custom, simplified: true },
 ];
+
+/** Alphabetical by German name; the picker has a search on top. */
+export const COUNTRIES = [...LIST].sort((a, b) => a.name.localeCompare(b.name, "de"));
 
 export const COUNTRY = Object.fromEntries(COUNTRIES.map((c) => [c.code, c])) as Record<string, Country>;

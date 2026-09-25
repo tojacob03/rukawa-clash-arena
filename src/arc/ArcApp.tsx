@@ -1,22 +1,29 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { BookOpen, Flame, Home, Map as MapIcon, Plus, Settings, UserRound } from "lucide-react";
 import { APP_NAME, rankOf } from "./core/lore.ts";
-import { ki, nf0 } from "./format.ts";
+import { nf0, power } from "./format.ts";
 import { go, useArcData, useArcState, useRoute, useToday } from "./store.ts";
 import type { Route } from "./store.ts";
 import Start from "./pages/Start.tsx";
 import Today from "./pages/Today.tsx";
 import Log from "./pages/Log.tsx";
+import Turnier from "./pages/Turnier.tsx";
 import MapPage from "./pages/MapPage.tsx";
 import Codex from "./pages/Codex.tsx";
+import SeaPage from "./pages/SeaPage.tsx";
 import Held from "./pages/Held.tsx";
 import Profil from "./pages/Profil.tsx";
+import Scouter from "./components/Scouter.tsx";
+import Avatar from "./components/Avatar.tsx";
+import { useGear } from "./useGear.ts";
+import { powerOf, powerTier, selfRows } from "./scan.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
   log: "Training eintragen",
   karte: "Sternkarte",
+  meer: "Seekarte",
   codex: "Waza-Codex",
   held: "Charakter",
   profil: "Profil",
@@ -27,6 +34,13 @@ export default function ArcApp() {
   const today = useToday();
   const st = useArcState(data, today);
   const { route, arg } = useRoute();
+  const [scan, setScan] = useState(false);
+  useEffect(() => {
+    const open = () => setScan(true);
+    window.addEventListener("arc:scan", open);
+    return () => window.removeEventListener("arc:scan", open);
+  }, []);
+  const g = useGear(data, st);
 
   useEffect(() => {
     document.title = data.profile ? `${TITLES[route]} · ${APP_NAME}` : APP_NAME;
@@ -42,9 +56,15 @@ export default function ArcApp() {
   const props = { data, st, today };
   const page =
     route === "log" ? (
-      <Log key={today} {...props} />
+      arg === "turnier" ? (
+        <Turnier key={`t${today}`} {...props} />
+      ) : (
+        <Log key={today} {...props} />
+      )
     ) : route === "karte" ? (
       <MapPage {...props} arg={arg} />
+    ) : route === "meer" ? (
+      <SeaPage {...props} arg={arg} />
     ) : route === "codex" ? (
       <Codex {...props} />
     ) : route === "held" ? (
@@ -85,10 +105,10 @@ export default function ArcApp() {
           </span>
         </button>
         <div className="hud-stats">
-          <span className="hud-stat" title="Ki: Elo-Rating aus deinen Rolls, mal 10">
-            <small>Ki</small>
-            <b>{ki(st.ru)}</b>
-          </span>
+          <button type="button" className="hud-stat pl" title="Power Level: Elo-Rating aus deinen Rolls, mal 10. Tippen öffnet den Scouter." onClick={() => setScan(true)}>
+            <small>Power</small>
+            <b>{power(st.ru)}</b>
+          </button>
           <span className={`hud-stat flame${st.weekNow >= st.weekGoal ? " lit" : ""}`} title="Wochen in Folge mit erreichtem Wochenziel">
             <Flame size={16} aria-hidden="true" />
             <b>{st.streak}</b>
@@ -107,13 +127,26 @@ export default function ArcApp() {
         ) : null}
       </header>
 
+      {scan && data.profile ? (
+        <Scouter
+          onClose={() => setScan(false)}
+          target={{
+            name: data.profile.name,
+            power: powerOf(st.ru),
+            tier: powerTier(st.ru),
+            rows: selfRows(data, st, today),
+            portrait: <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={data.profile.belt} stripes={data.profile.stripes} weightKg={data.profile.weightKg} size={180} still />,
+            foot: "Power Level = Elo aus Rolls und Turnierkämpfen × 10.",
+          }}
+        />
+      ) : null}
       <main id="arc-main" className="main" tabIndex={-1}>
         {page}
       </main>
 
       <nav className="nav" aria-label="Hauptnavigation">
         <NavItem route="heute" current={route} icon={<Home size={20} />} label="Heute" />
-        <NavItem route="karte" current={route} icon={<MapIcon size={20} />} label="Karte" />
+        <NavItem route="karte" current={route === "meer" ? "karte" : route} icon={<MapIcon size={20} />} label="Karte" />
         <button type="button" className={`nav-log${route === "log" ? " on" : ""}`} onClick={() => go("log")} aria-label="Training eintragen">
           <span>
             <Plus size={26} />

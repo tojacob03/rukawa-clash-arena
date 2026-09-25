@@ -1,19 +1,20 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChevronDown, Sparkles, Wand2 } from "lucide-react";
-import type { Attire, Belt as BeltId, ClassId, Look, Slot } from "../core/types.ts";
+import type { Attire, Belt as BeltId, ClassId, Look, SeaId, Slot } from "../core/types.ts";
+import { DEFAULT_SEA } from "../core/sea.ts";
 import type { ItemDef } from "../core/items.ts";
 import { DEFAULT_EQUIP, ITEM } from "../core/items.ts";
 import { CLASS } from "../core/classes.ts";
 import { SECTORS, TECHS } from "../core/techniques.ts";
 import { RINGS, rankOf } from "../core/lore.ts";
 import { BELT_R, PROLOG_LEVEL, prologXp } from "../core/model.ts";
-import { BELT, BELTS, ki, nf0 } from "../format.ts";
+import { BELT, BELTS, nf0, power } from "../format.ts";
 import { createProfile, loadDemo } from "../actions.ts";
 import { DEFAULT_LOOK } from "../avatarOptions.ts";
 import { ageDivision } from "../character.ts";
 import Avatar from "../components/Avatar.tsx";
-import { ClassPicker, CountryPicker, LookEditor } from "../components/CharacterForms.tsx";
+import { ClassPicker, CountryPicker, LookEditor, SeaPicker } from "../components/CharacterForms.tsx";
 import { Belt, Seg, Stepper } from "../components/ui.tsx";
 
 type Step = "hello" | "steckbrief" | "rang" | "klasse" | "aussehen" | "technik";
@@ -39,6 +40,7 @@ export default function Start({ today }: { today: string }) {
   const [since, setSince] = useState("");
   const [goal, setGoal] = useState(2);
   const [cls, setCls] = useState<ClassId | undefined>(undefined);
+  const [sea, setSea] = useState<SeaId>(DEFAULT_SEA);
   const [look, setLook] = useState<Look>(DEFAULT_LOOK);
   const [mode, setMode] = useState<Attire>("gi");
   const [marks, setMarks] = useState<Record<string, Mark> | null>(null);
@@ -73,11 +75,13 @@ export default function Start({ today }: { today: string }) {
         weightKg: kg ?? undefined,
         trainingSince: since || undefined,
         cls,
+        homeSea: sea,
       },
       today,
       known,
       claims,
       look,
+      mode,
     );
   };
 
@@ -93,7 +97,7 @@ export default function Start({ today }: { today: string }) {
         </h1>
         <p className="start-sub">
           Dein BJJ-Training als RPG. Nach dem Training trägst du in einer halben Minute ein, was passiert ist. Im Training zählst du nur eine Sache mit: deine
-          Tagesquest. Daraus wird eine Sternkarte mit {TECHS.length} Techniken, ein Charakter mit Ausrüstung und dein Ki.
+          Tagesquest. Daraus wird eine Sternkarte mit {TECHS.length} Techniken, ein Charakter mit Ausrüstung, eine Seekarte deiner Reise und dein Power Level.
         </p>
         <div className="start-actions">
           <button type="button" className="btn primary big" onClick={() => setStep("steckbrief")}>
@@ -154,6 +158,11 @@ export default function Start({ today }: { today: string }) {
           <CountryPicker value={countries} onChange={setCountries} />
           <small className="muted">Jedes Land wird ein Aufnäher für Gi und Rashguard. Das erste kommt auf die Schulter.</small>
         </div>
+        <div className="field">
+          <span className="fl">Heimatmeer</span>
+          <SeaPicker value={sea} onChange={setSea} />
+          <small className="muted">Hier beginnt deine Reise auf der Seekarte. Jeder Streifen ist eine Insel.</small>
+        </div>
         <Nav back={back} next={next} ok={!!name.trim() && (birthYear === "" || by !== null) && (weight === "" || kg !== null)} />
       </main>
     );
@@ -164,7 +173,7 @@ export default function Start({ today }: { today: string }) {
     return (
       <main className="start form-page">
         {head("Wo stehst du?")}
-        <p className="lede">Du hast schon trainiert, bevor es diese App gab. Dein Gürtel ist dein Prolog: Er setzt Startlevel und Ki.</p>
+        <p className="lede">Du hast schon trainiert, bevor es diese App gab. Dein Gürtel ist dein Prolog: Er setzt Startlevel, Power Level und deine Insel auf der Seekarte.</p>
         <div className="field">
           <span className="fl">Gürtel</span>
           <div className="belt-pick" role="radiogroup" aria-label="Gürtel">
@@ -201,7 +210,7 @@ export default function Start({ today }: { today: string }) {
               Du startest als <b>{rankOf(lvl)}</b> auf Level {lvl}
             </p>
             <p className="muted small">
-              {nf0.format(prologXp(belt, stripes))} XP für die Zeit vor der App · Ki {ki(BELT_R[belt] + 20 * stripes)} · {BELT[belt].name}gurt, {stripes} Streifen
+              {nf0.format(prologXp(belt, stripes))} XP für die Zeit vor der App · Power Level {power(BELT_R[belt] + 20 * stripes)} · {BELT[belt].name}gurt, {stripes} Streifen
             </p>
           </div>
         </section>

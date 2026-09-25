@@ -7,7 +7,10 @@ import { CLASSES } from "./classes.ts";
 import { COUNTRIES } from "./countries.ts";
 import { ITEM, ITEMS, SLOTS, inventory, talismanBonus } from "./items.ts";
 import { buildDemo } from "./demo.ts";
-import { compute, diff, prologXp, questShape, xpParts } from "./model.ts";
+import { compXp, compute, dayNum, diff, prologXp, questShape, rankAt, xpParts } from "./model.ts";
+import { bounty } from "./bounty.ts";
+import { ISLANDS, islandAt, rankIndex, route } from "./sea.ts";
+import { normalizeLook } from "../avatarOptions.ts";
 import { ageDivision } from "../character.ts";
 import type { ArcData, Session } from "./types.ts";
 
@@ -55,7 +58,7 @@ test("claims: shown as provisional level, no XP until the rolls confirm them", (
   assert.equal(xpParts(s, D).reduce((a, [, v]) => a + v, 0), D.xp, "confirming pays the level XP");
 });
 
-test("prologue: belt and stripes set the start level and Ki", () => {
+test("prologue: belt and stripes set the start level and Power Level", () => {
   const d = base();
   d.profile = { ...d.profile!, startStripes: 2, stripes: 2 };
   const st = compute(d, TODAY);
@@ -120,4 +123,70 @@ test("age division follows IBJJF", () => {
   assert.equal(ageDivision(1985, 2026)?.name, "Master 3");
   assert.equal(ageDivision(1965, 2026)?.name, "Master 7");
   assert.equal(ageDivision(undefined), null);
+});
+
+test("countries: the requested ones are in, every custom flag is drawn", async () => {
+  const codes = new Set(COUNTRIES.map((c) => c.code));
+  for (const c of ["IR", "PS", "AZ", "AL", "XK", "KUR", "DAG"]) assert.ok(codes.has(c), c);
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(new URL("../components/Flag.tsx", import.meta.url), "utf8");
+  for (const c of COUNTRIES.filter((x) => x.flag.t === "custom")) assert.ok(src.includes(`case "${c.code}"`), `flag ${c.code}`);
+});
+
+test("look: old saves migrate, missing fields get defaults", () => {
+  const old = normalizeLook({ skin: 3, hair: 2, hairColor: 1, eyeColor: 4, face: 1, beard: 2 } as never);
+  assert.equal(old.eyeShape, 0);
+  assert.equal(old.mouth, 1);
+  assert.equal(old.skin, 3);
+  assert.equal(old.height, 0);
+  assert.deepEqual(old.marks, ["blush"]);
+  assert.equal("face" in old, false);
+});
+
+test("competitions: count double for the Power Level, submission wins are evidence, XP and seals", () => {
+  const d = base();
+  const before = compute(d, TODAY);
+  const comp = {
+    id: "c1",
+    date: "2026-09-20",
+    name: "Test Open",
+    attire: "gi" as const,
+    place: 1,
+    matches: [
+      { result: "win" as const, method: "sub" as const, tech: "s_triangle", oppBelt: "blau" as const },
+      { result: "win" as const, method: "points" as const, oppBelt: "blau" as const },
+    ],
+    createdAt: 1,
+  };
+  const withComp = { ...d, competitions: [comp] };
+  const after = compute(withComp, TODAY);
+  assert.ok(after.ru - before.ru > 20, "two wins against equals move the rating a lot");
+  assert.equal(after.nodes.s_triangle.rawSucc, 1);
+  assert.equal(after.nodes.s_triangle.sStrong, 1);
+  assert.equal(after.comps.w, 2);
+  assert.deepEqual(after.comps.medals, [1, 0, 0]);
+  assert.ok(after.seals.find((s) => s.id === "arena")?.got && after.seals.find((s) => s.id === "podium")?.got);
+  assert.ok(after.xp - before.xp >= compXp(comp));
+  const inv = inventory(withComp, after);
+  assert.ok(inv.has("ex_gold") && inv.has("pa_arena") && inv.has("pa_finisher") && inv.has("rg_champion"));
+  assert.ok(bounty(withComp, after) > bounty(d, before));
+});
+
+test("sea chart: one island per belt and stripe, rank decides the island", () => {
+  assert.equal(ISLANDS.length, 40);
+  assert.equal(new Set(ISLANDS.map((x) => x.id)).size, 40);
+  for (const sea of ["frost", "morgen", "abend", "glut"] as const) {
+    const r = route(sea);
+    assert.equal(r.length, 25);
+    r.forEach((is, i) => assert.equal(rankIndex(is.belt, is.stripe), i));
+  }
+  assert.equal(islandAt("blau", 0, "frost").name, "Tor der vier Strömungen");
+  assert.equal(islandAt("schwarz", 4, "glut").name, "Kap Kuro");
+  const d = base();
+  d.promotions = [{ date: "2026-09-10", belt: "blau", stripes: 1 }];
+  assert.deepEqual(rankAt(d, dayNum("2026-09-05")), { belt: "blau", stripes: 0 });
+  assert.deepEqual(rankAt(d, dayNum("2026-09-12")), { belt: "blau", stripes: 1 });
+  // Blue belt profile: the gate item is unlocked, the purple one is not.
+  const inv = inventory(d, compute(d, TODAY));
+  assert.ok(inv.has("rg_stroemung") && !inv.has("sp_kamm"));
 });
