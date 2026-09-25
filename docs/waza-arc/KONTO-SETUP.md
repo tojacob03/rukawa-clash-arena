@@ -96,10 +96,10 @@ Im Code fertig: Wochenplan, Benachrichtigungen (Web Push), E-Mail, Kalender-Date
 
 ## 9. Crew, Freundeskreis und Gym
 
-Im Code fertig. Solange die Migration fehlt, zeigt der Crew-Reiter „Crew und Freundeskreis sind auf dem Server noch nicht eingerichtet.“, alles andere läuft normal.
+Im Code fertig. Ohne die Migration zeigt der Crew-Reiter „Crew und Freundeskreis sind auf dem Server noch nicht eingerichtet.“, alles andere läuft normal.
 
-1. **Migration anwenden:** `supabase/migrations/20260926120000_arc_social.sql` (legt nur neue Tabellen und Funktionen an, ändert nichts Bestehendes). Sie wurde vorher in einer zurückgerollten Transaktion auf der echten Datenbank durchgespielt.
-2. **Prüfen:** zwei Konten, im einen unter Seekarte → Crew einschalten und eine Crew gründen, den Link ans andere schicken, beitreten; im Gym-Bereich ein Gym anlegen und mit dem Code beitreten.
+1. **Migration: erledigt am 25. September 2026.** `supabase/migrations/20260926120000_arc_social.sql` ist angewendet (im Projekt als `arc_social`). Sie legt nur neue Tabellen und Funktionen an. Vorher in einer zurückgerollten Transaktion auf der echten Datenbank durchgespielt, danach geprüft: Row Level Security an allen sechs Tabellen, keine Tabellenrechte für `anon` oder `authenticated`, die 16 Funktionen nur für angemeldete Konten, die Hilfsfunktionen für niemanden von außen.
+2. **Prüfen, sobald das Frontend gemergt ist:** zwei Konten, im einen unter Seekarte → Crew einschalten und eine Crew gründen, den Link ans andere schicken, beitreten; im Gym-Bereich ein Gym anlegen und mit dem Code beitreten.
 
 ## 10. Registrierung einschalten (zuletzt)
 
