@@ -91,9 +91,11 @@ export function SecTitle({ kanji, eyebrow, title, children }: { kanji: string; e
       <span className="wm" aria-hidden="true">
         {kanji}
       </span>
-      <p className="eyebrow">{eyebrow}</p>
-      <h2>{title}</h2>
-      {children ? <p className="lede">{children}</p> : null}
+      <div className="sec-text">
+        <p className="eyebrow">{eyebrow}</p>
+        <h2>{title}</h2>
+        {children ? <p className="lede">{children}</p> : null}
+      </div>
     </header>
   );
 }
@@ -125,7 +127,7 @@ export function KindBadge({ kind }: { kind: QuestKind }) {
   );
 }
 
-/** Hero panel: thick ink frame, cut corner, halftone, hard ink offset. One per screen. */
+/** Hero panel: the one lacquer box on a screen, mended with a gold seam. */
 export function HeroKoma({ children, className, ai, label }: { children: ReactNode; className?: string; ai?: boolean; label?: string }) {
   return (
     <section className={`hero-koma${className ? ` ${className}` : ""}`} aria-label={label}>

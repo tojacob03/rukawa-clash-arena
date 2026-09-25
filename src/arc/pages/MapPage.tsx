@@ -85,7 +85,7 @@ export default function MapPage({ data, st, today, arg }: { data: ArcData; st: A
                 </li>
               </ul>
               <p className="muted small">
-                Die goldene Fläche ist dein Hexagon. Blaue Bögen sind Kombos zwischen Sektoren, sie leuchten, sobald beide Enden Stufe 3 haben. Tippe einen Stern an
+                Die goldene Fläche ist dein Hexagon. Gestrichelte Bögen sind Kombos zwischen Sektoren, sie werden golden, sobald beide Enden Stufe 3 haben. Tippe einen Stern an
                 oder zoome in einen Sektor.
               </p>
             </div>

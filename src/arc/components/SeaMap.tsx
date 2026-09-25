@@ -750,14 +750,14 @@ export default function SeaMap({
                 <title>{is.name}</title>
                 {(marks.explored[is.id] ?? 0) >= 3 ? (
                   <g transform={`translate(${is.x - 4} ${is.y - 30})`} className="isle-explored" aria-hidden="true">
-                    <path d="M0 0 V16" stroke="#1c1526" strokeWidth={1.6} />
-                    <path d="M0 0 L12 4 L0 8 Z" fill="#f3b000" stroke="#1c1526" strokeWidth={1} />
+                    <path d="M0 0 V16" stroke="#1b1512" strokeWidth={1.6} />
+                    <path d="M0 0 L12 4 L0 8 Z" fill="#d4a94f" stroke="#1b1512" strokeWidth={1} />
                   </g>
                 ) : null}
                 {comp ? (
                   <g transform={`translate(${is.x - 20} ${is.y - 20})`} className="isle-comp">
                     <circle r={8} className={comp.best ? `m${comp.best}` : "m0"} />
-                    <path d="M-4 -4 L4 4 M4 -4 L-4 4" stroke="#1c1526" strokeWidth={1.6} strokeLinecap="round" />
+                    <path d="M-4 -4 L4 4 M4 -4 L-4 4" stroke="#0b0d0e" strokeWidth={1.6} strokeLinecap="round" />
                     {comp.n > 1 ? (
                       <text x={8} y={-6} className="isle-comp-n">
                         {comp.n}
@@ -845,16 +845,16 @@ export default function SeaMap({
             centerOn(((e.clientX - rect.left) / rect.width) * W, ((e.clientY - rect.top) / rect.height) * H);
           }}
         >
-          <rect width={W} height={H} fill="#0b2442" />
+          <rect width={W} height={H} fill="#0e1416" />
           {SEAS.map((s) => {
             const left = s.id === "frost" || s.id === "abend";
             const top = s.id === "frost" || s.id === "morgen";
             return <rect key={s.id} x={left ? 0 : RX} y={top ? 0 : CY + CH + CALM} width={RX} height={top ? CY - CH - CALM : H - (CY + CH + CALM)} fill={s.color} opacity={s.id === marks.sea ? 0.45 : 0.18} />;
           })}
-          <rect x={0} y={CY - CH} width={W} height={CH * 2} fill="#1d5a8f" />
-          <rect x={RX - 10} y={0} width={20} height={H} fill="#b8333a" />
-          {trailPath(r, marks.current, marks.lap) ? <path d={trailPath(r, marks.current, marks.lap)!} fill="none" stroke="#f1bf57" strokeWidth={10} strokeLinecap="round" /> : null}
-          <circle cx={pos.x} cy={pos.y} r={22} fill="#f3b000" stroke="#16171c" strokeWidth={6} />
+          <rect x={0} y={CY - CH} width={W} height={CH * 2} fill="#2b3336" />
+          <rect x={RX - 10} y={0} width={20} height={H} fill="#8e2a1c" />
+          {trailPath(r, marks.current, marks.lap) ? <path d={trailPath(r, marks.current, marks.lap)!} fill="none" stroke="#d4a94f" strokeWidth={10} strokeLinecap="round" /> : null}
+          <circle cx={pos.x} cy={pos.y} r={22} fill="#f0d898" stroke="#0b0d0e" strokeWidth={6} />
           <rect ref={miniRef} className="sea-mini-view" x={0} y={0} width={W} height={H} />
         </svg>
         <div className="sea-zoom" role="group" aria-label="Ansicht">
@@ -876,27 +876,27 @@ export default function SeaMap({
         <ul className="sea-key" aria-label="Legende">
           <li>
             <svg viewBox="0 0 28 10" aria-hidden="true">
-              <path d="M3 5 H25" stroke="#f1bf57" strokeWidth={3} strokeLinecap="round" />
+              <path d="M3 5 H25" stroke="#d4a94f" strokeWidth={3} strokeLinecap="round" />
             </svg>
             Deine Route
           </li>
           <li>
             <svg viewBox="0 0 16 16" aria-hidden="true">
-              <circle cx={8} cy={8} r={6} fill="none" stroke="#ffe39a" strokeWidth={1.6} strokeDasharray="3 2.5" />
+              <circle cx={8} cy={8} r={6} fill="none" stroke="#f0d898" strokeWidth={1.6} strokeDasharray="3 2.5" />
             </svg>
             Nächstes Ziel
           </li>
           <li>
             <svg viewBox="0 0 18 18" aria-hidden="true">
-              <circle cx={9} cy={9} r={7} fill="#c8203f" stroke="#16171c" strokeWidth={1.2} />
-              <path d="M5.5 5.5 L12.5 12.5 M12.5 5.5 L5.5 12.5" stroke="#16171c" strokeWidth={1.6} strokeLinecap="round" />
+              <circle cx={9} cy={9} r={7} fill="#c93a25" stroke="#0b0d0e" strokeWidth={1.2} />
+              <path d="M5.5 5.5 L12.5 12.5 M12.5 5.5 L5.5 12.5" stroke="#0b0d0e" strokeWidth={1.6} strokeLinecap="round" />
             </svg>
             Turnier
           </li>
           <li>
             <svg viewBox="0 0 14 18" aria-hidden="true">
-              <path d="M3 2 V16" stroke="#e9dcc0" strokeWidth={1.6} />
-              <path d="M3 2 L13 5.5 L3 9 Z" fill="#f3b000" stroke="#16171c" strokeWidth={0.8} />
+              <path d="M3 2 V16" stroke="#cfc3b1" strokeWidth={1.6} />
+              <path d="M3 2 L13 5.5 L3 9 Z" fill="#d4a94f" stroke="#0b0d0e" strokeWidth={0.8} />
             </svg>
             Erkundet
           </li>
@@ -914,6 +914,18 @@ export default function SeaMap({
   );
 }
 
+/** Seigaiha scale radius, and the scale centres of one tile in painting order. */
+const SG = 22;
+const SEIGAIHA: [number, number][] = [
+  [SG, -SG / 2],
+  [0, 0],
+  [SG * 2, 0],
+  [SG, SG / 2],
+  [0, SG],
+  [SG * 2, SG],
+  [SG, (SG * 3) / 2],
+];
+
 /** Seas, current, calm belts and the ridge: everything that never changes. */
 const SeaBackground = memo(function SeaBackground({ sea }: { sea: SeaId }) {
   const ticks: { x: number; y: number; w: number; h: number }[] = [];
@@ -924,38 +936,46 @@ const SeaBackground = memo(function SeaBackground({ sea }: { sea: SeaId }) {
     <g>
       <defs>
         <linearGradient id="sea-bg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#0c2746" />
-          <stop offset="0.5" stopColor="#10365c" />
-          <stop offset="1" stopColor="#0b2442" />
+          <stop offset="0" stopColor="#0c1113" />
+          <stop offset="0.5" stopColor="#111a1d" />
+          <stop offset="1" stopColor="#0b1012" />
         </linearGradient>
         <radialGradient id="sea-deep" cx="0.5" cy="0.5" r="0.75">
           <stop offset="0.55" stopColor="#000" stopOpacity="0" />
           <stop offset="1" stopColor="#000" stopOpacity="0.32" />
         </radialGradient>
-        <pattern id="sea-waves" width="40" height="22" patternUnits="userSpaceOnUse">
-          <path d="M0 12 q5 -4 10 0 t10 0" fill="none" stroke="#3a6f9f" strokeWidth="0.9" opacity="0.32" />
-          <path d="M20 3 q5 -4 10 0 t10 0" fill="none" stroke="#3a6f9f" strokeWidth="0.9" opacity="0.22" />
+        {/* Seigaiha, the wave pattern of the blue sea: rows of scales, each row
+            laid over the lower half of the one above it. */}
+        <pattern id="sea-waves" width={SG * 2} height={SG} patternUnits="userSpaceOnUse">
+          {SEIGAIHA.map(([cx, cy], i) => (
+            <g key={i}>
+              <circle cx={cx} cy={cy} r={SG} fill="#0f1618" />
+              {[1, 0.74, 0.5, 0.26].map((k) => (
+                <circle key={k} cx={cx} cy={cy} r={SG * k} fill="none" stroke="#ede3d1" strokeWidth={0.8} strokeOpacity={0.1} />
+              ))}
+            </g>
+          ))}
         </pattern>
         <pattern id="sea-calm" width="12" height="12" patternUnits="userSpaceOnUse">
-          <circle cx="3" cy="3" r="1" fill="#9cc3ff" opacity="0.3" />
-          <circle cx="9" cy="9" r="1" fill="#9cc3ff" opacity="0.2" />
+          <circle cx="3" cy="3" r="0.9" fill="#ede3d1" opacity="0.16" />
+          <circle cx="9" cy="9" r="0.9" fill="#ede3d1" opacity="0.1" />
         </pattern>
         <linearGradient id="sea-ridge" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#5a1119" />
-          <stop offset="0.45" stopColor="#b8333a" />
-          <stop offset="0.55" stopColor="#a02c33" />
-          <stop offset="1" stopColor="#4a0d14" />
+          <stop offset="0" stopColor="#2e0a06" />
+          <stop offset="0.45" stopColor="#8e2a1c" />
+          <stop offset="0.55" stopColor="#7a2216" />
+          <stop offset="1" stopColor="#260805" />
         </linearGradient>
         <pattern id="sea-peaks" width="18" height="16" patternUnits="userSpaceOnUse">
-          <path d="M1 15 L6 5 L9 10 L12 3 L17 15 Z" fill="#3a0b12" opacity="0.32" />
-          <path d="M6 5 L7.6 8.2 M12 3 L13.8 6.8" stroke="#ffb2a6" strokeWidth="0.9" opacity="0.4" />
+          <path d="M1 15 L6 5 L9 10 L12 3 L17 15 Z" fill="#1a0504" opacity="0.35" />
+          <path d="M6 5 L7.6 8.2 M12 3 L13.8 6.8" stroke="#f3c7b8" strokeWidth="0.9" opacity="0.3" />
         </pattern>
       </defs>
 
       {/* Outside the world: the table the chart lies on. */}
       <rect x={-W} y={-H} width={W * 3} height={H * 3} className="sea-margin" />
-      <rect width={W} height={H} fill="url(#sea-bg)" />
       <rect width={W} height={H} fill="url(#sea-waves)" />
+      <rect width={W} height={H} fill="url(#sea-bg)" opacity={0.55} />
 
       {SEAS.map((s) => {
         const left = s.id === "frost" || s.id === "abend";
@@ -978,16 +998,16 @@ const SeaBackground = memo(function SeaBackground({ sea }: { sea: SeaId }) {
 
       <rect x={0} y={CY - CH - CALM} width={W} height={CALM} fill="url(#sea-calm)" />
       <rect x={0} y={CY + CH} width={W} height={CALM} fill="url(#sea-calm)" />
-      <rect x={0} y={CY - CH} width={W} height={CH * 2} fill="#1d5a8f" opacity={0.5} />
-      <path d={`M0 ${CY - CH} H${W} M0 ${CY + CH} H${W}`} stroke="#9cc3ff" strokeWidth={0.8} opacity={0.35} />
-      <g className="sea-flow" fill="none" stroke="#9cc3ff" strokeWidth={1.2} opacity={0.4}>
+      <rect x={0} y={CY - CH} width={W} height={CH * 2} fill="#ede3d1" opacity={0.035} />
+      <path d={`M0 ${CY - CH} H${W} M0 ${CY + CH} H${W}`} stroke="#ede3d1" strokeWidth={0.8} opacity={0.22} />
+      <g className="sea-flow" fill="none" stroke="#ede3d1" strokeWidth={1.1} opacity={0.22}>
         {[-24, -8, 8, 24].map((dy) => (
           <path key={dy} d={`M0 ${CY + dy} Q300 ${CY + dy - 10} 600 ${CY + dy} T1200 ${CY + dy}`} strokeDasharray="14 18" />
         ))}
       </g>
 
       {/* The ridge, a mountain range, and its wrap-around at both edges */}
-      <polygon points={ridgePath(RX, 16)} fill="url(#sea-ridge)" stroke="#2e080d" strokeWidth={1.5} />
+      <polygon points={ridgePath(RX, 16)} fill="url(#sea-ridge)" stroke="#1a0504" strokeWidth={1.5} />
       <polygon points={ridgePath(RX, 16)} fill="url(#sea-peaks)" />
       <polygon points={ridgePath(6, 10)} fill="url(#sea-ridge)" opacity={0.85} />
       <polygon points={ridgePath(W - 6, 10)} fill="url(#sea-ridge)" opacity={0.85} />
@@ -1015,13 +1035,13 @@ function IslandGlyph({ is }: { is: Island }) {
     const d = `M${is.x - 14} ${is.y + 10} V${is.y - 4} Q${is.x} ${is.y - 22} ${is.x + 14} ${is.y - 4} V${is.y + 10}`;
     return (
       <g>
-        <path d={d} fill="none" stroke="#ffe39a" strokeWidth={4} strokeLinecap="round" />
-        <path d={d} fill="none" stroke="#6d1620" strokeWidth={1.4} />
+        <path d={d} fill="none" stroke="#d4a94f" strokeWidth={4} strokeLinecap="round" />
+        <path d={d} fill="none" stroke="#4a120d" strokeWidth={1.4} />
       </g>
     );
   }
   if (is.kind === "pass") {
-    return <polygon points={`${is.x - 14},${is.y + 8} ${is.x - 4},${is.y - 12} ${is.x + 2},${is.y - 2} ${is.x + 8},${is.y - 14} ${is.x + 16},${is.y + 8}`} fill="#c7393c" stroke="#3a0b12" strokeWidth={1.5} />;
+    return <polygon points={`${is.x - 14},${is.y + 8} ${is.x - 4},${is.y - 12} ${is.x + 2},${is.y - 2} ${is.x + 8},${is.y - 14} ${is.x + 16},${is.y + 8}`} fill="#8e2a1c" stroke="#1a0504" strokeWidth={1.5} />;
   }
   return (
     <g>
@@ -1032,11 +1052,11 @@ function IslandGlyph({ is }: { is: Island }) {
       <path d={blob(is.id, is.x, is.y, r + 3)} className="isle-sand" />
       <path d={blob(is.id + "g", is.x, is.y - 1, r)} className="isle-green" />
       <path d={blob(is.id + "h", is.x - r * 0.25, is.y - r * 0.3, r * 0.42)} className="isle-hill" />
-      {is.kind === "hafen" ? <path d={`M${is.x + r} ${is.y + 2} h10 M${is.x + r + 4} ${is.y + 2} v5 M${is.x + r + 9} ${is.y + 2} v5`} stroke="#8a5a2b" strokeWidth={2} /> : null}
+      {is.kind === "hafen" ? <path d={`M${is.x + r} ${is.y + 2} h10 M${is.x + r + 4} ${is.y + 2} v5 M${is.x + r + 9} ${is.y + 2} v5`} stroke="#7a5230" strokeWidth={2} /> : null}
       {is.kind === "kap" ? (
         <g>
-          <path d={`M${is.x} ${is.y - 4} V${is.y - 26}`} stroke="#1c1526" strokeWidth={1.6} />
-          <path d={`M${is.x} ${is.y - 26} h14 l-4 5 l4 5 h-14 Z`} fill="#0c0c10" stroke="#f1bf57" strokeWidth={0.8} />
+          <path d={`M${is.x} ${is.y - 4} V${is.y - 26}`} stroke="#1b1512" strokeWidth={1.6} />
+          <path d={`M${is.x} ${is.y - 26} h14 l-4 5 l4 5 h-14 Z`} fill="#0b0d0e" stroke="#d4a94f" strokeWidth={0.8} />
         </g>
       ) : null}
     </g>
@@ -1081,12 +1101,12 @@ function ShipMark({ marks, scale }: { marks: MapMarks; scale: number }) {
 function CompassRose({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x} ${y})`} className="rose" aria-hidden="true">
-      <circle r={34} fill="none" stroke="#e9dcc0" strokeWidth={1} opacity={0.45} />
-      <circle r={26} fill="none" stroke="#e9dcc0" strokeWidth={0.6} strokeDasharray="2 3" opacity={0.45} />
-      <polygon points="0,-32 5,-5 0,0 -5,-5" fill="#f1bf57" />
-      <polygon points="0,32 5,5 0,0 -5,5" fill="#e9dcc0" opacity={0.65} />
-      <polygon points="-32,0 -5,-5 0,0 -5,5" fill="#e9dcc0" opacity={0.65} />
-      <polygon points="32,0 5,-5 0,0 5,5" fill="#e9dcc0" opacity={0.65} />
+      <circle r={34} fill="none" stroke="#cfc3b1" strokeWidth={1} opacity={0.4} />
+      <circle r={26} fill="none" stroke="#cfc3b1" strokeWidth={0.6} strokeDasharray="2 3" opacity={0.4} />
+      <polygon points="0,-32 5,-5 0,0 -5,-5" fill="#d4a94f" />
+      <polygon points="0,32 5,5 0,0 -5,5" fill="#cfc3b1" opacity={0.55} />
+      <polygon points="-32,0 -5,-5 0,0 -5,5" fill="#cfc3b1" opacity={0.55} />
+      <polygon points="32,0 5,-5 0,0 5,5" fill="#cfc3b1" opacity={0.55} />
       <text y={-38} textAnchor="middle" className="rose-n">
         N
       </text>

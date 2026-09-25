@@ -4,7 +4,7 @@ Eine BJJ-Fortschritts-App im Stil eines Anime-RPGs. Der Arbeitstitel war „Tata
 
 **Stand:** Die App läuft unter `/arc/` als eigener Einstiegspunkt im Portfolio (Code in `src/arc/`, Tests in `src/arc/core/model.test.ts`). Die Daten liegen im Browser (localStorage, Export und Import als JSON). Mit einem Konto werden sie im Supabase-Schema `arc` gesichert und zwischen Geräten abgeglichen (8.5). Was im Supabase-Dashboard noch einzuschalten ist, steht in [`KONTO-SETUP.md`](KONTO-SETUP.md).
 
-**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere, Nebensport (Kraftsport, Ringen und andere) und eine Seekarte deiner Reise. Die Oberfläche ist als Manga-Band gestaltet, hell als „Papier“ und dunkel als „Nachtausgabe“ (Abschnitt 7.1).
+**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere, Nebensport (Kraftsport, Ringen und andere) und eine Seekarte deiner Reise. Die Oberfläche ist als Kintsugi gestaltet: schwarzer Lack, Tusche und Blattgold als „Urushi“, helles Papier als „Washi“ (Abschnitt 7.1).
 
 Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](prototyp.html).
 
@@ -401,28 +401,33 @@ Die Gym-Seite aus 6.13 ist der erste Schritt. Darauf aufbauend:
 
 Die App zeigt Heute, Log-Flow mit Live-Vorschau und Beute, Sternkarte, Codex und Charakter. Der Einstieg führt in fünf Schritten durch Steckbrief, Rang, Klasse, Aussehen und Technik-Stand.
 
-### 7.1 Gestaltung: Manga-Band
+### 7.1 Gestaltung: Kintsugi
 
-Die App soll sich wie ein hochwertiges Spiel anfühlen, nicht wie ein Dashboard. Das Leitbild ist ein Manga-Band: Tusche auf Papier, Panels mit harter Kontur, wenige kräftige Druckfarben.
+Die App soll sich wie ein hochwertiges Spiel anfühlen, nicht wie ein Dashboard. Das Leitbild ist ein Dōjō bei Nacht: schwarzer Lack (Urushi), Tusche, Washi-Papier, Blattgold und Zinnober. Kintsugi kittet Gebrochenes mit Gold, und genau so wächst man auf der Matte: Jedes Mal, wenn eine Technik scheitert, wird sie wertvoller. Die goldene Naht ist deshalb das eine wiederkehrende Motiv.
 
 **Palette** (je Farbe ein fester Zweck):
 
-| Name | Hell | Nacht | Rolle |
+| Name | Urushi | Washi | Rolle |
 |---|---|---|---|
-| Papier | `#F2F3EE` | `#1B2350` | Fläche. Kühles Weiß, kein Creme. Nachts Tinte auf Indigo, kein Schwarz |
-| Tusche | `#16171C` | `#16171C` | Konturen, Text, harte Schatten |
-| Ai (Indigo) | `#2A3A8F` | `#AEB9FF` | Navigation, Auswahl, Links |
-| Yamabuki (Goldgelb) | `#F3B000` | `#F3B000` | XP, Level, Beute, das eine Heldenelement |
-| Kurenai (Karmin) | `#C8203F` | `#FF6B82` | Boss, Rost, Warnungen, Löschen |
-| Asagi (Petrol) | `#177384` | `#5FC6D4` | Meer, Nebensport, Körperwerte |
+| Urushi / Washi | `#0F0C0A`, Paneele `#17120F` | `#EEE6D6`, Paneele `#F6F0E4` | Fläche: schwarzer Lack oder helles Papier |
+| Tusche | `#EDE3D1` | `#1B1512` | Text; Haarlinien als Tusche mit 15 % Deckkraft |
+| Blattgold | `#D4A94F` (Text `#DCB563`) | `#B88A2E` (Text `#7D5A17`) | Nur, was verdient ist: Level, XP, Meisterung, Fortschritt, die Naht |
+| Zinnober (Shu) | `#C93A25` | `#C23822` | Die Hand, die handelt: der eine Hauptknopf pro Screen, der Hanko-Knopf „Eintragen“, Boss-Lebenspunkte |
+| Beni | `#EC5B43` | `#B3321D` | Rost, Warnungen, Löschen (als Linie und Text, nie als Fläche) |
+| Ai (Indigo) | `#8EA2D8` | `#33477F` | Daten: Gi-Linien, Stand-Quests |
+| Asagi | `#6CB8B0` | `#25706A` | Nebensport, Körperwerte, No-Gi, „erfüllt“ |
 
-**Schrift:** Dela Gothic One für Titel und große Zahlen (Level, Power Level), M PLUS Rounded 1c für Text und Bedienung. Beide selbst gehostet (SIL OFL), keine Anfrage an Google.
+Instrumente (Sternkarte, Seekarte, Scouter, das Startbild) sind in beiden Ausgaben schwarzer Lack: eine Lackschachtel auf Papier ist der stärkste Kontrast, den die Palette hat. Steckbriefe sind in beiden Ausgaben auf Washi gedruckt.
 
-**Themes:** „Papier“ (hell) und „Nachtausgabe“ (dunkel). Standard ist die Systemeinstellung, im Profil lässt sich eins fest wählen. Ein kleines Skript im `<head>` setzt das Theme vor dem ersten Zeichnen, damit nichts aufblitzt.
+**Schrift:** Shippori Mincho B1 (600 und 800) für Überschriften, Zahlen und Kanji, Albert Sans (variabel, 400 bis 700) für Text und Bedienung. Beide selbst gehostet (SIL OFL), die Kanji als Teilmenge nur mit den Zeichen, die die App zeigt; keine Anfrage an Google.
+
+**Ausgaben:** „Urushi“ (dunkel, Standard), „Washi“ (hell) und „Wie das System“. Die gespeicherten Werte heißen weiter `nacht` und `papier`, damit eine frühere Wahl hell oder dunkel bleibt. Ein kleines Skript im `<head>` setzt die Ausgabe vor dem ersten Zeichnen, damit nichts aufblitzt.
+
+**Material statt Effekt:** Tiefe kommt aus Lack (feine Holzmaserung als SVG-Rauschen), Papierkorn und Haarlinien. Keine Glasflächen, kein Blur, kein Glow, keine Verlaufsschrift, keine Verlaufsknöpfe, keine Pillen-Chips, keine Emoji, kein Konfetti, keine Glitzer-Icons, keine gesperrten Großbuchstaben. Schatten gibt es nur, wo etwas wirklich über der Fläche liegt (Karten in der Hand, Speicherleiste, Dialoge), dann warm und tief statt farbig. Ecken sind fast eckig (3 px), wie Lackware.
 
 **Leitprinzipien:**
 
-1. **Ein mutiges Element pro Screen, der Rest ist ruhig.** Heute: die Quest-Karten. Log: das Kapitelende. Charakter: die Figur auf der Heldenbühne. Karte: die Karte selbst. Schiff: das Schiff mit Flagge. Konto: das Anmelde-Panel, angemeldet der Kontoausweis. Scouter: die Power-Level-Zahl. Das Heldenelement bekommt das schräg angeschnittene Panel mit hartem Tuscheschatten, alles andere bleibt flach mit dünner Kontur.
+1. **Ein mutiges Element pro Screen, der Rest ist ruhig.** Heute: die Quest-Karten als Lackkarten im Fächer. Log: das Kapitelende. Charakter: die Figur auf der Heldenbühne. Karte: die Karte selbst. Schiff: das Schiff mit Flagge. Konto: das Anmelde-Panel, angemeldet der Kontoausweis. Scouter: die Power-Level-Zahl in Gold. Das Heldenelement ist die eine Lackschachtel mit goldenem Rand und der Kintsugi-Naht in der Ecke, alles andere bleibt flach mit Haarlinie. Jeder Abschnitt beginnt mit seinem Kanji, senkrecht geschrieben neben einer goldenen Naht (今日, 記録, 書, 道 …).
 2. **Bewegung nur, wo sie etwas aus der Welt zeigt.** Jede Animation muss sich in einem Satz auf ein Stück Waza Arc zurückführen lassen (Gürtel, Techniken, die vier Meere, Sterne, Dōjō und Matte, das Waza-Vokabular); sonst fliegt sie raus. Keine Partikel, kein Konfetti, keine Glow-Ringe, keine schwebenden Formen, kein Hover-Gleiten. Alles läuft nur bei `prefers-reduced-motion: no-preference`; mit reduzierter Bewegung steht jede Seite still (per Browser-Test geprüft: null laufende Animationen). Was es gibt:
    - **Kapitelende** nach Training, Turnier oder Nebensport, als eine Zeitleiste: Die XP zählen hoch, während der Balken sich mit ihnen füllt; bei einem Levelaufstieg läuft er voll, das Level-Abzeichen dreht sich auf die neue Stufe und der Balken fängt von vorn an. Auf dem Schlag, an dem die Zählung landet, kommt ein roter **Dōjō-Datumsstempel** herunter (稽古 Training, 試合 Turnier, 鍛錬 Nebensport, darunter 道場), weil im Dōjō jede Einheit ins Trainingsheft gestempelt wird, und das Papier gibt kurz nach. Dann die Zeilen der Reihe nach und die Beute, die sich umdreht. Überspringbar.
    - **Reise seit deinem letzten Blick** (Seekarte): Die App merkt sich pro Gerät und Konto, wo du dein Schiff zuletzt gesehen hast. Haben Trainings es seitdem weitergebracht, segelt es beim Öffnen der Karte von dort bis zu seiner jetzigen Stelle, vorbei an jeder Insel, die es dabei erreicht hat. Die Kamera folgt ihm, das Kielwasser zeichnet sich hinter dem Rumpf und schließt sich, sobald es liegt, die Seemeilen im Kopf zählen mit, und eine Logbuchzeile unter der Karte schreibt sich („Seit deinem letzten Blick auf die Karte: +24 Seemeilen“). Der Wochenboss taucht erst auf, wenn das Schiff ankommt, denn er wartet dort, wo du feststeckst. Beim ersten Blick legt das Schiff im Hafen der aktuellen Insel ab. Jede Berührung, das Mausrad oder eine Taste beendet die Fahrt sofort.
@@ -435,12 +440,13 @@ Die App soll sich wie ein hochwertiges Spiel anfühlen, nicht wie ein Dashboard.
    - **Tokui-Waza funkelt** (Sternkarte): die höchste Stufe (Hiden) als hellster Stern mit Beugungsstrahlen, die unruhig funkeln wie echte Sterne, statt eines Rings.
    - **Streifen als Tape** (Charakter, Gürtelprüfung): Streifen sind Tape, das der Coach um das schwarze Gürtelende wickelt; genau so kommen sie auf den Gürtel, einer nach dem anderen.
    - **Mattenmodus**: Ein Submission-Treffer zeigt das doppelte Abklopfen des Partners (und vibriert zweimal), Sweep, Takedown, Pass und Rücken zeigen die Punkte wie im Wettkampf (2, 2, 3, 4) und vibrieren so oft.
+   - **Tusche und Naht** (jede Seite): Eine Seite läuft beim Öffnen einmal von oben herein wie Tusche, die sich auf dem Papier ausbreitet; das Kanji des Abschnitts schreibt sich von oben nach unten, und die goldene Naht daneben läuft mit. Auf dem Startbild schreibt sich 技 (Waza, die Technik), dann läuft die Goldnaht durch das Zeichen: die gebrochene und mit Gold gekittete Technik.
    - Bedienung: Sternkarte und Seekarte fahren beim Fokussieren die Kamera hin, damit man die Orientierung behält; bei reduzierter Bewegung springen sie.
 
    Technik: Dauerbewegung (Flagge, Schiff, Seeschlange, Sterne, Kombos) ist CSS in eigenen SVGs. Die vier inszenierten Szenen (Kapitelende, Reise, Scouter, Quest-Hand) laufen mit GSAP und den Plugins MotionPath, DrawSVG, Flip und CustomEase (seit Version 3.13 samt Plugins kostenlos unter der „Standard no charge“-Lizenz). GSAP liegt in eigenen Chunks, wird erst im Leerlauf nachgeladen und bei reduzierter Bewegung gar nicht: Dann zeigt jede Szene sofort ihren Endzustand (per Browser-Test geprüft: keine GSAP-Anfrage, null laufende Animationen). Szenen, die beim Öffnen einer Seite starten, spielen nur, wenn GSAP schon geladen ist, damit nie erst der Endzustand aufblitzt; das Kapitelende fällt sonst auf eine kürzere CSS-Fassung zurück.
-3. **Text wie in einem Buch, nicht wie in einem Formular.** Keine Großbuchstaben-Überzeilen, keine Mittelpunkt-Reihen („A · B · C“), keine Monospace-Etiketten, keine Pfeile hinter Knöpfen. Überzeilen sind kleine Beschriftungskästen in normaler Schreibweise, Metadaten stehen als Satz.
+3. **Text wie in einem Buch, nicht wie in einem Formular.** Keine Großbuchstaben-Überzeilen, keine Mittelpunkt-Reihen („A · B · C“), keine Monospace-Etiketten, keine Pfeile hinter Knöpfen. Überzeilen sind eine kurze Goldlinie mit ein paar Worten in normaler Schreibweise, Metadaten stehen als Satz. Auswahlen sind Wörter mit goldener Unterstreichung statt Kästchenleisten.
 
-**Grundqualität:** Kontrast mindestens 4,5 : 1 für Text in beiden Themes (Goldgelb nie als Textfarbe auf Papier, nur als Fläche mit Tusche darauf), sichtbarer Fokusrahmen, echte Knöpfe statt klickbarer Flächen, Umschalter als Radiogruppe, Chips mit `aria-pressed`, Dialoge mit Fokusfalle und Escape, Zielgrößen über dem WCAG-2.2-Minimum von 24 px (Hauptknöpfe 46 px), Layout ab 320 px Breite ohne waagrechtes Scrollen.
+**Grundqualität:** Kontrast mindestens 4,5 : 1 für Text in beiden Ausgaben (Gold als Text auf Washi nur im dunklen Textgold `#7D5A17`), sichtbarer Fokusrahmen, echte Knöpfe statt klickbarer Flächen, Umschalter als Radiogruppe, Chips mit `aria-pressed`, Dialoge mit Fokusfalle und Escape, Zielgrößen über dem WCAG-2.2-Minimum von 24 px (Hauptknöpfe 46 px), Layout ab 320 px Breite ohne waagrechtes Scrollen.
 
 ---
 
@@ -463,7 +469,7 @@ public/arc/              manifest.webmanifest, Icons, Service Worker (Scope /arc
 
 - **Aufruf:** `rukawaanalytics.com/arc/`. Die App hat eine eigene `index.html` mit eigenem Titel, Meta- und OG-Tags, Favicon und PWA-Manifest. Auf dem Handy lässt sie sich als eigene App installieren.
 - **Eigenes Bundle:** Vom Portfolio wird nichts geladen, kein Lenis, keine Seitenübergänge, keine Portfolio-Fonts. GSAP nutzt Arc für seine vier Szenen selbst (7.1), nur per dynamischem Import und nie im Start-Chunk; den GSAP-Kern teilt sich der Build mit dem Portfolio. Umgekehrt lädt das Portfolio nichts von Arc.
-- **Eigenes Design:** eigene CSS-Tokens (Manga-Band, 7.1). Die Portfolio-`index.css` wird nicht importiert. Tailwind geht mit eigener Konfiguration für `src/arc`, schlichtes CSS auch. Fonts werden wie im Portfolio selbst gehostet (@fontsource), nicht von Google geladen.
+- **Eigenes Design:** eigene CSS-Tokens (Kintsugi, 7.1). Die Portfolio-`index.css` wird nicht importiert. Tailwind geht mit eigener Konfiguration für `src/arc`, schlichtes CSS auch. Fonts werden wie im Portfolio selbst gehostet (@fontsource), nicht von Google geladen.
 - **Geteilt wird nur Unsichtbares:** Build, CI (Lint, Typecheck, Build), Deployment über Lovable, Supabase-Typen.
 - **Routing per Hash** (`/arc/#/karte`), damit der Hoster keine Deep Links auf `arc/index.html` umleiten muss.
 - **Weiterleitung:** `/arc` ohne Schrägstrich leitet die Portfolio-App auf `/arc/` weiter (`src/pages/ArcRedirect.tsx`).
@@ -583,7 +589,7 @@ Entschieden:
 - **Turniere** werden geloggt und zählen im Rechenmodell mit (6.7).
 - **Seekarte** mit eigener Welt, deren Aufbau an bekannte Piraten-Anime angelehnt ist, aber nur eigene Namen verwendet (6.9).
 - **Nebensport** zählt nicht fürs Wochenziel. Takedowns aus Ringen, Judo und Sambo zählen mit Gewicht 0,75 für Stand-Techniken (6.10).
-- **Gestaltung** als Manga-Band in zwei Themes, Papier und Nachtausgabe, mit Bewegung nur dort, wo sie etwas aus der Welt zeigt (7.1).
+- **Gestaltung** als Kintsugi in zwei Ausgaben, Urushi (dunkel, Standard) und Washi (hell), mit Bewegung nur dort, wo sie etwas aus der Welt zeigt (7.1). Vorher Manga-Band (Papier und Nachtausgabe). Tailwind wurde bewusst nicht eingeführt: Die Gestaltung lebt von Tokens und wenigen Materialien, eigene Klassen halten das Markup ruhig und kollidieren nicht mit dem Tailwind des Portfolios.
 - **Konto und Sync** über dieselbe Supabase-Instanz, als Datensätze mit Revisionen und Dreiwege-Abgleich statt einer Tabelle pro Objekt (3, 8.5). Die Anmeldeseite zeigt, was im Dashboard eingeschaltet ist.
 - **Scouter** mit vier Modi: du, Partner, Gegner, Boss (6.8).
 - **Seekarte** mit Reise zwischen den Inseln, Schiff nach Gürtel, eigener Flagge, Wetter, Erkundung und Logbuch (6.9).

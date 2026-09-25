@@ -6,8 +6,8 @@
   "start_url": "/arc/",
   "scope": "/arc/",
   "display": "standalone",
-  "background_color": "#F2F3EE",
-  "theme_color": "#2A3A8F",
+  "background_color": "#0F0C0A",
+  "theme_color": "#0F0C0A",
   "icons": [
     {
       "src": "/arc/icon.svg",

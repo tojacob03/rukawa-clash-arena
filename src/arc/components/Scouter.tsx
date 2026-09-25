@@ -634,7 +634,7 @@ export function Silhouette({ width = 180, belt, build = "gleich" }: { width?: nu
   return (
     <svg width={width} height={(width * 4) / 3} viewBox="0 0 240 320" className="avatar silhouette">
       <g transform={`translate(120 0) scale(${sx} 1) translate(-120 0)`}>
-        <g fill="#16171c">
+        <g fill="#3a302a">
           <ellipse cx={120} cy={96} rx={46} ry={48} />
           <rect x={110} y={126} width={20} height={26} />
           <path d="M78 150 Q120 141 162 150 Q172 156 170 172 L158 233 L82 233 L70 172 Q68 156 78 150 Z" />
@@ -643,12 +643,12 @@ export function Silhouette({ width = 180, belt, build = "gleich" }: { width?: nu
         </g>
         {b ? (
           <g>
-            <rect x={80} y={214} width={80} height={13} fill={b.color} stroke="#16171c" strokeWidth={2} />
+            <rect x={80} y={214} width={80} height={13} fill={b.color} stroke="#0e0b09" strokeWidth={2} />
             <rect x={132} y={214} width={16} height={13} fill={b.bar} />
           </g>
         ) : null}
       </g>
-      <g fill="#f3b000">
+      <g fill="#d4a94f">
         <circle cx={101} cy={104} r={4} />
         <circle cx={139} cy={104} r={4} />
       </g>
@@ -659,15 +659,15 @@ export function Silhouette({ width = 180, belt, build = "gleich" }: { width?: nu
 function BossGlyph({ calm }: { calm?: boolean }) {
   return (
     <svg width={180} height={200} viewBox="0 0 180 200" className="avatar boss-glyph">
-      <path d="M20 170 Q30 90 70 110 Q96 124 104 80 Q114 30 150 56 Q170 70 160 100" fill="none" stroke="#16171c" strokeWidth={30} strokeLinecap="round" opacity={calm ? 0.35 : 1} />
-      <path d="M20 170 Q30 90 70 110 Q96 124 104 80 Q114 30 150 56 Q170 70 160 100" fill="none" stroke={calm ? "#f2f3ee" : "#c8203f"} strokeWidth={8} strokeLinecap="round" strokeDasharray={calm ? "4 10" : undefined} opacity={calm ? 0.5 : 1} />
+      <path d="M20 170 Q30 90 70 110 Q96 124 104 80 Q114 30 150 56 Q170 70 160 100" fill="none" stroke="#4a120d" strokeWidth={30} strokeLinecap="round" opacity={calm ? 0.35 : 1} />
+      <path d="M20 170 Q30 90 70 110 Q96 124 104 80 Q114 30 150 56 Q170 70 160 100" fill="none" stroke={calm ? "#ede3d1" : "#c93a25"} strokeWidth={8} strokeLinecap="round" strokeDasharray={calm ? "4 10" : undefined} opacity={calm ? 0.5 : 1} />
       {calm ? null : (
-        <g fill="#f3b000">
+        <g fill="#d4a94f">
           <circle cx={150} cy={62} r={5} />
           <circle cx={162} cy={78} r={4} />
         </g>
       )}
-      <path d="M8 188 q10 -8 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#f2f3ee" strokeWidth={3} opacity={0.6} />
+      <path d="M8 188 q10 -8 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#ede3d1" strokeWidth={3} opacity={0.6} />
     </svg>
   );
 }

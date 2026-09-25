@@ -326,7 +326,7 @@ const rankLabel = (is: Island) =>
 const shipSail = (data: ArcData, st: ArcState) =>
   (data.profile?.cls
     ? CLASS[data.profile.cls].color
-    : CLASS[st.clsDetected].color) ?? "#f1bf57";
+    : CLASS[st.clsDetected].color) ?? "#d4a94f";
 const rustCount = (st: ArcState) =>
   TECHS.filter((x) => st.nodes[x.id].rust).length;
 
