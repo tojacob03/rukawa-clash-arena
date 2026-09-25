@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
 import { Building2, CalendarClock, Flame, HeartPulse, Plus, RefreshCw, ScanEye, Timer, Users } from "lucide-react";
 import type { ArcData, ArcState, Attire, QuestOffer } from "../core/types.ts";
 import { TECH, sectorName } from "../core/techniques.ts";
@@ -15,6 +16,8 @@ import { openScouter } from "../scan.ts";
 import SeaSerpent from "../components/SeaSerpent.tsx";
 import { useSocial } from "../cloud/social.ts";
 import { crewWeek, gymDay } from "../core/social.ts";
+import { motionReady } from "../motion.ts";
+import type { FlipState } from "../motion.ts";
 
 const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => string> = {
   prog: (st, q) => `Kurz vor Stufe ${st.nodes[q.node].level + 1}, ${LEVELS[st.nodes[q.node].level + 1] ?? ""}`,
@@ -111,11 +114,7 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
           <QuestCard q={{ ...extra, P: 0, reason: "prog" }} st={st} today={today} accepted done={done} own />
         </div>
       ) : null}
-      <div className="quests">
-        {cards.map((q) => (
-          <QuestCard key={q.node} q={q} st={st} today={today} accepted={accepted?.node === q.node} done={done && accepted?.node === q.node} />
-        ))}
-      </div>
+      <Hand cards={cards} taken={accepted?.node ?? null} done={done} st={st} today={today} />
 
       <Boss st={st} />
 
@@ -138,7 +137,82 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
   );
 }
 
-function QuestCard({ q, st, today, accepted, done, own }: { q: QuestOffer; st: ArcState; today: string; accepted: boolean; done: boolean; own?: boolean }) {
+const WIDE = "(min-width: 820px)";
+const subscribeWide = (cb: () => void) => {
+  const m = window.matchMedia?.(WIDE);
+  m?.addEventListener("change", cb);
+  return () => m?.removeEventListener("change", cb);
+};
+const isWide = () => !!window.matchMedia?.(WIDE).matches;
+/** The hand dealt in this visit of the app; it is dealt only once. */
+let dealt = "";
+
+/**
+ * The day's quest cards as a hand. They are dealt from one stack and fan out
+ * (once per new hand: each day, and after drawing again). The card you take
+ * moves to the front of the hand: into the middle of the fan, or on top of
+ * the pile on a phone.
+ */
+function Hand({ cards, taken, done, st, today }: { cards: QuestOffer[]; taken: string | null; done: boolean; st: ArcState; today: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const before = useRef<FlipState | null>(null);
+  const wide = useSyncExternalStore(subscribeWide, isWide, () => false);
+  const i = cards.findIndex((c) => c.node === taken);
+  const rest = cards.filter((_, k) => k !== i);
+  const hand = i < 0 ? cards : wide && cards.length === 3 ? [rest[0], cards[i], rest[1]] : [cards[i], ...rest];
+  const key = `${today}:${cards.map((c) => c.node).join(",")}`;
+  const els = () => [...(box.current?.querySelectorAll<HTMLElement>(":scope > .qcard") ?? [])];
+
+  // Deal: a stack in the middle rises onto the table, then fans out.
+  useLayoutEffect(() => {
+    if (dealt === key) return;
+    dealt = key;
+    const m = motionReady();
+    const cs = els();
+    if (!m || !cs.length) return;
+    const { gsap } = m;
+    const rs = cs.map((e) => e.getBoundingClientRect());
+    const mid = rs[Math.floor(rs.length / 2)];
+    const fan = rs.length > 1 && Math.abs(rs[0].top - rs[rs.length - 1].top) < rs[0].height / 2;
+    const tl = gsap.timeline({ onComplete: () => void gsap.set(cs, { clearProps: "transform,opacity" }) });
+    if (fan) {
+      const nat = cs.map((e) => ({ x: Number(gsap.getProperty(e, "x")), y: Number(gsap.getProperty(e, "y")), r: Number(gsap.getProperty(e, "rotation")) }));
+      const dx = (k: number) => mid.left - rs[k].left + nat[k].x;
+      const dy = (k: number) => mid.top - rs[k].top + nat[k].y;
+      tl.fromTo(cs, { x: dx, y: (k: number) => dy(k) + 40, rotation: (k: number) => (k - 1) * 0.8, opacity: 0 }, { y: dy, opacity: 1, duration: 0.35, ease: "power2.out" });
+      tl.to(cs, { x: (k: number) => nat[k].x, y: (k: number) => nat[k].y, rotation: (k: number) => nat[k].r, duration: 0.75, ease: "back.out(1.4)", stagger: { each: 0.06, from: "center" } }, 0.3);
+    } else {
+      tl.from(cs, { y: 28, opacity: 0, duration: 0.5, ease: "power2.out", stagger: 0.08 });
+    }
+    return () => void tl.revert();
+  }, [key]);
+
+  // Taking a card: remember where the cards lay, then glide them to their new places.
+  const take = (q: QuestOffer) => {
+    const m = motionReady();
+    if (m) before.current = m.Flip.getState(els());
+    acceptQuest(today, q);
+  };
+  useLayoutEffect(() => {
+    const state = before.current;
+    before.current = null;
+    const m = motionReady();
+    if (!state || !m) return;
+    const cs = els();
+    const tw = m.Flip.from(state, { targets: cs, duration: 0.8, ease: "arc.settle", onComplete: () => void m.gsap.set(cs, { clearProps: "transform" }) });
+    return () => void tw.revert();
+  }, [taken]);
+
+  return (
+    <div className="quests" ref={box}>
+      {hand.map((q) => (
+        <QuestCard key={q.node} q={q} st={st} today={today} accepted={taken === q.node} done={done && taken === q.node} onTake={take} />
+      ))}
+    </div>
+  );
+}
+
+function QuestCard({ q, st, today, accepted, done, own, onTake }: { q: QuestOffer; st: ArcState; today: string; accepted: boolean; done: boolean; own?: boolean; onTake?: (q: QuestOffer) => void }) {
   const x = TECH[q.node];
   const n = st.nodes[q.node];
   return (
@@ -171,7 +245,7 @@ function QuestCard({ q, st, today, accepted, done, own }: { q: QuestOffer; st: A
         ) : accepted ? (
           <span className="taken-label">Erfüllt</span>
         ) : (
-          <button type="button" className="btn primary small" onClick={() => acceptQuest(today, q)}>
+          <button type="button" className="btn primary small" onClick={() => (onTake ? onTake(q) : acceptQuest(today, q))}>
             <span>Annehmen</span>
           </button>
         )}

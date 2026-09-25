@@ -49,12 +49,15 @@ import {
   normalizeFlag,
 } from "../core/crewflag.ts";
 import { BELT, nf0, shortDate } from "../format.ts";
-import { go } from "../store.ts";
+import { arcStore, go } from "../store.ts";
 import { useGear } from "../useGear.ts";
 import { PLACE_NAME } from "../compText.ts";
 import { setFlag, setShipName } from "../actions.ts";
 import SeaMap from "../components/SeaMap.tsx";
-import type { OtherShip } from "../components/SeaMap.tsx";
+import type { OtherShip, Voyage, VoyageEvent } from "../components/SeaMap.tsx";
+import { useVoyage } from "../useVoyage.ts";
+import { loadMotion } from "../motion.ts";
+import type { Tween } from "../motion.ts";
 import Wanted from "../components/Wanted.tsx";
 import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
@@ -138,6 +141,29 @@ export default function SeaPage({
   const next = r[current + 1];
   const moving = !!next && pas.progress >= 0.08 && pas.idx === current;
   const miles = seaMiles(data, today);
+  const progress = pas.idx === current ? pas.progress : 0;
+  const [leg, landed] = useVoyage({
+    slot: data.demo ? "demo" : (arcStore.namespace() ?? "device"),
+    active: view === "karte",
+    sea,
+    u: current + progress,
+    miles,
+    harbour: pas.idx === current ? miles - pas.miles : miles,
+  });
+  const [sail, setSail] = useState<{ id: number; seconds: number } | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const onVoyage = (e: VoyageEvent) => {
+    if (e.kind === "done") return landed();
+    if (!leg) return;
+    setSail({ id: leg.id, seconds: e.seconds });
+    const n = miles - leg.miles;
+    const reached = Math.floor(leg.from) < current;
+    setNote(
+      leg.first
+        ? `Seit dem Ablegen vor ${here.name}: ${nf0.format(n)} Seemeilen.`
+        : `Seit deinem letzten Blick auf die Karte: ${n > 0 ? `+${nf0.format(n)} Seemeilen` : "ein Stück weiter"}${reached ? `, angekommen vor ${here.name}` : ""}.`,
+    );
+  };
 
   return (
     <div className="page sea-page">
@@ -165,7 +191,12 @@ export default function SeaPage({
             <li>Ziel erreicht: Kap Kuro</li>
           )}
           <li>
-            <Wind size={15} aria-hidden="true" /> {wx.name}, {nf0.format(miles)}{" "}
+            <Wind size={15} aria-hidden="true" /> {wx.name},{" "}
+            <Tally
+              value={miles}
+              from={leg?.miles ?? null}
+              seconds={sail && sail.id === leg?.id ? sail.seconds : null}
+            />{" "}
             Seemeilen
           </li>
           <li>
@@ -199,9 +230,12 @@ export default function SeaPage({
           today={today}
           arg={arg}
           expl={expl}
-          progress={pas.idx === current ? pas.progress : 0}
+          progress={progress}
           wx={wx}
           others={others}
+          voyage={leg}
+          onVoyage={onVoyage}
+          note={note}
           avatar={
             <Avatar
               look={g.character.look}
@@ -217,6 +251,48 @@ export default function SeaPage({
         />
       )}
     </div>
+  );
+}
+
+/** The sea miles in the header: while the ship sails, they count up with it. */
+function Tally({
+  value,
+  from,
+  seconds,
+}: {
+  value: number;
+  from: number | null;
+  seconds: number | null;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const text = ref.current?.firstChild;
+    if (from == null || seconds == null || !(text instanceof Text)) return;
+    let tw: Tween | null = null;
+    let dead = false;
+    loadMotion()
+      .then(({ gsap }) => {
+        if (dead) return;
+        const o = { v: from };
+        tw = gsap.to(o, {
+          v: value,
+          duration: seconds,
+          ease: "power1.inOut",
+          onUpdate: () => {
+            text.data = nf0.format(Math.round(o.v));
+          },
+        });
+      })
+      .catch(() => {});
+    return () => {
+      dead = true;
+      tw?.kill();
+    };
+  }, [from, seconds, value]);
+  return (
+    <span ref={ref} className="tally">
+      {nf0.format(from ?? value)}
+    </span>
   );
 }
 
@@ -241,6 +317,9 @@ function ChartView({
   wx,
   avatar,
   others = [],
+  voyage,
+  onVoyage,
+  note,
 }: {
   data: ArcData;
   st: ArcState;
@@ -251,6 +330,9 @@ function ChartView({
   wx: Weather;
   avatar: ReactNode;
   others?: OtherShip[];
+  voyage: Voyage | null;
+  onVoyage: (e: VoyageEvent) => void;
+  note: string | null;
 }) {
   const p = data.profile!;
   const sea = p.homeSea ?? DEFAULT_SEA;
@@ -329,6 +411,9 @@ function ChartView({
               selected={selected}
               onSelect={(id) => go("meer", id)}
               others={others}
+              voyage={voyage}
+              onVoyage={onVoyage}
+              note={note}
             />
             <div className="sea-callout" aria-live="polite">
               <p>

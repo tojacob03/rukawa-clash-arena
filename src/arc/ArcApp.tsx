@@ -29,6 +29,7 @@ import { normalizePlan, occurrences } from "./core/schedule.ts";
 import { buildPreview } from "./plan.ts";
 import { setBadge } from "./push.ts";
 import { useSocialPublish } from "./socialCard.ts";
+import { preloadMotion } from "./motion.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -59,6 +60,8 @@ export default function ArcApp() {
   const g = useGear(data, st);
   // Friends and the crew see your card; keep it current while that is switched on.
   useSocialPublish(data, st, today);
+
+  useEffect(preloadMotion, []);
 
   useEffect(() => {
     document.title = data.profile ? `${TITLES[route]} – ${APP_NAME}` : APP_NAME;
