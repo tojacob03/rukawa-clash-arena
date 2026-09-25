@@ -46,6 +46,7 @@ export const SECTORS: Sector[] = [
       { id: "lapel", name: "Kragenwürger" },
       { id: "head", name: "Kopf-Arm & Front Headlock" },
       { id: "leg", name: "Beinhebel" },
+      { id: "crank", name: "Kurbeln & Kompression" },
     ],
   },
   {
@@ -147,6 +148,12 @@ const f = (id: string, name: string, dir: SectorId, aka: string[] = []): Techniq
 });
 
 const GI_ONLY = { nogi: false } as const;
+/** Cranks and compressions: no joint to feel, so the tap comes late. Many rule sets ban them. */
+const CAUTION_CRANK = (what: string) => ({
+  caution: true,
+  note: `${what} Langsam ansetzen, früh lösen. Viele Regelwerke verbieten Kurbeln an Nacken und Wirbelsäule, bei der IBJJF in allen Klassen.`,
+});
+
 const CAUTION_LEG = {
   caution: true,
   note: "Beinhebel greifen schnell und ohne viel Vorwarnung. Kontrolliert ansetzen, früh lösen, und das Regelwerk prüfen: Viele erlauben ihn erst ab bestimmten Gürteln.",
@@ -215,6 +222,12 @@ export const TECHS: Technique[] = [
   t("s_bicep", "Biceps Slicer", "sub", "arm", 3, "sub", ["s_armbar_g"], { aka: ["Bizeps-Slicer", "Bicep Slicer"] }),
   t("s_kimtrap", "Kimura Trap", "sub", "arm", 3, "position", ["s_kimura"], { note: "Kimura-Griff als Kontrollsystem: Sweeps, Rückennahme und Finish aus einem Griff." }),
   t("s_flyarmbar", "Flying Armbar", "sub", "arm", 4, "sub", ["s_armbar_g"]),
+  t("s_waki", "Waki-gatame", "sub", "arm", 3, "sub", ["s_armbar_g"], {
+    aka: ["Armpit Lock", "Achselhebel"],
+    note: "Armhebel über die Achsel, aus Judo und Sambo. Nicht mit dem Griff direkt auf die Matte fallen: Der Partner kann nicht abrollen, im Judo ist das verboten.",
+  }),
+  t("s_hiza", "Hiza-gatame", "sub", "arm", 3, "sub", ["s_armbar_g"], { aka: ["Knee Armlock", "Ude-hishigi-hiza-gatame"], note: "Armhebel mit dem Knie gegen den gestreckten Ellbogen, aus dem Judo." }),
+  t("s_crucifixarm", "Crucifix Armlock", "sub", "arm", 4, "sub", ["s_armbar_g"], { note: "Aus dem Crucifix: Ein Arm steckt zwischen deinen Beinen, der andere wird gestreckt." }),
 
   t("s_triangle", "Triangle", "sub", "tri", 2, "sub", ["s_armbar_g"], { aka: ["Sankaku-jime"] }),
   t("s_omoplata", "Omoplata", "sub", "tri", 3, "sub", ["s_triangle"]),
@@ -222,15 +235,23 @@ export const TECHS: Technique[] = [
   t("s_gogo", "Gogoplata", "sub", "tri", 4, "sub", ["s_triangle"]),
   t("s_monoplata", "Monoplata", "sub", "tri", 4, "sub", ["s_omoplata"], { note: "Schulterhebel mit nur einem Bein, oft das Finish, wenn die Omoplata abgewehrt wird." }),
   t("s_barata", "Baratoplata", "sub", "tri", 4, "sub", ["s_omoplata"], { note: "Benannt nach Rafael „Barata“ Freitas." }),
+  t("s_loco", "Locoplata", "sub", "tri", 4, "sub", ["s_gogo"], { note: "Gogoplata-Variante: Das zweite Bein drückt von außen gegen den eigenen Fuß und verstärkt den Druck." }),
   t("s_tarik", "Tarikoplata", "sub", "tri", 4, "sub", ["s_kimura"], { note: "Benannt nach Tarik Hopstock. Kimura-Variante mit Bein-Arm-Rahmen." }),
 
   t("s_crosscollar", "Cross Collar Choke", "sub", "lapel", 1, "sub", ["f_grips"], { ...GI_ONLY, aka: ["Juji-jime"] }),
   t("s_bowarrow", "Bow & Arrow Choke", "sub", "lapel", 2, "sub", ["s_crosscollar"], GI_ONLY),
+  t("s_sliding", "Sliding Collar Choke", "sub", "lapel", 2, "sub", ["s_crosscollar"], { ...GI_ONLY, aka: ["Okuri-eri-jime"] }),
+  t("s_kataha", "Kata-ha-jime", "sub", "lapel", 3, "sub", ["s_sliding"], {
+    ...GI_ONLY,
+    aka: ["Single Wing Choke"],
+    note: "Vom Rücken: eine Hand am Kragen, der andere Arm hebt die Schulter des Partners aus. Aus dem Judo.",
+  }),
   t("s_loop", "Loop Choke", "sub", "lapel", 3, "sub", ["s_crosscollar"], GI_ONLY),
   t("s_clock", "Clock Choke", "sub", "lapel", 3, "sub", ["s_crosscollar"], GI_ONLY),
   t("s_baseball", "Baseball Bat Choke", "sub", "lapel", 3, "sub", ["s_crosscollar"], GI_ONLY),
   t("s_ezekiel", "Ezekiel Choke", "sub", "lapel", 3, "sub", ["s_crosscollar"], { aka: ["Sode-guruma-jime"] }),
   t("s_papercutter", "Paper Cutter Choke", "sub", "lapel", 4, "sub", ["s_crosscollar"], GI_ONLY),
+  t("s_brabo", "Brabo Choke", "sub", "lapel", 4, "sub", ["s_crosscollar"], { ...GI_ONLY, note: "Der D'Arce mit dem Revers: Das eigene Revers ersetzt den Arm, der unter dem Hals durchgeht." }),
 
   t("s_rnc", "Rear Naked Choke", "sub", "head", 1, "sub", ["f_grips"], { aka: ["Hadaka-jime", "Mata Leão"] }),
   t("s_guillotine", "Guillotine", "sub", "head", 2, "sub", ["f_grips"]),
@@ -241,6 +262,9 @@ export const TECHS: Technique[] = [
   t("s_nschoke", "North-South Choke", "sub", "head", 3, "sub", ["s_armtriangle"]),
   t("s_peruvian", "Peruvian Necktie", "sub", "head", 4, "sub", ["s_anaconda"]),
   t("s_japanese", "Japanese Necktie", "sub", "head", 4, "sub", ["s_darce"]),
+  t("s_armin", "Arm-in Guillotine", "sub", "head", 3, "sub", ["s_guillotine"], { note: "Guillotine mit einem Arm des Partners im Griff. Weniger Hals, mehr Schulterdruck." }),
+  t("s_ninja", "Ninja Choke", "sub", "head", 4, "sub", ["s_darce"], { note: "D'Arce-Variante aus dem Front Headlock." }),
+  t("s_buggy", "Buggy Choke", "sub", "head", 4, "sub", ["s_armtriangle"], { note: "Würger von unten aus der Side Control. Überrascht, weil er aus einer Position kommt, in der niemand mit einem Angriff rechnet." }),
   t("s_vonflue", "Von Flue Choke", "sub", "head", 4, "sub", ["s_guillotine"], { note: "Konter gegen die Guillotine: Schulterdruck aus Side Control." }),
 
   t("s_ankle", "Straight Ankle Lock", "sub", "leg", 2, "sub", ["f_grips"], { aka: ["Straight Footlock"] }),
@@ -251,6 +275,22 @@ export const TECHS: Technique[] = [
   t("s_estima", "Estima Lock", "sub", "leg", 4, "sub", ["s_ankle"], { ...CAUTION_LEG, note: "Fußhebel, benannt nach den Brüdern Braulio und Victor Estima. " + CAUTION_LEG.note }),
   t("s_calfslicer", "Calf Slicer", "sub", "leg", 4, "sub", ["s_kneebar"], { ...CAUTION_LEG, aka: ["Calf Crusher"] }),
   t("s_bananasplit", "Banana Split", "sub", "leg", 4, "sub", ["s_kneebar"], CAUTION_LEG),
+  t("s_suloev", "Suloev Stretch", "sub", "leg", 4, "sub", ["s_kneebar"], {
+    ...CAUTION_LEG,
+    note: "Dehnt Kniekehle und hinteren Oberschenkel, benannt nach dem MMA-Kämpfer Amar Suloev. " + CAUTION_LEG.note,
+  }),
+  t("s_echair", "Electric Chair", "sub", "leg", 4, "sub", ["s_bananasplit"], {
+    ...CAUTION_LEG,
+    aka: ["Electric Chair Submission"],
+    note: "Leistendehnung aus dem Lockdown in der Half Guard, aus dem 10th-Planet-System. " + CAUTION_LEG.note,
+  }),
+  // Cranks and compressions
+  t("s_canopener", "Can Opener", "sub", "crank", 3, "sub", ["f_grips"], CAUTION_CRANK("Nackenkurbel von oben in der Closed Guard. Öffnet oft eher die Guard, als dass sie tappt.")),
+  t("s_twister", "Twister", "sub", "crank", 4, "sub", ["s_canopener"], CAUTION_CRANK("Wirbelsäulenkurbel aus dem Truck, bekannt aus dem 10th-Planet-System.")),
+  t("s_kosovo", "Kosovo Cradle", "sub", "crank", 4, "sub", ["f_grips"], {
+    caution: true,
+    note: "Kompression des Brustkorbs aus einem Cradle, entwickelt von Anthony Gojani. Ablauf: Shoulder Crunch, Underhook, nachgreifen, zusammendrücken. Kommt aus Guard, Half Guard, K-Guard, Side Control und Scrambles. Rippen tappen spät: langsam zudrücken.",
+  }),
 
   // ── Kontrolle ──────────────────────────────────────────────────────────
   t("c_side", "Side Control", "ctrl", "pin", 1, "control", ["f_base"], { aka: ["100 Kilos", "Yoko-shiho-gatame"] }),
@@ -398,6 +438,14 @@ export const COMBOS: [string, string, string][] = [
   ["c_turtletop", "s_clock", "Turtle → Clock Choke"],
   ["c_truck", "s_calfslicer", "Truck → Calf Slicer"],
   ["c_truck", "s_bananasplit", "Truck → Banana Split"],
+  ["c_truck", "s_twister", "Truck → Twister"],
+  ["c_crucifix", "s_crucifixarm", "Crucifix → Armlock"],
+  ["c_fhl", "s_ninja", "Front Headlock → Ninja Choke"],
+  ["c_fhl", "s_armin", "Front Headlock → Arm-in Guillotine"],
+  ["c_backctrl", "s_sliding", "Rücken → Sliding Collar Choke"],
+  ["g_lockdown", "s_echair", "Lockdown → Electric Chair"],
+  ["g_electric", "s_echair", "Electric Chair Sweep ↔ Submission"],
+  ["g_kguard", "s_kosovo", "K-Guard → Kosovo Cradle"],
   ["p_kneecut", "c_side", "Knee Cut → Side Control"],
   ["p_smash", "c_side", "Half Guard Smash → Side Control"],
   ["p_toreando", "c_kob", "Toreando → Knee on Belly"],

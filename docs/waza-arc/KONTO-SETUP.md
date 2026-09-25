@@ -6,6 +6,7 @@ Was im Code fertig ist und was nur im Supabase-Dashboard geht. Die App zeigt auf
 
 - Sicherheitsprüfung des Projekts und Schließen der Lücken (`supabase/migrations/20260925090000_portal_lock_down_public_access.sql`, KONZEPT.md 8.3).
 - Schema `arc` mit Tabelle, Zugriffsregeln und den Funktionen `arc_pull`, `arc_push`, `arc_delete_account` (`supabase/migrations/20260925100000_arc_cloud_save.sql`).
+- Erinnerungen: Push-Abos, Versandprotokoll, Cron-Job und Edge Function `arc-reminders` (Abschnitt 8).
 - supabase-js 2.106.2, dieselbe Version wie im Lovable-Build.
 
 Alles Folgende passiert im Dashboard des Projekts „Rukawa Portfolio“ (`jtpiybdcuawhnfibrdho`). Die Reihenfolge ist Absicht: Registrierung erst am Schluss einschalten.
@@ -82,12 +83,23 @@ TOTP (Authenticator-App) ist standardmäßig an. Nichts zu tun, außer es wurde 
 - **Leaked password protection:** prüft Passwörter gegen HaveIBeenPwned. Nur in bezahlten Plänen.
 - **Postgres-Update:** Der Security-Advisor meldet offene Sicherheitsupdates für die Datenbankversion (Settings → Infrastructure).
 
-## 8. Registrierung einschalten (zuletzt)
+## 8. Erinnerungen vor dem Training
+
+Im Code fertig: Wochenplan, Benachrichtigungen (Web Push), E-Mail, Kalender-Datei. Der Kalender funktioniert sofort und ohne Server. Für Push und Mail:
+
+1. **Datenbank und Function: erledigt am 25. September 2026.** Migration `supabase/migrations/20260926090000_arc_reminders.sql` ist angewendet (im Projekt als `arc_reminders`), die Edge Function `arc-reminders` läuft mit `verify_jwt = false` (sie prüft Cron-Geheimnis und Anmeldung selbst), der Cron-Job `arc-reminders` alle fünf Minuten, die VAPID-Schlüssel sind erzeugt (privat nur im Vault). Nach Änderungen an der Function neu deployen mit `supabase functions deploy arc-reminders`. Sobald das Frontend gemergt ist, zeigt der Wochenplan „Auf diesem Gerät einschalten“.
+2. **E-Mail (optional):** ein Konto bei [Resend](https://resend.com) anlegen, die Domain `rukawaanalytics.com` verifizieren (drei DNS-Einträge beim Domain-Anbieter), einen API-Key erzeugen. Dann unter Edge Functions → Secrets setzen:
+   - `RESEND_API_KEY`: der Key
+   - `ARC_MAIL_FROM`: z. B. `Waza Arc <arc@rukawaanalytics.com>`
+   Beim nächsten Lauf meldet die Function „Mail bereit“, und der Wochenplan bietet E-Mail an. Der kostenlose Tarif reicht für 100 Mails am Tag.
+3. **Prüfen:** Im Wochenplan „Test-Erinnerung schicken“. Fehlgeschlagene Läufe stehen in `cron.job_run_details`, Details in den Logs der Function.
+
+## 9. Registrierung einschalten (zuletzt)
 
 Authentication → Sign In / Providers → **Allow new users to sign up:** an.
 
 Danach einmal selbst durchspielen: auf `https://rukawaanalytics.com/arc/` im Profil „Anmelden oder Konto erstellen“, mit Code anmelden, im Konto einen Passkey und den zweiten Faktor hinzufügen, auf einem zweiten Gerät anmelden und ein Training eintragen.
 
-## 9. Datenschutzerklärung
+## 10. Datenschutzerklärung
 
-Die Seite `/datenschutz` des Portfolios braucht einen Abschnitt zu Waza Arc: welche Daten mit Konto gespeichert werden (Anmeldedaten, Trainingsdaten), wo (Supabase, Frankfurt), wozu (Sicherung und Abgleich zwischen Geräten), welche Anbieter bei der Anmeldung beteiligt sein können (Google, Apple, Discord, GitHub, Cloudflare bei aktiviertem CAPTCHA), wie lange (bis zur Löschung des Kontos) und wie man das Konto löscht (in der App unter Konto). Den Text sollte jemand prüfen, der sich mit der DSGVO auskennt.
+Die Seite `/datenschutz` des Portfolios braucht einen Abschnitt zu Waza Arc: welche Daten mit Konto gespeichert werden (Anmeldedaten, Trainingsdaten), wo (Supabase, Frankfurt), wozu (Sicherung und Abgleich zwischen Geräten), welche Anbieter bei der Anmeldung beteiligt sein können (Google, Apple, Discord, GitHub, Cloudflare bei aktiviertem CAPTCHA), wie lange (bis zur Löschung des Kontos) und wie man das Konto löscht (in der App unter Konto). Für Erinnerungen dazu: Der Server liest den Wochenplan, speichert pro Gerät die Push-Adresse beim Push-Dienst des Browsers (Google, Apple, Mozilla oder Microsoft stellen die Nachricht zu), Mails verschickt Resend, das Versandprotokoll wird nach 30 Tagen gelöscht. Den Text sollte jemand prüfen, der sich mit der DSGVO auskennt.

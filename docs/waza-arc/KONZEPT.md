@@ -217,7 +217,7 @@ Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand a
 
 ## 5. Sternkarte (Skilltree)
 
-- **Aufbau:** 178 Techniken auf fünf Ringen, benannt nach den klassischen Stufen der Überlieferung: Kiso (Fundament), Shoden, Chūden, Okuden, Hiden. Jeder Sektor ist in Zweige geteilt (Guard z. B. in Closed Guard, Offene Guard, Half Guard, Haken & Beine, Gi-Guards), die als eigene Arme der Sternkarte nach außen wachsen. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
+- **Aufbau:** 193 Techniken auf fünf Ringen, benannt nach den klassischen Stufen der Überlieferung: Kiso (Fundament), Shoden, Chūden, Okuden, Hiden. Jeder Sektor ist in Zweige geteilt (Guard z. B. in Closed Guard, Offene Guard, Half Guard, Haken & Beine, Gi-Guards), die als eigene Arme der Sternkarte nach außen wachsen. Submission hat neben Armhebeln, Dreiecken, Kragenwürgern, Kopf-Arm-Würgern und Beinhebeln einen Zweig „Kurbeln & Kompression“ für Can Opener, Twister und Kosovo Cradle. Dazu kommen Nischen-Techniken wie Waki-gatame, Hiza-gatame, Locoplata, Kata-ha-jime, Brabo, Ninja und Buggy Choke, Suloev Stretch und Electric Chair. Wo ein Ring voll wird, stehen die Sterne abwechselnd innen und außen, auch über die Grenze zweier Zweige hinweg. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
 - **Namen:** so, wie sie auf deutschen Matten gesagt werden (meist englisch oder portugiesisch). Deutsche Namen nur, wo sie dort wirklich fallen: Shrimp statt Hüftflucht, Breakfall statt Fallschule, Technical Stand-up statt Aufstehen in Base. Die deutschen Namen bleiben als „auch:“ suchbar. Japanische Begriffe stehen in Kodokan-Schreibweise mit Bindestrich, deutsche Judo-Namen nach dem Deutschen Judo-Bund (O-soto-gari = Große Außensichel). Andere Namen stehen als „auch:“ dabei und sind im Codex durchsuchbar. Benannte Techniken (Williams Guard, Tarikoplata, Baratoplata, Estima Lock, Imanari Roll) nennen ihren Namensgeber. Reine Gi-Techniken sind markiert. Beinhebel und riskante Techniken tragen einen Sicherheitshinweis.
 - **Kanten:** Voraussetzungs-Kanten innerhalb eines Sektors. Dazu Kombo-Kanten quer über Sektoren, z. B. Scissor Sweep → Mount → Armbar oder Snap Down → Rücken. Eine Kombo leuchtet auf, sobald beide Enden Stufe 3 haben.
 - **Zustände:** Die Größe, Füllung und das Leuchten eines Sterns zeigen die Stufe. Ein Fortschrittsring zeigt den Weg zur nächsten Stufe. Gold heißt Tokui-Waza, Rostfarbe heißt Rost, gestrichelt heißt vorläufig.
@@ -342,7 +342,25 @@ Viele trainieren neben BJJ noch etwas anderes. Das soll sichtbar sein, ohne die 
 - **Körperwerte:** Kraft, Ausdauer und Beweglichkeit von 0 bis 100 aus den Minuten der letzten 8 Wochen, gewichtet nach Intensität (0,7 / 1 / 1,3) und Sportart (Kraftsport füttert vor allem Kraft, Boxen und MMA Ausdauer, Mobility Beweglichkeit, Ringen etwas von allem). Der Wert sättigt: `100 · (1 − e^(−Summe/900))`. Die Körperwerte stehen im Charakter neben dem Hexagon und fließen nicht in die Achsen.
 - **XP** siehe 4.6, dazu das Siegel „Zweite Disziplin“ nach zehn Einheiten.
 
-### 6.11 Gym-Modus (später)
+### 6.11 Wochenplan und Erinnerungen
+
+- **Wochenplan** (`#/plan`, auch über Heute und Profil): feste Trainings mit Tag, Beginn, Dauer, Sportart (BJJ oder ein Nebensport), bei BJJ Gi oder No-Gi, optional Name („Fundamentals“, „Open Mat“) und Ort. Mehrere Tage auf einmal anlegbar. Der Plan gehört zum Root-Datensatz und wird mit dem Konto abgeglichen.
+- **Im Alltag:** Heute zeigt das nächste Training. Hat der Tag genau eine Art BJJ-Training im Plan, stellt die App Gi oder No-Gi für Tagesquest und Log von selbst ein.
+- **Erinnerungen** vor jedem Training, 15, 30, 60 oder 90 Minuten vorher:
+  - **Benachrichtigung** (Web Push) auf jedes Gerät, auf dem man sie eingeschaltet hat. Braucht ein Konto; auf dem iPhone nur in der installierten App (ab iOS 16.4).
+  - **E-Mail** an die bestätigte Adresse des Kontos, sobald ein Mail-Dienst eingerichtet ist.
+  - **Kalender:** eine .ics-Datei mit einem wöchentlichen Termin pro Training und einem Alarm vorher, samt Zeitzone. Geht ohne Konto und ohne Server.
+- **Inhalt:** „In 30 Minuten: BJJ Gi“, dazu Uhrzeit, Ort und die Quest. Die App legt dafür eine kurze Vorschau der nächsten sieben Tage in den Plan: die angenommene Quest oder die drei Karten des Tages. Ein Tipp auf die Benachrichtigung öffnet den Mattenmodus.
+- **Heilungsmodus:** In pausierten Wochen kommen keine Erinnerungen.
+
+### 6.12 Mattenmodus
+
+- Vollbild-Zähler für die Tagesquest während des Trainings (`#/matte`, aus der angenommenen Quest, dem Wochenplan oder dem App-Icon heraus).
+- Zwei große Flächen: „Versuch“ und „Treffer“ (bei Escapes und Positionen entsprechend benannt); ein Treffer zählt auch als Versuch. Kata-Quests zählen drei Runden und haken sich dann selbst ab.
+- Der Bildschirm bleibt an (Wake Lock API), jeder Tipp gibt auf Android einen kurzen Vibrationsimpuls. Rückgängig für den letzten Tipp.
+- Der Zählerstand liegt im Spielstand, übersteht also Neuladen und Sperrbildschirm. Beim Eintragen stehen Versuche und Treffer schon in der Quest.
+
+### 6.13 Gym-Modus (später)
 
 - Der Coach pflegt den Kursplan, dann entfällt Schritt 2 für alle.
 - Der Coach kann Techniken „siegeln“, als externe Bestätigung von Stufe 4 oder 5.
@@ -466,6 +484,10 @@ Weiterleitungen (OAuth, Links in Mails) nutzen PKCE: Der Code kommt als `?code=�
 
 **Erste Anmeldung auf einem Gerät:** Hat nur das Gerät Daten, wandern sie ins Konto. Hat nur das Konto Daten, kommen sie aufs Gerät. Haben beide welche, fragt die App: zusammenführen (Trainings, Turniere und Nebensport von beiden, Profil aus dem Konto), nur den Stand aus dem Konto, oder nur den Stand von diesem Gerät (ersetzt das Konto).
 
+**Erinnerungen (Server).** Die Migration `20260926090000_arc_reminders.sql` legt Push-Abos, ein Versandprotokoll und Einstellungen im Schema `arc` an, dazu Funktionen für App und Edge Function und einen Cron-Job. Alle fünf Minuten ruft `arc.reminders_tick()` die Edge Function `arc-reminders` auf, mit einem Geheimnis aus Vault im Header. Die Function liest alle Pläne mit Push oder Mail, rechnet mit demselben Code wie die App (`_shared/schedule.ts`, per Test byte-gleich mit `src/arc/core/schedule.ts`) die fälligen Erinnerungen in der Zeitzone des Plans aus und reserviert jede vor dem Versand im Protokoll, damit keine doppelt rausgeht. Web Push ist ohne Bibliotheken mit WebCrypto gebaut (VAPID nach RFC 8292, Verschlüsselung aes128gcm nach RFC 8291, geprüft am Beispiel aus dem RFC). Die VAPID-Schlüssel erzeugt die Function beim ersten Lauf selbst; der private Schlüssel liegt nur in Vault. Push-Adressen nimmt die Datenbank nur von den bekannten Push-Diensten an (Google, Mozilla, Apple, Microsoft); abgemeldete Geräte (HTTP 404/410) fliegen raus. Mails gehen über Resend, sobald `RESEND_API_KEY` und `ARC_MAIL_FROM` gesetzt sind.
+
+**Offline-Start.** Ein Service Worker (`/arc/sw.js`, Scope `/arc/`) liefert die Seite ohne Netz aus dem Cache und nimmt die gebauten Dateien beim ersten Besuch mit. Online kommt die Seite immer frisch vom Server, neue Versionen sind also sofort da. Das Manifest hat Schnellzugriffe für Mattenmodus, Eintragen und Wochenplan; das App-Icon zeigt eine 1, solange ein geplantes Training von heute noch nicht eingetragen ist.
+
 **Geprüft** mit Unit-Tests für Datensätze und Zusammenführung (zwei simulierte Geräte gegen einen simulierten Server) und mit einem End-to-End-Test im Browser gegen ein nachgebautes Supabase: Registrierung per Code, falscher Code, Konto direkt aus dem Einstieg mit Rückkehr ins Dōjō, Umzug der Gerätedaten ins Konto, zweites Gerät, neues Training kommt auf dem anderen Gerät an, Google-Anmeldung mit Weiterleitung, Auswahl bei zwei Ständen, Abmelden mit Entfernen der Kopie, Kontolöschung.
 
 ---
@@ -477,6 +499,7 @@ Weiterleitungen (OAuth, Links in Mails) nutzen PKCE: Der Code kommt als `?code=�
 - Trainingspartner werden nicht namentlich erfasst, nur Gürtel und Größe.
 - Hosting in der EU (Supabase Frankfurt), Export und Löschung aller Daten per Knopf (Konto löschen entfernt Konto, Server-Daten und die Kopie auf dem Gerät).
 - Mit Konto gespeichert: die Anmeldedaten (E-Mail, Telefonnummer oder die Kennung des verbundenen Dienstes, bei Passkeys der öffentliche Schlüssel) und die Waza-Arc-Daten. Bei Google, Apple und Co. bekommt der Anbieter mit, dass man sich anmeldet. Die Datenschutzerklärung des Portfolios braucht dafür einen eigenen Abschnitt (siehe `KONTO-SETUP.md`).
+- Erinnerungen: Der Server liest dafür den Wochenplan (Zeiten, Sportart, Ort) und speichert pro Gerät die Push-Adresse beim Push-Dienst des Browsers. Mails gehen über Resend (Versanddienstleister). Das Versandprotokoll wird nach 30 Tagen gelöscht.
 - Für den Gym-Modus: Coaches sehen Anwesenheit und gesiegelte Techniken, nicht die Roll-Karten.
 
 ---
@@ -501,7 +524,7 @@ Daraus wird die Case Study: „Kann man BJJ-Fortschritt messen? Acht Wochen, zeh
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
 | 0 Fundament | Erledigt: eigener Einstiegspunkt `/arc/`, App lokal-first, Rechte aufgeräumt (8.3), Schema `arc` angewendet, Anmeldung und Sync (8.5). Offen: Anmeldewege und Registrierung im Dashboard einschalten (`KONTO-SETUP.md`) | Die Architektur steht |
-| 1 Eigenversuch | Läuft ab sofort lokal: Log-Flow, alle 178 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
+| 1 Eigenversuch | Läuft ab sofort lokal: Log-Flow, alle 193 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
 | 2 Spielsysteme | Sternkarte mit Nebel und Kombos, Drei-Karten-Draft, Wochenboss, Klasse und Titel, Rückblick-Karte | Die App macht Spaß, nicht nur Sinn |
 | 3 Gym-Pilot | 5 bis 10 Leute, Kursplan vom Coach, Coach-Bewertung als Ground Truth | 8 Wochen Daten mehrerer Personen |
 | 4 Auswertung | Validierung (Abschnitt 10), Kalibrierung der Parameter, Case Study im Portfolio | Belegbare Modellgüte und eine Geschichte dazu |
@@ -514,7 +537,7 @@ Entschieden:
 
 - **Kontrolle** bleibt „Partner / gleich / ich“, ohne oben/unten.
 - **Gi und No-Gi** werden zusammen gerechnet, mit Vergleichsansicht, sobald beide Seiten genug Daten haben (4.7).
-- **Mindestens 72 Techniken** schon in der ersten Version. Umgesetzt sind 178.
+- **Mindestens 72 Techniken** schon in der ersten Version. Umgesetzt sind 193.
 - **Name:** Waza Arc statt Tatami Arc (Markenkonflikt mit Tatami Fightwear). Vor einem öffentlichen Start noch eine Markenrecherche beim DPMA und EUIPO machen.
 - **Im Portfolio** mit eigenem Frontend unter `/arc/` und demselben Supabase-Projekt (Abschnitt 8).
 - **Einstieg mit Vorerfahrung:** Prolog-XP aus dem Gürtel, Selbsteinschätzung bis Stufe 4, aber vorläufig und ohne XP, bis die Rolls sie bestätigen (4.8).
@@ -528,8 +551,9 @@ Entschieden:
 - **Konto und Sync** über dieselbe Supabase-Instanz, als Datensätze mit Revisionen und Dreiwege-Abgleich statt einer Tabelle pro Objekt (3, 8.5). Die Anmeldeseite zeigt, was im Dashboard eingeschaltet ist.
 - **Scouter** mit vier Modi: du, Partner, Gegner, Boss (6.8).
 - **Seekarte** mit Reise zwischen den Inseln, Schiff nach Gürtel, eigener Flagge, Wetter, Erkundung und Logbuch (6.9).
+- **Erinnerungen** per Web Push, E-Mail und Kalender-Datei (6.11). SMS und WhatsApp nicht: Beides kostet pro Nachricht und braucht Geschäftskonten.
+- **Mattenmodus** statt Zählen im Kopf: Die Quest ist die Messung, also soll das Zählen auf der Matte so leicht wie möglich sein (6.12).
 
 Offen:
 
 - Positional Sparring (Start in einer Position) als eigener Roll-Typ, der nicht ins Power Level eingeht?
-- Offline-Start über einen Service Worker (Scope `/arc/`), damit die App auch ohne Netz im Gym-Keller öffnet.

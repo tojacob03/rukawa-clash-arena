@@ -376,7 +376,7 @@ function FoeView({
   const p = useMemo(() => (kind === "partner" ? partnerScan(data, st, belt, size, attire) : null), [kind, data, st, belt, size, attire]);
   const o = useMemo(() => (kind === "gegner" ? opponentScan(data, st, belt, attire) : null), [kind, data, st, belt, attire]);
   const s = (p ?? o)!;
-  const legCaution = o?.weapons.some((id) => TECH[id].caution);
+  const ruleCaution = o?.weapons.some((id) => TECH[id].caution);
   return (
     <>
       <div className="sc-grid">
@@ -454,7 +454,7 @@ function FoeView({
             <p className="small">
               <b>Achtung:</b> {o.watch}
             </p>
-            {legCaution ? <p className="small">Beinhebel sind je nach Regelwerk und Gürtel verboten. Prüf die Regeln deines Turniers.</p> : null}
+            {ruleCaution ? <p className="small">Einige deiner Waffen sind je nach Regelwerk und Gürtel verboten, etwa Beinhebel oder Kurbeln. Prüf die Regeln deines Turniers.</p> : null}
           </section>
         ) : null}
       </div>

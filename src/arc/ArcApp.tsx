@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { BookOpen, Flame, Home, Map as MapIcon, Plus, Settings, UserRound } from "lucide-react";
 import { APP_NAME, rankOf } from "./core/lore.ts";
 import { nf0, power } from "./format.ts";
-import { go, useArcData, useArcState, useRoute, useToday } from "./store.ts";
+import { arcStore, go, useArcData, useArcState, useRoute, useToday } from "./store.ts";
 import type { Route } from "./store.ts";
 import Start from "./pages/Start.tsx";
 import Today from "./pages/Today.tsx";
@@ -16,11 +16,16 @@ import SeaPage from "./pages/SeaPage.tsx";
 import Held from "./pages/Held.tsx";
 import Profil from "./pages/Profil.tsx";
 import Konto from "./pages/Konto.tsx";
+import Plan from "./pages/Plan.tsx";
+import Matte from "./pages/Matte.tsx";
 import { CloudBadge, CloudDialogs } from "./components/CloudDialogs.tsx";
 import Scouter from "./components/Scouter.tsx";
 import Avatar from "./components/Avatar.tsx";
 import { useGear } from "./useGear.ts";
 import type { ScoutRequest } from "./scan.ts";
+import { normalizePlan, occurrences } from "./core/schedule.ts";
+import { buildPreview } from "./plan.ts";
+import { setBadge } from "./push.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -31,6 +36,8 @@ const TITLES: Record<Route, string> = {
   held: "Charakter",
   profil: "Profil",
   konto: "Konto",
+  plan: "Wochenplan",
+  matte: "Auf der Matte",
 };
 
 export default function ArcApp() {
@@ -54,6 +61,26 @@ export default function ArcApp() {
     window.scrollTo({ top: 0 });
   }, [route]);
 
+  // Reminders from the server name the quest: keep a short preview of the next week in the plan.
+  useEffect(() => {
+    const plan = normalizePlan(data.plan);
+    if (!data.profile || data.demo || !plan || !(plan.push || plan.email) || !plan.slots.some((s) => s.remind)) return;
+    const t = window.setTimeout(() => {
+      const preview = buildPreview(data, st, plan, Date.now());
+      if (JSON.stringify(preview) !== JSON.stringify(plan.preview ?? [])) arcStore.set((d) => (d.plan ? { ...d, plan: { ...d.plan, preview } } : d));
+    }, 1500);
+    return () => window.clearTimeout(t);
+  }, [data, st]);
+
+  // App icon badge: a planned BJJ training today that is not logged yet.
+  useEffect(() => {
+    const plan = normalizePlan(data.plan);
+    if (!plan || data.demo) return setBadge(0);
+    const now = Date.now();
+    const open = occurrences(plan, now - 18 * 3600_000, now + 18 * 3600_000).some((o) => o.date === today && o.slot.sport === "bjj");
+    setBadge(open && !data.sessions.some((s) => s.date === today) ? 1 : 0);
+  }, [data, today]);
+
   if (!data.profile) {
     return (
       <>
@@ -71,6 +98,17 @@ export default function ArcApp() {
         )}
         <CloudDialogs />
       </>
+    );
+  }
+
+  if (route === "matte") {
+    return (
+      <div className="arc route-matte solo">
+        <main id="arc-main" className="main" tabIndex={-1}>
+          <Matte data={data} st={st} today={today} />
+        </main>
+        <CloudDialogs />
+      </div>
     );
   }
 
@@ -97,6 +135,8 @@ export default function ArcApp() {
       <Profil {...props} />
     ) : route === "konto" ? (
       <Konto data={data} />
+    ) : route === "plan" ? (
+      <Plan data={data} />
     ) : (
       <Today {...props} />
     );

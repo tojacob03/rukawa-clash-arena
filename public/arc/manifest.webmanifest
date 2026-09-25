@@ -9,8 +9,62 @@
   "background_color": "#F2F3EE",
   "theme_color": "#2A3A8F",
   "icons": [
-    { "src": "/arc/icon.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "/arc/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/arc/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/arc/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/arc/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/arc/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "id": "/arc/",
+  "shortcuts": [
+    {
+      "name": "Auf die Matte",
+      "short_name": "Matte",
+      "description": "Quest im Training mitzählen",
+      "url": "/arc/#/matte",
+      "icons": [
+        {
+          "src": "/arc/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Training eintragen",
+      "short_name": "Eintragen",
+      "description": "Nach dem Training in einer halben Minute",
+      "url": "/arc/#/log",
+      "icons": [
+        {
+          "src": "/arc/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Wochenplan",
+      "short_name": "Plan",
+      "description": "Trainingszeiten und Erinnerungen",
+      "url": "/arc/#/plan",
+      "icons": [
+        {
+          "src": "/arc/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

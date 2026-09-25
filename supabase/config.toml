@@ -1,1 +1,4 @@
 project_id = "jtpiybdcuawhnfibrdho"
+[functions.arc-reminders]
+# Called by the cron job (own secret header) and by signed-in users (checked in code).
+verify_jwt = false
