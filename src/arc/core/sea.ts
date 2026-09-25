@@ -65,7 +65,7 @@ const HOME: Record<SeaId, [string, string][]> = {
   ],
   morgen: [
     ["Dorf Morgenrot", "Ein kleiner Hafen, ein alter Gi am Haken. Hier fängt alles an."],
-    ["Muschelstrand", "Barfuß im Sand: Grundstellung, Fallschule, Brücke."],
+    ["Muschelstrand", "Barfuß im Sand: Stance, Breakfall, Bridge."],
     ["Leuchtturm Sonnwacht", "Der Wärter rollt jeden Abend. Er gewinnt meistens."],
     ["Mühleninsel", "Die Flügel drehen sich wie ein Berimbolo, nur langsamer."],
     ["Wellenbrecherriff", "Die Brandung testet deine Base. Danach kommt das Tor."],
