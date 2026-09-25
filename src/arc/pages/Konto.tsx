@@ -37,7 +37,7 @@ export default function Konto({ data }: { data: ArcData }) {
   useEffect(() => {
     if (c.status !== "signedIn" || c.mfa) return;
     const next = takeAfterSignIn();
-    if (next) go(next);
+    if (next) go(next.route, next.arg);
   }, [c.status, c.mfa]);
 
   if (!c.configured) {

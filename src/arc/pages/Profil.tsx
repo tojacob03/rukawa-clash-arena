@@ -71,6 +71,21 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
       </section>
 
       {cloud.configured ? (
+        <section className="panel form-panel" aria-label="Crew und Gym">
+          <h2 className="h3">Crew, Freundeskreis und Gym</h2>
+          <p className="small">Segelt als Crew zusammen, fügt euch per Code hinzu und seht, wer aus deinem Gym heute trainiert. Andere sehen nur deine Karte, nie dein Trainingstagebuch.</p>
+          <div className="row wrap">
+            <button type="button" className="btn" onClick={() => go("meer", "crew")}>
+              <span>Crew und Freundeskreis</span>
+            </button>
+            <button type="button" className="btn" onClick={() => go("gym")}>
+              <span>Gym</span>
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {cloud.configured ? (
         <section className="panel form-panel konto-teaser">
           <h2 className="h3">Konto und Sicherung</h2>
           {signedIn ? (

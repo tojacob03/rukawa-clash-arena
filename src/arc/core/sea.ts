@@ -269,3 +269,23 @@ export const SHIPS: Record<Belt, { name: string; desc: string }> = {
   braun: { name: "Fregatte", desc: "Drei Masten, schnell und schwer bewaffnet." },
   schwarz: { name: "Flaggschiff", desc: "Das Schiff, nach dem sich die anderen richten." },
 };
+
+/** Where the ship is: at its island, or part of the way to the next one. */
+export function shipPos(r: Island[], idx: number, progress: number): { x: number; y: number; left: boolean } {
+  const W = WORLD.w;
+  const a = r[idx];
+  const b = r[idx + 1];
+  const ax = a.x + 16;
+  const ay = a.y - 6;
+  if (!b || progress <= 0) return { x: ax, y: ay, left: false };
+  if (a.id === "c9" && b.id === "c10") {
+    // Over the ridge at the east edge, back in at the west edge.
+    const east = W - 10 - ax;
+    const west = b.x - 16 - 10;
+    const d = progress * (east + west);
+    return d <= east ? { x: ax + d, y: ay, left: false } : { x: 10 + (d - east), y: b.y - 6, left: false };
+  }
+  const bx = b.x - 16;
+  const by = b.y - 6;
+  return { x: ax + (bx - ax) * progress, y: ay + (by - ay) * progress, left: bx < ax };
+}

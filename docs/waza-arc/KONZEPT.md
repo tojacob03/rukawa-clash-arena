@@ -329,7 +329,9 @@ Die Reise als Seefahrt, als zweite Karte neben der Sternkarte. Der Aufbau der We
 - **Zustand:** Rumpf, Segel und Takelage sind die Körperwerte aus dem Nebensport (Kraft, Ausdauer, Beweglichkeit, 6.10). Rostende Techniken hängen als Muscheln am Rumpf, eine Schmiede-Quest kratzt sie ab. Sehr niedrige Werte zeigen geflickte Segel.
 - **Erkundung (Landgang):** Solange das Schiff an einer Insel liegt, decken die Trainings dort drei Orte auf: die Anlegestelle (1. Training), ein Wahrzeichen (8.) und das Geheimnis der Insel (15.). Jede der 40 Inseln hat eigene Namen dafür. Vollständig erkundete Inseln bekommen einen Wimpel auf der Karte, drei davon das Siegel „Entdecker“. Inseln, die vor der App erreicht wurden, bleiben unerkundet.
 - **Logbuch:** Die Reise als Einträge, neueste oben und nach Monaten gruppiert: Abfahrt, neue Inseln mit Gürtelprüfungen, Entdeckungen, Turniere mit Platzierung, Meilensteine (10., 25., 50. Training und so weiter), Nebensport-Meilensteine und Wochen im Trockendock. Jeder Eintrag mit Insel springt auf die Karte.
-- **Aufbau der Seite:** drei Reiter, Karte (mit Inselkarte und Steckbrief), Schiff (das Schiff als Heldenelement, Reise, Zustand, Flagge) und Logbuch. Die Rechnung liegt in `src/arc/core/voyage.ts`, mit Tests.
+- **Aufbau der Seite:** vier Reiter, Karte (mit Inselkarte und Steckbrief), Schiff (das Schiff als Heldenelement, Reise, Zustand, Flagge), Logbuch und Crew (6.13). Die Rechnung liegt in `src/arc/core/voyage.ts`, mit Tests.
+- **Bedienung der Karte:** Die Karte ist eine Kamera über der Welt. Ziehen verschiebt, Zwei-Finger-Geste, Mausrad oder Plus/Minus zoomen, Pfeiltasten bewegen, `0` zeigt die ganze Welt, `S` springt zum Schiff. Sie startet auf dem eigenen Schiff, Knöpfe führen zurück zum Schiff oder auf die ganze Welt; Kamerafahrten entfallen bei „Bewegung reduzieren“. Beschriftungen bleiben auf dem Bildschirm gleich groß und weichen einander aus (unten, oben, rechts, links, nach Wichtigkeit; `src/arc/core/labels.ts`, mit Tests). Wie viele Inseln beschriftet sind, hängt vom Zoom ab; die eigene, die nächste und die gewählte Insel immer. Am Desktop zeigt eine Übersichtskarte den Ausschnitt, am Handy stehen unter der Karte eine kurze Info zur gewählten Insel und die Route als wischbare Leiste.
+- **Andere Schiffe:** Mit Crew oder Freundeskreis (6.13) segeln deren Schiffe mit auf der Karte, Crew-Mitglieder unter der Crew-Flagge und mit goldenem Namen. Liegen mehrere Schiffe an derselben Stelle, rücken sie auseinander.
 
 ### 6.10 Nebensport
 
@@ -360,7 +362,20 @@ Viele trainieren neben BJJ noch etwas anderes. Das soll sichtbar sein, ohne die 
 - Der Bildschirm bleibt an (Wake Lock API), jeder Tipp gibt auf Android einen kurzen Vibrationsimpuls. Rückgängig für den letzten Tipp.
 - Der Zählerstand liegt im Spielstand, übersteht also Neuladen und Sperrbildschirm. Beim Eintragen stehen Versuche und Treffer schon in der Quest.
 
-### 6.13 Gym-Modus (später)
+### 6.13 Crew, Freundeskreis und Gym
+
+Training ist ein Mannschaftssport, auch wenn am Ende zwei auf der Matte stehen. Drei Dinge, bewusst getrennt:
+
+- **Freundeskreis:** Man fügt sich per Code hinzu (`ABCD-EFGH`, ohne verwechselbare Zeichen) oder per Einladungslink; die andere Seite nimmt an oder lehnt ab. Befreundete sehen einander mit Avatar, Gurt, Level, Power Level, Flamme und Trainings dieser Woche, und ihre Schiffe auf der Seekarte.
+- **Piraten-Crew:** bis zu zwölf, die zusammen segeln. Wer gründet, steuert (Umbenennen, eigene Flagge hissen, von Bord schicken); geht diese Person, übernimmt, wer am längsten an Bord ist, und die letzte Person löst die Crew auf. Beitreten per Crew-Code oder Link. Das Heldenelement des Reiters ist die Crew mit Flagge, Gesamtkopfgeld und der Crew-Woche: alle Trainings dieser Woche gegen die Summe der Wochenziele, jede Person höchstens bis zum eigenen Ziel, dazu wie viele ihr Ziel schon haben. Eine Crew braucht keine Freundschaft untereinander.
+- **Gym** (`#/gym`, eigene Seite, über Profil und Heute): der Ort, an dem man trainiert, unabhängig von der Crew. Man sucht nach Name oder Stadt, sieht Treffer mit Kopfzahl, aber keinen Code: Beitreten geht nur mit dem Gym-Code, den jemand aus dem Gym weitergibt oder der am Brett hängt. So kann niemand von außen in ein Gym hineinschauen. Die Seite zeigt, wer heute und morgen wann trainiert (aus geteilten Trainingszeiten), und die Leute aus dem Gym mit Gurt und Level, ohne Power Level. Sichtbar ist nur, wer selbst sichtbar ist.
+- **Einschalten:** alles zusammen mit einem Schalter, nur mit Konto. Vorher sagt die App genau, was andere sehen (Name, Gurt, Level, Power Level, Flamme, Kopfgeld, Trainings dieser Woche, Avatar, Schiff und Position) und was nicht (Trainingstagebuch mit Techniken, Rolls und Notizen, Gewicht, Konto). Trainingszeiten aus dem Wochenplan sind ein eigener Schalter und gehen nur als Tag, Uhrzeit, Dauer und Sportart raus, ohne Titel und Ort. Eine Suche nach Personen gibt es nicht. Ausschalten löscht die Karte mit allen Freundschaften und Mitgliedschaften.
+- **Karte:** Die App baut die eigene Karte aus Spielwerten (`src/arc/core/social.ts`) und schickt sie ein paar Sekunden nach jeder Änderung neu, aber nur, wenn sie sich wirklich geändert hat. Karten anderer kommen von deren Geräten und werden vor dem Zeichnen geprüft: Farben nur als Hex-Wert, jede Auswahl innerhalb der bekannten Listen, Items nur, wenn es sie gibt und sie in den Platz passen, Namen ohne Steuer- und Richtungszeichen. Eine alte Wochenzahl zählt nicht für diese Woche.
+- **Heute** zeigt eine Zeile, wenn es etwas gibt: offene Anfragen, die Crew-Woche und wer aus dem Gym heute trainiert.
+
+### 6.14 Gym-Modus für Coaches (später)
+
+Die Gym-Seite aus 6.13 ist der erste Schritt. Darauf aufbauend:
 
 - Der Coach pflegt den Kursplan, dann entfällt Schritt 2 für alle.
 - Der Coach kann Techniken „siegeln“, als externe Bestätigung von Stufe 4 oder 5.
@@ -488,7 +503,9 @@ Weiterleitungen (OAuth, Links in Mails) nutzen PKCE: Der Code kommt als `?code=�
 
 **Offline-Start.** Ein Service Worker (`/arc/sw.js`, Scope `/arc/`) liefert die Seite ohne Netz aus dem Cache und nimmt die gebauten Dateien beim ersten Besuch mit. Online kommt die Seite immer frisch vom Server, neue Versionen sind also sofort da. Das Manifest hat Schnellzugriffe für Mattenmodus, Eintragen und Wochenplan; das App-Icon zeigt eine 1, solange ein geplantes Training von heute noch nicht eingetragen ist.
 
-**Geprüft** mit Unit-Tests für Datensätze und Zusammenführung (zwei simulierte Geräte gegen einen simulierten Server) und mit einem End-to-End-Test im Browser gegen ein nachgebautes Supabase: Registrierung per Code, falscher Code, Konto direkt aus dem Einstieg mit Rückkehr ins Dōjō, Umzug der Gerätedaten ins Konto, zweites Gerät, neues Training kommt auf dem anderen Gerät an, Google-Anmeldung mit Weiterleitung, Auswahl bei zwei Ständen, Abmelden mit Entfernen der Kopie, Kontolöschung.
+**Crew, Freundeskreis und Gym (Server).** Die Migration `20260926120000_arc_social.sql` (angewendet am 25. September 2026) legt Profile (Name, Code, Karte, geteilte Zeiten), Freundschaften, Crews, Gyms und die Mitgliedschaften im Schema `arc` an. Niemand liest die Tabellen direkt; alles läuft über Funktionen, die `auth.uid()` und den zweiten Faktor prüfen. `arc_social_state()` liefert in einem Aufruf alles, was man sehen darf: Karten nur von Befreundeten, der eigenen Crew und sichtbaren Leuten aus dem eigenen Gym, Trainingszeiten nur, wenn geteilt. Automatische Kartenupdates dürfen nur ein vorhandenes Profil ändern (`p_create = false`), damit ein Gerät, das vom Ausschalten auf einem anderen noch nichts weiß, es nicht wieder einschaltet. Grenzen: 50 offene Anfragen, 300 Freundschaften, 12 an Bord, 3 neue Gyms pro Tag und Person. Das Konto zu löschen löscht auch das Profil.
+
+**Geprüft** mit Unit-Tests für Datensätze und Zusammenführung (zwei simulierte Geräte gegen einen simulierten Server) und mit einem End-to-End-Test im Browser gegen ein nachgebautes Supabase: Registrierung per Code, falscher Code, Konto direkt aus dem Einstieg mit Rückkehr ins Dōjō, Umzug der Gerätedaten ins Konto, zweites Gerät, neues Training kommt auf dem anderen Gerät an, Google-Anmeldung mit Weiterleitung, Auswahl bei zwei Ständen, Abmelden mit Entfernen der Kopie, Kontolöschung. Für Crew und Gym ein eigener Browser-Test mit zwei Personen (einschalten, Crew gründen, per Link beitreten, Freundschaft per Code, Schiffe auf der Karte, Gym anlegen, suchen, per Link beitreten, heutige Trainings, unsichtbar schalten, feindlich gebaute Karte eines Freundes, Kartenupdate nach einem Training, Crew verlassen, Ausschalten mit einem zweiten, veralteten Tab, 320 px Breite) und die Server-Funktionen in einer zurückgerollten Transaktion auf der echten Datenbank.
 
 ---
 
@@ -497,6 +514,7 @@ Weiterleitungen (OAuth, Links in Mails) nutzen PKCE: Der Code kommt als `?code=�
 - Nur, was die Rechnung braucht. Keine Verletzungsdaten. Der Heilungsmodus speichert nur „Pause“ ohne Grund.
 - Geburtsjahr und Gewicht sind freiwillig und dienen nur der Altersklasse und der Figur. Gespeichert wird das Geburtsjahr, kein Datum.
 - Trainingspartner werden nicht namentlich erfasst, nur Gürtel und Größe.
+- Crew, Freundeskreis und Gym sind aus, bis man sie einschaltet. Andere sehen dann eine Karte mit Spielwerten, nie das Trainingstagebuch; Trainingszeiten nur mit eigenem Schalter und ohne Titel und Ort. Keine Personensuche, Gyms nur mit Code, im Gym sichtbar nur, wer selbst sichtbar ist.
 - Hosting in der EU (Supabase Frankfurt), Export und Löschung aller Daten per Knopf (Konto löschen entfernt Konto, Server-Daten und die Kopie auf dem Gerät).
 - Mit Konto gespeichert: die Anmeldedaten (E-Mail, Telefonnummer oder die Kennung des verbundenen Dienstes, bei Passkeys der öffentliche Schlüssel) und die Waza-Arc-Daten. Bei Google, Apple und Co. bekommt der Anbieter mit, dass man sich anmeldet. Die Datenschutzerklärung des Portfolios braucht dafür einen eigenen Abschnitt (siehe `KONTO-SETUP.md`).
 - Erinnerungen: Der Server liest dafür den Wochenplan (Zeiten, Sportart, Ort) und speichert pro Gerät die Push-Adresse beim Push-Dienst des Browsers. Mails gehen über Resend (Versanddienstleister). Das Versandprotokoll wird nach 30 Tagen gelöscht.

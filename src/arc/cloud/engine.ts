@@ -377,6 +377,34 @@ export async function testReminder(): Promise<{ push: number; email: boolean }> 
   return data as { push: number; email: boolean };
 }
 
+// ── Friends, crews, gyms ──────────────────────────────────────────────────
+// Answers are checked in core/social.ts before anything is shown.
+
+async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
+  const { data, error } = await sb.rpc(fn, args);
+  fail(error);
+  return data as T;
+}
+
+export const socialState = () => rpc<unknown>("arc_social_state");
+/** Switch on (create) or update the card. A null name keeps the name. Returns the friend code. */
+export const socialPublish = (name: string | null, card: unknown, slots: unknown[] | null, shareTimes: boolean | null, create = true) =>
+  rpc<string>("arc_social_publish", { p_name: name, p_card: card, p_slots: slots, p_share_times: shareTimes, p_create: create });
+export const socialDisable = () => rpc<void>("arc_social_disable");
+export const friendAdd = (code: string) => rpc<"requested" | "pending" | "accepted" | "friends">("arc_friend_add", { p_code: code });
+export const friendAnswer = (user: string, accept: boolean) => rpc<void>("arc_friend_answer", { p_user: user, p_accept: accept });
+export const friendRemove = (user: string) => rpc<void>("arc_friend_remove", { p_user: user });
+export const crewCreate = (name: string, flag: unknown) => rpc<string>("arc_crew_create", { p_name: name, p_flag: flag });
+export const crewJoin = (code: string) => rpc<string>("arc_crew_join", { p_code: code });
+export const crewLeave = () => rpc<void>("arc_crew_leave");
+export const crewEdit = (name: string, flag: unknown) => rpc<void>("arc_crew_edit", { p_name: name, p_flag: flag });
+export const crewKick = (user: string) => rpc<void>("arc_crew_kick", { p_user: user });
+export const gymFind = (query: string) => rpc<unknown>("arc_gym_find", { p_query: query });
+export const gymCreate = (name: string, city: string) => rpc<string>("arc_gym_create", { p_name: name, p_city: city });
+export const gymJoin = (code: string) => rpc<string>("arc_gym_join", { p_code: code });
+export const gymLeave = () => rpc<void>("arc_gym_leave");
+export const gymVisible = (visible: boolean) => rpc<void>("arc_gym_visible", { p_visible: visible });
+
 /** This device stops receiving the account's reminders (on sign-out). */
 async function dropDevicePush() {
   const reg = await navigator.serviceWorker?.getRegistration("/arc/");
@@ -604,6 +632,17 @@ function wireSyncTriggers() {
 
 const MESSAGES: Record<string, string> = {
   arc_test_limit: "Eine Test-Erinnerung pro Stunde. Versuch es später noch mal.",
+  arc_social_off: "Schalt zuerst Crew und Freundeskreis ein.",
+  arc_bad_name: "Der Name ist zu kurz oder zu lang.",
+  arc_bad_card: "Deine Karte ließ sich nicht speichern.",
+  arc_code_unknown: "Zu diesem Code gibt es nichts. Prüf ihn noch einmal.",
+  arc_code_self: "Das ist dein eigener Code.",
+  arc_friend_limit: "Du hast gerade zu viele offene Anfragen oder schon sehr viele Freundschaften.",
+  arc_in_crew: "Du bist schon in einer Crew. Verlass sie zuerst.",
+  arc_crew_full: "Diese Crew ist voll: höchstens 12 an Bord.",
+  arc_not_captain: "Das darf nur, wer die Crew steuert.",
+  arc_gym_limit: "Du hast heute schon drei Gyms angelegt. Morgen geht es weiter.",
+  PGRST202: "Crew und Freundeskreis sind auf dem Server noch nicht eingerichtet.",
   arc_push_bad_subscription: "Dieser Browser liefert keine gültige Adresse für Benachrichtigungen.",
   invalid_credentials: "E-Mail oder Passwort stimmt nicht.",
   email_not_confirmed: "Bitte bestätige zuerst deine E-Mail-Adresse.",

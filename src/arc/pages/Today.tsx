@@ -1,4 +1,4 @@
-import { CalendarClock, Flame, HeartPulse, Plus, RefreshCw, ScanEye, Timer } from "lucide-react";
+import { Building2, CalendarClock, Flame, HeartPulse, Plus, RefreshCw, ScanEye, Timer, Users } from "lucide-react";
 import type { ArcData, ArcState, Attire, QuestOffer } from "../core/types.ts";
 import { TECH, sectorName } from "../core/techniques.ts";
 import { ARCS, LEVELS, QUEST, ROMAN, STUCK } from "../core/lore.ts";
@@ -12,6 +12,8 @@ import { go } from "../store.ts";
 import { questTask } from "../questText.ts";
 import { KindBadge, SecTitle, Seg, Star } from "../components/ui.tsx";
 import { openScouter } from "../scan.ts";
+import { useSocial } from "../cloud/social.ts";
+import { crewWeek, gymDay } from "../core/social.ts";
 
 const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => string> = {
   prog: (st, q) => `Kurz vor Stufe ${st.nodes[q.node].level + 1}, ${LEVELS[st.nodes[q.node].level + 1] ?? ""}`,
@@ -87,6 +89,7 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
       </div>
 
       <NextTraining data={data} today={today} />
+      <SocialStrip today={today} />
 
       <SecTitle kanji="今日" eyebrow="Tagesquest" title="Zieh deine Karte">
         Eine Karte nimmst du mit auf die Matte. Im Training zählst du nur sie mit, das macht die Quest zur Messung.
@@ -185,6 +188,60 @@ function QuestCard({ q, st, today, accepted, done, own }: { q: QuestOffer; st: A
 }
 
 const dayWord = (date: string, today: string) => (date === today ? "Heute" : date === addDays(today, 1) ? "Morgen" : `Am ${DAY_NAMES[weekdayOf(date)]}`);
+
+/** Crew, gym and friendship requests in one line each, only when there is something to see. */
+function SocialStrip({ today }: { today: string }) {
+  const s = useSocial();
+  if (!s.me) return null;
+  const rows = [];
+  if (s.incoming.length)
+    rows.push(
+      <li key="req">
+        <Users size={18} aria-hidden="true" />
+        <p>{s.incoming.length === 1 ? `${s.incoming[0].name} möchte in deinen Freundeskreis.` : `${s.incoming.length} Anfragen für deinen Freundeskreis.`}</p>
+        <button type="button" className="linkish" onClick={() => go("meer", "crew")}>
+          Ansehen
+        </button>
+      </li>,
+    );
+  if (s.crew) {
+    const w = crewWeek(s.crew.members, today);
+    rows.push(
+      <li key="crew">
+        <Users size={18} aria-hidden="true" />
+        <p>
+          <b>{s.crew.name}</b>: {w.done} von {w.goal} Trainings diese Woche
+        </p>
+        <button type="button" className="linkish" onClick={() => go("meer", "crew")}>
+          Zur Crew
+        </button>
+      </li>,
+    );
+  }
+  const day = s.gym?.visible ? gymDay(s.gym.members, today, s.me.id) : [];
+  if (s.gym && day.length) {
+    const first = day[0];
+    const more = day.length - 1;
+    rows.push(
+      <li key="gym">
+        <Building2 size={18} aria-hidden="true" />
+        <p>
+          Heute in {s.gym.name}: <b>{first.start}</b> mit {first.names.join(", ")}
+          {more ? ` und ${more} weitere ${more === 1 ? "Zeit" : "Zeiten"}` : ""}
+        </p>
+        <button type="button" className="linkish" onClick={() => go("gym")}>
+          Zum Gym
+        </button>
+      </li>,
+    );
+  }
+  if (!rows.length) return null;
+  return (
+    <ul className="social-strip" aria-label="Crew und Gym">
+      {rows}
+    </ul>
+  );
+}
 
 /** The next planned training, with the way onto the mat when it is close. */
 function NextTraining({ data, today }: { data: ArcData; today: string }) {
