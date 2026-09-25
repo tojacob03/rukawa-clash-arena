@@ -85,7 +85,7 @@ export function MapSwitch({ value }: { value: "karte" | "meer" }) {
       value={value}
       onChange={(v) => go(v)}
       options={[
-        { v: "karte", label: "Sternkarte" },
+        { v: "karte", label: "Zweig" },
         { v: "meer", label: "Seekarte" },
       ]}
     />

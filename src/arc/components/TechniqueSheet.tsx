@@ -1,11 +1,12 @@
 import { AlertTriangle, Swords, X } from "lucide-react";
+import { Blossom } from "./Blossom.tsx";
 import type { ArcState, ClassId } from "../core/types.ts";
 import { COMBOS, TECH, TECHS, branchName, sectorName } from "../core/techniques.ts";
 import { LEVELS, LEVEL_HINT, RINGS } from "../core/lore.ts";
 import { questShape } from "../core/model.ts";
 import { CLASS } from "../core/classes.ts";
 import { nf0, nf1, pct } from "../format.ts";
-import { KindBadge, LevelPill, Star } from "./ui.tsx";
+import { KindBadge, LevelPill } from "./ui.tsx";
 
 interface Props {
   id: string;
@@ -220,7 +221,7 @@ function Chips({ label, ids, st, onSelect }: { label: string; ids: string[]; st:
             </span>
           ) : (
             <button key={cid} type="button" className="chip" onClick={() => onSelect(cid)}>
-              <Star level={st.nodes[cid].level} rust={st.nodes[cid].rust} size={14} />
+              <Blossom level={st.nodes[cid].level} rust={st.nodes[cid].rust} size={14} />
               {TECH[cid].name}
             </button>
           ),

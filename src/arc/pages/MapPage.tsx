@@ -1,46 +1,87 @@
+import { useState } from "react";
+import { CircleHelp, X } from "lucide-react";
 import type { ArcData, ArcState } from "../core/types.ts";
 import { TECH, TECHS } from "../core/techniques.ts";
 import { questShape } from "../core/model.ts";
-import { LEVELS } from "../core/lore.ts";
 import { acceptQuest } from "../actions.ts";
 import { go } from "../store.ts";
 import { useCompare } from "../useCompare.ts";
-import StarMap from "../components/StarMap.tsx";
+import Branch from "../components/Branch.tsx";
 import TechniqueSheet from "../components/TechniqueSheet.tsx";
-import { Star } from "../components/ui.tsx";
+import { Blossom } from "../components/Blossom.tsx";
 import { MapSwitch } from "./SeaPage.tsx";
+
+/** How to read the branch: bud, blossom, gold, wilting. */
+const LEGEND: { level: number; rust?: boolean; prov?: boolean; fog?: boolean; text: string }[] = [
+  { level: 0, fog: true, text: "Nebel: noch nicht entdeckt" },
+  { level: 0, text: "Sichtbar, noch nie gemacht" },
+  { level: 1, text: "Geschlossene Knospe: gesehen" },
+  { level: 2, text: "Knospe mit Rot: gedrillt" },
+  { level: 3, text: "Halb offen: im Roll erprobt" },
+  { level: 3, prov: true, text: "Gestrichelt: deine Einschätzung vom Start, noch nicht bestätigt" },
+  { level: 4, text: "Rote Blüte: geschärft" },
+  { level: 5, text: "Goldblüte mit Naht: Tokui-Waza" },
+  { level: 3, rust: true, text: "Welk: 60 Tage nicht trainiert" },
+];
 
 export default function MapPage({ data, st, today, arg }: { data: ArcData; st: ArcState; today: string; arg: string | null }) {
   const selected = arg && TECH[arg] ? arg : null;
   const cmp = useCompare(data, today);
+  const [legend, setLegend] = useState(false);
   const accepted = data.ui.accepted?.day === today ? data.ui.accepted.node : null;
-  const count = (l: number) => TECHS.filter((x) => st.nodes[x.id].level === l).length;
+  const count = (l: number) => TECHS.filter((x) => st.nodes[x.id].level === l && !st.nodes[x.id].rust).length;
+  const wilted = TECHS.filter((x) => st.nodes[x.id].rust).length;
   const select = (id: string) => go("karte", id);
 
   return (
-    <div className="page map-page">
-      <div className="map-head">
-        <div>
-          <MapSwitch value="karte" />
-          <p className="eyebrow">Skilltree</p>
+    <div className="page tree-page">
+      <header className="tree-head">
+        <MapSwitch value="karte" />
+        <div className="tree-title">
           <h1 className="page-h">
-            {st.discovered} von {TECHS.length} Sternen entdeckt
+            <span className="tree-num">{st.discovered}</span> von {TECHS.length} Techniken entdeckt
           </h1>
-        </div>
-        <ul className="map-stats" aria-label="Sterne nach Stufe">
-          {[5, 4, 3].map((l) => (
-            <li key={l}>
-              <Star level={l} size={16} /> {count(l)} {LEVELS[l]}
+          <ul className="tree-count" aria-label="Techniken nach Stufe">
+            <li>
+              <Blossom level={5} size={20} /> {count(5)} Tokui-Waza
             </li>
-          ))}
-          <li>
-            <Star level={3} rust size={16} /> {TECHS.filter((x) => st.nodes[x.id].rust).length} Rost
-          </li>
-        </ul>
-      </div>
-      <div className={`map-layout${selected ? " has-sel" : ""}`}>
-        <StarMap st={st} selected={selected} onSelect={select} />
-        <aside className={`sheet${selected ? " open" : ""}`} aria-live="polite">
+            <li>
+              <Blossom level={4} size={20} /> {count(4)} geschärft
+            </li>
+            <li>
+              <Blossom level={3} size={20} /> {count(3)} erprobt
+            </li>
+            <li>
+              <Blossom level={3} rust size={20} /> {wilted} welk
+            </li>
+          </ul>
+        </div>
+        <button type="button" className="linkish legend-btn" aria-expanded={legend} onClick={() => setLegend((v) => !v)}>
+          <CircleHelp size={16} aria-hidden="true" /> So liest du den Zweig
+        </button>
+      </header>
+      <div className={`tree-layout${selected ? " has-sel" : ""}`}>
+        <Branch st={st} selected={selected} onSelect={select} />
+        {legend ? (
+          <aside className="tree-legend" aria-label="Legende">
+            <button type="button" className="icon-btn legend-x" aria-label="Legende schließen" onClick={() => setLegend(false)}>
+              <X size={16} />
+            </button>
+            <p className="h3">Knospe, Blüte, Gold</p>
+            <ul className="legend">
+              {LEGEND.map((l) => (
+                <li key={l.text}>
+                  <Blossom level={l.level} rust={l.rust} prov={l.prov} fog={l.fog} size={26} /> {l.text}
+                </li>
+              ))}
+            </ul>
+            <p className="muted small">
+              Jeder Sektor wächst als eigener Ast aus dem Stamm, in der Reihenfolge eines Kampfes. Tippst du eine Technik an, zeigen goldene Fäden, worauf sie aufbaut, und rote ihre
+              Kombos.
+            </p>
+          </aside>
+        ) : null}
+        <aside className={`sheet${selected ? " open" : ""}`} aria-live="polite" hidden={!selected}>
           {selected ? (
             <TechniqueSheet
               id={selected}
@@ -52,44 +93,7 @@ export default function MapPage({ data, st, today, arg }: { data: ArcData; st: A
               cls={data.profile?.cls}
               onAccept={(id) => acceptQuest(today, questShape(TECH[id], st.nodes[id], false, data.profile?.cls))}
             />
-          ) : (
-            <div className="sheet-body empty">
-              <p className="eyebrow">So liest du die Karte</p>
-              <ul className="legend">
-                <li>
-                  <Star level={0} /> Unbekannt, aber schon sichtbar
-                </li>
-                <li>
-                  <Star level={1} /> Gesehen
-                </li>
-                <li>
-                  <Star level={2} /> Gedrillt
-                </li>
-                <li>
-                  <Star level={3} prov /> Vorläufig: deine Einschätzung vom Start, noch nicht im Roll bestätigt
-                </li>
-                <li>
-                  <Star level={3} /> Erprobt
-                </li>
-                <li>
-                  <Star level={4} /> Geschärft
-                </li>
-                <li>
-                  <Star level={5} /> Tokui-Waza
-                </li>
-                <li>
-                  <Star level={3} rust /> Rost: 60 Tage nicht trainiert
-                </li>
-                <li>
-                  <Star level={0} fog /> Nebel: noch unentdeckt
-                </li>
-              </ul>
-              <p className="muted small">
-                Die goldene Fläche ist dein Hexagon. Gestrichelte Bögen sind Kombos zwischen Sektoren, sie werden golden, sobald beide Enden Stufe 3 haben. Tippe einen Stern an
-                oder zoome in einen Sektor.
-              </p>
-            </div>
-          )}
+          ) : null}
         </aside>
       </div>
     </div>

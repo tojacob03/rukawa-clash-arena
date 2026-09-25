@@ -147,15 +147,3 @@ export function LvlStep({ from, to, label }: { from: number; to: number; label: 
     </span>
   );
 }
-
-/** Tiny level glyph used in lists. */
-export function Star({ level, rust, prov, fog, size = 18 }: { level: number; rust?: boolean; prov?: boolean; fog?: boolean; size?: number }) {
-  const r = fog ? 3 : [6, 6.5, 7, 7.5, 8, 9][level];
-  return (
-    <svg className="star-ico" width={size} height={size} viewBox="-11 -11 22 22" aria-hidden="true">
-      <g className={`n l${level}${rust ? " rust" : ""}${prov ? " prov" : ""}${fog ? " fog" : ""}`}>
-        <circle className="n-core" r={r} />
-      </g>
-    </svg>
-  );
-}

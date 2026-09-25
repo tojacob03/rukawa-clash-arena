@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Blossom } from "../components/Blossom.tsx";
 import { Map as MapIcon, Search } from "lucide-react";
 import type { ArcData, ArcState, SectorId } from "../core/types.ts";
 import { SECTORS, TECH, TECHS } from "../core/techniques.ts";
@@ -9,7 +10,7 @@ import { acceptQuest } from "../actions.ts";
 import { go } from "../store.ts";
 import { useCompare } from "../useCompare.ts";
 import TechniqueSheet from "../components/TechniqueSheet.tsx";
-import { SecTitle, Star } from "../components/ui.tsx";
+import { SecTitle } from "../components/ui.tsx";
 
 type LevelFilter = "alle" | "entdeckt" | "erprobt" | "rost" | "offen";
 const norm = (s: string) =>
@@ -102,7 +103,7 @@ export default function Codex({ data, st, today }: { data: ArcData; st: ArcState
               return (
                 <li key={x.id}>
                   <button type="button" className="crow" onClick={() => setOpen(x.id)}>
-                    <Star level={n.level} rust={n.rust} prov={n.prov} fog={n.fog} size={22} />
+                    <Blossom level={n.level} rust={n.rust} prov={n.prov} fog={n.fog} size={22} />
                     <span className="crow-main">
                       <b>{x.name}</b>
                       <small>

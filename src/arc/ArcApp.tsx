@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import { BookOpen, Flame, Home, Map as MapIcon, Plus, Settings, UserRound } from "lucide-react";
+import { Flame, Settings } from "lucide-react";
 import { APP_NAME, rankOf } from "./core/lore.ts";
 import { nf0, power } from "./format.ts";
 import { arcStore, go, useArcData, useArcState, useRoute, useToday } from "./store.ts";
@@ -30,6 +29,7 @@ import { buildPreview } from "./plan.ts";
 import { setBadge } from "./push.ts";
 import { useSocialPublish } from "./socialCard.ts";
 import { preloadMotion } from "./motion.ts";
+import InkVeil from "./components/InkVeil.tsx";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -63,13 +63,24 @@ export default function ArcApp() {
 
   useEffect(preloadMotion, []);
 
+  // The header floats over the page until it scrolls, then it gets its own ground.
+  useEffect(() => {
+    const el = document.documentElement;
+    const on = () => el.classList.toggle("scrolled", window.scrollY > 6);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+
   useEffect(() => {
     document.title = data.profile ? `${TITLES[route]} – ${APP_NAME}` : APP_NAME;
   }, [route, data.profile]);
 
+  // A new page (or the first one after the start screen) opens at its top.
+  const entered = !!data.profile;
   useEffect(() => {
     window.scrollTo({ top: 0 });
-  }, [route]);
+  }, [route, entered]);
 
   // Reminders from the server name the quest: keep a short preview of the next week in the plan.
   useEffect(() => {
@@ -160,13 +171,13 @@ export default function ArcApp() {
       <button type="button" className="skip" onClick={() => document.getElementById("arc-main")?.focus()}>
         Zum Inhalt
       </button>
+      {/* Experience runs along the top edge of the screen as a gold seam. */}
+      <div className="xp-seam" role="progressbar" aria-label={`XP bis Level ${st.lvl + 1}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(xpPct)}>
+        <i style={{ width: `${xpPct.toFixed(1)}%` }} />
+      </div>
       <header className="hud">
         <button type="button" className="hud-brand" onClick={() => go("heute")} aria-label={`${APP_NAME}, zur Startseite`}>
-          <svg className="logo-mark" viewBox="0 0 512 512" aria-hidden="true">
-            <polygon points="256,86 403,171 403,341 256,426 109,341 109,171" fill="none" stroke="currentColor" strokeWidth="30" strokeLinejoin="round" />
-            <path d="M256 160 L282 230 L352 256 L282 282 L256 352 L230 282 L160 256 L230 230 Z" fill="currentColor" />
-          </svg>
-          <span className="logo-word">Waza Arc</span>
+          <LogoMark />
         </button>
         <button type="button" className="hud-lv" onClick={() => go("held")} aria-label={`Level ${st.lvl}, ${rankOf(st.lvl)}. Zum Charakterbogen`}>
           <span className="hex-badge small">
@@ -174,9 +185,6 @@ export default function ArcApp() {
           </span>
           <span className="hud-lv-main">
             <span className="hud-rank">{rankOf(st.lvl)}</span>
-            <span className="xpbar" aria-hidden="true">
-              <i style={{ width: `${xpPct.toFixed(1)}%` }} />
-            </span>
             <span className="hud-xp">
               {nf0.format(st.xp - st.lo)} / {nf0.format(st.hi - st.lo)} XP
             </span>
@@ -184,17 +192,17 @@ export default function ArcApp() {
         </button>
         <div className="hud-stats">
           <button type="button" className="hud-stat pl" title="Power Level aus deinen Rolls und Turnierkämpfen: 100 Elo-Punkte mehr verdoppeln es. Tippen öffnet den Scouter." onClick={() => setScan({ mode: "du" })}>
-            <small>Power Level</small>
             <b>{power(st.ru)}</b>
+            <small>Power Level</small>
           </button>
           <span className={`hud-stat flame${st.weekNow >= st.weekGoal ? " lit" : ""}`} title="Wochen in Folge mit erreichtem Wochenziel">
-            <Flame size={18} aria-hidden="true" />
+            <Flame size={16} aria-hidden="true" />
             <b>{st.streak}</b>
             <span className="sr-only"> Wochen Flamme</span>
           </span>
           <CloudBadge />
           <button type="button" className="hud-me" onClick={() => go("profil")} aria-label="Profil und Einstellungen">
-            <Settings size={18} />
+            <Settings size={17} />
           </button>
         </div>
       </header>
@@ -222,28 +230,44 @@ export default function ArcApp() {
         {page}
       </main>
 
+      {/* Sections by their kanji; logging a training is pressing the dōjō's seal. */}
       <nav className="nav" aria-label="Hauptnavigation">
-        <NavItem route="heute" current={route} icon={<Home size={20} />} label="Heute" />
-        <NavItem route="karte" current={route === "meer" ? "karte" : route} icon={<MapIcon size={20} />} label="Karte" />
+        <span className="nav-brand" aria-hidden="true">
+          <LogoMark />
+        </span>
+        <NavItem route="heute" current={route} kanji="今" label="Heute" />
+        <NavItem route="karte" current={route === "meer" ? "karte" : route} kanji="図" label="Karte" />
         <button type="button" className={`nav-log${route === "log" ? " on" : ""}`} aria-current={route === "log" ? "page" : undefined} onClick={() => go("log")}>
           <span className="stamp-btn" aria-hidden="true">
-            <Plus size={28} strokeWidth={2.6} />
+            記
           </span>
-          <span>Eintragen</span>
+          <span className="nl">Eintragen</span>
         </button>
-        <NavItem route="codex" current={route} icon={<BookOpen size={20} />} label="Codex" />
-        <NavItem route="held" current={route} icon={<UserRound size={20} />} label="Held" />
+        <NavItem route="codex" current={route} kanji="書" label="Codex" />
+        <NavItem route="held" current={route} kanji="武" label="Held" />
       </nav>
+      <InkVeil route={route} />
     </div>
   );
 }
 
-function NavItem({ route, current, icon, label }: { route: Route; current: Route; icon: ReactNode; label: string }) {
+function LogoMark() {
+  return (
+    <svg className="logo-mark" viewBox="0 0 512 512" aria-hidden="true">
+      <polygon points="256,86 403,171 403,341 256,426 109,341 109,171" fill="none" stroke="currentColor" strokeWidth="30" strokeLinejoin="round" />
+      <path d="M256 160 L282 230 L352 256 L282 282 L256 352 L230 282 L160 256 L230 230 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function NavItem({ route, current, kanji, label }: { route: Route; current: Route; kanji: string; label: string }) {
   const on = route === current;
   return (
     <button type="button" className={`nav-item${on ? " on" : ""}`} aria-current={on ? "page" : undefined} onClick={() => go(route)}>
-      {icon}
-      <span>{label}</span>
+      <span className="nk" aria-hidden="true">
+        {kanji}
+      </span>
+      <span className="nl">{label}</span>
     </button>
   );
 }

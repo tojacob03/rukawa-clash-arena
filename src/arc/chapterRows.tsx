@@ -1,5 +1,6 @@
 // Rows for the chapter end: what a training, competition or other sport moved.
 
+import { Blossom } from "./components/Blossom.tsx";
 import { Award, Flame, Gauge, HeartPulse, Swords, TrendingDown, TrendingUp } from "lucide-react";
 import type { ArcState, Competition } from "./core/types.ts";
 import type { Diff } from "./core/model.ts";
@@ -8,7 +9,7 @@ import { TECH } from "./core/techniques.ts";
 import { LEVELS, SEALS } from "./core/lore.ts";
 import { BODY } from "./core/sports.ts";
 import { signed } from "./format.ts";
-import { LvlStep, Star } from "./components/ui.tsx";
+import { LvlStep } from "./components/ui.tsx";
 
 const icon = 20;
 
@@ -29,7 +30,7 @@ function common(D: Diff, after: ArcState): ChapterRow[] {
   for (const l of ups) {
     rows.push({
       key: `lv-${l.id}`,
-      icon: <Star level={l.to} size={icon} />,
+      icon: <Blossom level={l.to} size={icon} />,
       text: (
         <>
           {l.to === 5 ? "Neue Tokui-Waza: " : ""}
@@ -41,7 +42,7 @@ function common(D: Diff, after: ArcState): ChapterRow[] {
   for (const l of D.dataLevels.filter((x) => x.to > x.from && !ups.some((u) => u.id === x.id))) {
     rows.push({
       key: `dl-${l.id}`,
-      icon: <Star level={l.to} size={icon} />,
+      icon: <Blossom level={l.to} size={icon} />,
       text: D.confirmed.includes(l.id) ? `${TECH[l.id].name}: Einschätzung bestätigt, Stufe ${l.to}` : `${TECH[l.id].name}: Stufe ${l.to} im Roll bewiesen`,
     });
   }
