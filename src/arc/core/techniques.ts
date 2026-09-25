@@ -154,12 +154,12 @@ const CAUTION_LEG = {
 
 export const TECHS: Technique[] = [
   // ── Fundament ──────────────────────────────────────────────────────────
-  f("f_shrimp", "Hüftflucht", "guard", ["Shrimp", "Ebi"]),
-  f("f_grips", "Griffkampf", "sub", ["Grip Fighting"]),
-  f("f_base", "Base & Gewicht", "ctrl", ["Base"]),
-  f("f_posture", "Haltung", "pass", ["Posture"]),
-  f("f_breakfall", "Fallschule", "stand", ["Ukemi", "Breakfall"]),
-  f("f_bridge", "Brücke", "def", ["Upa", "Bridge"]),
+  f("f_shrimp", "Shrimp", "guard", ["Hüftflucht", "Ebi"]),
+  f("f_grips", "Grip Fighting", "sub", ["Griffkampf", "Grips"]),
+  f("f_base", "Base", "ctrl", ["Base & Gewicht"]),
+  f("f_posture", "Posture", "pass", ["Haltung"]),
+  f("f_breakfall", "Breakfall", "stand", ["Fallschule", "Ukemi"]),
+  f("f_bridge", "Bridge", "def", ["Brücke", "Upa"]),
 
   // ── Guard ──────────────────────────────────────────────────────────────
   t("g_closed", "Closed Guard", "guard", "closed", 1, "position", ["f_shrimp"], { aka: ["Geschlossene Guard", "Guarda fechada"] }),
@@ -211,8 +211,8 @@ export const TECHS: Technique[] = [
   t("s_armbar_g", "Armbar aus der Guard", "sub", "arm", 1, "sub", ["f_grips"], { aka: ["Juji-gatame"] }),
   t("s_kimura", "Kimura", "sub", "arm", 2, "sub", ["s_americana"], { aka: ["Gyaku-ude-garami", "Double Wristlock"] }),
   t("s_armbar_m", "Armbar aus dem Mount", "sub", "arm", 2, "sub", ["s_armbar_g"]),
-  t("s_wrist", "Handgelenkhebel", "sub", "arm", 3, "sub", ["s_americana"], { aka: ["Wristlock"] }),
-  t("s_bicep", "Bizeps-Slicer", "sub", "arm", 3, "sub", ["s_armbar_g"], { aka: ["Biceps Slicer"] }),
+  t("s_wrist", "Wristlock", "sub", "arm", 3, "sub", ["s_americana"], { aka: ["Handgelenkhebel"] }),
+  t("s_bicep", "Biceps Slicer", "sub", "arm", 3, "sub", ["s_armbar_g"], { aka: ["Bizeps-Slicer", "Bicep Slicer"] }),
   t("s_kimtrap", "Kimura Trap", "sub", "arm", 3, "position", ["s_kimura"], { note: "Kimura-Griff als Kontrollsystem: Sweeps, Rückennahme und Finish aus einem Griff." }),
   t("s_flyarmbar", "Flying Armbar", "sub", "arm", 4, "sub", ["s_armbar_g"]),
 
@@ -281,10 +281,10 @@ export const TECHS: Technique[] = [
   t("c_spiral", "Spiral Ride", "ctrl", "ride", 4, "control", ["c_legride"]),
 
   // ── Passing ────────────────────────────────────────────────────────────
-  t("p_open", "Closed Guard öffnen", "pass", "open", 1, "pass", ["f_posture"], { aka: ["Guard Break"] }),
-  t("p_standbreak", "Guard Break im Stand", "pass", "open", 2, "pass", ["p_open"], { aka: ["Standing Guard Break"] }),
+  t("p_open", "Guard Break", "pass", "open", 1, "pass", ["f_posture"], { aka: ["Closed Guard öffnen", "Guard öffnen"] }),
+  t("p_standbreak", "Standing Guard Break", "pass", "open", 2, "pass", ["p_open"], { aka: ["Guard Break im Stand"] }),
 
-  t("p_pressure", "Druck & Gewicht", "pass", "pressure", 1, "movement", ["f_posture"], { aka: ["Pressure"] }),
+  t("p_pressure", "Pressure", "pass", "pressure", 1, "movement", ["f_posture"], { aka: ["Pressure Passing", "Druck & Gewicht"] }),
   t("p_kneecut", "Knee Cut", "pass", "pressure", 2, "pass", ["p_pressure"], { aka: ["Knee Slice"] }),
   t("p_overunder", "Over-Under Pass", "pass", "pressure", 2, "pass", ["p_pressure"]),
   t("p_doubleunder", "Double-Under Pass", "pass", "pressure", 2, "pass", ["p_pressure"], { aka: ["Stack Pass"] }),
@@ -298,10 +298,10 @@ export const TECHS: Technique[] = [
   t("p_toreando", "Toreando", "pass", "speed", 2, "pass", ["p_open"], { aka: ["Torreando", "Bullfighter Pass"] }),
   t("p_legdrag", "Leg Drag", "pass", "speed", 3, "pass", ["p_toreando"]),
   t("p_xpass", "X-Pass", "pass", "speed", 3, "pass", ["p_toreando"]),
-  t("p_chain", "Pass-Ketten", "pass", "speed", 4, "movement", ["p_legdrag"], { note: "Zwischen Pässen wechseln, sobald der Partner eine Seite zumacht." }),
+  t("p_chain", "Passing Chains", "pass", "speed", 4, "movement", ["p_legdrag"], { aka: ["Pass-Ketten"], note: "Zwischen Pässen wechseln, sobald der Partner eine Seite zumacht." }),
 
   // ── Stand ──────────────────────────────────────────────────────────────
-  t("t_stance", "Stand & Bewegung", "stand", "wrestle", 1, "movement", ["f_breakfall"], { aka: ["Stance & Motion"] }),
+  t("t_stance", "Stance & Motion", "stand", "wrestle", 1, "movement", ["f_breakfall"], { aka: ["Stance", "Stand & Bewegung"] }),
   t("t_double", "Double Leg", "stand", "wrestle", 2, "takedown", ["t_stance"]),
   t("t_single", "Single Leg", "stand", "wrestle", 2, "takedown", ["t_stance"]),
   t("t_snap", "Snap Down", "stand", "wrestle", 2, "takedown", ["t_stance"]),
@@ -330,7 +330,7 @@ export const TECHS: Technique[] = [
   t("t_jumpguard", "Jump Guard", "stand", "pull", 3, "position", ["t_pull"], { aka: ["Flying Guard"], caution: true, note: "Belastet die Knie des Partners. Nur abgesprochen, und in vielen Regelwerken eingeschränkt." }),
   t("t_imanari", "Imanari Roll", "stand", "pull", 4, "position", ["t_pull"], { note: "Rolle in eine Beinverknotung, benannt nach Masakazu Imanari." }),
 
-  t("t_techstand", "Aufstehen in Base", "stand", "clinch", 1, "movement", ["f_breakfall"], { aka: ["Technical Stand-up"] }),
+  t("t_techstand", "Technical Stand-up", "stand", "clinch", 1, "movement", ["f_breakfall"], { aka: ["Aufstehen in Base"] }),
   t("t_collartie", "Collar Tie", "stand", "clinch", 2, "position", ["t_stance"]),
   t("t_russian", "Russian Tie", "stand", "clinch", 3, "position", ["t_collartie"], { aka: ["2-on-1"] }),
   t("t_armdrag", "Arm Drag", "stand", "clinch", 3, "takedown", ["t_collartie"]),
@@ -352,7 +352,7 @@ export const TECHS: Technique[] = [
   t("d_sitout", "Sit-Out", "def", "back", 3, "escape", ["d_turtle"]),
   t("d_bodytri", "Body-Triangle-Escape", "def", "back", 4, "escape", ["d_back"]),
 
-  t("d_chokedef", "Würgeabwehr", "def", "sub", 2, "defense", ["f_bridge"], { aka: ["Hand Fighting"] }),
+  t("d_chokedef", "Choke-Verteidigung", "def", "sub", 2, "defense", ["f_bridge"], { aka: ["Hand Fighting", "Würgeabwehr"] }),
   t("d_armbardef", "Armbar-Verteidigung", "def", "sub", 2, "defense", ["f_bridge"]),
   t("d_hitchhiker", "Hitchhiker Escape", "def", "sub", 3, "escape", ["d_armbardef"]),
   t("d_tridef", "Triangle-Verteidigung", "def", "sub", 3, "defense", ["d_armbardef"], { aka: ["Posture & Stack"] }),
@@ -362,7 +362,7 @@ export const TECHS: Technique[] = [
 
   t("d_legdef", "Leglock-Verteidigung", "def", "leg", 3, "defense", ["d_frames"], { aka: ["Beine befreien"] }),
   t("d_heelhide", "Heel Hide", "def", "leg", 4, "defense", ["d_legdef"], { aka: ["Ferse verstecken"] }),
-  t("d_5050esc", "50/50-Befreiung", "def", "leg", 4, "escape", ["d_legdef"]),
+  t("d_5050esc", "50/50 Escape", "def", "leg", 4, "escape", ["d_legdef"], { aka: ["50/50-Befreiung"] }),
 ];
 
 export const TECH: Record<string, Technique> = Object.fromEntries(TECHS.map((x) => [x.id, x]));

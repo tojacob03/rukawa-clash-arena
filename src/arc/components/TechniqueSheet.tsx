@@ -42,7 +42,7 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelec
 
   return (
     <div className="sheet-body">
-      <SheetHead onClose={onClose} eyebrow={`${sectorName(x)}: ${branchName(x)}`} ring={`Ring ${ring.jp} (${ring.de})`} />
+      <SheetHead onClose={onClose} eyebrow={sectorName(x) === branchName(x) ? sectorName(x) : `${sectorName(x)}: ${branchName(x)}`} ring={`Ring ${ring.jp} (${ring.de})`} />
       <h3 className="sheet-title">{x.name}</h3>
       {x.aka.length ? <p className="aka">Auch bekannt als {x.aka.join(", ")}</p> : null}
       <div className="row wrap">
