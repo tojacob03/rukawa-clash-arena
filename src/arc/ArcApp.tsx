@@ -18,6 +18,8 @@ import Profil from "./pages/Profil.tsx";
 import Konto from "./pages/Konto.tsx";
 import Plan from "./pages/Plan.tsx";
 import Matte from "./pages/Matte.tsx";
+import Gym from "./pages/Gym.tsx";
+import Einladung from "./pages/Einladung.tsx";
 import { CloudBadge, CloudDialogs } from "./components/CloudDialogs.tsx";
 import Scouter from "./components/Scouter.tsx";
 import Avatar from "./components/Avatar.tsx";
@@ -26,6 +28,7 @@ import type { ScoutRequest } from "./scan.ts";
 import { normalizePlan, occurrences } from "./core/schedule.ts";
 import { buildPreview } from "./plan.ts";
 import { setBadge } from "./push.ts";
+import { useSocialPublish } from "./socialCard.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -38,6 +41,8 @@ const TITLES: Record<Route, string> = {
   konto: "Konto",
   plan: "Wochenplan",
   matte: "Auf der Matte",
+  gym: "Gym",
+  einladung: "Einladung",
 };
 
 export default function ArcApp() {
@@ -52,6 +57,8 @@ export default function ArcApp() {
     return () => window.removeEventListener("arc:scan", open);
   }, []);
   const g = useGear(data, st);
+  // Friends and the crew see your card; keep it current while that is switched on.
+  useSocialPublish(data, st, today);
 
   useEffect(() => {
     document.title = data.profile ? `${TITLES[route]} – ${APP_NAME}` : APP_NAME;
@@ -137,6 +144,10 @@ export default function ArcApp() {
       <Konto data={data} />
     ) : route === "plan" ? (
       <Plan data={data} />
+    ) : route === "gym" ? (
+      <Gym {...props} />
+    ) : route === "einladung" ? (
+      <Einladung {...props} arg={arg} />
     ) : (
       <Today {...props} />
     );

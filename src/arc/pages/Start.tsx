@@ -92,7 +92,10 @@ export default function Start({ today }: { today: string }) {
       mode,
     );
     if (account) {
-      afterSignIn("heute");
+      // Came in through an invitation link: back to it after signing in.
+      const invite = /^#\/einladung\/([^/]+)$/.exec(window.location.hash);
+      if (invite) afterSignIn("einladung", decodeURIComponent(invite[1]));
+      else afterSignIn("heute");
       go("konto");
     }
   };

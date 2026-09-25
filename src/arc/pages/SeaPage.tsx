@@ -9,6 +9,7 @@ import {
   Map as MapIcon,
   Sailboat,
   Swords,
+  Users,
   Wind,
 } from "lucide-react";
 import type { ArcData, ArcState, FlagDesign, SeaId } from "../core/types.ts";
@@ -59,6 +60,10 @@ import ItemIcon from "../components/ItemIcon.tsx";
 import CrewFlag from "../components/CrewFlag.tsx";
 import Ship from "../components/ShipArt.tsx";
 import { HeroKoma, Seg } from "../components/ui.tsx";
+import CrewView from "./Crew.tsx";
+import { cloudConfigured } from "../cloud/state.ts";
+import { useSocial } from "../cloud/social.ts";
+import { shipsOf } from "../socialCard.ts";
 
 export function MapSwitch({ value }: { value: "karte" | "meer" }) {
   return (
@@ -74,7 +79,7 @@ export function MapSwitch({ value }: { value: "karte" | "meer" }) {
   );
 }
 
-type View = "karte" | "schiff" | "logbuch";
+type View = "karte" | "schiff" | "logbuch" | "crew";
 const VIEWS: { id: View; label: string; icon: ReactNode }[] = [
   {
     id: "karte",
@@ -91,6 +96,10 @@ const VIEWS: { id: View; label: string; icon: ReactNode }[] = [
     label: "Logbuch",
     icon: <BookOpen size={16} aria-hidden="true" />,
   },
+  // Crew and friends need the server.
+  ...(cloudConfigured
+    ? [{ id: "crew" as const, label: "Crew", icon: <Users size={16} aria-hidden="true" /> }]
+    : []),
 ];
 
 export default function SeaPage({
@@ -105,7 +114,15 @@ export default function SeaPage({
   arg: string | null;
 }) {
   const p = data.profile!;
-  const view: View = arg === "schiff" || arg === "logbuch" ? arg : "karte";
+  const view: View =
+    arg === "schiff" || arg === "logbuch" || (arg === "crew" && cloudConfigured)
+      ? arg
+      : "karte";
+  const social = useSocial();
+  const others = useMemo(
+    () => shipsOf(social.me?.id ?? null, social.crew, social.friends),
+    [social.me, social.crew, social.friends],
+  );
   const sea = p.homeSea ?? DEFAULT_SEA;
   const r = route(sea);
   const current = rankIndex(p.belt, p.stripes);
@@ -172,6 +189,8 @@ export default function SeaPage({
         <ShipView data={data} st={st} today={today} wx={wx} />
       ) : view === "logbuch" ? (
         <LogView data={data} today={today} />
+      ) : view === "crew" ? (
+        <CrewView data={data} st={st} today={today} />
       ) : (
         <ChartView
           data={data}
@@ -181,6 +200,7 @@ export default function SeaPage({
           expl={expl}
           progress={pas.idx === current ? pas.progress : 0}
           wx={wx}
+          others={others}
           avatar={
             <Avatar
               look={g.character.look}

@@ -503,7 +503,7 @@ p { text-wrap: pretty; }
   pointer-events: none;
   user-select: none;
 }
-.sec-title h2 { margin: 0; font-family: var(--f-d); font-weight: 400; font-size: clamp(28px, 5vw, 44px); line-height: 1.08; }
+.sec-title h2 { margin: 0; font-family: var(--f-d); font-weight: 400; font-size: clamp(28px, 5vw, 44px); line-height: 1.08; hyphens: auto; overflow-wrap: break-word; }
 .sec-title .lede { position: relative; }
 
 /* ── Start and onboarding ─────────────────────────────────────────────── */
@@ -1495,3 +1495,88 @@ button.item:hover { background-color: var(--ink-4); }
   .sea-page .map-stats { min-width: 0; max-width: 100%; flex-wrap: nowrap; overflow-x: auto; gap: 6px 14px; padding-bottom: 2px; font-size: 13px; white-space: nowrap; scrollbar-width: none; }
   .sea-page .map-stats::-webkit-scrollbar { display: none; }
 }
+
+/* ── Crew, Freundeskreis, Gym ─────────────────────────────────────────── */
+.crew-view, .gym-page, .invite-page { display: grid; gap: 22px; align-content: start; }
+.crew-view > *, .gym-page > *, .invite-page > * { min-width: 0; }
+.social-step { display: grid; gap: 12px; justify-items: start; max-width: 720px; }
+.social-step .field { width: 100%; max-width: 420px; }
+.shown-to { display: grid; gap: 10px; width: 100%; padding: 12px 0; border-top: 2px solid var(--ink); border-bottom: 1.5px solid var(--ink-3); }
+.shown-to p { margin: 0; }
+.shown-to .ch-name { display: inline-flex; align-items: center; gap: 6px; }
+@media (min-width: 760px) { .shown-to { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
+.social-inline { align-items: flex-end; }
+.field.grow { flex: 1 1 220px; }
+.field input.code-field { max-width: 220px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.field input.code-field::placeholder { font-weight: 400; letter-spacing: 0.08em; }
+.confirm-row { padding: 8px 10px; border: 2px solid var(--beni); background: var(--beni-soft); }
+.plain-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.peers { display: grid; margin: 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
+.peer { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 2px; border-bottom: 1.5px solid var(--ink-3); }
+.peer-head { display: grid; place-items: center; overflow: hidden; border: 2px solid var(--ink); border-radius: 50%; background: var(--paper-2, var(--paper-3)); }
+.peer-head svg { display: block; width: 100%; height: 100%; }
+.peer-head.none { font-family: var(--f-d); font-size: 22px; color: var(--ink-2); }
+.peer-main { display: grid; gap: 2px; min-width: 0; }
+.peer-main p { margin: 0; }
+.peer-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-weight: 800; overflow-wrap: anywhere; }
+.peer-tag { padding: 0 6px; border: 1.5px solid var(--ink); font-size: 12px; font-weight: 700; }
+.peer-side { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; color: var(--ink-2); }
+.peer-side .week-done { color: var(--ink); font-weight: 800; }
+.peer-flame { display: inline-flex; align-items: center; gap: 3px; font-weight: 700; }
+.peer-flame.lit { color: var(--ink); }
+.peer-flame.lit svg { color: var(--beni); }
+.peer-act { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+@media (max-width: 520px) {
+  .peer { grid-template-columns: 48px minmax(0, 1fr); }
+  .peer-head { width: 48px !important; height: 48px !important; }
+  .peer-act { grid-column: 2; justify-content: flex-start; }
+}
+
+.code-box { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border: 2px dashed var(--ink); background: var(--paper-3); }
+.code-box p { margin: 0; }
+.code-big { font-family: var(--f-d); font-size: clamp(26px, 7vw, 34px); letter-spacing: 0.12em; line-height: 1.1; overflow-wrap: anywhere; }
+
+.crew-start { display: grid; gap: 12px; }
+.crew-start > p { margin: 0; max-width: 62ch; }
+.crew-choices { display: grid; gap: 14px; }
+.crew-choices .panel { display: grid; gap: 12px; align-content: start; justify-items: start; }
+.crew-choices .field { width: 100%; }
+.crew-choices .h3 { display: inline-flex; align-items: center; gap: 8px; }
+@media (min-width: 760px) { .crew-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.crew-hero, .gym-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; }
+.crew-hero .crew-flag { flex: none; filter: drop-shadow(4px 4px 0 var(--shade)); }
+.crew-hero-main { display: grid; gap: 8px; flex: 1 1 260px; min-width: 0; }
+.crew-hero-main p, .gym-hero p { margin: 0; }
+.crew-name { margin: 0; font-family: var(--f-d); font-weight: 400; font-size: clamp(28px, 7vw, 44px); line-height: 1.05; overflow-wrap: anywhere; }
+.crew-week { display: grid; gap: 6px; max-width: 420px; }
+.crew-bar { height: 16px; }
+.crew-admin { justify-items: start; }
+.crew-admin .linkish, .gym-page .linkish { display: inline-flex; align-items: center; gap: 6px; }
+.friends .incoming, .friends .outgoing { display: grid; gap: 6px; }
+.friends .incoming .ch-name, .friends .outgoing .ch-name { margin: 0; }
+.friends .outgoing li { padding: 4px 2px; border-bottom: 1.5px solid var(--ink-3); }
+.gym-hint { margin: 0; }
+.social-settings { justify-items: start; }
+.social-settings .social-inline { width: 100%; max-width: 560px; }
+
+.gym-hero > svg { flex: none; }
+.gym-hero p { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.gym-days { display: grid; gap: 12px; }
+@media (min-width: 640px) { .gym-days { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.gym-days .ch-name { margin: 0 0 6px; }
+.gym-slots li { overflow-wrap: anywhere; }
+.gym-slots b { font-variant-numeric: tabular-nums; }
+.gym-join { display: grid; gap: 10px; }
+.gym-join p, .gym-page .plain-sec > p { margin: 0; }
+.gym-hits li { padding: 6px 2px; border-bottom: 1.5px solid var(--ink-3); overflow-wrap: anywhere; }
+.gym-new { display: grid; gap: 12px; justify-items: start; }
+.gym-new .social-inline { width: 100%; }
+.invite-card { display: grid; gap: 10px; justify-items: start; max-width: 560px; }
+.invite-card p { margin: 0; }
+
+.social-strip { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border: 2px solid var(--ink); border-left: 8px solid var(--gold); background: var(--paper-3); }
+.social-strip li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; }
+.social-strip li + li { border-top: 1.5px solid var(--ink-3); }
+.social-strip p { flex: 1 1 200px; margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.social-strip b { font-weight: 800; }

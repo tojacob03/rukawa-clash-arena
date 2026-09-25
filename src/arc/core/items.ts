@@ -247,16 +247,18 @@ export const ITEMS: ItemDef[] = [
 ];
 
 /** Items that depend on the profile or on progress: flags and Tokui patches. */
+/** A flag or Tokui patch from its id alone ("flag:DE", "tokui:armbar"), e.g. on a friend's avatar. */
+export function dynamicItem(id: string): ItemDef | undefined {
+  const [kind, code = ""] = id.split(":");
+  const has = (o: object) => Object.prototype.hasOwnProperty.call(o, code);
+  if (kind === "flag" && has(COUNTRY)) return I(id, `Flagge ${COUNTRY[code].name}`, "patch", "common", { t: "country", code }, "Aus deinem Steckbrief.", { emblem: "flag", code });
+  if (kind === "tokui" && has(TECH)) return I(id, `Tokui-Aufnäher: ${TECH[code].name}`, "patch", "legendary", { t: "tokui", tech: code }, "Für eine Technik auf Tokui-Waza-Stufe.", { emblem: "tokui", code });
+  return undefined;
+}
+
 export function dynamicItems(data: ArcData, st: ArcState): ItemDef[] {
-  const out: ItemDef[] = [];
-  for (const code of data.profile?.countries ?? []) {
-    const c = COUNTRY[code];
-    if (c) out.push(I(`flag:${code}`, `Flagge ${c.name}`, "patch", "common", { t: "country", code }, "Aus deinem Steckbrief.", { emblem: "flag", code }));
-  }
-  for (const id of st.tokui) {
-    out.push(I(`tokui:${id}`, `Tokui-Aufnäher: ${TECH[id].name}`, "patch", "legendary", { t: "tokui", tech: id }, "Für eine Technik auf Tokui-Waza-Stufe.", { emblem: "tokui", code: id }));
-  }
-  return out;
+  const ids = [...(data.profile?.countries ?? []).map((c) => `flag:${c}`), ...st.tokui.map((t) => `tokui:${t}`)];
+  return ids.map(dynamicItem).filter((x): x is ItemDef => !!x);
 }
 
 export const ITEM = Object.fromEntries(ITEMS.map((x) => [x.id, x])) as Record<string, ItemDef>;

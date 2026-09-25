@@ -94,12 +94,19 @@ Im Code fertig: Wochenplan, Benachrichtigungen (Web Push), E-Mail, Kalender-Date
    Beim nächsten Lauf meldet die Function „Mail bereit“, und der Wochenplan bietet E-Mail an. Der kostenlose Tarif reicht für 100 Mails am Tag.
 3. **Prüfen:** Im Wochenplan „Test-Erinnerung schicken“. Fehlgeschlagene Läufe stehen in `cron.job_run_details`, Details in den Logs der Function.
 
-## 9. Registrierung einschalten (zuletzt)
+## 9. Crew, Freundeskreis und Gym
+
+Im Code fertig. Solange die Migration fehlt, zeigt der Crew-Reiter „Crew und Freundeskreis sind auf dem Server noch nicht eingerichtet.“, alles andere läuft normal.
+
+1. **Migration anwenden:** `supabase/migrations/20260926120000_arc_social.sql` (legt nur neue Tabellen und Funktionen an, ändert nichts Bestehendes). Sie wurde vorher in einer zurückgerollten Transaktion auf der echten Datenbank durchgespielt.
+2. **Prüfen:** zwei Konten, im einen unter Seekarte → Crew einschalten und eine Crew gründen, den Link ans andere schicken, beitreten; im Gym-Bereich ein Gym anlegen und mit dem Code beitreten.
+
+## 10. Registrierung einschalten (zuletzt)
 
 Authentication → Sign In / Providers → **Allow new users to sign up:** an.
 
 Danach einmal selbst durchspielen: auf `https://rukawaanalytics.com/arc/` im Profil „Anmelden oder Konto erstellen“, mit Code anmelden, im Konto einen Passkey und den zweiten Faktor hinzufügen, auf einem zweiten Gerät anmelden und ein Training eintragen.
 
-## 10. Datenschutzerklärung
+## 11. Datenschutzerklärung
 
-Die Seite `/datenschutz` des Portfolios braucht einen Abschnitt zu Waza Arc: welche Daten mit Konto gespeichert werden (Anmeldedaten, Trainingsdaten), wo (Supabase, Frankfurt), wozu (Sicherung und Abgleich zwischen Geräten), welche Anbieter bei der Anmeldung beteiligt sein können (Google, Apple, Discord, GitHub, Cloudflare bei aktiviertem CAPTCHA), wie lange (bis zur Löschung des Kontos) und wie man das Konto löscht (in der App unter Konto). Für Erinnerungen dazu: Der Server liest den Wochenplan, speichert pro Gerät die Push-Adresse beim Push-Dienst des Browsers (Google, Apple, Mozilla oder Microsoft stellen die Nachricht zu), Mails verschickt Resend, das Versandprotokoll wird nach 30 Tagen gelöscht. Den Text sollte jemand prüfen, der sich mit der DSGVO auskennt.
+Die Seite `/datenschutz` des Portfolios braucht einen Abschnitt zu Waza Arc: welche Daten mit Konto gespeichert werden (Anmeldedaten, Trainingsdaten), wo (Supabase, Frankfurt), wozu (Sicherung und Abgleich zwischen Geräten), welche Anbieter bei der Anmeldung beteiligt sein können (Google, Apple, Discord, GitHub, Cloudflare bei aktiviertem CAPTCHA), wie lange (bis zur Löschung des Kontos) und wie man das Konto löscht (in der App unter Konto). Für Erinnerungen dazu: Der Server liest den Wochenplan, speichert pro Gerät die Push-Adresse beim Push-Dienst des Browsers (Google, Apple, Mozilla oder Microsoft stellen die Nachricht zu), Mails verschickt Resend, das Versandprotokoll wird nach 30 Tagen gelöscht. Für Crew, Freundeskreis und Gym dazu: nur nach Einschalten; gespeichert werden der gewählte Name, eine Karte mit Spielwerten (Gurt, Level, Power Level, Flamme, Kopfgeld, Trainings dieser Woche, Avatar, Schiff und Position auf der Seekarte), auf Wunsch die Trainingszeiten (Tag, Uhrzeit, Dauer, Sportart), Freundschaften, Crew- und Gym-Mitgliedschaft; sichtbar nur für Befreundete, die eigene Crew und sichtbare Leute aus dem eigenen Gym; gelöscht beim Ausschalten oder mit dem Konto. Den Text sollte jemand prüfen, der sich mit der DSGVO auskennt.

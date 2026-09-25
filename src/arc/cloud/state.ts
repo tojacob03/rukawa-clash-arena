@@ -85,21 +85,22 @@ const AFTER_SIGN_IN_KEY = "waza-arc.after-sign-in";
 const AFTER_SIGN_IN_TTL = 30 * 60 * 1000;
 
 /** Where to go once the next sign-in succeeds, e.g. back to the Dōjō after creating a character. Survives the provider redirect. */
-export function afterSignIn(route: Route) {
+export function afterSignIn(route: Route, arg?: string) {
   try {
-    window.sessionStorage.setItem(AFTER_SIGN_IN_KEY, JSON.stringify({ route, at: Date.now() }));
+    window.sessionStorage.setItem(AFTER_SIGN_IN_KEY, JSON.stringify({ route, arg, at: Date.now() }));
   } catch {
     /* storage blocked: stay on the account page */
   }
 }
 
 /** The pending target, read once. Stale entries (an abandoned sign-in) are dropped. */
-export function takeAfterSignIn(): Route | null {
+export function takeAfterSignIn(): { route: Route; arg?: string } | null {
   try {
     const raw = window.sessionStorage.getItem(AFTER_SIGN_IN_KEY);
     window.sessionStorage.removeItem(AFTER_SIGN_IN_KEY);
-    const v = raw ? (JSON.parse(raw) as { route?: unknown; at?: unknown }) : null;
-    return v && typeof v.route === "string" && typeof v.at === "number" && Date.now() - v.at < AFTER_SIGN_IN_TTL ? (v.route as Route) : null;
+    const v = raw ? (JSON.parse(raw) as { route?: unknown; arg?: unknown; at?: unknown }) : null;
+    if (!v || typeof v.route !== "string" || typeof v.at !== "number" || Date.now() - v.at >= AFTER_SIGN_IN_TTL) return null;
+    return { route: v.route as Route, ...(typeof v.arg === "string" ? { arg: v.arg } : {}) };
   } catch {
     return null;
   }

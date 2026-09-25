@@ -137,8 +137,8 @@ export function useArcState(d: ArcData, today: string, attire?: Attire) {
   return useMemo(() => compute(d, today, attire ? { attire } : {}), [d, today, attire]);
 }
 
-export type Route = "heute" | "log" | "karte" | "meer" | "codex" | "held" | "profil" | "konto" | "plan" | "matte";
-const ROUTES: Route[] = ["heute", "log", "karte", "meer", "codex", "held", "profil", "konto", "plan", "matte"];
+export type Route = "heute" | "log" | "karte" | "meer" | "codex" | "held" | "profil" | "konto" | "plan" | "matte" | "gym" | "einladung";
+const ROUTES: Route[] = ["heute", "log", "karte", "meer", "codex", "held", "profil", "konto", "plan", "matte", "gym", "einladung"];
 
 function parseHash(): { route: Route; arg: string | null } {
   const parts = window.location.hash.replace(/^#\/?/, "").split("/");

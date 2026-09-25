@@ -329,6 +329,26 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
     else if (e.key === "s" || e.key === "S") toShip();
   };
 
+  const shipScale = clampN((view.fs / 12.5) * 0.34, 0.34, 0.9);
+  // Crew and friends: ships that would sit on top of yours or of each other
+  // move around the spot, so every ship stays visible. The gap grows with the
+  // ships when zoomed out.
+  const fleet = useMemo(() => {
+    const gap = 44 * (shipScale / 0.34);
+    const placed = [{ x: pos.x, y: pos.y }];
+    return others.map((o, i) => {
+      const p = shipPos(route(o.sea), o.island, o.progress);
+      let q = { x: p.x, y: p.y };
+      for (let k = 0; k < 16 && placed.some((z) => Math.hypot(z.x - q.x, (z.y - q.y) * 1.6) < gap); k++) {
+        const a = Math.PI * (0.75 + 0.5 * (k % 4)) + i * 0.3;
+        const rr = gap * (1 + Math.floor(k / 4) * 0.8);
+        q = { x: p.x + Math.cos(a) * rr, y: p.y + Math.sin(a) * rr * 0.6 };
+      }
+      placed.push(q);
+      return { ...q, left: p.left };
+    });
+  }, [others, pos.x, pos.y, shipScale]);
+
   // Which labels to show at this zoom, and where.
   const labels = useMemo(() => {
     const fs = view.fs;
@@ -345,17 +365,13 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
       const prio = here ? 100 : selected === is.id ? 90 : isNext ? 80 : special ? 60 : onRoute ? 40 - Math.abs(idx - marks.current) : 10;
       reqs.push({ id: is.id, text: is.name, x: is.x, y: is.y, prio, force: here || selected === is.id, above: !is.sea && is.y < CY });
     }
-    for (const o of others) {
-      const p = shipPos(route(o.sea), o.island, o.progress);
-      reqs.push({ id: `ship:${o.id}`, text: o.name, x: p.x, y: p.y - 4, prio: 50 });
-    }
+    others.forEach((o, i) => reqs.push({ id: `ship:${o.id}`, text: o.name, x: fleet[i].x, y: fleet[i].y - 4, prio: 50 }));
     const obstacles: Rect[] = [{ x0: pos.x - 34, y0: pos.y - 44, x1: pos.x + 34, y1: pos.y + 8 }];
     return placeLabels(reqs, fs, obstacles);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view.fs, marks.current, marks.sea, selected, others, pos.x, pos.y]);
+  }, [view.fs, marks.current, marks.sea, selected, others, fleet, pos.x, pos.y]);
 
   const hitR = Math.max(24, view.fs * 1.9);
-  const shipScale = clampN((view.fs / 12.5) * 0.34, 0.34, 0.9);
 
   return (
     <div className="sea-view" ref={boxRef} tabIndex={0} role="group" aria-label="Seekarte. Ziehen verschiebt, Mausrad oder zwei Finger zoomen. Mit Pfeiltasten verschieben, Plus und Minus zoomen, S zeigt dein Schiff, 0 die ganze Welt." onKeyDown={onKey}>
@@ -435,12 +451,11 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
 
         {/* Crew and friends */}
         {others.map((o, i) => {
-          const p = shipPos(route(o.sea), o.island, o.progress);
+          const p = fleet[i];
           const lbl = labels[`ship:${o.id}`];
-          const dx = ((i % 3) - 1) * 10;
           return (
             <g key={o.id} className={`other-ship${o.crew ? " crew" : ""}`}>
-              <g transform={`translate(${p.x + dx} ${p.y + 6}) scale(${p.left ? -shipScale * 0.7 : shipScale * 0.7} ${shipScale * 0.7}) translate(-100 -128)`}>
+              <g transform={`translate(${p.x} ${p.y + 6}) scale(${p.left ? -shipScale * 0.7 : shipScale * 0.7} ${shipScale * 0.7}) translate(-100 -128)`}>
                 <ShipArt belt={o.belt} sail={o.sail} flag={o.flag} />
               </g>
               {lbl ? (
