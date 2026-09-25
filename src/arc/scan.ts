@@ -26,7 +26,7 @@ export function selfRows(data: ArcData, st: ArcState, today: string): ScanRow[] 
   rows.push({ label: "Level", value: String(st.lvl) });
   rows.push({ label: "Klasse", value: p?.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name });
   const div = ageDivision(p?.birthYear, Number(today.slice(0, 4)));
-  if (div || p?.weightKg) rows.push({ label: "Division", value: [div?.name, p?.weightKg ? `${nf0.format(p.weightKg)} kg` : null].filter(Boolean).join(" · ") });
+  if (div || p?.weightKg) rows.push({ label: "Division", value: [div?.name, p?.weightKg ? `${nf0.format(p.weightKg)} kg` : null].filter(Boolean).join(", ") });
   if (st.comps.events) rows.push({ label: "Turnierbilanz", value: `${st.comps.w}-${st.comps.l}-${st.comps.d}` });
   rows.push({ label: "Kopfgeld", value: `${nf0.format(bounty(data, st))} G` });
   return rows;

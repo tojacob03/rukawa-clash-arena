@@ -9,6 +9,7 @@ import Start from "./pages/Start.tsx";
 import Today from "./pages/Today.tsx";
 import Log from "./pages/Log.tsx";
 import Turnier from "./pages/Turnier.tsx";
+import Nebensport from "./pages/Nebensport.tsx";
 import MapPage from "./pages/MapPage.tsx";
 import Codex from "./pages/Codex.tsx";
 import SeaPage from "./pages/SeaPage.tsx";
@@ -43,7 +44,7 @@ export default function ArcApp() {
   const g = useGear(data, st);
 
   useEffect(() => {
-    document.title = data.profile ? `${TITLES[route]} · ${APP_NAME}` : APP_NAME;
+    document.title = data.profile ? `${TITLES[route]} – ${APP_NAME}` : APP_NAME;
   }, [route, data.profile]);
 
   useEffect(() => {
@@ -58,6 +59,8 @@ export default function ArcApp() {
     route === "log" ? (
       arg === "turnier" ? (
         <Turnier key={`t${today}`} {...props} />
+      ) : arg === "nebensport" ? (
+        <Nebensport key={`n${today}`} {...props} />
       ) : (
         <Log key={today} {...props} />
       )
@@ -86,9 +89,7 @@ export default function ArcApp() {
             <polygon points="256,86 403,171 403,341 256,426 109,341 109,171" fill="none" stroke="currentColor" strokeWidth="30" strokeLinejoin="round" />
             <path d="M256 160 L282 230 L352 256 L282 282 L256 352 L230 282 L160 256 L230 230 Z" fill="currentColor" />
           </svg>
-          <span className="logo-word">
-            WAZA <b>ARC</b>
-          </span>
+          <span className="logo-word">Waza Arc</span>
         </button>
         <button type="button" className="hud-lv" onClick={() => go("held")} aria-label={`Level ${st.lvl}, ${rankOf(st.lvl)}. Zum Charakterbogen`}>
           <span className="hex-badge small">
@@ -106,25 +107,18 @@ export default function ArcApp() {
         </button>
         <div className="hud-stats">
           <button type="button" className="hud-stat pl" title="Power Level: Elo-Rating aus deinen Rolls, mal 10. Tippen öffnet den Scouter." onClick={() => setScan(true)}>
-            <small>Power</small>
+            <small>Power Level</small>
             <b>{power(st.ru)}</b>
           </button>
           <span className={`hud-stat flame${st.weekNow >= st.weekGoal ? " lit" : ""}`} title="Wochen in Folge mit erreichtem Wochenziel">
-            <Flame size={16} aria-hidden="true" />
+            <Flame size={18} aria-hidden="true" />
             <b>{st.streak}</b>
+            <span className="sr-only"> Wochen Flamme</span>
           </span>
           <button type="button" className="hud-me" onClick={() => go("profil")} aria-label="Profil und Einstellungen">
             <Settings size={18} />
           </button>
         </div>
-        {data.demo ? (
-          <p className="demo-flag">
-            Demo-Dōjō mit Beispieldaten ·{" "}
-            <button type="button" className="linkish" onClick={() => go("profil")}>
-              verlassen
-            </button>
-          </p>
-        ) : null}
       </header>
 
       {scan && data.profile ? (
@@ -136,21 +130,30 @@ export default function ArcApp() {
             tier: powerTier(st.ru),
             rows: selfRows(data, st, today),
             portrait: <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={data.profile.belt} stripes={data.profile.stripes} weightKg={data.profile.weightKg} size={180} still />,
-            foot: "Power Level = Elo aus Rolls und Turnierkämpfen × 10.",
+            foot: "Das Power Level ist dein Elo-Rating aus Rolls und Turnierkämpfen, mal zehn.",
           }}
         />
       ) : null}
       <main id="arc-main" className="main" tabIndex={-1}>
+        {data.demo ? (
+          <p className="demo-flag">
+            Du schaust dir das Demo-Dōjō mit Beispieldaten an.
+            <button type="button" className="linkish" onClick={() => go("profil")}>
+              Demo verlassen
+            </button>
+          </p>
+        ) : null}
         {page}
       </main>
 
       <nav className="nav" aria-label="Hauptnavigation">
         <NavItem route="heute" current={route} icon={<Home size={20} />} label="Heute" />
         <NavItem route="karte" current={route === "meer" ? "karte" : route} icon={<MapIcon size={20} />} label="Karte" />
-        <button type="button" className={`nav-log${route === "log" ? " on" : ""}`} onClick={() => go("log")} aria-label="Training eintragen">
-          <span>
-            <Plus size={26} />
+        <button type="button" className={`nav-log${route === "log" ? " on" : ""}`} aria-current={route === "log" ? "page" : undefined} onClick={() => go("log")}>
+          <span className="stamp-btn" aria-hidden="true">
+            <Plus size={28} strokeWidth={2.6} />
           </span>
+          <span>Eintragen</span>
         </button>
         <NavItem route="codex" current={route} icon={<BookOpen size={20} />} label="Codex" />
         <NavItem route="held" current={route} icon={<UserRound size={20} />} label="Held" />

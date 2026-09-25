@@ -26,7 +26,7 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelec
   if (n.fog) {
     return (
       <div className="sheet-body">
-        <SheetHead onClose={onClose} eyebrow={`${sectorName(x)} · ${ring.jp}`} />
+        <SheetHead onClose={onClose} eyebrow={`${sectorName(x)}, Ring ${ring.jp}`} />
         <h3 className="sheet-title">Unentdeckt</h3>
         <p className="muted">Dieser Stern liegt noch im Nebel. Er wird sichtbar, sobald du eine benachbarte Technik gesehen, gedrillt oder versucht hast.</p>
       </div>
@@ -42,9 +42,9 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelec
 
   return (
     <div className="sheet-body">
-      <SheetHead onClose={onClose} eyebrow={`${sectorName(x)} · ${branchName(x)} · ${ring.jp}`} />
+      <SheetHead onClose={onClose} eyebrow={`${sectorName(x)}: ${branchName(x)}`} ring={`Ring ${ring.jp} (${ring.de})`} />
       <h3 className="sheet-title">{x.name}</h3>
-      {x.aka.length ? <p className="aka">auch: {x.aka.join(" · ")}</p> : null}
+      {x.aka.length ? <p className="aka">Auch bekannt als {x.aka.join(", ")}</p> : null}
       <div className="row wrap">
         <LevelPill level={n.level} rust={n.rust} prov={n.prov} />
         <span className="pills">
@@ -78,7 +78,7 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelec
       {claimed ? (
         <div className="next claim">
           <p className="k">
-            Selbsteinschätzung: Stufe {n.claim} · {LEVELS[n.claim]}. Bewiesen ist Stufe {n.dataLevel}. Bestätige sie im Roll, dann gibt es die Stufen-XP:
+            Selbsteinschätzung: Stufe {n.claim}, {LEVELS[n.claim]}. Bewiesen ist Stufe {n.dataLevel}. Bestätige sie im Roll, dann gibt es die Stufen-XP:
           </p>
           <ul className="req">
             {req.map((r) => (
@@ -91,7 +91,7 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelec
       ) : n.level < 5 ? (
         <div className="next">
           <p className="k">
-            Für Stufe {n.level + 1} · {LEVELS[n.level + 1]}
+            Für Stufe {n.level + 1}, {LEVELS[n.level + 1]}
           </p>
           <ul className="req">
             {req.map((r) => (
@@ -192,10 +192,13 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelec
   );
 }
 
-function SheetHead({ eyebrow, onClose }: { eyebrow: string; onClose?: () => void }) {
+function SheetHead({ eyebrow, ring, onClose }: { eyebrow: string; ring?: string; onClose?: () => void }) {
   return (
     <div className="sheet-head">
-      <p className="eyebrow">{eyebrow}</p>
+      <div className="row wrap">
+        <p className="eyebrow">{eyebrow}</p>
+        {ring ? <span className="small muted">{ring}</span> : null}
+      </div>
       {onClose ? (
         <button type="button" className="icon-btn" aria-label="Schließen" onClick={onClose}>
           <X size={18} />

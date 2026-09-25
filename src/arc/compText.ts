@@ -3,7 +3,7 @@
 import type { CompMethod, CompResult } from "./core/types.ts";
 import { TECHS } from "./core/techniques.ts";
 
-export const ORGS = ["IBJJF", "AJP", "ADCC", "Grappling Industries", "NAGA", "Verband", "Hausturnier"];
+export const ORGS = ["IBJJF", "AJP", "ADCC", "AGF", "Grappling Industries", "NAGA", "Verband", "Hausturnier"];
 export const WEIGHTS = ["-57,5 kg", "-64 kg", "-70 kg", "-76 kg", "-82,3 kg", "-88,3 kg", "-94,3 kg", "-100,5 kg", "+100,5 kg", "Absolute"];
 export const RESULTS: { v: CompResult; label: string }[] = [
   { v: "win", label: "Sieg" },

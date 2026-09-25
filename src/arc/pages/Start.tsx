@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChevronDown, Sparkles, Wand2 } from "lucide-react";
-import type { Attire, Belt as BeltId, ClassId, Look, SeaId, Slot } from "../core/types.ts";
+import type { Attire, Belt as BeltId, ClassId, Look, SeaId, Slot, SportId } from "../core/types.ts";
 import { DEFAULT_SEA } from "../core/sea.ts";
 import type { ItemDef } from "../core/items.ts";
 import { DEFAULT_EQUIP, ITEM } from "../core/items.ts";
@@ -14,8 +14,9 @@ import { createProfile, loadDemo } from "../actions.ts";
 import { DEFAULT_LOOK } from "../avatarOptions.ts";
 import { ageDivision } from "../character.ts";
 import Avatar from "../components/Avatar.tsx";
-import { ClassPicker, CountryPicker, LookEditor, SeaPicker } from "../components/CharacterForms.tsx";
-import { Belt, Seg, Stepper } from "../components/ui.tsx";
+import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SportsPicker } from "../components/CharacterForms.tsx";
+import { SPORT } from "../core/sports.ts";
+import { Belt, HeroKoma, Seg, Stepper } from "../components/ui.tsx";
 
 type Step = "hello" | "steckbrief" | "rang" | "klasse" | "aussehen" | "technik";
 const STEPS: Step[] = ["steckbrief", "rang", "klasse", "aussehen", "technik"];
@@ -44,6 +45,7 @@ export default function Start({ today }: { today: string }) {
   const [look, setLook] = useState<Look>(DEFAULT_LOOK);
   const [mode, setMode] = useState<Attire>("gi");
   const [marks, setMarks] = useState<Record<string, Mark> | null>(null);
+  const [sports, setSports] = useState<{ id: SportId; since?: number }[]>([]);
 
   const year = Number(today.slice(0, 4));
   const byRaw = parseNum(birthYear, year - 90, year - 4);
@@ -52,7 +54,7 @@ export default function Start({ today }: { today: string }) {
   const idx = STEPS.indexOf(step);
   const next = () => {
     const n = STEPS[idx + 1];
-    if (n === "technik" && !marks) setMarks(preset(belt, stripes));
+    if (n === "technik" && !marks) setMarks(preset(belt, stripes, sports));
     if (n) setStep(n);
     window.scrollTo({ top: 0 });
   };
@@ -76,6 +78,7 @@ export default function Start({ today }: { today: string }) {
         trainingSince: since || undefined,
         cls,
         homeSea: sea,
+        sports,
       },
       today,
       known,
@@ -88,27 +91,30 @@ export default function Start({ today }: { today: string }) {
   if (step === "hello") {
     return (
       <main className="start">
-        <div className="start-burst" aria-hidden="true" />
-        <p className="start-kanji" aria-hidden="true">
-          技
-        </p>
-        <h1 className="start-title">
-          <span>WAZA</span> <span className="gold">ARC</span>
-        </h1>
-        <p className="start-sub">
-          Dein BJJ-Training als RPG. Nach dem Training trägst du in einer halben Minute ein, was passiert ist. Im Training zählst du nur eine Sache mit: deine
-          Tagesquest. Daraus wird eine Sternkarte mit {TECHS.length} Techniken, ein Charakter mit Ausrüstung, eine Seekarte deiner Reise und dein Power Level.
-        </p>
-        <div className="start-actions">
-          <button type="button" className="btn primary big" onClick={() => setStep("steckbrief")}>
-            <span>Charakter erstellen</span>
-          </button>
-          <button type="button" className="btn ghost big" onClick={() => loadDemo(today)}>
-            <Sparkles size={16} aria-hidden="true" />
-            <span>Demo-Dōjō ansehen</span>
-          </button>
+        <div className="cover">
+          <div className="cover-art" aria-hidden="true">
+            <p className="cover-kanji">技</p>
+          </div>
+          <div className="cover-text">
+            <h1 className="start-title">
+              Waza <span className="gold">Arc</span>
+            </h1>
+            <p className="start-sub">
+              Dein BJJ-Training als RPG. Nach dem Training trägst du in einer halben Minute ein, was passiert ist. Im Training zählst du nur eine Sache mit, deine
+              Tagesquest. Daraus entstehen eine Sternkarte mit {TECHS.length} Techniken, ein Charakter mit Ausrüstung, eine Seekarte deiner Reise und dein Power Level.
+            </p>
+            <div className="start-actions">
+              <button type="button" className="btn primary big" onClick={() => setStep("steckbrief")}>
+                <span>Charakter erstellen</span>
+              </button>
+              <button type="button" className="btn big" onClick={() => loadDemo(today)}>
+                <Sparkles size={18} aria-hidden="true" />
+                <span>Demo-Dōjō ansehen</span>
+              </button>
+            </div>
+            <p className="start-note">Deine Daten bleiben in diesem Browser. Im Profil kannst du sie jederzeit exportieren.</p>
+          </div>
         </div>
-        <p className="start-note">Deine Daten bleiben in diesem Browser. Über das Profil kannst du sie jederzeit exportieren.</p>
       </main>
     );
   }
@@ -159,6 +165,11 @@ export default function Start({ today }: { today: string }) {
           <small className="muted">Jedes Land wird ein Aufnäher für Gi und Rashguard. Das erste kommt auf die Schulter.</small>
         </div>
         <div className="field">
+          <span className="fl">Weitere Sportarten (optional)</span>
+          <SportsPicker value={sports} onChange={setSports} />
+          <small className="muted">Mit Ringen, Judo oder Sambo im Hintergrund füllt die App deine Stand-Techniken später als „klappt im Roll“ vor.</small>
+        </div>
+        <div className="field">
           <span className="fl">Heimatmeer</span>
           <SeaPicker value={sea} onChange={setSea} />
           <small className="muted">Hier beginnt deine Reise auf der Seekarte. Jeder Streifen ist eine Insel.</small>
@@ -199,21 +210,23 @@ export default function Start({ today }: { today: string }) {
             <Seg value={goal} onChange={(v) => setGoal(v)} label="Wochenziel" options={[1, 2, 3, 4, 5].map((v) => ({ v, label: String(v) }))} />
           </div>
         </div>
-        <section className="prolog">
-          <span className="hex-badge">
-            <b>{lvl}</b>
-            <small>LV</small>
-          </span>
-          <div>
-            <p className="eyebrow">Prolog</p>
-            <p className="prolog-line">
-              Du startest als <b>{rankOf(lvl)}</b> auf Level {lvl}
-            </p>
-            <p className="muted small">
-              {nf0.format(prologXp(belt, stripes))} XP für die Zeit vor der App · Power Level {power(BELT_R[belt] + 20 * stripes)} · {BELT[belt].name}gurt, {stripes} Streifen
-            </p>
+        <HeroKoma className="prolog-card" label="Prolog">
+          <div className="prolog">
+            <span className="hex-badge big" aria-hidden="true">
+              <b>{lvl}</b>
+            </span>
+            <div>
+              <p className="eyebrow">Prolog</p>
+              <p className="prolog-line">
+                Du startest als <b>{rankOf(lvl)}</b> auf Level {lvl}.
+              </p>
+              <p className="muted small">
+                {nf0.format(prologXp(belt, stripes))} XP für die Zeit vor der App und ein Power Level von {power(BELT_R[belt] + 20 * stripes)} als {BELT[belt].name}gurt mit {stripes}{" "}
+                Streifen.
+              </p>
+            </div>
           </div>
-        </section>
+        </HeroKoma>
         <p className="muted small">Das Wochenziel hält deine Flamme am Leben. Pausen wegen Verletzung kannst du später markieren.</p>
         <Nav back={back} next={next} ok />
       </main>
@@ -302,7 +315,7 @@ function TechStep({
           options={([2, 3, 4] as Mark[]).map((v) => ({ v, label: <span className={`brush b${v}`}>{MARK_NAME[v]}</span> }))}
         />
         <p className="counter">
-          {count(2)} kenne · {count(3)} klappt · {strengths}/{MAX_STRENGTHS} Stärken
+          {count(2)} kenne ich, {count(3)} klappen, {strengths} von {MAX_STRENGTHS} Stärken
         </p>
       </div>
       <div className="row wrap">
@@ -382,9 +395,12 @@ function Nav({ back, next, ok, hint }: { back: () => void; next: () => void; ok:
   );
 }
 
-function preset(belt: BeltId, stripes: number): Record<string, Mark> {
+function preset(belt: BeltId, stripes: number, sports: { id: SportId }[] = []): Record<string, Mark> {
   const depth = presetDepth(belt, stripes);
-  return Object.fromEntries(TECHS.filter((x) => x.tier <= depth).map((x) => [x.id, 2 as Mark]));
+  const out: Record<string, Mark> = Object.fromEntries(TECHS.filter((x) => x.tier <= depth).map((x) => [x.id, 2 as Mark]));
+  // A wrestling, judo or sambo background: stand-up basics already work live.
+  if (sports.some((s) => SPORT[s.id].grappling)) for (const x of TECHS) if (x.sector === "stand" && x.tier <= 2) out[x.id] = 3;
+  return out;
 }
 
 function previewGear(country?: string): Partial<Record<Slot, ItemDef>> {

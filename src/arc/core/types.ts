@@ -13,6 +13,7 @@ export type ClassId = "netzweber" | "druckwalze" | "anker" | "schatten" | "jaege
 export type Slot = "gi" | "top" | "bottom" | "head" | "extra" | "trait" | "talisman" | "aura" | "patch1" | "patch2" | "patch3";
 export type Rarity = "common" | "rare" | "epic" | "legendary";
 export type SeaId = "frost" | "morgen" | "abend" | "glut";
+export type SportId = "ringen" | "judo" | "sambo" | "kraft" | "ausdauer" | "striking" | "mma" | "mobility";
 
 /** Character look. Indices point into the palettes and option lists in avatarOptions.ts; *Hex fields are custom colours. */
 export interface Look {
@@ -161,6 +162,21 @@ export interface Competition {
   createdAt: number;
 }
 
+/** A session of another sport (strength, wrestling, running …). */
+export interface CrossSession {
+  id: string;
+  date: string;
+  sport: SportId;
+  minutes: number;
+  /** 1 easy, 2 medium, 3 hard. */
+  intensity: number;
+  /** Stand-up technique drilled or tried (grappling sports only). */
+  tech?: string | null;
+  att?: number;
+  succ?: number;
+  createdAt: number;
+}
+
 export interface Profile {
   name: string;
   belt: Belt;
@@ -180,6 +196,10 @@ export interface Profile {
   cls?: ClassId;
   /** Home sea on the sea chart (white belt route). */
   homeSea?: SeaId;
+  /** Other sports, with the year you started. */
+  sports?: { id: SportId; since?: number }[];
+  /** Weight classes typed in for competitions, offered again next time. */
+  weightClasses?: string[];
 }
 
 export interface Promotion {
@@ -211,6 +231,7 @@ export interface ArcData {
   };
   character?: Character;
   competitions?: Competition[];
+  cross?: CrossSession[];
   demo?: boolean;
 }
 
@@ -296,6 +317,8 @@ export interface ArcState {
   activeCombos: number;
   seals: { id: string; got: boolean }[];
   arc: { index: number; week: number };
+  /** Body values 0 … 100 from other sports in the last 8 weeks. */
+  body: { kraft: number; ausdauer: number; beweglichkeit: number; week: number; total: number };
   /** Competition record. */
   comps: { events: number; w: number; l: number; d: number; subs: number; medals: [number, number, number] };
 }

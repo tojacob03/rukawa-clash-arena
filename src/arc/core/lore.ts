@@ -121,4 +121,5 @@ export const SEALS: { id: string; name: string; desc: string }[] = [
   { id: "both", name: "Beide Welten", desc: "Je fünf Trainings im Gi und im No-Gi." },
   { id: "arena", name: "Arena", desc: "Das erste Turnier eingetragen." },
   { id: "podium", name: "Podest", desc: "Eine Medaille auf einem Turnier." },
+  { id: "cross10", name: "Zweite Disziplin", desc: "Zehn Einheiten Nebensport eingetragen." },
 ];

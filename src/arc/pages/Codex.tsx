@@ -63,7 +63,7 @@ export default function Codex({ data, st, today }: { data: ArcData; st: ArcState
       </SecTitle>
       <div className="codex-bar">
         <label className="search">
-          <Search size={16} aria-hidden="true" />
+          <Search size={26} aria-hidden="true" />
           <input id="arc-codex-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Technik suchen" aria-label="Technik suchen" />
         </label>
         <div className="chips">
@@ -106,9 +106,9 @@ export default function Codex({ data, st, today }: { data: ArcData; st: ArcState
                     <span className="crow-main">
                       <b>{x.name}</b>
                       <small>
-                        {RINGS[x.tier].jp}
-                        {x.aka.length ? ` · ${x.aka.slice(0, 2).join(" · ")}` : ""}
-                        {!x.nogi ? " · nur Gi" : ""}
+                        Ring {RINGS[x.tier].jp}
+                        {!x.nogi ? ", nur Gi" : ""}
+                        {x.aka.length ? `. Auch: ${x.aka.slice(0, 2).join(", ")}` : ""}
                       </small>
                     </span>
                     <span className="crow-lv">

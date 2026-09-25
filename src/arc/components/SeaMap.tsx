@@ -104,7 +104,7 @@ export default function SeaMap({ marks, selected, onSelect }: { marks: MapMarks;
           <g key={s.id}>
             <rect x={x} y={y} width={RX} height={h} fill={s.color} opacity={mine ? 0.13 : 0.06} />
             <text className={`sea-name${mine ? " mine" : ""}`} x={left ? 40 : W - 40} y={top ? 52 : H - 30} textAnchor={left ? "start" : "end"}>
-              {s.name.toUpperCase()}
+              {s.name}
             </text>
           </g>
         );
@@ -120,16 +120,16 @@ export default function SeaMap({ marks, selected, onSelect }: { marks: MapMarks;
         ))}
       </g>
       <text className="sea-cur" x={RX + 300} y={CY - CH + 16} textAnchor="middle">
-        ÄUSSERE STRÖMUNG · BLAU UND LILA
+        Äußere Strömung, Blau und Lila
       </text>
       <text className="sea-cur" x={RX - 300} y={CY - CH + 16} textAnchor="middle">
-        TIEFE STRÖMUNG · BRAUN UND SCHWARZ
+        Tiefe Strömung, Braun und Schwarz
       </text>
       <text className="sea-calm-lbl" x={W / 2 + 180} y={CY - CH - 8}>
-        KALMENGÜRTEL
+        Kalmengürtel
       </text>
       <text className="sea-calm-lbl" x={W / 2 - 300} y={CY + CH + 18}>
-        KALMENGÜRTEL
+        Kalmengürtel
       </text>
 
       {/* Scarlet ridge */}
@@ -137,7 +137,7 @@ export default function SeaMap({ marks, selected, onSelect }: { marks: MapMarks;
       <polygon points={ridgePath(6, 10)} fill="url(#sea-ridge)" opacity={0.85} />
       <polygon points={ridgePath(W - 6, 10)} fill="url(#sea-ridge)" opacity={0.85} />
       <text className="sea-ridge-lbl" x={RX + 5} y={150} transform={`rotate(90 ${RX + 5} 150)`}>
-        SCHARLACHKAMM
+        Scharlachkamm
       </text>
       <circle cx={RX} cy={CY} r={48} fill="url(#sea-gate)" />
 

@@ -91,8 +91,8 @@ export function SecTitle({ kanji, eyebrow, title, children }: { kanji: string; e
 export function LevelPill({ level, rust, prov }: { level: number; rust?: boolean; prov?: boolean }) {
   return (
     <span className="pills">
-      <span className={`pill l${level}`}>
-        Stufe {level} · {LEVELS[level]}
+      <span className={`pill l${level}`} aria-label={`Stufe ${level}, ${LEVELS[level]}`}>
+        <b aria-hidden="true">{level}</b> {LEVELS[level]}
       </span>
       {rust ? <span className="pill rust">Rost</span> : null}
       {prov ? <span className="pill prov">vorläufig</span> : null}
@@ -111,6 +111,27 @@ export function KindBadge({ kind }: { kind: QuestKind }) {
         <Icon size={12} strokeWidth={2.5} />
       </b>
       {q.name}
+    </span>
+  );
+}
+
+/** Hero panel: thick ink frame, cut corner, halftone, hard ink offset. One per screen. */
+export function HeroKoma({ children, className, ai, label }: { children: ReactNode; className?: string; ai?: boolean; label?: string }) {
+  return (
+    <section className={`hero-koma${className ? ` ${className}` : ""}`} aria-label={label}>
+      <div className="hk-frame">
+        <div className={`hk-in${ai ? " ai" : ""}`}>{children}</div>
+      </div>
+    </section>
+  );
+}
+
+/** Two badges for a change of level, instead of an arrow. */
+export function LvlStep({ from, to, label }: { from: number; to: number; label: string }) {
+  return (
+    <span className="lvl-step" aria-label={`${label} ${to}, vorher ${from}`}>
+      <span aria-hidden="true">{from}</span>
+      <span aria-hidden="true">{to}</span>
     </span>
   );
 }
