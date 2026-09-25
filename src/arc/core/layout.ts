@@ -37,17 +37,25 @@ for (const s of SECTORS) {
     return m;
   });
   const total = weights.reduce((a, w) => a + w, 0);
+  const widths = weights.map((w) => (USABLE * w) / total);
+  // A crowded ring alternates inner and outer positions. The alternation runs
+  // across branch borders, so neighbours from two branches never share a radius.
+  const crowded = [1, 2, 3, 4].map((tier) =>
+    s.branches.some((b, bi) => {
+      const k = inSector.filter((x) => x.branch === b.id && x.tier === tier).length;
+      return k > 1 && ((widths[bi] / k) * Math.PI * RING_R[tier]) / 180 < 70;
+    }),
+  );
+  const seen = [0, 0, 0, 0, 0];
   let start = center - USABLE / 2;
   s.branches.forEach((b, bi) => {
-    const width = (USABLE * weights[bi]) / total;
+    const width = widths[bi];
     for (let tier = 1; tier <= 4; tier++) {
       const list = inSector.filter((x) => x.branch === b.id && x.tier === tier);
-      const k = list.length;
-      const step = width / Math.max(k, 1);
-      const spacing = ((step * Math.PI) / 180) * RING_R[tier];
+      const step = width / Math.max(list.length, 1);
       list.forEach((x, j) => {
         const ang = start + (j + 0.5) * step;
-        const stagger = k > 1 && spacing < 70 ? (j % 2 ? 30 : -30) : 0;
+        const stagger = crowded[tier - 1] ? (seen[tier]++ % 2 ? 30 : -30) : 0;
         const [px, py] = polar(RING_R[tier] + stagger, ang);
         POS[x.id] = { x: px, y: py };
       });

@@ -217,7 +217,7 @@ Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand a
 
 ## 5. Sternkarte (Skilltree)
 
-- **Aufbau:** 178 Techniken auf fünf Ringen, benannt nach den klassischen Stufen der Überlieferung: Kiso (Fundament), Shoden, Chūden, Okuden, Hiden. Jeder Sektor ist in Zweige geteilt (Guard z. B. in Closed Guard, Offene Guard, Half Guard, Haken & Beine, Gi-Guards), die als eigene Arme der Sternkarte nach außen wachsen. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
+- **Aufbau:** 193 Techniken auf fünf Ringen, benannt nach den klassischen Stufen der Überlieferung: Kiso (Fundament), Shoden, Chūden, Okuden, Hiden. Jeder Sektor ist in Zweige geteilt (Guard z. B. in Closed Guard, Offene Guard, Half Guard, Haken & Beine, Gi-Guards), die als eigene Arme der Sternkarte nach außen wachsen. Submission hat neben Armhebeln, Dreiecken, Kragenwürgern, Kopf-Arm-Würgern und Beinhebeln einen Zweig „Kurbeln & Kompression“ für Can Opener, Twister und Kosovo Cradle. Dazu kommen Nischen-Techniken wie Waki-gatame, Hiza-gatame, Locoplata, Kata-ha-jime, Brabo, Ninja und Buggy Choke, Suloev Stretch und Electric Chair. Wo ein Ring voll wird, stehen die Sterne abwechselnd innen und außen, auch über die Grenze zweier Zweige hinweg. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
 - **Namen:** so, wie sie auf deutschen Matten gesagt werden (meist englisch oder portugiesisch). Deutsche Namen nur, wo sie dort wirklich fallen: Shrimp statt Hüftflucht, Breakfall statt Fallschule, Technical Stand-up statt Aufstehen in Base. Die deutschen Namen bleiben als „auch:“ suchbar. Japanische Begriffe stehen in Kodokan-Schreibweise mit Bindestrich, deutsche Judo-Namen nach dem Deutschen Judo-Bund (O-soto-gari = Große Außensichel). Andere Namen stehen als „auch:“ dabei und sind im Codex durchsuchbar. Benannte Techniken (Williams Guard, Tarikoplata, Baratoplata, Estima Lock, Imanari Roll) nennen ihren Namensgeber. Reine Gi-Techniken sind markiert. Beinhebel und riskante Techniken tragen einen Sicherheitshinweis.
 - **Kanten:** Voraussetzungs-Kanten innerhalb eines Sektors. Dazu Kombo-Kanten quer über Sektoren, z. B. Scissor Sweep → Mount → Armbar oder Snap Down → Rücken. Eine Kombo leuchtet auf, sobald beide Enden Stufe 3 haben.
 - **Zustände:** Die Größe, Füllung und das Leuchten eines Sterns zeigen die Stufe. Ein Fortschrittsring zeigt den Weg zur nächsten Stufe. Gold heißt Tokui-Waza, Rostfarbe heißt Rost, gestrichelt heißt vorläufig.
@@ -501,7 +501,7 @@ Daraus wird die Case Study: „Kann man BJJ-Fortschritt messen? Acht Wochen, zeh
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
 | 0 Fundament | Erledigt: eigener Einstiegspunkt `/arc/`, App lokal-first, Rechte aufgeräumt (8.3), Schema `arc` angewendet, Anmeldung und Sync (8.5). Offen: Anmeldewege und Registrierung im Dashboard einschalten (`KONTO-SETUP.md`) | Die Architektur steht |
-| 1 Eigenversuch | Läuft ab sofort lokal: Log-Flow, alle 178 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
+| 1 Eigenversuch | Läuft ab sofort lokal: Log-Flow, alle 193 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
 | 2 Spielsysteme | Sternkarte mit Nebel und Kombos, Drei-Karten-Draft, Wochenboss, Klasse und Titel, Rückblick-Karte | Die App macht Spaß, nicht nur Sinn |
 | 3 Gym-Pilot | 5 bis 10 Leute, Kursplan vom Coach, Coach-Bewertung als Ground Truth | 8 Wochen Daten mehrerer Personen |
 | 4 Auswertung | Validierung (Abschnitt 10), Kalibrierung der Parameter, Case Study im Portfolio | Belegbare Modellgüte und eine Geschichte dazu |
@@ -514,7 +514,7 @@ Entschieden:
 
 - **Kontrolle** bleibt „Partner / gleich / ich“, ohne oben/unten.
 - **Gi und No-Gi** werden zusammen gerechnet, mit Vergleichsansicht, sobald beide Seiten genug Daten haben (4.7).
-- **Mindestens 72 Techniken** schon in der ersten Version. Umgesetzt sind 178.
+- **Mindestens 72 Techniken** schon in der ersten Version. Umgesetzt sind 193.
 - **Name:** Waza Arc statt Tatami Arc (Markenkonflikt mit Tatami Fightwear). Vor einem öffentlichen Start noch eine Markenrecherche beim DPMA und EUIPO machen.
 - **Im Portfolio** mit eigenem Frontend unter `/arc/` und demselben Supabase-Projekt (Abschnitt 8).
 - **Einstieg mit Vorerfahrung:** Prolog-XP aus dem Gürtel, Selbsteinschätzung bis Stufe 4, aber vorläufig und ohne XP, bis die Rolls sie bestätigen (4.8).
