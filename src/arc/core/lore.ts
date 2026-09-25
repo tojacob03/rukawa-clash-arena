@@ -122,4 +122,5 @@ export const SEALS: { id: string; name: string; desc: string }[] = [
   { id: "arena", name: "Arena", desc: "Das erste Turnier eingetragen." },
   { id: "podium", name: "Podest", desc: "Eine Medaille auf einem Turnier." },
   { id: "cross10", name: "Zweite Disziplin", desc: "Zehn Einheiten Nebensport eingetragen." },
+  { id: "entdecker", name: "Entdecker", desc: "Drei Inseln der Seekarte vollständig erkundet." },
 ];

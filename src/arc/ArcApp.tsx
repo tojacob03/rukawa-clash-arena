@@ -15,10 +15,12 @@ import Codex from "./pages/Codex.tsx";
 import SeaPage from "./pages/SeaPage.tsx";
 import Held from "./pages/Held.tsx";
 import Profil from "./pages/Profil.tsx";
+import Konto from "./pages/Konto.tsx";
+import { CloudBadge, CloudDialogs } from "./components/CloudDialogs.tsx";
 import Scouter from "./components/Scouter.tsx";
 import Avatar from "./components/Avatar.tsx";
 import { useGear } from "./useGear.ts";
-import { powerOf, powerTier, selfRows } from "./scan.ts";
+import type { ScoutRequest } from "./scan.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -28,6 +30,7 @@ const TITLES: Record<Route, string> = {
   codex: "Waza-Codex",
   held: "Charakter",
   profil: "Profil",
+  konto: "Konto",
 };
 
 export default function ArcApp() {
@@ -35,9 +38,9 @@ export default function ArcApp() {
   const today = useToday();
   const st = useArcState(data, today);
   const { route, arg } = useRoute();
-  const [scan, setScan] = useState(false);
+  const [scan, setScan] = useState<ScoutRequest | null>(null);
   useEffect(() => {
-    const open = () => setScan(true);
+    const open = (e: Event) => setScan((e as CustomEvent<ScoutRequest | undefined>).detail ?? { mode: "du" });
     window.addEventListener("arc:scan", open);
     return () => window.removeEventListener("arc:scan", open);
   }, []);
@@ -51,7 +54,25 @@ export default function ArcApp() {
     window.scrollTo({ top: 0 });
   }, [route]);
 
-  if (!data.profile) return <Start today={today} />;
+  if (!data.profile) {
+    return (
+      <>
+        {route === "konto" ? (
+          <div className="arc route-konto solo">
+            <main id="arc-main" className="main" tabIndex={-1}>
+              <button type="button" className="linkish back-link" onClick={() => go("heute")}>
+                Zurück zum Start
+              </button>
+              <Konto data={data} />
+            </main>
+          </div>
+        ) : (
+          <Start today={today} />
+        )}
+        <CloudDialogs />
+      </>
+    );
+  }
 
   const xpPct = (100 * (st.xp - st.lo)) / (st.hi - st.lo);
   const props = { data, st, today };
@@ -74,6 +95,8 @@ export default function ArcApp() {
       <Held {...props} arg={arg} />
     ) : route === "profil" ? (
       <Profil {...props} />
+    ) : route === "konto" ? (
+      <Konto data={data} />
     ) : (
       <Today {...props} />
     );
@@ -106,7 +129,7 @@ export default function ArcApp() {
           </span>
         </button>
         <div className="hud-stats">
-          <button type="button" className="hud-stat pl" title="Power Level: Elo-Rating aus deinen Rolls, mal 10. Tippen öffnet den Scouter." onClick={() => setScan(true)}>
+          <button type="button" className="hud-stat pl" title="Power Level: Elo-Rating aus deinen Rolls, mal 10. Tippen öffnet den Scouter." onClick={() => setScan({ mode: "du" })}>
             <small>Power Level</small>
             <b>{power(st.ru)}</b>
           </button>
@@ -115,23 +138,22 @@ export default function ArcApp() {
             <b>{st.streak}</b>
             <span className="sr-only"> Wochen Flamme</span>
           </span>
+          <CloudBadge />
           <button type="button" className="hud-me" onClick={() => go("profil")} aria-label="Profil und Einstellungen">
             <Settings size={18} />
           </button>
         </div>
       </header>
 
+      <CloudDialogs />
       {scan && data.profile ? (
         <Scouter
-          onClose={() => setScan(false)}
-          target={{
-            name: data.profile.name,
-            power: powerOf(st.ru),
-            tier: powerTier(st.ru),
-            rows: selfRows(data, st, today),
-            portrait: <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={data.profile.belt} stripes={data.profile.stripes} weightKg={data.profile.weightKg} size={180} still />,
-            foot: "Das Power Level ist dein Elo-Rating aus Rolls und Turnierkämpfen, mal zehn.",
-          }}
+          key={`${scan.mode}-${scan.belt ?? ""}-${scan.size ?? ""}`}
+          req={scan}
+          data={data}
+          st={st}
+          onClose={() => setScan(null)}
+          portrait={<Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={data.profile.belt} stripes={data.profile.stripes} weightKg={data.profile.weightKg} size={180} still />}
         />
       ) : null}
       <main id="arc-main" className="main" tabIndex={-1}>

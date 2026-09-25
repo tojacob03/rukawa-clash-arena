@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Download, HeartPulse, LogOut, Trash2, Upload } from "lucide-react";
+import { Cloud, Download, HeartPulse, LogOut, Trash2, Upload } from "lucide-react";
 import type { ArcData, ArcState, Belt as BeltId } from "../core/types.ts";
 import { APP_NAME } from "../core/lore.ts";
 import { BELTS, BELT, shortDate } from "../format.ts";
@@ -7,6 +7,8 @@ import { exportJson, importJson, promote, resetAll, togglePause, updateProfile }
 import { arcStore } from "../store.ts";
 import { Belt, HeroKoma, SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import { useTheme } from "../theme.ts";
+import { useCloud } from "../cloud/state.ts";
+import { go } from "../store.ts";
 
 export default function Profil({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const p = data.profile;
@@ -17,6 +19,8 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
   const [msg, setMsg] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const [theme, setTheme] = useTheme();
+  const cloud = useCloud();
+  const signedIn = cloud.status === "signedIn";
   if (!p) return null;
   const changedRank = belt !== p.belt || stripes !== p.stripes;
 
@@ -51,6 +55,23 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
           <small className="muted">Eine pausierte Woche bricht deine Flamme nicht. Es wird kein Grund gespeichert.</small>
         </div>
       </section>
+
+      {cloud.configured ? (
+        <section className="panel form-panel konto-teaser">
+          <h2 className="h3">Konto und Sicherung</h2>
+          {signedIn ? (
+            <p className="small">
+              <Cloud size={16} aria-hidden="true" /> Angemeldet als {cloud.user?.email ?? cloud.user?.phone ?? (cloud.user?.anonymous ? "Gast" : "Konto")}.{" "}
+              {cloud.sync.pending ? `${cloud.sync.pending} Änderungen warten auf die Sicherung.` : "Alles gesichert."}
+            </p>
+          ) : (
+            <p className="small">Noch kein Konto: Deine Daten liegen nur in diesem Browser. Mit Konto sind sie gesichert und auf jedem Gerät gleich.</p>
+          )}
+          <button type="button" className={`btn${signedIn ? "" : " primary"}`} onClick={() => go("konto")}>
+            <span>{signedIn ? "Konto verwalten" : "Anmelden oder Konto erstellen"}</span>
+          </button>
+        </section>
+      ) : null}
 
       <section className="panel form-panel" aria-label="Darstellung">
         <h2 className="h3">Darstellung</h2>
@@ -106,7 +127,9 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
       <section className="panel form-panel">
         <h2 className="h3">Daten</h2>
         <p className="muted small">
-          {APP_NAME} speichert alles nur in diesem Browser. Mit dem Export sicherst du deine Daten oder nimmst sie auf ein anderes Gerät mit.
+          {signedIn
+            ? `${APP_NAME} speichert in diesem Browser und in deinem Konto. Der Export ist eine zusätzliche Kopie als Datei.`
+            : `${APP_NAME} speichert alles nur in diesem Browser. Mit dem Export sicherst du deine Daten oder nimmst sie auf ein anderes Gerät mit.`}
           {arcStore.saved() ? "" : " Achtung: Der Browser lässt gerade kein Speichern zu (privates Fenster?). Exportiere deine Daten, bevor du die Seite schließt."}
         </p>
         <div className="row wrap">
@@ -135,7 +158,9 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         <div className="danger">
           {confirm ? (
             <>
-              <p className="small">Wirklich alles löschen? Profil, {data.sessions.length} Trainings und alle Werte sind danach weg.</p>
+              <p className="small">
+                Wirklich alles löschen? Profil, {data.sessions.length} Trainings und alle Werte sind danach weg{signedIn ? ", auch in deinem Konto auf allen Geräten" : ""}.
+              </p>
               <div className="row">
                 <button type="button" className="btn ghost" onClick={() => setConfirm(false)}>
                   Abbrechen

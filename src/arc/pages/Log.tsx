@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Gift, Map as MapIcon, Minus, Plus, RotateCcw } from "lucide-react";
+import { Check, Gift, Map as MapIcon, Minus, Plus, RotateCcw, ScanEye } from "lucide-react";
 import type { ReactNode } from "react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, Control, Format, QuestKind, Roll, Session, Size } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
@@ -17,6 +17,7 @@ import { KindBadge, LvlStep, SecTitle, Seg, Stepper } from "../components/ui.tsx
 import ChapterEnd from "../components/ChapterEnd.tsx";
 import { trainingRows } from "../chapterRows.tsx";
 import { LogSwitch } from "./Turnier.tsx";
+import { openScouter } from "../scan.ts";
 
 interface Draft {
   format: Format;
@@ -222,6 +223,9 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
                     <span className="fl">Kontrolle</span>
                     <Seg label={`Kontrolle Roll ${i + 1}`} value={r.c} onChange={(v) => setRoll(i, { c: v })} options={CTRL} />
                   </div>
+                  <button type="button" className="btn small scan roll-scan" onClick={() => openScouter({ mode: "partner", belt: r.belt, size: r.size, attire: draft.attire })}>
+                    <ScanEye size={14} aria-hidden="true" /> <span>Partner scannen</span>
+                  </button>
                 </div>
               ))}
             </div>

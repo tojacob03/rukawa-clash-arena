@@ -12,8 +12,7 @@ import { BELTS, nf0, signed } from "../format.ts";
 import { deleteCompetition, rememberWeightClass, saveCompetition } from "../actions.ts";
 import { go, uid } from "../store.ts";
 import { useGear } from "../useGear.ts";
-import { opponentRows, powerTier } from "../scan.ts";
-import Scouter, { Silhouette } from "../components/Scouter.tsx";
+import { openScouter } from "../scan.ts";
 import ChapterEnd from "../components/ChapterEnd.tsx";
 import { compRows } from "../chapterRows.tsx";
 import { LvlStep, SecTitle, Seg } from "../components/ui.tsx";
@@ -47,7 +46,6 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
   const own = data.profile?.belt ?? "weiss";
   const lastAttire = [...data.sessions].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.attire ?? "gi";
   const [draft, setDraft] = useState<Draft>({ name: "", date: today, org: "", attire: lastAttire, weight: "", place: 0, matches: [{ result: "win", method: "points", oppBelt: own }] });
-  const [scanFor, setScanFor] = useState<number | null>(null);
   const [result, setResult] = useState<{ c: Competition; D: Diff; loot: ItemDef[]; before: State; after: State } | null>(null);
   const [customW, setCustomW] = useState("");
   const knownW = [...WEIGHTS, ...(data.profile?.weightClasses ?? []).filter((w) => !WEIGHTS.includes(w))];
@@ -115,17 +113,8 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
     );
   }
 
-  const scanMatch = scanFor !== null ? draft.matches[scanFor] : null;
-  const opp = scanMatch ? opponentRows(st.ru, scanMatch.oppBelt ?? own) : null;
-
   return (
     <div className="page log">
-      {opp && scanFor !== null ? (
-        <Scouter
-          onClose={() => setScanFor(null)}
-          target={{ name: `Gegner ${scanFor + 1}`, power: opp.power, tier: opp.tier, rows: opp.rows, portrait: <Silhouette size={180} />, foot: `Dein Power Level: ${nf0.format(Math.round(st.ru * 10))}, ${powerTier(st.ru)}. Die Schätzung kennt nur den Gürtel.` }}
-        />
-      ) : null}
       <SecTitle kanji="試合" eyebrow="Wettkampf" title="Turnier eintragen">
         Ein Turnier zählt doppelt: jeder Kampf bewegt dein Power Level stärker als ein Roll, Aufgabe-Siege gelten als harter Beleg für die Technik.
       </SecTitle>
@@ -247,7 +236,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
                           />
                         ))}
                       </div>
-                      <button type="button" className="btn small scan" onClick={() => setScanFor(i)}>
+                      <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "gegner", belt: m.oppBelt ?? own, attire: draft.attire, label: `Gegner ${i + 1}` })}>
                         <ScanEye size={14} aria-hidden="true" /> <span>Scannen</span>
                       </button>
                     </div>

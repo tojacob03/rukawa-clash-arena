@@ -2,7 +2,7 @@
 
 Eine BJJ-Fortschritts-App im Stil eines Anime-RPGs. Der Arbeitstitel war „Tatami Arc“. Er wurde geändert, weil „Tatami“ im BJJ-Markt als Marke von Tatami Fightwear belegt ist. „Waza“ ist das allgemeine japanische Wort für Technik.
 
-**Stand:** Die App läuft unter `/arc/` als eigener Einstiegspunkt im Portfolio (Code in `src/arc/`, Tests in `src/arc/core/model.test.ts`). Die Daten liegen vorerst nur im Browser (localStorage, Export und Import als JSON). Das Supabase-Schema ist als Entwurf in [`schema.sql`](schema.sql) beschrieben und noch nicht angewendet (siehe 8.3).
+**Stand:** Die App läuft unter `/arc/` als eigener Einstiegspunkt im Portfolio (Code in `src/arc/`, Tests in `src/arc/core/model.test.ts`). Die Daten liegen im Browser (localStorage, Export und Import als JSON). Mit einem Konto werden sie im Supabase-Schema `arc` gesichert und zwischen Geräten abgeglichen (8.5). Was im Supabase-Dashboard noch einzuschalten ist, steht in [`KONTO-SETUP.md`](KONTO-SETUP.md).
 
 **Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere, Nebensport (Kraftsport, Ringen und andere) und eine Seekarte deiner Reise. Die Oberfläche ist als Manga-Band gestaltet, hell als „Papier“ und dunkel als „Nachtausgabe“ (Abschnitt 7.1).
 
@@ -42,31 +42,20 @@ Bewusst **nicht** geloggt: jede einzelne Technik pro Roll, Zeit in Positionen, V
 
 ## 3. Datenmodell (Supabase / Postgres)
 
-Alle Tabellen liegen im Schema `arc` des bestehenden Portfolio-Projekts (Abschnitt 8.2).
+Die App hält alle Daten als JSON im Browser (`ArcData` in `src/arc/core/types.ts`). Mit Konto liegt eine Kopie im Schema `arc` des Portfolio-Projekts (8.2), als Datensätze in einer einzigen Tabelle:
 
 ```text
-profiles        id, name, belt, stripes, start_belt, start_stripes, weekly_goal (Standard 2),
-                countries[], birth_year, weight_kg, training_since, class, home_sea, gym_id,
-                sports (jsonb), weight_classes[]
-competitions    id, user_id, date, name, org, attire, weight, place, matches (jsonb)
-cross_sessions  id, user_id, date, sport, minutes, intensity (1–3), tech, att, succ   -- Nebensport, 6.10
-characters      user_id, look (jsonb), equipped (jsonb), mode (gi | nogi), seen[]   -- Inventar wird nicht gespeichert
-gyms            id, name, schedule (jsonb)
-positions       id, name, side (top | bottom | neutral)          -- für Wochenboss und später die Weltkarte
-techniques      id, name_de, name_en, sector, ring (0–4), category, gi, nogi, from_position, to_position
-technique_edges parent_id, child_id, kind (prereq | combo), combo_name
-sessions        id, user_id, date, format (class | open_mat), attire (gi | nogi), duration_min, taught_technique_id, talisman_bonus, logged_at
-rolls           id, session_id, idx, partner_belt, partner_size, subs_for, subs_against, control (0 | 0.5 | 1)
-quests          id, user_id, date, technique_id, kind (drill | try | survive | rust), xp, reason
-quest_results   quest_id, session_id, attempts, successes, done
-session_notes   session_id, worked_technique_id, stuck_position_id
-onboarding      user_id, technique_id, self_rating (kenne ich | klappt im Roll | Stärke)
-pauses          user_id, week_start                              -- ohne Grund, siehe Datenschutz
-promotions      user_id, date, belt, stripes                     -- Ground Truth für die Validierung
-skill_snapshots user_id, date, technique_id, level, mastery      -- wöchentlich materialisiert, für Verläufe
+records   user_id, kind, id, data (jsonb), deleted, rev, updated_at
+  root      Profil, Charakter (Aussehen, Ausrüstung, Flagge, Schiffsname), Onboarding, Pausen, UI-Stand
+  session   ein Training mit Roll-Karten, Quest und Notiz
+  comp      ein Turnier mit seinen Kämpfen
+  cross     eine Einheit Nebensport
+  promo     eine Gürtel- oder Streifenprüfung (Schlüssel: Datum, Gürtel, Streifen)
 ```
 
-Alle Kennzahlen lassen sich aus `sessions`, `rolls`, `quest_results`, `session_notes` und `onboarding` neu berechnen. Die Rechenlogik liegt als reine TypeScript-Funktion `compute(history, asOf, filter?)` vor, mit Unit-Tests. Der optionale Filter (z. B. nur Gi) liefert den Gi/No-Gi-Vergleich aus demselben Rechenkern.
+Warum eine Tabelle statt einer pro Objekt: Die App arbeitet offline und gleicht später ab. Mit einem Datensatz pro Training reicht dafür ein einfaches Protokoll (8.5), jede Änderung bleibt klein, und die Datenform der App ist die einzige Quelle der Wahrheit. Für Auswertungen (Abschnitt 10) lassen sich normalisierte Sichten mit `jsonb_to_recordset` darüberlegen, etwa Trainings, Rolls und Quest-Ergebnisse. Der frühere Entwurf mit einer Tabelle pro Objekt ist damit überholt.
+
+Alle Kennzahlen lassen sich aus Trainings, Roll-Karten, Quests, Notizen, Turnieren, Nebensport und Onboarding neu berechnen. Die Rechenlogik liegt als reine TypeScript-Funktion `compute(history, asOf, filter?)` vor, mit Unit-Tests. Der optionale Filter (z. B. nur Gi) liefert den Gi/No-Gi-Vergleich aus demselben Rechenkern.
 
 ---
 
@@ -283,7 +272,7 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 - **Rang** nach Level: Mattenneuling, Schüler des Dōjō, Wanderer der Matte, Techniksucher, Rollkrieger, Klingenschmied, Dōjō-Veteran, Legende der Matte.
 - **Titel** = beste Tokui-Waza als Beiname, z. B. Triangle → „Die Dreiecksfalle“, Knee Cut → „Die Knieklinge“.
 - **Gürtelprüfung** = Klassenwechsel-Event mit eigener Animation. Das Datum wird als Ground Truth gespeichert.
-- **Siegel** (16 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3 und 4, erste Tokui-Waza, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 im Training erreichte Sterne (ohne die vom Start), je fünf Trainings in Gi und No-Gi, Arena (erstes Turnier), Podest (erste Medaille), Zweite Disziplin (zehn Einheiten Nebensport).
+- **Siegel** (17 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3 und 4, erste Tokui-Waza, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 im Training erreichte Sterne (ohne die vom Start), je fünf Trainings in Gi und No-Gi, Arena (erstes Turnier), Podest (erste Medaille), Zweite Disziplin (zehn Einheiten Nebensport), Entdecker (drei Inseln der Seekarte vollständig erkundet).
 
 ### 6.5 Charakter und Ausrüstung
 
@@ -312,7 +301,14 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 
 ### 6.8 Scouter
 
-Ein Tipp auf das Power Level im Kopfbereich (oder der Knopf im Charakter) setzt den Scouter auf: eine Linse mit Fadenkreuz um die Figur, daneben Power Level, Achsen, Level, Klasse, Division, Turnierbilanz und Kopfgeld. Vor einem Turnierkampf scannt er den Gegner (Silhouette, geschätztes Power Level nach Gürtel, deine Siegchance). Der Scouter ist bewusst statisch: Die einzige inszenierte Bewegung der App ist das Kapitelende nach dem Speichern (7.1). Er ist ein echter Dialog, Escape schließt ihn, und der Fokus springt danach zurück.
+Eine Linse mit Fadenkreuz, die Kämpfer ausliest. Sie hat vier Modi, zwischen denen man oben in der Linse umschaltet:
+
+- **Du** (Tipp auf das Power Level im Kopfbereich oder der Knopf im Charakter): Power Level, Stufe (Weißgurt- bis Schwarzgurt-Niveau), Veränderung in 8 Wochen und ein Verlauf der letzten 16 Wochen mit Spitze. Der Verlauf lässt sich mit Zeiger oder Pfeiltasten Woche für Woche lesen. Dazu die sechs Achsen, eine Analyse (stärkste und schwächste Achse, beste Waffe, Treffer gegen Stärkere, rostende Techniken, Form der letzten 8 Wochen), die Bilanz nach Gürtel (Rolls, eigene Subs, getappt) und der Steckbrief (Level, Klasse, Division, Turnierbilanz, Kopfgeld).
+- **Partner** (Knopf „Partner scannen“ auf jeder Roll-Karte, oder im Scouter umschalten): Gürtel, Größe und Gi/No-Gi wählen. Der Scouter schätzt das Power Level des Partners (Gürtel-Rating plus Größe, wie in 4.1), zeigt deine Erwartung im Roll (Elo-Erwartungswert), was auf dem Spiel steht (Power-Level-Änderung für drei typische Ausgänge: du tappst und führst, ausgeglichen, du wirst getappt und kontrolliert) und deine bisherige Bilanz gegen diese Kombination. Dazu ein **Plan** aus einfachen Regeln: Gegen klar Stärkere (Erwartung unter 38 %) überleben und lernen, mit den Escapes des Wochenbosses zuerst. Gegen klar Schwächere (über 62 %) das A-Game weglassen und ausprobieren, was noch nicht live bewiesen ist. Dazwischen das A-Game, also die Techniken mit der höchsten Meisterung. Schwerere oder leichtere Partner bekommen einen Satz dazu. Reine Gi-Techniken fallen im No-Gi weg.
+- **Gegner** (Knopf „Scannen“ an jedem Turnierkampf): wie Partner, aber mit Turnier-Einsatz (doppelter K-Faktor, Sieg, Unentschieden, Niederlage), deiner Turnierbilanz und deinen Rolls gegen diesen Gürtel, deinen Waffen im gewählten Regelwerk (Gi oder No-Gi) und einem Hinweis, worauf du achten musst (Position des Wochenbosses oder schwächste Achse). Bei Beinhebeln erinnert er ans Regelwerk.
+- **Boss** (Knopf am Wochenboss auf Heute): Name, Position, Lebenspunkte, Trend gegenüber den 14 Tagen davor, das Ziel zum Besiegen und die Techniken, die dagegen helfen, mit ihrer Stufe.
+
+Alle Zahlen kommen aus demselben Rechenkern wie der Rest der App (`src/arc/core/scouter.ts`, mit Tests). Die Schätzung eines Partners kennt nur Gürtel und Größe; das sagt der Scouter auch so. Er ist bewusst statisch: Die einzige inszenierte Bewegung der App bleibt das Kapitelende (7.1). Er ist ein echter Dialog mit Tab-Leiste, Escape schließt ihn, der Fokus bleibt in der Linse und springt danach zurück.
 
 ### 6.9 Seekarte
 
@@ -324,6 +320,14 @@ Die Reise als Seefahrt, als zweite Karte neben der Sternkarte. Der Aufbau der We
 - **Auf der Karte:** der gefahrene Kurs (gestrichelt vor der App, durchgezogen seit dem Start), das Schiff in der Farbe der Klasse, der Kurs zur nächsten Insel, Turniere als gekreuzte Klingen an der Insel, an der man damals lag, und der Wochenboss als Seeungeheuer neben dem Schiff.
 - **Inselkarte:** Beschreibung, Status (erreicht am, hier liegt dein Schiff, noch n Streifen), Turniere dort und Items, die dort warten.
 - **Kopfgeld-Steckbrief:** ein Fahndungsplakat mit Kopfbild und Kopfgeld in Gold. Das Kopfgeld wächst mit Leistung, nicht mit Fleiß allein: Level, Gürtel und Streifen, Tokui-Waza, Siegel, Turniere, Siege und Medaillen.
+- **Reise zwischen den Inseln:** Ein Streifen kommt nur alle paar Monate. Damit die Karte dazwischen nicht stillsteht, segelt das Schiff mit jedem Training ein Stück weiter: 10 Seemeilen pro Training, 20 pro Turnier, 3 pro Einheit Nebensport. Der Weg zur nächsten Insel folgt `1 − e^(−Meilen/150)` und endet bei 85 %: Ankommen tut das Schiff erst mit dem Streifen, die Karte sagt also nichts über die nächste Prüfung voraus.
+- **Schiff:** Es wächst mit dem Gürtel: Beiboot (Weiß), Schaluppe (Blau), Brigantine (Lila), Fregatte (Braun), Flaggschiff (Schwarz). Das große Segel trägt die Farbe der Klasse, den Namen wählt man selbst.
+- **Flagge:** eine eigene Crew-Flagge aus Tuch, Farbe des Zeichens, Zeichen (Totenkopf, Faust, Gürtelknoten, Waza-Stern, Welle, Oni-Maske), was dahinter kreuzt (Knochen, Säbel, Anker, Ruder, Gürtel) und was Totenkopf oder Oni auf dem Kopf tragen (Stirnband, Kopftuch, Dreispitz, Samurai-Knoten, Krone). Totenkopf und gekreuzte Knochen sind das alte, freie Piratenzeichen; alles andere ist eigen. Die Flagge weht am Mast auf der Karte.
+- **Wetter** aus dem Trainingsrhythmus der letzten 14 Tage gegen das Wochenziel: Flaute ohne Training (das Schiff treibt in den Kalmen), leichter Wind, frische Brise, starker Rückenwind ab 125 % des Ziels, Trockendock im Heilungsmodus. Auf der Karte als Windstriche oder ruhige Wasserringe am Schiff.
+- **Zustand:** Rumpf, Segel und Takelage sind die Körperwerte aus dem Nebensport (Kraft, Ausdauer, Beweglichkeit, 6.10). Rostende Techniken hängen als Muscheln am Rumpf, eine Schmiede-Quest kratzt sie ab. Sehr niedrige Werte zeigen geflickte Segel.
+- **Erkundung (Landgang):** Solange das Schiff an einer Insel liegt, decken die Trainings dort drei Orte auf: die Anlegestelle (1. Training), ein Wahrzeichen (8.) und das Geheimnis der Insel (15.). Jede der 40 Inseln hat eigene Namen dafür. Vollständig erkundete Inseln bekommen einen Wimpel auf der Karte, drei davon das Siegel „Entdecker“. Inseln, die vor der App erreicht wurden, bleiben unerkundet.
+- **Logbuch:** Die Reise als Einträge, neueste oben und nach Monaten gruppiert: Abfahrt, neue Inseln mit Gürtelprüfungen, Entdeckungen, Turniere mit Platzierung, Meilensteine (10., 25., 50. Training und so weiter), Nebensport-Meilensteine und Wochen im Trockendock. Jeder Eintrag mit Insel springt auf die Karte.
+- **Aufbau der Seite:** drei Reiter, Karte (mit Inselkarte und Steckbrief), Schiff (das Schiff als Heldenelement, Reise, Zustand, Flagge) und Logbuch. Die Rechnung liegt in `src/arc/core/voyage.ts`, mit Tests.
 
 ### 6.10 Nebensport
 
@@ -352,8 +356,9 @@ Viele trainieren neben BJJ noch etwas anderes. Das soll sichtbar sein, ohne die 
 2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach das Kapitelende (7.1) mit XP, Level, Stufenaufstiegen, Power-Level-Änderung und Beute. Ein Umschalter führt zur Turnier-Eingabe (6.7) und zum Nebensport (6.10).
 3. **Sternkarte:** zoombar, Sektor-Fokus, Detailfeld.
 4. **Charakter:** fünf Reiter. Übersicht (Figur, Scouter, Steckbrief-Daten, gewählte und erkannte Klasse, Hexagon, Power-Level-Verlauf, Siegel), Aussehen (Editor), Ausrüstung (Plätze, Inventar, gesperrte Items mit Freischalt-Bedingung), Turniere (Kampfrekord) und Steckbrief (Name, Länder, Geburtsjahr, Gewicht, Heimatmeer, Klasse).
-5. **Seekarte:** umschaltbar mit der Sternkarte (6.9).
-6. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
+5. **Seekarte:** umschaltbar mit der Sternkarte, mit den Reitern Karte, Schiff und Logbuch (6.9).
+6. **Konto:** Anmelden mit allen eingeschalteten Wegen und Konto verwalten (8.5). Erreichbar über das Profil, den Startbildschirm und das Wolken-Symbol im Kopfbereich, sobald man angemeldet ist.
+7. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
 
 Die App zeigt Heute, Log-Flow mit Live-Vorschau und Beute, Sternkarte, Codex und Charakter. Der Einstieg führt in fünf Schritten durch Steckbrief, Rang, Klasse, Aussehen und Technik-Stand.
 
@@ -378,7 +383,7 @@ Die App soll sich wie ein hochwertiges Spiel anfühlen, nicht wie ein Dashboard.
 
 **Leitprinzipien:**
 
-1. **Ein mutiges Element pro Screen, der Rest ist ruhig.** Heute: die Quest-Karten. Log: das Kapitelende. Charakter: die Figur auf der Heldenbühne. Karte: die Karte selbst. Das Heldenelement bekommt das schräg angeschnittene Panel mit hartem Tuscheschatten, alles andere bleibt flach mit dünner Kontur.
+1. **Ein mutiges Element pro Screen, der Rest ist ruhig.** Heute: die Quest-Karten. Log: das Kapitelende. Charakter: die Figur auf der Heldenbühne. Karte: die Karte selbst. Schiff: das Schiff mit Flagge. Konto: das Anmelde-Panel, angemeldet der Kontoausweis. Scouter: die Power-Level-Zahl. Das Heldenelement bekommt das schräg angeschnittene Panel mit hartem Tuscheschatten, alles andere bleibt flach mit dünner Kontur.
 2. **Bewegung nur an einer Stelle.** Nach dem Speichern eines Trainings, Turniers oder Nebensports läuft das Kapitelende: Stempel, XP-Balken, Zeilen der Reihe nach, Beute. Nur bei `prefers-reduced-motion: no-preference`, mit Knopf zum Überspringen. Sonst gibt es keine Übergänge, kein Hover-Gleiten, kein Pulsieren. Einzige Ausnahme ist Bedienung, keine Inszenierung: Die Sternkarte fährt beim Fokussieren eines Sterns die Kamera hin, damit man auf der gezoomten Karte die Orientierung behält. Bei reduzierter Bewegung springt sie.
 3. **Text wie in einem Buch, nicht wie in einem Formular.** Keine Großbuchstaben-Überzeilen, keine Mittelpunkt-Reihen („A · B · C“), keine Monospace-Etiketten, keine Pfeile hinter Knöpfen. Überzeilen sind kleine Beschriftungskästen in normaler Schreibweise, Metadaten stehen als Satz.
 
@@ -413,26 +418,53 @@ public/arc/              manifest.webmanifest, Icons, Service Worker (Scope /arc
 
 ### 8.2 Backend: dasselbe Supabase-Projekt, eigenes Schema
 
-Das Projekt „Rukawa Portfolio“ bekommt ein Schema `arc`, so wie es schon `energy`, `racing` und `personal` gibt. Der Free-Plan erlaubt zwei aktive Projekte, und beide sind mit Portfolio und CR-Analyse belegt. Ein drittes würde also Geld kosten. Die Datenmenge ist klein, ein Training ergibt eine Handvoll Zeilen.
+Das Projekt „Rukawa Portfolio“ hat ein Schema `arc`, so wie es schon `energy`, `racing` und `personal` gibt. Der Free-Plan erlaubt zwei aktive Projekte, und beide sind mit Portfolio und CR-Analyse belegt. Ein drittes würde also Geld kosten. Die Datenmenge ist klein, ein Training ergibt einen Datensatz.
 
-- **Entwurf:** [`schema.sql`](schema.sql). Er übernimmt die Datenform der App (Rolls und Quest als JSON pro Session), damit der spätere Sync die lokalen Daten 1:1 hochladen kann.
-- **Tabellen** aus Abschnitt 3 im Schema `arc`, jede mit `user_id uuid references auth.users on delete cascade` und Row Level Security `user_id = auth.uid()`. Die Technik-Bibliothek ist nur lesbar.
-- **Rechte:** `grant usage on schema arc to authenticated`, **nicht** an `anon`. Wer nicht angemeldet ist, sieht nichts. Das Schema wird in den API-Einstellungen als „Exposed schema“ freigeschaltet, die App greift mit `supabase.schema('arc')` zu.
-- **Anmeldung** über Supabase Auth mit Magic Link oder Google. Das ist neu für das Projekt, bisher meldet sich dort nur der Admin an. Voraussetzung siehe 8.3.
-- **Eigener Supabase-Client** in `src/arc` mit eigenem `storageKey`. Portfolio und Arc liegen auf derselben Domain und würden sich sonst die Sitzung im Browser teilen: Ein Admin-Login im Portfolio wäre dann auch in Arc aktiv und umgekehrt.
-- **Snapshots:** `skill_snapshots` schreibt der Client nach jedem Log, weil er ohnehin rechnet. Eine Edge Function braucht es erst im Gym-Modus.
+- **Migration:** [`supabase/migrations/20260925100000_arc_cloud_save.sql`](../../supabase/migrations/20260925100000_arc_cloud_save.sql), angewendet am 25. September 2026. Vor dem Anwenden lief sie mit 19 Prüfungen in einer Transaktion, die danach zurückgerollt wurde (fremde Konten, Gäste, Grabsteine, zweiter Faktor, Grenzen, Kontolöschung).
+- **Tabelle** `arc.records` (Abschnitt 3) mit `user_id references auth.users on delete cascade`, Row Level Security „nur eigene Zeilen“ für Lesen, Anlegen und Ändern, keine Lösch-Policy (Löschen läuft über Grabsteine, das ganze Konto über den Fremdschlüssel). Revision und Zeitstempel setzt ein Trigger, nie der Client; Schlüsselspalten lassen sich nicht ändern. Grenzen: 32 KB pro Datensatz, 5000 Datensätze pro Konto, 500 pro Anfrage.
+- **Nicht als Schema freigegeben:** Die App spricht nur drei Funktionen in `public` an: `arc_pull(since, limit)` und `arc_push(rows)` laufen mit den Rechten des Aufrufers, Row Level Security greift also zusätzlich zu ihren eigenen Prüfungen; `arc_delete_account()` löscht das eigene Konto samt Daten und verweigert das bei Admin-Konten des Portfolios. Keine Funktion ist für `anon` aufrufbar.
+- **Zweiter Faktor serverseitig:** Hat ein Konto einen bestätigten zweiten Faktor, lassen alle drei Funktionen und die Policies nur Sitzungen mit `aal2` durch (`arc.mfa_satisfied()`).
+- **Anmeldung** über Supabase Auth, siehe 8.5.
+- **Eigener Supabase-Client** in `src/arc/cloud/engine.ts` mit eigenem `storageKey` (`waza-arc.auth`). Portfolio und Arc liegen auf derselben Domain und würden sich sonst die Sitzung im Browser teilen: Ein Admin-Login im Portfolio wäre dann auch in Arc aktiv und umgekehrt.
 - **Migrationen** wie bisher unter `supabase/migrations`, mit `arc_` im Dateinamen.
 
-### 8.3 Voraussetzung vor der ersten Registrierung
+### 8.3 Voraussetzung vor der ersten Registrierung (erledigt)
 
-Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `authenticated`. Vorher müssen alle bestehenden Regeln geprüft werden, die „angemeldet“ mit „Admin“ gleichsetzen. Dazu gehören Policies, die nur `auth.uid() is not null` oder `to authenticated` ohne Admin-Prüfung verwenden. Sie werden auf `is_admin(auth.uid())` umgestellt. Erst danach wird die Registrierung eingeschaltet.
+Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `authenticated`. Deshalb wurden am 25. September 2026 alle Regeln des Projekts geprüft (Policies, Tabellenrechte, `SECURITY DEFINER`-Funktionen, Storage) und die gefunden Lücken geschlossen: [`supabase/migrations/20260925090000_portal_lock_down_public_access.sql`](../../supabase/migrations/20260925090000_portal_lock_down_public_access.sql). Übrig gebliebene Policies früherer Stände, die angemeldeten Konten oder dem öffentlichen Schlüssel direkten Zugriff auf Tabellen und Dateien des Client-Portals gaben, sind entfernt; das Portal selbst arbeitet nur über seine Server-Funktionen und die Edge Function und läuft weiter. Nachgeprüft: Besucher und fremde Konten sehen dort nichts mehr, Admins alles wie vorher. Erst danach sollte die Registrierung eingeschaltet werden (siehe [`KONTO-SETUP.md`](KONTO-SETUP.md)).
 
 ### 8.4 Weitere Technik
 
 - **Stack:** React, TypeScript, Vite. Die eine Animation (Kapitelende) ist reines CSS.
-- **Plattform:** mobile-first PWA, offline-fähig (IndexedDB-Queue, Sync bei Netz), Web Push für die Erinnerung zum Kursende.
+- **Plattform:** mobile-first PWA, offline-fähig (lokal zuerst, Sync bei Netz, 8.5), später Web Push für die Erinnerung zum Kursende.
 - **Rechenkern:** `compute(history, asOf, filter?)` als reine Funktionen mit Unit-Tests für jede Formel und jede Stufenschwelle.
 - **Sternkarte:** SVG mit festem radialem Layout (Ring × Sektor), berechnet aus `techniques.ring` und der Reihenfolge im Sektor. Kein Force-Layout, damit die Karte stabil bleibt.
+
+### 8.5 Konto und Sync
+
+**Anmeldewege.** Die Anmeldeseite fragt beim Laden die öffentlichen Auth-Einstellungen des Projekts ab (`/auth/v1/settings`) und zeigt genau die Wege, die im Dashboard eingeschaltet sind:
+
+- **Passkey** (Face ID, Fingerabdruck, Sicherheitsschlüssel). Supabase unterstützt das seit supabase-js 2.105, noch als experimentelle Funktion. Einen Passkey fügt man nach der ersten Anmeldung im Konto hinzu.
+- **Google, Apple, Discord, GitHub** und jeder andere eingeschaltete OAuth-Anbieter, mit Logo nach den Vorgaben der Anbieter.
+- **E-Mail mit Code**, ohne Passwort: Der Code funktioniert auf jedem Gerät, der Link in derselben Mail nur im Browser, der ihn angefordert hat. Neue Adressen bekommen dabei ein Konto.
+- **E-Mail mit Passwort**, mit Stärkeanzeige und „Passwort vergessen“ per Code.
+- **Handynummer mit SMS-Code**, sobald ein SMS-Anbieter eingerichtet ist.
+- **Gastkonto** (anonyme Anmeldung): sichert sofort ohne Angaben; später verbindet man E-Mail oder einen Dienst, ohne dass Daten verloren gehen.
+- **Zweiter Faktor** mit einer Authenticator-App (TOTP) im Konto einrichtbar; nach der Anmeldung fragt die App dann nach dem Code.
+- Optional **Cloudflare Turnstile** gegen Bots, wenn `VITE_ARC_TURNSTILE_SITEKEY` gesetzt und im Projekt CAPTCHA aktiv ist.
+
+Weiterleitungen (OAuth, Links in Mails) nutzen PKCE: Der Code kommt als `?code=…` zurück und kollidiert nicht mit dem Hash-Routing. Danach landet man wieder auf dem Screen, von dem man kam.
+
+**Konto verwalten:** Anmeldewege verbinden und trennen, E-Mail hinzufügen oder ändern (mit Code), Passkeys hinzufügen, umbenennen, löschen, zweiten Faktor ein- und ausschalten, Passwort setzen, abmelden (auf Wunsch mit Entfernen der Kopie auf dem Gerät), auf allen Geräten abmelden, Konto löschen.
+
+**Lokal zuerst.** Die App funktioniert ohne Konto und ohne Netz genau wie vorher. Jedes Konto bekommt im Browser einen eigenen Speicherplatz, getrennt vom Gerät-Speicher ohne Konto, damit sich zwei Personen an einem Gerät nie vermischen. Das Konto-Modul (Supabase-Client und Sync) lädt nur, wenn jemand angemeldet ist oder sich anmeldet; alle anderen laden es nie.
+
+**Sync.** Jede Änderung auf dem Server bekommt eine laufende Revisionsnummer. Ein Gerät holt alles oberhalb der letzten Revision, die es kennt, und schickt jeden Datensatz, der sich von der „Basis“ unterscheidet, also dem Stand, auf den es sich zuletzt mit dem Server geeinigt hat. Löschungen gehen als Grabsteine raus. Der Abgleich läuft kurz nach jeder Änderung, beim Zurückkehren in den Tab, wenn das Netz wiederkommt, und alle fünf Minuten; bei Fehlern mit wachsenden Pausen.
+
+**Konflikte** (derselbe Datensatz hier und anderswo geändert): Der Root-Datensatz wird Feld für Feld zusammengeführt, auch in verschachtelten Objekten; Listen aus einfachen Werten (gesehene Items, Pausenwochen, bekannte Techniken) wie Mengen, mit Hinzufügungen und Entfernungen beider Seiten. Wo beide dasselbe Feld geändert haben, gewinnt das Gerät, das gerade abgleicht; danach sind alle Geräte gleich. Bei allen anderen Datensätzen gewinnt dieses Gerät, mit einer Ausnahme: Eine Änderung auf einem anderen Gerät schlägt eine Löschung hier, damit nichts Geloggtes aus Versehen verschwindet. Das Demo-Dōjō wird nie abgeglichen.
+
+**Erste Anmeldung auf einem Gerät:** Hat nur das Gerät Daten, wandern sie ins Konto. Hat nur das Konto Daten, kommen sie aufs Gerät. Haben beide welche, fragt die App: zusammenführen (Trainings, Turniere und Nebensport von beiden, Profil aus dem Konto), nur den Stand aus dem Konto, oder nur den Stand von diesem Gerät (ersetzt das Konto).
+
+**Geprüft** mit Unit-Tests für Datensätze und Zusammenführung (zwei simulierte Geräte gegen einen simulierten Server) und mit einem End-to-End-Test im Browser gegen ein nachgebautes Supabase: Registrierung per Code, falscher Code, Umzug der Gerätedaten ins Konto, zweites Gerät, neues Training kommt auf dem anderen Gerät an, Google-Anmeldung mit Weiterleitung, Auswahl bei zwei Ständen, Abmelden mit Entfernen der Kopie, Kontolöschung.
 
 ---
 
@@ -441,7 +473,8 @@ Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `au
 - Nur, was die Rechnung braucht. Keine Verletzungsdaten. Der Heilungsmodus speichert nur „Pause“ ohne Grund.
 - Geburtsjahr und Gewicht sind freiwillig und dienen nur der Altersklasse und der Figur. Gespeichert wird das Geburtsjahr, kein Datum.
 - Trainingspartner werden nicht namentlich erfasst, nur Gürtel und Größe.
-- Hosting in der EU (Supabase Frankfurt), Export und Löschung aller Daten per Knopf.
+- Hosting in der EU (Supabase Frankfurt), Export und Löschung aller Daten per Knopf (Konto löschen entfernt Konto, Server-Daten und die Kopie auf dem Gerät).
+- Mit Konto gespeichert: die Anmeldedaten (E-Mail, Telefonnummer oder die Kennung des verbundenen Dienstes, bei Passkeys der öffentliche Schlüssel) und die Waza-Arc-Daten. Bei Google, Apple und Co. bekommt der Anbieter mit, dass man sich anmeldet. Die Datenschutzerklärung des Portfolios braucht dafür einen eigenen Abschnitt (siehe `KONTO-SETUP.md`).
 - Für den Gym-Modus: Coaches sehen Anwesenheit und gesiegelte Techniken, nicht die Roll-Karten.
 
 ---
@@ -465,7 +498,7 @@ Daraus wird die Case Study: „Kann man BJJ-Fortschritt messen? Acht Wochen, zeh
 
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
-| 0 Fundament | Erledigt: eigener Einstiegspunkt `/arc/`, App lokal-first. Offen: Rechte aufräumen (8.3), Schema `arc` anwenden, Auth, Sync | Die Architektur steht |
+| 0 Fundament | Erledigt: eigener Einstiegspunkt `/arc/`, App lokal-first, Rechte aufgeräumt (8.3), Schema `arc` angewendet, Anmeldung und Sync (8.5). Offen: Anmeldewege und Registrierung im Dashboard einschalten (`KONTO-SETUP.md`) | Die Architektur steht |
 | 1 Eigenversuch | Läuft ab sofort lokal: Log-Flow, alle 178 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
 | 2 Spielsysteme | Sternkarte mit Nebel und Kombos, Drei-Karten-Draft, Wochenboss, Klasse und Titel, Rückblick-Karte | Die App macht Spaß, nicht nur Sinn |
 | 3 Gym-Pilot | 5 bis 10 Leute, Kursplan vom Coach, Coach-Bewertung als Ground Truth | 8 Wochen Daten mehrerer Personen |
@@ -490,6 +523,9 @@ Entschieden:
 - **Seekarte** mit eigener Welt, deren Aufbau an bekannte Piraten-Anime angelehnt ist, aber nur eigene Namen verwendet (6.9).
 - **Nebensport** zählt nicht fürs Wochenziel. Takedowns aus Ringen, Judo und Sambo zählen mit Gewicht 0,75 für Stand-Techniken (6.10).
 - **Gestaltung** als Manga-Band in zwei Themes, Papier und Nachtausgabe, mit Bewegung nur im Kapitelende (7.1).
+- **Konto und Sync** über dieselbe Supabase-Instanz, als Datensätze mit Revisionen und Dreiwege-Abgleich statt einer Tabelle pro Objekt (3, 8.5). Die Anmeldeseite zeigt, was im Dashboard eingeschaltet ist.
+- **Scouter** mit vier Modi: du, Partner, Gegner, Boss (6.8).
+- **Seekarte** mit Reise zwischen den Inseln, Schiff nach Gürtel, eigener Flagge, Wetter, Erkundung und Logbuch (6.9).
 
 Offen:
 

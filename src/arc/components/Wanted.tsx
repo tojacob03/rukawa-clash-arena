@@ -7,7 +7,7 @@ import { nf0 } from "../format.ts";
 export default function Wanted({ name, bounty, portrait, line }: { name: string; bounty: number; portrait: ReactNode; line: string }) {
   return (
     <figure className="wanted" aria-label={`Steckbrief ${name}, Kopfgeld ${nf0.format(bounty)} Gold`}>
-      <p className="w-title">GESUCHT</p>
+      <p className="w-title">Gesucht</p>
       <p className="w-sub">auf jeder Matte der vier Meere</p>
       <div className="w-photo">{portrait}</div>
       <p className="w-name">{name}</p>

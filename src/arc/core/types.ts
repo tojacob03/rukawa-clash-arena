@@ -69,6 +69,18 @@ export interface Character {
   mode: Attire;
   /** Item ids the player has already looked at (for the "neu" badge). */
   seen: string[];
+  /** Your crew flag on the sea chart. Indices into the lists in core/crewflag.ts. */
+  flag?: FlagDesign;
+  /** Name of your ship on the sea chart. */
+  shipName?: string;
+}
+
+export interface FlagDesign {
+  bg: number;
+  fg: number;
+  emblem: number;
+  cross: number;
+  head: number;
 }
 
 export type TechKind =

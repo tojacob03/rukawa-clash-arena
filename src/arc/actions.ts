@@ -1,4 +1,4 @@
-import type { ArcData, Attire, Belt, Character, Competition, CrossSession, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import type { ArcData, Attire, Belt, Character, Competition, CrossSession, FlagDesign, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
 import { getCharacter } from "./character.ts";
 import { ITEMS } from "./core/items.ts";
 import { TECH } from "./core/techniques.ts";
@@ -125,6 +125,8 @@ function setCharacter(fn: (c: Character) => Character) {
 
 export const setLook = (look: Look) => setCharacter((c) => ({ ...c, look }));
 export const setMode = (mode: Attire) => setCharacter((c) => ({ ...c, mode }));
+export const setFlag = (flag: FlagDesign) => setCharacter((c) => ({ ...c, flag }));
+export const setShipName = (shipName: string) => setCharacter((c) => ({ ...c, shipName: shipName.trim().slice(0, 28) || undefined }));
 export const equip = (slot: Slot, id: string | null) =>
   setCharacter((c) => {
     // "" means: deliberately empty, do not fall back to the default item.
