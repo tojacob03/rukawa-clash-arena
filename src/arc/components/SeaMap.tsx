@@ -5,16 +5,18 @@
 // below the chart instead of on top of it.
 
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent } from "react";
+import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { LocateFixed, Maximize2, Minus, Plus } from "lucide-react";
 import type { Belt, FlagDesign, SeaId } from "../core/types.ts";
 import type { Island } from "../core/sea.ts";
-import { ISLAND, ISLANDS, SEAS, SERPENT, WORLD, route, serpentWidth, shipPos } from "../core/sea.ts";
+import { ISLAND, ISLANDS, SEAS, SERPENT, WORLD, courseLength, route, serpentWidth, shipPos, smoothPath, voyageLegs } from "../core/sea.ts";
 import { placeLabels } from "../core/labels.ts";
 import type { LabelReq, PlacedLabel, Rect, Spot } from "../core/labels.ts";
 import type { WeatherKind } from "../core/voyage.ts";
 import { DockArt, ShipArt } from "./ShipArt.tsx";
 import { SerpentArt } from "./SeaSerpent.tsx";
+import { loadMotion, reducedMotion } from "../motion.ts";
+import type { Timeline } from "../motion.ts";
 
 export interface MapMarks {
   sea: SeaId;
@@ -56,6 +58,13 @@ export interface OtherShip {
   /** Crewmate (flies the crew flag) or friend. */
   crew: boolean;
 }
+
+/** A voyage to show: the ship sails from `from` (island index plus the share of the way) to where it is now. */
+export interface Voyage {
+  id: number;
+  from: number;
+}
+export type VoyageEvent = { kind: "start"; seconds: number } | { kind: "done" };
 
 const { w: W, h: H, ridgeX: RX, currentY: CY, currentHalf: CH, calm: CALM } = WORLD;
 
@@ -155,10 +164,35 @@ function beltSpots(x0: number, x1: number, fs: number, sides: ("n" | "s")[]): Sp
  * keys and plus/minus from the keyboard. Labels keep one size on screen and
  * move aside instead of covering each other.
  */
-export default function SeaMap({ marks, selected, onSelect, others = [] }: { marks: MapMarks; selected: string | null; onSelect: (id: string) => void; others?: OtherShip[] }) {
+export default function SeaMap({
+  marks,
+  selected,
+  onSelect,
+  others = [],
+  voyage = null,
+  onVoyage,
+  note,
+}: {
+  marks: MapMarks;
+  selected: string | null;
+  onSelect: (id: string) => void;
+  others?: OtherShip[];
+  voyage?: Voyage | null;
+  onVoyage?: (e: VoyageEvent) => void;
+  /** A line under the chart, such as the miles since your last look. */
+  note?: ReactNode;
+}) {
   const boxRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const miniRef = useRef<SVGRectElement>(null);
+  const shipRef = useRef<SVGGElement>(null);
+  const flipRef = useRef<SVGGElement>(null);
+  const serpentRef = useRef<SVGGElement>(null);
+  const wakeRef = useRef<SVGGElement>(null);
+  /** Ends a running voyage at once, when you take the helm (drag, zoom, keys). */
+  const skipRef = useRef<(() => void) | null>(null);
+  const onVoyageRef = useRef(onVoyage);
+  onVoyageRef.current = onVoyage;
   const vb = useRef<Box>({ x: 0, y: 0, w: W });
   const ar = useRef(H / W);
   const anim = useRef(0);
@@ -169,6 +203,11 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
   const r = route(marks.sea);
   const next = r[marks.current + 1];
   const pos = shipPos(r, marks.current, marks.progress);
+  const target = marks.current + marks.progress;
+  const legs = useMemo(() => (voyage ? voyageLegs(route(marks.sea), voyage.from, target) : null), [voyage, marks.sea, target]);
+  const sailing = !!legs?.length;
+  // While a voyage waits to start, the ship lies where you saw it last.
+  const start = sailing ? { x: legs[0][0].x, y: legs[0][0].y, left: legs[0][1].x < legs[0][0].x } : pos;
 
   const maxW = () => Math.max(W, H / ar.current);
   const fit = (v: Box): Box => {
@@ -212,9 +251,10 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
   }, []);
 
   const animateTo = useCallback(
-    (target: Box) => {
+    (goal: Box) => {
+      skipRef.current?.();
       cancelAnimationFrame(anim.current);
-      const to = fit(target);
+      const to = fit(goal);
       const from = { ...vb.current };
       const t0 = performance.now();
       const dur = REDUCED ? 0 : 380;
@@ -233,6 +273,7 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
 
   const zoomAt = useCallback(
     (factor: number, cx?: number, cy?: number) => {
+      skipRef.current?.();
       cancelAnimationFrame(anim.current);
       const v = vb.current;
       const w = clampN(v.w * factor, MIN_W, maxW());
@@ -266,6 +307,123 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
     apply();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The voyage since your last look: the camera waits where you left the
+  // ship, then follows it along its course (a little behind, like a boat
+  // following in its wake) while the chart zooms in slightly. The wake draws
+  // itself behind the hull and closes again once the ship lies still. Any
+  // touch, wheel or key ends it at once.
+  useLayoutEffect(() => {
+    if (!voyage || !legs) return;
+    const done = () => onVoyageRef.current?.({ kind: "done" });
+    const svg = svgRef.current;
+    const ship = shipRef.current;
+    const flip = flipRef.current;
+    if (!legs.length || !svg || !ship || !flip || reducedMotion()) {
+      done();
+      return;
+    }
+    const rect = boxRef.current?.getBoundingClientRect();
+    const w1 = clampN((rect?.width ?? 800) / 1.3, MIN_W, maxW());
+    const w0 = clampN(w1 * 1.25, MIN_W, maxW());
+    const s = legs[0][0];
+    const end = legs[legs.length - 1][legs[legs.length - 1].length - 1];
+    const frame = (x: number, y: number, w: number) => {
+      vb.current = fit({ x: x - w / 2, y: y - (w * ar.current) / 2, w });
+      apply();
+    };
+    cancelAnimationFrame(anim.current);
+    frame(s.x, s.y, w0);
+
+    let tl: Timeline | null = null;
+    let stop: (() => void) | null = null;
+    let dead = false;
+    const skip = () => tl?.progress(1);
+    skipRef.current = skip;
+    loadMotion()
+      .then(({ gsap }) => {
+        if (dead) return;
+        const lens = legs.map(courseLength);
+        const total = lens.reduce((a, b) => a + b, 0);
+        const dur = clampN(1.3 + total / 150, 1.8, 5.5);
+        const wakes = [...(wakeRef.current?.querySelectorAll<SVGPathElement>("path") ?? [])];
+        const cam = { x: s.x, y: s.y, w: w0 };
+        let lastX = s.x;
+        let left = legs[0][1].x < s.x;
+        const turn = { s: left ? -1 : 1 };
+        const face = (l: boolean) => {
+          if (l === left) return;
+          left = l;
+          gsap.to(turn, { s: l ? -1 : 1, duration: 0.45, ease: "power2.inOut", overwrite: true, onUpdate: () => flip.setAttribute("transform", `scale(${turn.s.toFixed(3)} 1)`) });
+        };
+        const follow = () => {
+          const x = Number(gsap.getProperty(ship, "x"));
+          const y = Number(gsap.getProperty(ship, "y"));
+          if (Math.abs(x - lastX) > 0.2) {
+            face(x < lastX);
+            lastX = x;
+          }
+          // Over the ridge the ship leaves at the east edge: the camera cuts.
+          const k = Math.abs(x - cam.x) > W / 3 ? 1 : 1 - Math.pow(0.9, gsap.ticker.deltaRatio());
+          cam.x += (x - cam.x) * k;
+          cam.y += (y - cam.y) * k;
+          frame(cam.x, cam.y, cam.w);
+        };
+        stop = () => gsap.ticker.remove(follow);
+        gsap.set(ship, { x: s.x, y: s.y });
+        tl = gsap.timeline({
+          delay: 0.35,
+          onStart: () => {
+            gsap.ticker.add(follow);
+            onVoyageRef.current?.({ kind: "start", seconds: dur });
+          },
+          onComplete: () => {
+            stop?.();
+            gsap.killTweensOf(turn);
+            flip.setAttribute("transform", pos.left ? "scale(-1 1)" : "scale(1 1)");
+            frame(end.x, end.y, w1);
+            skipRef.current = null;
+            done();
+          },
+        });
+        let t = 0;
+        legs.forEach((leg, i) => {
+          const d = (dur * lens[i]) / total;
+          const ease = legs.length === 1 ? "power1.inOut" : i === 0 ? "power1.in" : i === legs.length - 1 ? "power1.out" : "none";
+          const path = smoothPath(leg);
+          tl!.to(ship, { motionPath: { path }, duration: d, ease }, t);
+          const wake = wakes.filter((p) => p.dataset.leg === String(i));
+          tl!.fromTo(wake, { drawSVG: "0% 0%", opacity: 1 }, { drawSVG: "0% 100%", duration: d, ease, immediateRender: false }, t);
+          t += d;
+        });
+        tl.to(cam, { w: w1, duration: dur + 0.5, ease: "power2.inOut" }, 0);
+        // The weekly boss waits where you are stuck: it surfaces as you arrive.
+        const surface = Math.max(0, dur - 0.5);
+        if (serpentRef.current) tl.fromTo(serpentRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" }, surface);
+        const name = svg.querySelector(".monster-lbl");
+        if (name) tl.fromTo(name, { opacity: 0 }, { opacity: 1, duration: 0.6 }, surface + 0.5);
+        // The wake closes behind the ship once it lies still.
+        tl.to(wakes, { drawSVG: "100% 100%", opacity: 0, duration: 1.3, ease: "power2.inOut" }, dur + 0.15);
+      })
+      .catch(() => {
+        if (!dead) done();
+      });
+    const opts = { capture: true, passive: true } as const;
+    const box = boxRef.current;
+    svg.addEventListener("pointerdown", skip, opts);
+    svg.addEventListener("wheel", skip, opts);
+    box?.addEventListener("keydown", skip, true);
+    return () => {
+      dead = true;
+      svg.removeEventListener("pointerdown", skip, opts);
+      svg.removeEventListener("wheel", skip, opts);
+      box?.removeEventListener("keydown", skip, true);
+      stop?.();
+      tl?.kill();
+      if (skipRef.current === skip) skipRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voyage]);
 
   // An island chosen outside the map (route strip, link): bring it into view.
   const lastSel = useRef(selected);
@@ -602,12 +760,32 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
 
           {/* Boss as a sea monster next to the ship */}
           {boss ? (
-            <g transform={`translate(${boss.x - boss.w / 2} ${boss.y}) scale(${boss.sc})`} aria-hidden="true">
-              <SerpentArt hp={marks.bossHp ?? 1} max={marks.bossMax ?? 4} />
+            <g ref={serpentRef} style={sailing ? { opacity: 0 } : undefined}>
+              <g transform={`translate(${boss.x - boss.w / 2} ${boss.y}) scale(${boss.sc})`} aria-hidden="true">
+                <SerpentArt hp={marks.bossHp ?? 1} max={marks.bossMax ?? 4} />
+              </g>
+            </g>
+          ) : null}
+          {/* The wake of a voyage, drawn while the ship sails */}
+          {sailing ? (
+            <g ref={wakeRef} className="voyage-wake" aria-hidden="true">
+              {legs.map((leg, i) => {
+                const d = smoothPath(leg);
+                return (
+                  <g key={i}>
+                    <path data-leg={i} className="churn" d={d} strokeWidth={9 * (shipScale / 0.34)} />
+                    <path data-leg={i} className="foam" d={d} strokeWidth={2.2 * (shipScale / 0.34)} />
+                  </g>
+                );
+              })}
             </g>
           ) : null}
           {/* Ship, on its way to the next island */}
-          <ShipMark pos={pos} marks={marks} scale={shipScale} />
+          <g ref={shipRef} transform={`translate(${start.x} ${start.y})`}>
+            <g ref={flipRef} transform={start.left ? "scale(-1 1)" : "scale(1 1)"}>
+              <ShipMark marks={marks} scale={shipScale} />
+            </g>
+          </g>
 
           <CompassRose x={W - 70} y={H - 110} />
 
@@ -624,12 +802,17 @@ export default function SeaMap({ marks, selected, onSelect, others = [] }: { mar
               return text(labels[is.id], `isle-lbl ${state}${selected === is.id ? " sel" : ""}`, is.name, () => onSelect(is.id));
             })}
             {others.map((o) => text(labels[`ship:${o.id}`], `ship-lbl${o.crew ? " crew" : ""}`, o.name))}
-            {marks.boss ? text(labels.boss, "monster-lbl", marks.boss) : null}
+            {marks.boss ? text(labels.boss, `monster-lbl${sailing ? " surfacing" : ""}`, marks.boss) : null}
           </g>
         </svg>
       </div>
 
       <div className="sea-bar">
+        {note ? (
+          <p className="sea-note" aria-live="polite">
+            {note}
+          </p>
+        ) : null}
         <svg
           className="sea-mini"
           viewBox={`0 0 ${W} ${H}`}
@@ -845,8 +1028,8 @@ function IslandGlyph({ is }: { is: Island }) {
   );
 }
 
-function ShipMark({ pos, marks, scale }: { pos: { x: number; y: number; left: boolean }; marks: MapMarks; scale: number }) {
-  const back = pos.left ? 1 : -1;
+/** Your ship at the origin, bow to the right; the chart moves and turns it. */
+function ShipMark({ marks, scale }: { marks: MapMarks; scale: number }) {
   const gusts = { tailwind: 3, breeze: 2, light: 1, calm: 0, dock: 0 }[marks.weather];
   const k = scale / 0.34;
   return (
@@ -858,7 +1041,7 @@ function ShipMark({ pos, marks, scale }: { pos: { x: number; y: number; left: bo
           className="gust"
           pathLength={100}
           style={{ ["--i" as string]: i } as CSSProperties}
-          d={`M${pos.x + back * (36 + i * 5) * k} ${pos.y + (-30 + i * 11) * k} q${back * 14 * k} ${-5 * k} ${back * 34 * k} 0`}
+          d={`M${-(36 + i * 5) * k} ${(-30 + i * 11) * k} q${-14 * k} ${-5 * k} ${-34 * k} 0`}
           strokeWidth={1.6 * k}
         />
       ))}
@@ -866,11 +1049,11 @@ function ShipMark({ pos, marks, scale }: { pos: { x: number; y: number; left: bo
       {marks.weather === "calm" ? (
         <g className="calm-rings" strokeWidth={1.2 * k}>
           {[0, 1, 2].map((i) => (
-            <ellipse key={i} cx={pos.x} cy={pos.y + 2 * k} rx={46 * k} ry={10 * k} style={{ ["--i" as string]: i } as CSSProperties} />
+            <ellipse key={i} cx={0} cy={2 * k} rx={46 * k} ry={10 * k} style={{ ["--i" as string]: i } as CSSProperties} />
           ))}
         </g>
       ) : null}
-      <g transform={`translate(${pos.x} ${pos.y}) scale(${pos.left ? -scale : scale} ${scale}) translate(-100 -128)`}>
+      <g transform={`scale(${scale}) translate(-100 -128)`}>
         {marks.weather === "dock" ? <DockArt belt={marks.belt} /> : null}
         <g className="ship-roll">
           <ShipArt belt={marks.belt} sail={marks.shipColor} flag={marks.flag} hull={marks.hull} sails={marks.sails} barnacles={marks.barnacles} />

@@ -1,8 +1,11 @@
 // Scouter: a lens that reads out fighters. Four modes: you (Power Level,
 // trend, strengths, record by belt), a sparring partner (what is at stake,
 // your record against the belt, a plan for the roll), a tournament opponent
-// (stakes, your weapons, what to watch) and the weekly boss. Original design,
-// static: the only orchestrated motion in the app is the chapter end.
+// (stakes, your weapons, what to watch) and the weekly boss. Original design.
+// Each reading is a measurement: the reticle closes on the target, a scan
+// line runs over it, the Power Level settles digit by digit (the leading
+// digit first) and then the history and the bars fill in. Without motion the
+// reading simply stands there.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
@@ -16,6 +19,8 @@ import { go } from "../store.ts";
 import { selfRows } from "../scan.ts";
 import type { ScoutMode, ScoutRequest } from "../scan.ts";
 import { LevelPill, Seg } from "./ui.tsx";
+import { loadMotion } from "../motion.ts";
+import type { Timeline, Tween } from "../motion.ts";
 
 const SIZES: { v: Size; label: string }[] = [
   { v: "leichter", label: "Leichter" },
@@ -83,6 +88,44 @@ export default function Scouter({
     go("karte", id);
   };
 
+  // The measurement, each time the scouter reads a new kind of target.
+  useEffect(() => {
+    const root = lens.current?.querySelector<HTMLElement>("#sc-panel");
+    if (!root) return;
+    let tl: Timeline | null = null;
+    let dead = false;
+    loadMotion()
+      .then(({ gsap }) => {
+        if (dead) return;
+        const q = gsap.utils.selector(root);
+        tl = gsap.timeline();
+        // The four corners of the reticle close in on the target.
+        const out = 20;
+        tl.from(q(".sc-ret"), { x: (i: number) => (i % 2 ? out : -out), y: (i: number) => (i < 2 ? -out : out), opacity: 0, duration: 0.5, ease: "back.out(2.2)", stagger: 0.03 }, 0);
+        const target = q(".sc-target")[0] as HTMLElement | undefined;
+        const scan = q(".sc-scan")[0];
+        if (target && scan) {
+          tl.fromTo(scan, { y: 0, opacity: 1 }, { y: target.clientHeight - 4, duration: 0.8, ease: "power1.inOut" }, 0.15);
+          tl.to(scan, { opacity: 0, duration: 0.2 }, 0.9);
+        }
+        tl.from(q(".sc-tier, .sc-name"), { y: 8, opacity: 0, duration: 0.4, ease: "power2.out", stagger: 0.06 }, 0.95);
+        const line = q(".spark-line");
+        if (line.length) {
+          tl.fromTo(line, { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: 0.9, ease: "power1.inOut" }, 0.45);
+          tl.from(q(".spark-area"), { opacity: 0, duration: 0.5 }, 0.9);
+          tl.from(q(".spark-now"), { scale: 0, transformOrigin: "50% 50%", duration: 0.35, ease: "back.out(3)" }, 1.3);
+        }
+        tl.from(q(".sc-rows em"), { scaleX: 0, transformOrigin: "0% 50%", duration: 0.6, ease: "power2.out", stagger: 0.07 }, 0.75);
+        // The boss's life points rise one by one.
+        tl.from(q(".sc-hp i"), { scaleY: 0, transformOrigin: "50% 100%", duration: 0.3, ease: "back.out(2)", stagger: 0.05 }, 0.6);
+      })
+      .catch(() => {});
+    return () => {
+      dead = true;
+      tl?.revert();
+    };
+  }, [mode]);
+
   return (
     <div className="scouter" role="dialog" aria-modal="true" aria-label="Scouter" onClick={onClose}>
       <div className="scouter-lens" ref={lens} onClick={(e) => e.stopPropagation()}>
@@ -137,11 +180,71 @@ function Target({ children }: { children: ReactNode }) {
   return (
     <div className="sc-target" aria-hidden="true">
       {children}
+      <span className="sc-scan" />
       <span className="sc-ret tl" />
       <span className="sc-ret tr" />
       <span className="sc-ret bl" />
       <span className="sc-ret br" />
     </div>
+  );
+}
+
+/**
+ * The Power Level as the scouter reads it: the digits run and settle one by
+ * one from the left, the way a measurement narrows down. A new value (another
+ * belt picked for a partner) is read again, faster.
+ */
+function Reading({ value }: { value: number }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const read = useRef(false);
+  useEffect(() => {
+    const text = ref.current?.firstChild;
+    if (!(text instanceof Text)) return;
+    const final = nf0.format(value);
+    const first = !read.current;
+    read.current = true;
+    let tw: Tween | null = null;
+    let dead = false;
+    loadMotion()
+      .then(({ gsap }) => {
+        if (dead) return;
+        const slots = [...final].flatMap((c, i) => (/\d/.test(c) ? [i] : []));
+        const o = { p: 0 };
+        let last = -1;
+        // On the first reading all digits run while the reticle closes in.
+        const hold = first ? 0.3 : 0;
+        const show = () => {
+          const now = gsap.ticker.time;
+          if (now - last < 0.045) return;
+          last = now;
+          const locked = Math.floor((Math.max(0, o.p - hold) / (1 - hold)) * (slots.length + 0.999));
+          const chars = [...final];
+          slots.forEach((at, j) => {
+            if (j >= locked) chars[at] = String(j === 0 ? 1 + Math.floor(Math.random() * 9) : Math.floor(Math.random() * 10));
+          });
+          text.data = chars.join("");
+        };
+        tw = gsap.to(o, {
+          p: 1,
+          duration: first ? 1.35 : 0.55,
+          ease: "power1.in",
+          onUpdate: show,
+          onComplete: () => {
+            text.data = final;
+          },
+        });
+        show();
+      })
+      .catch(() => {});
+    return () => {
+      dead = true;
+      tw?.kill();
+    };
+  }, [value]);
+  return (
+    <p className="sc-pl" ref={ref}>
+      {nf0.format(value)}
+    </p>
   );
 }
 
@@ -191,7 +294,7 @@ function SelfView({ data, st, portrait, onTech }: { data: ArcData; st: ArcState;
           <p className="sc-k">Ziel erfasst</p>
           <p className="sc-name">{data.profile?.name}</p>
           <p className="sc-k">Power Level</p>
-          <p className="sc-pl">{nf0.format(s.power)}</p>
+          <Reading value={s.power} />
           <p className="sc-tier">
             {s.tier}
             <span className={`sc-delta ${s.trend8 >= 0 ? "up" : "down"}`}>{signed(s.trend8)} in 8 Wochen</span>
@@ -257,7 +360,7 @@ function SelfView({ data, st, portrait, onTech }: { data: ArcData; st: ArcState;
           <Rows rows={selfRows(data, st, today).filter((r) => !SECTORS.some((x) => x.name === r.label))} />
         </section>
       </div>
-      <p className="sc-foot">Das Power Level ist dein Elo-Rating aus Rolls und Turnierkämpfen, mal zehn.</p>
+      <p className="sc-foot">Das Power Level kommt aus deinem Elo-Rating aus Rolls und Turnierkämpfen: 100 Elo-Punkte mehr verdoppeln es.</p>
     </>
   );
 }
@@ -404,7 +507,7 @@ function FoeView({
             <Seg label="Gi oder No-Gi" value={attire} onChange={setAttire} options={ATTIRE} />
           </div>
           <p className="sc-k">{kind === "partner" ? "Partner" : label ?? "Gegner"}, geschätzt nach Gürtel{kind === "partner" ? " und Größe" : ""}</p>
-          <p className="sc-pl">{nf0.format(s.power)}</p>
+          <Reading value={s.power} />
           <p className="sc-tier">
             {s.tier}
             <span className={`sc-delta ${s.gap >= 0 ? "up" : "down"}`}>Du {signed(s.gap)}</span>

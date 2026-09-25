@@ -290,6 +290,54 @@ export function shipPos(r: Island[], idx: number, progress: number): { x: number
   return { x: ax + (bx - ax) * progress, y: ay + (by - ay) * progress, left: bx < ax };
 }
 
+type Pt = { x: number; y: number };
+
+/**
+ * The course of the ship from one route position to a later one (island
+ * index plus the share of the way to the next island): where it starts, every
+ * island it reaches on the way, where it ends. Split into legs where the
+ * route leaves the chart at the east edge and comes back in at the west.
+ */
+export function voyageLegs(r: Island[], from: number, to: number): Pt[][] {
+  const W = WORLD.w;
+  const at = (u: number): Pt => {
+    const i = Math.max(0, Math.min(r.length - 1, Math.floor(u)));
+    const p = shipPos(r, i, u - i);
+    return { x: p.x, y: p.y };
+  };
+  const legs: Pt[][] = [[at(from)]];
+  const add = (p: Pt) => {
+    const leg = legs[legs.length - 1];
+    const last = leg[leg.length - 1];
+    if (Math.hypot(p.x - last.x, p.y - last.y) < 0.5) return;
+    if (last.x - p.x > W / 2) {
+      leg.push({ x: W - 10, y: last.y });
+      legs.push([{ x: 10, y: p.y }]);
+    }
+    legs[legs.length - 1].push(p);
+  };
+  for (let i = Math.floor(from) + 1; i <= Math.min(r.length - 1, Math.floor(to)); i++) add(at(i));
+  add(at(to));
+  return legs.filter((l) => l.length > 1);
+}
+
+/** A smooth path through the points (Catmull-Rom as cubic curves), for the course and its wake. */
+export function smoothPath(pts: Pt[]): string {
+  const f = (n: number) => n.toFixed(1);
+  let d = `M${f(pts[0].x)} ${f(pts[0].y)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    d += ` C${f(p1.x + (p2.x - p0.x) / 6)} ${f(p1.y + (p2.y - p0.y) / 6)} ${f(p2.x - (p3.x - p1.x) / 6)} ${f(p2.y - (p3.y - p1.y) / 6)} ${f(p2.x)} ${f(p2.y)}`;
+  }
+  return d;
+}
+
+/** Length of a course, along its points. */
+export const courseLength = (pts: Pt[]) => pts.reduce((s, p, i) => (i ? s + Math.hypot(p.x - pts[i - 1].x, p.y - pts[i - 1].y) : 0), 0);
+
 /** The sea serpent (weekly boss): one hump per life point, at most eight. Waterline at y = 0. */
 export const SERPENT = { hump: 16, top: -27, bottom: 12 };
 export const serpentWidth = (max: number) => 36 + Math.max(1, Math.min(8, max)) * SERPENT.hump;

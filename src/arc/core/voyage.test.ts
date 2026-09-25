@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { buildDemo } from "./demo.ts";
 import { compute } from "./model.ts";
 import { MAX_PASSAGE, MILES, exploration, fullyExplored, logbook, passage, seaMiles, stays, weather } from "./voyage.ts";
-import { LANDMARK, SECRET, rankIndex } from "./sea.ts";
+import { LANDMARK, SECRET, WORLD, rankIndex, route, shipPos, smoothPath, voyageLegs } from "./sea.ts";
 import { normalizeFlag, DEFAULT_FLAG } from "./crewflag.ts";
 import type { ArcData, Session } from "./types.ts";
 
@@ -95,4 +95,25 @@ test("demo: the explorer seal follows the exploration", () => {
 test("crew flag: unknown values fall back to the default", () => {
   assert.deepEqual(normalizeFlag(undefined), DEFAULT_FLAG);
   assert.deepEqual(normalizeFlag({ bg: 99, fg: 1, emblem: -1 }), { ...DEFAULT_FLAG, fg: 1 });
+});
+
+test("voyage: the course runs through every island reached and wraps at the ridge", () => {
+  const r = route("frost");
+  // Half way to the next island, two islands on, a little out again.
+  const legs = voyageLegs(r, 1.5, 3.25);
+  assert.equal(legs.length, 1);
+  const pts = legs[0];
+  assert.deepEqual(pts[0], { x: shipPos(r, 1, 0.5).x, y: shipPos(r, 1, 0.5).y });
+  assert.deepEqual(pts[1], { x: shipPos(r, 2, 0).x, y: shipPos(r, 2, 0).y });
+  assert.deepEqual(pts[2], { x: shipPos(r, 3, 0).x, y: shipPos(r, 3, 0).y });
+  assert.equal(pts.length, 4);
+  assert.match(smoothPath(pts), /^M[\d.]+ [\d.]+( C[\d. -]+){3}$/);
+  // Nothing to sail: no legs.
+  assert.deepEqual(voyageLegs(r, 3.25, 3.25), []);
+  // Over the ridge from c9 to c10: out at the east edge, in at the west.
+  const c9 = r.findIndex((x) => x.id === "c9");
+  const wrap = voyageLegs(r, c9, c9 + 1);
+  assert.equal(wrap.length, 2);
+  assert.equal(wrap[0][wrap[0].length - 1].x, WORLD.w - 10);
+  assert.equal(wrap[1][0].x, 10);
 });
