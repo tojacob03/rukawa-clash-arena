@@ -2,21 +2,21 @@ import { useMemo, useState } from "react";
 import { Check, Gift, Minus, Plus, RotateCcw, ScanEye, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, CompMatch, Competition } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
-import { RARITY, inventory, itemById } from "../core/items.ts";
+import { inventory, itemById } from "../core/items.ts";
 import { TECH } from "../core/techniques.ts";
 import { SEALS } from "../core/lore.ts";
+import type { ArcState as State } from "../core/types.ts";
 import { compXp, compute, diff } from "../core/model.ts";
 import type { Diff } from "../core/model.ts";
 import { BELTS, nf0, signed } from "../format.ts";
-import { deleteCompetition, saveCompetition } from "../actions.ts";
+import { deleteCompetition, rememberWeightClass, saveCompetition } from "../actions.ts";
 import { go, uid } from "../store.ts";
 import { useGear } from "../useGear.ts";
 import { opponentRows, powerTier } from "../scan.ts";
-import Burst from "../components/Burst.tsx";
-import type { BurstEvent } from "../components/Burst.tsx";
-import ItemIcon from "../components/ItemIcon.tsx";
 import Scouter, { Silhouette } from "../components/Scouter.tsx";
-import { SecTitle, Seg } from "../components/ui.tsx";
+import ChapterEnd from "../components/ChapterEnd.tsx";
+import { compRows } from "../chapterRows.tsx";
+import { LvlStep, SecTitle, Seg } from "../components/ui.tsx";
 import { METHODS, ORGS, PLACE_NAME, RESULTS, SUBS, WEIGHTS } from "../compText.ts";
 
 interface Draft {
@@ -48,8 +48,9 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
   const lastAttire = [...data.sessions].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.attire ?? "gi";
   const [draft, setDraft] = useState<Draft>({ name: "", date: today, org: "", attire: lastAttire, weight: "", place: 0, matches: [{ result: "win", method: "points", oppBelt: own }] });
   const [scanFor, setScanFor] = useState<number | null>(null);
-  const [result, setResult] = useState<{ c: Competition; D: Diff; loot: ItemDef[] } | null>(null);
-  const [burst, setBurst] = useState<BurstEvent[]>([]);
+  const [result, setResult] = useState<{ c: Competition; D: Diff; loot: ItemDef[]; before: State; after: State } | null>(null);
+  const [customW, setCustomW] = useState("");
+  const knownW = [...WEIGHTS, ...(data.profile?.weightClasses ?? []).filter((w) => !WEIGHTS.includes(w))];
   const { owned } = useGear(data, st);
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const setMatch = (i: number, patch: Partial<CompMatch>) => setDraft((d) => ({ ...d, matches: d.matches.map((m, j) => (j === i ? { ...m, ...patch } : m)) }));
@@ -73,49 +74,44 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
       .map((id) => itemById(id, next, after))
       .filter((x): x is ItemDef => !!x);
     saveCompetition(c);
-    setResult({ c, D, loot });
-    const w = c.matches.filter((m) => m.result === "win").length;
-    const l = c.matches.filter((m) => m.result === "loss").length;
-    const events: BurstEvent[] = [
-      {
-        kicker: c.name,
-        title: c.place ? `${PLACE_NAME[c.place]}!` : "Gekämpft!",
-        lines: [`Bilanz ${w}-${l}`, `+${nf0.format(D.xp)} XP · Power Level ${signed(D.power)}`],
-        tone: c.place === 1 ? "gold" : c.place ? "ai" : "beni",
-      },
-    ];
-    if (loot.length) events.push({ kicker: "Freigeschaltet", title: loot.map((x) => x.name).join(" · "), lines: loot.map((x) => x.desc), tone: "gold" });
-    setBurst(events);
+    if (c.weight && !WEIGHTS.includes(c.weight)) rememberWeightClass(c.weight);
+    setResult({ c, D, loot, before, after });
     window.scrollTo({ top: 0 });
   };
 
   if (result) {
     return (
-      <div className="page log">
-        {burst.length ? <Burst ev={burst[0]} onClose={() => setBurst((b) => b.slice(1))} /> : null}
-        <SecTitle kanji="試合" eyebrow="Gespeichert" title="Turnier eingetragen" />
-        <CompResultPanel c={result.c} D={result.D} loot={result.loot} belt={own} saved />
-        <div className="row wrap">
-          <button type="button" className="btn primary" onClick={() => go("held", "turniere")}>
-            <Trophy size={16} aria-hidden="true" /> <span>Kampfrekord</span>
-          </button>
-          {result.loot.length ? (
-            <button type="button" className="btn ghost" onClick={() => go("held", "ausruestung")}>
-              <Gift size={16} aria-hidden="true" /> <span>Beute ausrüsten</span>
+      <ChapterEnd
+        kanji="試合"
+        title="Turnier eingetragen"
+        before={result.before}
+        after={result.after}
+        rows={compRows(result.c, result.D, result.after)}
+        loot={result.loot}
+        belt={own}
+        actions={
+          <>
+            <button type="button" className="btn primary" onClick={() => go("held", "turniere")}>
+              <Trophy size={18} aria-hidden="true" /> <span>Kampfrekord</span>
             </button>
-          ) : null}
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={() => {
-              deleteCompetition(result.c.id);
-              setResult(null);
-            }}
-          >
-            <RotateCcw size={16} aria-hidden="true" /> Rückgängig
-          </button>
-        </div>
-      </div>
+            {result.loot.length ? (
+              <button type="button" className="btn" onClick={() => go("held", "ausruestung")}>
+                <Gift size={18} aria-hidden="true" /> <span>Beute ausrüsten</span>
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => {
+                deleteCompetition(result.c.id);
+                setResult(null);
+              }}
+            >
+              <RotateCcw size={16} aria-hidden="true" /> Rückgängig
+            </button>
+          </>
+        }
+      />
     );
   }
 
@@ -127,7 +123,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
       {opp && scanFor !== null ? (
         <Scouter
           onClose={() => setScanFor(null)}
-          target={{ name: `Gegner ${scanFor + 1}`, power: opp.power, tier: opp.tier, rows: opp.rows, portrait: <Silhouette size={180} />, foot: `Du: ${nf0.format(Math.round(st.ru * 10))} · ${powerTier(st.ru)}. Die Schätzung kennt nur den Gürtel.` }}
+          target={{ name: `Gegner ${scanFor + 1}`, power: opp.power, tier: opp.tier, rows: opp.rows, portrait: <Silhouette size={180} />, foot: `Dein Power Level: ${nf0.format(Math.round(st.ru * 10))}, ${powerTier(st.ru)}. Die Schätzung kennt nur den Gürtel.` }}
         />
       ) : null}
       <SecTitle kanji="試合" eyebrow="Wettkampf" title="Turnier eintragen">
@@ -173,12 +169,28 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
             <div className="field">
               <span className="fl">Gewichtsklasse</span>
               <div className="chips">
-                {WEIGHTS.map((w) => (
+                {knownW.map((w) => (
                   <button key={w} type="button" className={`chip${draft.weight === w ? " on" : ""}`} aria-pressed={draft.weight === w} onClick={() => set({ weight: draft.weight === w ? "" : w })}>
                     {w}
                   </button>
                 ))}
               </div>
+              <div className="row wrap">
+                <label className="field grow">
+                  <span className="fl">Eigene Klasse</span>
+                  <input
+                    id="arc-comp-weight"
+                    value={customW}
+                    maxLength={20}
+                    placeholder="z. B. -73 kg oder Master -85 kg"
+                    onChange={(e) => {
+                      setCustomW(e.target.value);
+                      set({ weight: e.target.value.trim() });
+                    }}
+                  />
+                </label>
+              </div>
+              <small className="muted">Eigene Klassen merkt sich die App und bietet sie beim nächsten Turnier an.</small>
             </div>
           </fieldset>
 
@@ -196,7 +208,13 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
                   </div>
                   <div className="field">
                     <span className="fl">Entschieden durch</span>
-                    <Seg label={`Methode Kampf ${i + 1}`} value={m.method} onChange={(v) => setMatch(i, { method: v })} options={METHODS} />
+                    <div className="chips" role="radiogroup" aria-label={`Methode Kampf ${i + 1}`}>
+                      {METHODS.map((o) => (
+                        <button key={o.v} type="button" role="radio" aria-checked={m.method === o.v} className={`chip${m.method === o.v ? " on" : ""}`} onClick={() => setMatch(i, { method: o.v })}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   {m.method === "sub" ? (
                     <label className="field">
@@ -213,7 +231,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
                   ) : null}
                   <div className="field">
                     <span className="fl">Gegner</span>
-                    <div className="row">
+                    <div className="row wrap">
                       <div className="belt-dots" role="radiogroup" aria-label={`Gürtel Gegner Kampf ${i + 1}`}>
                         {BELTS.map((b) => (
                           <button
@@ -251,13 +269,23 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
             <legend>
               <b>3</b> Platzierung
             </legend>
-            <Seg label="Platzierung" value={draft.place} onChange={(v) => set({ place: v })} options={[0, 1, 2, 3].map((v) => ({ v, label: v ? `${v}. · ${PLACE_NAME[v]}` : "keine" }))} />
+            <div className="podium" role="radiogroup" aria-label="Platzierung">
+              {[2, 1, 3].map((p) => (
+                <button key={p} type="button" role="radio" aria-checked={draft.place === p} className={`p${p}${draft.place === p ? " on" : ""}`} onClick={() => set({ place: draft.place === p ? 0 : p })}>
+                  {p}
+                  <small>{PLACE_NAME[p]}</small>
+                </button>
+              ))}
+            </div>
+            <button type="button" className={`chip${draft.place === 0 ? " on" : ""}`} aria-pressed={draft.place === 0} onClick={() => set({ place: 0 })}>
+              Keine Platzierung
+            </button>
           </fieldset>
 
           <div className="savebar">
             <span className="eta">
               <b>+{nf0.format(compXp(preview.c))} XP</b>
-              <small>fürs Antreten und jeden Kampf</small>
+              <small>fürs Antreten, jeden Kampf und die Platzierung</small>
             </span>
             <button type="submit" className="btn primary big">
               <Check size={18} aria-hidden="true" />
@@ -266,79 +294,67 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
           </div>
         </form>
         <aside className="log-side">
-          <CompResultPanel c={preview.c} D={preview.D} belt={own} />
+          <CompResultPanel c={preview.c} D={preview.D} />
         </aside>
       </div>
     </div>
   );
 }
 
-export function LogSwitch({ value }: { value: "training" | "turnier" }) {
+export function LogSwitch({ value }: { value: "training" | "turnier" | "nebensport" }) {
   return (
     <Seg
       label="Was eintragen?"
       value={value}
-      onChange={(v) => go("log", v === "turnier" ? "turnier" : undefined)}
+      onChange={(v) => go("log", v === "training" ? undefined : v)}
       options={[
-        { v: "training", label: "Training" },
+        { v: "training", label: "BJJ-Training" },
         { v: "turnier", label: "Turnier" },
+        { v: "nebensport", label: "Nebensport" },
       ]}
     />
   );
 }
 
-function CompResultPanel({ c, D, loot, belt, saved }: { c: Competition; D: Diff; loot?: ItemDef[]; belt: BeltId; saved?: boolean }) {
+function CompResultPanel({ c, D }: { c: Competition; D: Diff }) {
   const ups = D.dataLevels.filter((l) => l.to > l.from);
   const w = c.matches.filter((m) => m.result === "win").length;
   const l = c.matches.filter((m) => m.result === "loss").length;
   const d = c.matches.length - w - l;
+  const subs = c.matches.filter((m) => m.result === "win" && m.method === "sub").length;
   return (
-    <div className={`result${saved ? " saved" : ""}`}>
-      <div className="result-burst" aria-hidden="true" />
-      <p className="eyebrow">{saved ? "Beute dieses Turniers" : "Vorschau · noch nicht gespeichert"}</p>
+    <section className="panel result" aria-label="Vorschau">
+      <p className="eyebrow">Vorschau, noch nicht gespeichert</p>
       <p className="xp-gain">
         +{nf0.format(D.xp)}
         <small>XP</small>
       </p>
       <div className="comp-score">
         {c.place ? <span className={`medal m${c.place}`}>{c.place}</span> : null}
-        <b>
+        <b aria-label={`${w} Siege, ${l} Niederlagen${d ? `, ${d} unentschieden` : ""}`}>
           {w}-{l}
           {d ? `-${d}` : ""}
         </b>
-        <small>{c.matches.filter((m) => m.result === "win" && m.method === "sub").length} per Aufgabe</small>
+        {subs ? <small>{subs} per Aufgabe</small> : null}
       </div>
       <ul className="deltas">
-        {D.lvlTo > D.lvlFrom ? <li className="up big">Level {D.lvlFrom} → {D.lvlTo}</li> : null}
+        {D.lvlTo > D.lvlFrom ? (
+          <li className="up big">
+            Level-Aufstieg <LvlStep from={D.lvlFrom} to={D.lvlTo} label="Level" />
+          </li>
+        ) : null}
         <li className={D.power >= 0 ? "up" : "down"}>Power Level {signed(D.power)}</li>
         {ups.map((u) => (
           <li key={u.id} className="up">
-            {TECH[u.id].name} · Stufe {u.from} → {u.to}
+            {TECH[u.id].name} <LvlStep from={u.from} to={u.to} label="Stufe" />
           </li>
         ))}
         {D.seals.map((id) => (
           <li key={id} className="up">
-            Siegel: {SEALS.find((x) => x.id === id)?.name}
+            Siegel „{SEALS.find((x) => x.id === id)?.name}“
           </li>
         ))}
       </ul>
-      {loot?.length ? (
-        <div className="loot">
-          <p className="k">Freigeschaltet</p>
-          <ul>
-            {loot.map((x) => (
-              <li key={x.id} className={`item r-${x.rarity}`} style={{ ["--rc" as string]: RARITY[x.rarity].color }}>
-                <ItemIcon item={x} belt={belt} size={44} />
-                <span>
-                  <b>{x.name}</b>
-                  <small>{RARITY[x.rarity].name}</small>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </div>
+    </section>
   );
 }
-

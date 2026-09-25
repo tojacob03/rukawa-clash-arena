@@ -4,7 +4,7 @@ Eine BJJ-Fortschritts-App im Stil eines Anime-RPGs. Der Arbeitstitel war „Tata
 
 **Stand:** Die App läuft unter `/arc/` als eigener Einstiegspunkt im Portfolio (Code in `src/arc/`, Tests in `src/arc/core/model.test.ts`). Die Daten liegen vorerst nur im Browser (localStorage, Export und Import als JSON). Das Supabase-Schema ist als Entwurf in [`schema.sql`](schema.sql) beschrieben und noch nicht angewendet (siehe 8.3).
 
-**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere und eine Seekarte deiner Reise.
+**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere, Nebensport (Kraftsport, Ringen und andere) und eine Seekarte deiner Reise. Die Oberfläche ist als Manga-Band gestaltet, hell als „Papier“ und dunkel als „Nachtausgabe“ (Abschnitt 7.1).
 
 Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](prototyp.html).
 
@@ -46,8 +46,10 @@ Alle Tabellen liegen im Schema `arc` des bestehenden Portfolio-Projekts (Abschni
 
 ```text
 profiles        id, name, belt, stripes, start_belt, start_stripes, weekly_goal (Standard 2),
-                countries[], birth_year, weight_kg, training_since, class, home_sea, gym_id
+                countries[], birth_year, weight_kg, training_since, class, home_sea, gym_id,
+                sports (jsonb), weight_classes[]
 competitions    id, user_id, date, name, org, attire, weight, place, matches (jsonb)
+cross_sessions  id, user_id, date, sport, minutes, intensity (1–3), tech, att, succ   -- Nebensport, 6.10
 characters      user_id, look (jsonb), equipped (jsonb), mode (gi | nogi), seen[]   -- Inventar wird nicht gespeichert
 gyms            id, name, schedule (jsonb)
 positions       id, name, side (top | bottom | neutral)          -- für Wochenboss und später die Weltkarte
@@ -190,13 +192,14 @@ Notiz                         15
 Wochenziel erreicht          100   (Standard: 2 Trainings pro Woche)
 Stufe 3 / 4 / 5 erreicht      75 / 100 / 125 pro Technik (nur durch Daten, nicht durch Selbsteinschätzung)
 Klassen-Bonus                 +20 % Quest-XP auf Techniken der gewählten Klasse (Wandler +8 % auf alles)
+Nebensport                    15 + Minuten/3 (höchstens 45) + 5 je Intensitätsstufe über „locker“ + 10 für geloggte Takedowns
 Talisman                      je nach Talisman, beim Speichern festgeschrieben (6.5)
 Prolog                        40 · (L₀ − 1)² mit L₀ = Startlevel aus Gürtel und Streifen (4.8)
 
 Level L ab 40 · (L − 1)² XP
 ```
 
-**Wochenserie:** aufeinanderfolgende Wochen mit erreichtem Wochenziel. Die laufende Woche zählt erst, wenn das Ziel erreicht ist, bricht die Serie aber vorher nicht. Wochen im Heilungsmodus werden übersprungen, ohne die Serie zu brechen.
+**Wochenserie:** aufeinanderfolgende Wochen mit erreichtem Wochenziel. Das Wochenziel zählt nur BJJ-Trainings und Turniere, Nebensport nicht (6.10). Die laufende Woche zählt erst, wenn das Ziel erreicht ist, bricht die Serie aber vorher nicht. Wochen im Heilungsmodus werden übersprungen, ohne die Serie zu brechen.
 
 ### 4.7 Gi und No-Gi
 
@@ -280,7 +283,7 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 - **Rang** nach Level: Mattenneuling, Schüler des Dōjō, Wanderer der Matte, Techniksucher, Rollkrieger, Klingenschmied, Dōjō-Veteran, Legende der Matte.
 - **Titel** = beste Tokui-Waza als Beiname, z. B. Triangle → „Die Dreiecksfalle“, Knee Cut → „Die Knieklinge“.
 - **Gürtelprüfung** = Klassenwechsel-Event mit eigener Animation. Das Datum wird als Ground Truth gespeichert.
-- **Siegel** (13 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3, 4 und 5, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 im Training erreichte Sterne (ohne die vom Start), je fünf Trainings in Gi und No-Gi.
+- **Siegel** (16 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3 und 4, erste Tokui-Waza, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 im Training erreichte Sterne (ohne die vom Start), je fünf Trainings in Gi und No-Gi, Arena (erstes Turnier), Podest (erste Medaille), Zweite Disziplin (zehn Einheiten Nebensport).
 
 ### 6.5 Charakter und Ausrüstung
 
@@ -301,14 +304,15 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 
 ### 6.7 Turniere
 
-- **Eingabe** im Log über den Umschalter „Training | Turnier“: Name, Datum, Veranstalter oder Regelwerk (IBJJF, AJP, ADCC, Grappling Industries, NAGA, Verband, Hausturnier), Gi oder No-Gi, Gewichtsklasse, die Kämpfe (Sieg, Niederlage, Unentschieden; Aufgabe mit Technik, Punkte, Vorteile, Kampfrichter, DQ, kampflos; Gürtel des Gegners) und die Platzierung.
+- **Eingabe** im Log über den Umschalter „BJJ-Training | Turnier | Nebensport“: Name, Datum, Veranstalter oder Regelwerk (IBJJF, AJP, ADCC, AGF, Grappling Industries, NAGA, Verband, Hausturnier), Gi oder No-Gi, Gewichtsklasse, die Kämpfe (Sieg, Niederlage, Unentschieden; Aufgabe mit Technik, Punkte, Vorteile, Kampfrichter, DQ, kampflos; Gürtel des Gegners) und die Platzierung.
+- **Gewichtsklassen:** die IBJJF-Klassen als Auswahl und ein freies Feld für alles andere (z. B. „-77 kg“, „Open“, „Superfeder“). Eigene Klassen merkt sich der Steckbrief, die letzten acht erscheinen beim nächsten Turnier als Auswahl.
 - **Rechnung:** Jeder Kampf geht mit doppeltem K-Faktor ins Power Level (4.2). Ein Aufgabe-Sieg mit Technik zählt als Versuch und Treffer mit Gewicht 2 und als Treffer gegen Stärkere. Turniere zählen fürs Wochenziel. XP: 150 fürs Antreten, 50 pro Kampf, 40 pro Aufgabe-Sieg, 300/200/120 für Gold/Silber/Bronze.
 - **Belohnungen:** Siegel „Arena“ und „Podest“, Turniermedaillen in Bronze, Silber und Gold (Accessoire), Arena- und Finisher-Aufnäher, Champion-Rashguard.
 - **Kampfrekord** im Charakter: Bilanz, Aufgabe-Siege, Siegquote, Medaillen und die Liste aller Turniere.
 
 ### 6.8 Scouter
 
-Ein Tipp auf das Power Level im Kopfbereich (oder der Knopf im Charakter) setzt den Scouter auf: eine grün leuchtende Linse scannt die Figur, zählt das Power Level hoch und liest Achsen, Level, Klasse, Division, Turnierbilanz und Kopfgeld aus. Vor einem Turnierkampf scannt er den Gegner (Silhouette, geschätztes Power Level nach Gürtel, deine Siegchance). Bei reduzierter Bewegung erscheinen die Werte sofort.
+Ein Tipp auf das Power Level im Kopfbereich (oder der Knopf im Charakter) setzt den Scouter auf: eine Linse mit Fadenkreuz um die Figur, daneben Power Level, Achsen, Level, Klasse, Division, Turnierbilanz und Kopfgeld. Vor einem Turnierkampf scannt er den Gegner (Silhouette, geschätztes Power Level nach Gürtel, deine Siegchance). Der Scouter ist bewusst statisch: Die einzige inszenierte Bewegung der App ist das Kapitelende nach dem Speichern (7.1). Er ist ein echter Dialog, Escape schließt ihn, und der Fokus springt danach zurück.
 
 ### 6.9 Seekarte
 
@@ -321,7 +325,18 @@ Die Reise als Seefahrt, als zweite Karte neben der Sternkarte. Der Aufbau der We
 - **Inselkarte:** Beschreibung, Status (erreicht am, hier liegt dein Schiff, noch n Streifen), Turniere dort und Items, die dort warten.
 - **Kopfgeld-Steckbrief:** ein Fahndungsplakat mit Kopfbild und Kopfgeld in Gold. Das Kopfgeld wächst mit Leistung, nicht mit Fleiß allein: Level, Gürtel und Streifen, Tokui-Waza, Siegel, Turniere, Siege und Medaillen.
 
-### 6.10 Gym-Modus (später)
+### 6.10 Nebensport
+
+Viele trainieren neben BJJ noch etwas anderes. Das soll sichtbar sein, ohne die BJJ-Messung zu verwässern.
+
+- **Sportarten:** Ringen, Judo, Sambo (Ringkampfsportarten), Kraftsport, Ausdauer, Boxen / Muay Thai, MMA, Mobility / Yoga. Im Steckbrief wählt man, was man betreibt, und seit wann. Die gewählten Sportarten stehen im Log oben.
+- **Eingabe** im Log unter „Nebensport“: Sportart, Datum, Dauer (Chips oder frei, 5 bis 300 Minuten), Intensität (locker, mittel, hart). Bei den Ringkampfsportarten optional ein Takedown aus dem Stand-Sektor mit Versuchen und Treffern.
+- **Wochenziel:** Nebensport zählt nicht. Das Wochenziel bleibt ein BJJ-Ziel, sonst ließe es sich mit Laufen oder Hanteln erfüllen.
+- **Takedowns:** Versuche und Treffer aus Ringen, Judo und Sambo zählen als Belege für Stand-Techniken, aber mit Gewicht 0,75 gegenüber einem BJJ-Roll, weil die Regeln anders sind (kein Guard-Pull, andere Wertung, oft ohne Gi). In einen Gi- oder No-Gi-Vergleich (4.7) gehen sie nicht ein. Aufs Power Level wirken sie nicht, weil es keine Partnerstärke gibt.
+- **Körperwerte:** Kraft, Ausdauer und Beweglichkeit von 0 bis 100 aus den Minuten der letzten 8 Wochen, gewichtet nach Intensität (0,7 / 1 / 1,3) und Sportart (Kraftsport füttert vor allem Kraft, Boxen und MMA Ausdauer, Mobility Beweglichkeit, Ringen etwas von allem). Der Wert sättigt: `100 · (1 − e^(−Summe/900))`. Die Körperwerte stehen im Charakter neben dem Hexagon und fließen nicht in die Achsen.
+- **XP** siehe 4.6, dazu das Siegel „Zweite Disziplin“ nach zehn Einheiten.
+
+### 6.11 Gym-Modus (später)
 
 - Der Coach pflegt den Kursplan, dann entfällt Schritt 2 für alle.
 - Der Coach kann Techniken „siegeln“, als externe Bestätigung von Stufe 4 oder 5.
@@ -334,13 +349,40 @@ Die Reise als Seefahrt, als zweite Karte neben der Sternkarte. Der Aufbau der We
 ## 7. Screens
 
 1. **Heute:** drei Quest-Karten, Wochenboss, Wochenziel, Knopf „Training loggen“.
-2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach ein Ergebnis-Screen mit XP-Aufschlüsselung, Stufenaufstiegen, Power-Level-Änderung, Beute und pulsierenden Sternen. Ein Umschalter führt zur Turnier-Eingabe (6.7).
+2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach das Kapitelende (7.1) mit XP, Level, Stufenaufstiegen, Power-Level-Änderung und Beute. Ein Umschalter führt zur Turnier-Eingabe (6.7) und zum Nebensport (6.10).
 3. **Sternkarte:** zoombar, Sektor-Fokus, Detailfeld.
 4. **Charakter:** fünf Reiter. Übersicht (Figur, Scouter, Steckbrief-Daten, gewählte und erkannte Klasse, Hexagon, Power-Level-Verlauf, Siegel), Aussehen (Editor), Ausrüstung (Plätze, Inventar, gesperrte Items mit Freischalt-Bedingung), Turniere (Kampfrekord) und Steckbrief (Name, Länder, Geburtsjahr, Gewicht, Heimatmeer, Klasse).
 5. **Seekarte:** umschaltbar mit der Sternkarte (6.9).
 6. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
 
 Die App zeigt Heute, Log-Flow mit Live-Vorschau und Beute, Sternkarte, Codex und Charakter. Der Einstieg führt in fünf Schritten durch Steckbrief, Rang, Klasse, Aussehen und Technik-Stand.
+
+### 7.1 Gestaltung: Manga-Band
+
+Die App soll sich wie ein hochwertiges Spiel anfühlen, nicht wie ein Dashboard. Das Leitbild ist ein Manga-Band: Tusche auf Papier, Panels mit harter Kontur, wenige kräftige Druckfarben.
+
+**Palette** (je Farbe ein fester Zweck):
+
+| Name | Hell | Nacht | Rolle |
+|---|---|---|---|
+| Papier | `#F2F3EE` | `#1B2350` | Fläche. Kühles Weiß, kein Creme. Nachts Tinte auf Indigo, kein Schwarz |
+| Tusche | `#16171C` | `#16171C` | Konturen, Text, harte Schatten |
+| Ai (Indigo) | `#2A3A8F` | `#AEB9FF` | Navigation, Auswahl, Links |
+| Yamabuki (Goldgelb) | `#F3B000` | `#F3B000` | XP, Level, Beute, das eine Heldenelement |
+| Kurenai (Karmin) | `#C8203F` | `#FF6B82` | Boss, Rost, Warnungen, Löschen |
+| Asagi (Petrol) | `#177384` | `#5FC6D4` | Meer, Nebensport, Körperwerte |
+
+**Schrift:** Dela Gothic One für Titel und große Zahlen (Level, Power Level), M PLUS Rounded 1c für Text und Bedienung. Beide selbst gehostet (SIL OFL), keine Anfrage an Google.
+
+**Themes:** „Papier“ (hell) und „Nachtausgabe“ (dunkel). Standard ist die Systemeinstellung, im Profil lässt sich eins fest wählen. Ein kleines Skript im `<head>` setzt das Theme vor dem ersten Zeichnen, damit nichts aufblitzt.
+
+**Leitprinzipien:**
+
+1. **Ein mutiges Element pro Screen, der Rest ist ruhig.** Heute: die Quest-Karten. Log: das Kapitelende. Charakter: die Figur auf der Heldenbühne. Karte: die Karte selbst. Das Heldenelement bekommt das schräg angeschnittene Panel mit hartem Tuscheschatten, alles andere bleibt flach mit dünner Kontur.
+2. **Bewegung nur an einer Stelle.** Nach dem Speichern eines Trainings, Turniers oder Nebensports läuft das Kapitelende: Stempel, XP-Balken, Zeilen der Reihe nach, Beute. Nur bei `prefers-reduced-motion: no-preference`, mit Knopf zum Überspringen. Sonst gibt es keine Übergänge, kein Hover-Gleiten, kein Pulsieren. Einzige Ausnahme ist Bedienung, keine Inszenierung: Die Sternkarte fährt beim Fokussieren eines Sterns die Kamera hin, damit man auf der gezoomten Karte die Orientierung behält. Bei reduzierter Bewegung springt sie.
+3. **Text wie in einem Buch, nicht wie in einem Formular.** Keine Großbuchstaben-Überzeilen, keine Mittelpunkt-Reihen („A · B · C“), keine Monospace-Etiketten, keine Pfeile hinter Knöpfen. Überzeilen sind kleine Beschriftungskästen in normaler Schreibweise, Metadaten stehen als Satz.
+
+**Grundqualität:** Kontrast mindestens 4,5 : 1 für Text in beiden Themes (Goldgelb nie als Textfarbe auf Papier, nur als Fläche mit Tusche darauf), sichtbarer Fokusrahmen, echte Knöpfe statt klickbarer Flächen, Umschalter als Radiogruppe, Chips mit `aria-pressed`, Dialoge mit Fokusfalle und Escape, Zielgrößen über dem WCAG-2.2-Minimum von 24 px (Hauptknöpfe 46 px), Layout ab 320 px Breite ohne waagrechtes Scrollen.
 
 ---
 
@@ -363,7 +405,7 @@ public/arc/              manifest.webmanifest, Icons, Service Worker (Scope /arc
 
 - **Aufruf:** `rukawaanalytics.com/arc/`. Die App hat eine eigene `index.html` mit eigenem Titel, Meta- und OG-Tags, Favicon und PWA-Manifest. Auf dem Handy lässt sie sich als eigene App installieren.
 - **Eigenes Bundle:** Vom Portfolio wird nichts geladen, kein GSAP, kein Lenis, keine Seitenübergänge, keine Portfolio-Fonts. Umgekehrt lädt das Portfolio nichts von Arc.
-- **Eigenes Design:** eigene CSS-Tokens (die Nachtdojo-Palette aus dem Prototyp). Die Portfolio-`index.css` wird nicht importiert. Tailwind geht mit eigener Konfiguration für `src/arc`, schlichtes CSS auch. Fonts werden wie im Portfolio selbst gehostet (@fontsource), nicht von Google geladen.
+- **Eigenes Design:** eigene CSS-Tokens (Manga-Band, 7.1). Die Portfolio-`index.css` wird nicht importiert. Tailwind geht mit eigener Konfiguration für `src/arc`, schlichtes CSS auch. Fonts werden wie im Portfolio selbst gehostet (@fontsource), nicht von Google geladen.
 - **Geteilt wird nur Unsichtbares:** Build, CI (Lint, Typecheck, Build), Deployment über Lovable, Supabase-Typen.
 - **Routing per Hash** (`/arc/#/karte`), damit der Hoster keine Deep Links auf `arc/index.html` umleiten muss.
 - **Weiterleitung:** `/arc` ohne Schrägstrich leitet die Portfolio-App auf `/arc/` weiter (`src/pages/ArcRedirect.tsx`).
@@ -387,7 +429,7 @@ Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `au
 
 ### 8.4 Weitere Technik
 
-- **Stack:** React, TypeScript, Vite, Framer Motion für die wenigen Animationen.
+- **Stack:** React, TypeScript, Vite. Die eine Animation (Kapitelende) ist reines CSS.
 - **Plattform:** mobile-first PWA, offline-fähig (IndexedDB-Queue, Sync bei Netz), Web Push für die Erinnerung zum Kursende.
 - **Rechenkern:** `compute(history, asOf, filter?)` als reine Funktionen mit Unit-Tests für jede Formel und jede Stufenschwelle.
 - **Sternkarte:** SVG mit festem radialem Layout (Ring × Sektor), berechnet aus `techniques.ring` und der Reihenfolge im Sektor. Kein Force-Layout, damit die Karte stabil bleibt.
@@ -446,6 +488,8 @@ Entschieden:
 - **Power Level statt Ki**, mit Scouter-Anzeige (4.2, 6.8).
 - **Turniere** werden geloggt und zählen im Rechenmodell mit (6.7).
 - **Seekarte** mit eigener Welt, deren Aufbau an bekannte Piraten-Anime angelehnt ist, aber nur eigene Namen verwendet (6.9).
+- **Nebensport** zählt nicht fürs Wochenziel. Takedowns aus Ringen, Judo und Sambo zählen mit Gewicht 0,75 für Stand-Techniken (6.10).
+- **Gestaltung** als Manga-Band in zwei Themes, Papier und Nachtausgabe, mit Bewegung nur im Kapitelende (7.1).
 
 Offen:
 

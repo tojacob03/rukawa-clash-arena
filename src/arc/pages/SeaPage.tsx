@@ -65,7 +65,7 @@ export default function SeaPage({ data, st, arg }: { data: ArcData; st: ArcState
       <div className="map-head">
         <div>
           <MapSwitch value="meer" />
-          <p className="eyebrow sea-eyebrow">Seekarte · Heimat: {SEA[sea].name}</p>
+          <p className="eyebrow">Seekarte, Heimat {SEA[sea].name}</p>
           <h1 className="page-h">Dein Schiff liegt vor {here.name}</h1>
         </div>
         <ul className="map-stats">
@@ -74,7 +74,7 @@ export default function SeaPage({ data, st, arg }: { data: ArcData; st: ArcState
           </li>
           {next ? (
             <li>
-              <Compass size={15} aria-hidden="true" /> Nächste: {next.name} · {rankLabel(next)}
+              <Compass size={16} aria-hidden="true" /> Nächste Insel: {next.name}, {rankLabel(next)}
             </li>
           ) : (
             <li>Ziel erreicht: Kap Kuro</li>
@@ -105,7 +105,7 @@ export default function SeaPage({ data, st, arg }: { data: ArcData; st: ArcState
           <Wanted
             name={p.name}
             bounty={bounty(data, st)}
-            line={`${rankOf(st.lvl)} · ${BELT[p.belt].name}gurt · ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
+            line={`${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt, ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
             portrait={<Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={p.belt} stripes={p.stripes} weightKg={p.weightKg} size={150} crop="head" />}
           />
         </aside>
@@ -158,7 +158,7 @@ function IslandCard({ is, data, sea, current, start, comps }: { is: Island; data
   return (
     <section className="panel isle-card">
       <p className="eyebrow">
-        {is.sea ? SEA[is.sea].name : is.belt === "blau" || is.belt === "lila" ? "Äußere Strömung" : "Tiefe Strömung"} · {rankLabel(is)}
+        {is.sea ? SEA[is.sea].name : is.belt === "blau" || is.belt === "lila" ? "Äußere Strömung" : "Tiefe Strömung"}, {rankLabel(is)}
       </p>
       <h2 className="isle-title">{is.name}</h2>
       <p className="small">{is.desc}</p>
@@ -180,7 +180,7 @@ function IslandCard({ is, data, sea, current, start, comps }: { is: Island; data
           {comps.map((c) => (
             <span key={c.id} className="isle-item">
               {c.place ? <span className={`medal m${c.place}`}>{c.place}</span> : <Swords size={16} aria-hidden="true" />}
-              {c.name} · {PLACE_NAME[c.place]}
+              {c.name}, {PLACE_NAME[c.place]}
             </span>
           ))}
         </div>

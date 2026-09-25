@@ -3,7 +3,9 @@
 
 import { useMemo, useState } from "react";
 import { Dices, Palette, RotateCcw, Search, X } from "lucide-react";
-import type { Attire, ClassId, Look, SeaId } from "../core/types.ts";
+import type { Attire, ClassId, Look, SeaId, SportId } from "../core/types.ts";
+import { SPORT, SPORTS } from "../core/sports.ts";
+import { SPORT_ICON } from "../sportIcons.ts";
 import { SEAS } from "../core/sea.ts";
 import { CLASSES } from "../core/classes.ts";
 import { COUNTRIES, COUNTRY } from "../core/countries.ts";
@@ -282,6 +284,47 @@ export function CountryPicker({ value, onChange }: { value: string[]; onChange: 
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+export function SportsPicker({ value, onChange }: { value: { id: SportId; since?: number }[]; onChange: (v: { id: SportId; since?: number }[]) => void }) {
+  const has = (id: SportId) => value.some((x) => x.id === id);
+  return (
+    <div className="sport-list">
+      <div className="chips" role="group" aria-label="Weitere Sportarten">
+        {SPORTS.map((s) => {
+          const Icon = SPORT_ICON[s.id];
+          const on = has(s.id);
+          return (
+            <button key={s.id} type="button" className={`chip${on ? " on" : ""}`} aria-pressed={on} onClick={() => onChange(on ? value.filter((x) => x.id !== s.id) : [...value, { id: s.id }])}>
+              <Icon size={16} aria-hidden="true" /> {s.name}
+            </button>
+          );
+        })}
+      </div>
+      {value.map((v) => (
+        <SinceRow key={v.id} id={v.id} since={v.since} onCommit={(since) => onChange(value.map((x) => (x.id === v.id ? { ...x, since } : x)))} />
+      ))}
+    </div>
+  );
+}
+
+function SinceRow({ id, since, onCommit }: { id: SportId; since?: number; onCommit: (since: number | undefined) => void }) {
+  const year = new Date().getFullYear();
+  const [v, setV] = useState(since ? String(since) : "");
+  const commit = () => {
+    const n = Number(v);
+    onCommit(n >= 1950 && n <= year ? n : undefined);
+    if (!(n >= 1950 && n <= year)) setV("");
+  };
+  return (
+    <div className="sport-row">
+      <b>{SPORT[id].name}</b>
+      <label className="field">
+        <span className="sr-only">{SPORT[id].name} seit welchem Jahr</span>
+        <input inputMode="numeric" maxLength={4} placeholder={`seit ${year - 3}`} value={v} onChange={(e) => setV(e.target.value.replace(/\D/g, "").slice(0, 4))} onBlur={commit} />
+      </label>
     </div>
   );
 }

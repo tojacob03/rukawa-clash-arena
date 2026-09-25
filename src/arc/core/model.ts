@@ -13,6 +13,7 @@ import type {
   Belt,
   Competition,
   Control,
+  CrossSession,
   NodeState,
   QuestKind,
   QuestOffer,
@@ -26,6 +27,7 @@ import type {
 import { COMBOS, NEIGH, SECTORS, TECH, TECHS, baseOf } from "./techniques.ts";
 import { EPITHET, SEALS } from "./lore.ts";
 import { CLASS, CLASSES, classXp } from "./classes.ts";
+import { BODY_W, CROSS_W, INTENSITY, SPORT } from "./sports.ts";
 
 export const BELT_R: Record<Belt, number> = { weiss: 1000, blau: 1150, lila: 1300, braun: 1420, schwarz: 1520 };
 export const SIZE_R: Record<Size, number> = { leichter: -60, gleich: 0, schwerer: 60 };
@@ -231,6 +233,33 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     }
   }
 
+  // Other grappling sports: takedowns count for stand-up techniques at a lower weight.
+  const crossAll = (data.cross ?? []).filter((c) => dayNum(c.date) <= asOf);
+  if (!opt.attire) {
+    for (const c of crossAll) {
+      const x = c.tech ? TECH[c.tech] : null;
+      if (!x || x.sector !== "stand" || !SPORT[c.sport]?.grappling) continue;
+      const e = ev[x.id];
+      const day = dayNum(c.date);
+      const age = asOf - day;
+      e.exp++;
+      e.KE += halfLife(age, 60);
+      e.lastAny = Math.max(e.lastAny ?? -1e9, day);
+      const att = Math.max(0, c.att ?? 0);
+      if (att > 0) {
+        const succ = Math.min(att, Math.max(0, c.succ ?? 0));
+        const d = halfLife(age, 120);
+        e.rawAtt += att;
+        e.rawSucc += succ;
+        e.nw += CROSS_W * att;
+        e.sw += CROSS_W * succ;
+        e.nd += CROSS_W * att * d;
+        e.sd += CROSS_W * succ * d;
+        e.last = Math.max(e.last ?? -1e9, day);
+      }
+    }
+  }
+
   // Competition submission wins: strong evidence against a resisting opponent.
   for (const c of comps) {
     const day = dayNum(c.date);
@@ -370,6 +399,20 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     wk.set(w, (wk.get(w) ?? 0) + 1);
   }
   for (const c of wk.values()) if (c >= goal) xp += 100;
+  // Other sports: XP, but they do not count for the BJJ weekly goal.
+  for (const c of crossAll) xp += crossXp(c);
+  const body = { kraft: 0, ausdauer: 0, beweglichkeit: 0, week: 0, total: crossAll.length };
+  {
+    const sums = { kraft: 0, ausdauer: 0, beweglichkeit: 0 };
+    for (const c of crossAll) {
+      const day = dayNum(c.date);
+      if (weekOf(day) === weekOf(asOf)) body.week++;
+      if (asOf - day >= FORM_WINDOW) continue;
+      const m = Math.max(0, c.minutes) * (INTENSITY[c.intensity] ?? 1);
+      for (const b of ["kraft", "ausdauer", "beweglichkeit"] as const) sums[b] += m * (BODY_W[b][c.sport] ?? 0);
+    }
+    for (const b of ["kraft", "ausdauer", "beweglichkeit"] as const) body[b] = Math.round(100 * (1 - Math.exp(-sums[b] / 900)));
+  }
   for (const x of TECHS) xp += levelXp(nodes[x.id].dataLevel);
   const lvl = Math.floor(Math.sqrt(xp / 40)) + 1;
   const lo = 40 * (lvl - 1) ** 2;
@@ -479,6 +522,7 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     map50: TECHS.filter((x) => nodes[x.id].exp > nodes[x.id].expOnb || nodes[x.id].rawAtt > 0).length >= 50,
     both: giN >= 5 && noGiN >= 5,
     arena: comps.length > 0,
+    cross10: crossAll.length >= 10,
     podium: comps.some((c) => c.place >= 1 && c.place <= 3),
   };
   const matches = comps.flatMap((c) => c.matches);
@@ -514,6 +558,7 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
     activeCombos: combosActive,
     seals: SEALS.map((s) => ({ id: s.id, got: !!got[s.id] })),
     arc: { index: Math.floor(weeksIn / 8), week: (weeksIn % 8) + 1 },
+    body,
     comps: {
       events: comps.length,
       w: matches.filter((m) => m.result === "win").length,
@@ -523,6 +568,12 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
       medals: [1, 2, 3].map((p) => comps.filter((c) => c.place === p).length) as [number, number, number],
     },
   };
+}
+
+/** XP for a session of another sport. */
+export function crossXp(c: CrossSession) {
+  const tried = c.tech && (c.att ?? 0) > 0 ? 10 : 0;
+  return 15 + Math.min(45, Math.round(Math.max(0, c.minutes) / 3)) + (Math.max(1, Math.min(3, c.intensity)) - 1) * 5 + tried;
 }
 
 /** XP for a competition: showing up counts most. */
@@ -577,6 +628,7 @@ export interface Diff {
   mastery: { id: string; d: number }[];
   attrs: Record<SectorId, number>;
   seals: string[];
+  body: { kraft: number; ausdauer: number; beweglichkeit: number };
 }
 
 export function diff(a: ArcState, b: ArcState): Diff {
@@ -609,6 +661,7 @@ export function diff(a: ArcState, b: ArcState): Diff {
     mastery,
     attrs: Object.fromEntries(SECTORS.map((s) => [s.id, b.attrs[s.id].val - a.attrs[s.id].val])) as Record<SectorId, number>,
     seals: b.seals.filter((s, i) => s.got && !a.seals[i].got).map((s) => s.id),
+    body: { kraft: b.body.kraft - a.body.kraft, ausdauer: b.body.ausdauer - a.body.ausdauer, beweglichkeit: b.body.beweglichkeit - a.body.beweglichkeit },
   };
 }
 

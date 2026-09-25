@@ -7,7 +7,9 @@ import { CLASSES } from "./classes.ts";
 import { COUNTRIES } from "./countries.ts";
 import { ITEM, ITEMS, SLOTS, inventory, talismanBonus } from "./items.ts";
 import { buildDemo } from "./demo.ts";
-import { compXp, compute, dayNum, diff, prologXp, questShape, rankAt, xpParts } from "./model.ts";
+import { compXp, compute, crossXp, dayNum, diff, prologXp, questShape, rankAt, xpParts } from "./model.ts";
+import { CROSS_W } from "./sports.ts";
+import { ORGS } from "../compText.ts";
 import { bounty } from "./bounty.ts";
 import { ISLANDS, islandAt, rankIndex, route } from "./sea.ts";
 import { normalizeLook } from "../avatarOptions.ts";
@@ -189,4 +191,36 @@ test("sea chart: one island per belt and stripe, rank decides the island", () =>
   // Blue belt profile: the gate item is unlocked, the purple one is not.
   const inv = inventory(d, compute(d, TODAY));
   assert.ok(inv.has("rg_stroemung") && !inv.has("sp_kamm"));
+});
+
+test("other sports: XP and body values, but not the BJJ weekly goal", () => {
+  const d = base();
+  const before = compute(d, TODAY);
+  const kraft = { id: "k1", date: TODAY, sport: "kraft" as const, minutes: 60, intensity: 2, createdAt: 1 };
+  const after = compute({ ...d, cross: [kraft] }, TODAY);
+  assert.equal(after.weekNow, before.weekNow, "does not count for the weekly goal");
+  assert.equal(after.xp - before.xp, crossXp(kraft));
+  assert.ok(after.body.kraft > 0 && after.body.beweglichkeit === 0);
+  assert.equal(after.body.week, 1);
+});
+
+test("other sports: wrestling takedowns count for stand-up techniques at 0.75", () => {
+  const d = base();
+  const ringen = { id: "r1", date: "2026-09-20", sport: "ringen" as const, minutes: 90, intensity: 3, tech: "t_double", att: 4, succ: 2, createdAt: 1 };
+  const st = compute({ ...d, cross: [ringen] }, TODAY);
+  assert.equal(st.nodes.t_double.rawAtt, 4);
+  assert.equal(st.nodes.t_double.rawSucc, 2);
+  assert.ok(Math.abs(st.nodes.t_double.nw - 4 * CROSS_W) < 1e-9);
+  // Strength training cannot claim a takedown, and a guard technique does not count.
+  const kraft = { ...ringen, id: "k", sport: "kraft" as const };
+  const guard = { ...ringen, id: "g", tech: "g_closed" };
+  const st2 = compute({ ...d, cross: [kraft, guard] }, TODAY);
+  assert.equal(st2.nodes.t_double.rawAtt, 0);
+  assert.equal(st2.nodes.g_closed.rawAtt, 0);
+  // Gi / No-Gi comparisons leave other sports out.
+  assert.equal(compute({ ...d, cross: [ringen] }, TODAY, { attire: "nogi" }).nodes.t_double.rawAtt, 0);
+});
+
+test("competition organisers include AGF", () => {
+  assert.ok(ORGS.includes("AGF"));
 });

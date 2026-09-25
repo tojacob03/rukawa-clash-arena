@@ -287,7 +287,7 @@ export function unlockText(src: Source, sea: SeaId = DEFAULT_SEA): string {
     case "tokui":
       return "Tokui-Waza erreichen";
     case "rank":
-      return `${BELT_NAME[src.belt]}gurt${src.stripes ? `, ${src.stripes}. Streifen` : ""} · Insel ${islandAt(src.belt, src.stripes, sea).name}`;
+      return `Insel ${islandAt(src.belt, src.stripes, sea).name} (${BELT_NAME[src.belt]}gurt${src.stripes ? `, ${src.stripes}. Streifen` : ""})`;
     case "comp":
       return src.what === "first" ? "Erstes Turnier eingetragen" : src.what === "subwin" ? "Turnierkampf per Aufgabe gewonnen" : `${src.n}. Platz auf einem Turnier`;
   }

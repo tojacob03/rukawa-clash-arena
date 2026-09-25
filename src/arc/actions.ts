@@ -1,4 +1,4 @@
-import type { ArcData, Attire, Belt, Character, Competition, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import type { ArcData, Attire, Belt, Character, Competition, CrossSession, Look, Profile, QuestKind, Session, Slot } from "./core/types.ts";
 import { getCharacter } from "./character.ts";
 import { ITEMS } from "./core/items.ts";
 import { TECH } from "./core/techniques.ts";
@@ -28,6 +28,23 @@ export function saveSession(s: Session) {
 
 export function saveCompetition(c: Competition) {
   arcStore.set((d) => ({ ...d, competitions: [...(d.competitions ?? []).filter((x) => x.id !== c.id), c] }));
+}
+
+export function saveCross(c: CrossSession) {
+  arcStore.set((d) => ({ ...d, cross: [...(d.cross ?? []).filter((x) => x.id !== c.id), c] }));
+}
+
+export function deleteCross(id: string) {
+  arcStore.set((d) => ({ ...d, cross: (d.cross ?? []).filter((x) => x.id !== id) }));
+}
+
+/** Remember a weight class typed in by hand, so it shows up as a chip next time. */
+export function rememberWeightClass(w: string) {
+  arcStore.set((d) => {
+    if (!d.profile) return d;
+    const list = d.profile.weightClasses ?? [];
+    return list.includes(w) ? d : { ...d, profile: { ...d.profile, weightClasses: [...list, w].slice(-8) } };
+  });
 }
 
 export function deleteCompetition(id: string) {

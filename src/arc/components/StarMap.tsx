@@ -236,7 +236,7 @@ export default function StarMap({
               <g key={r}>
                 <circle className="ring" r={r} />
                 <text className="ringlbl" x={x} y={y - 6} textAnchor="middle">
-                  {RINGS[i].jp.toUpperCase()}
+                  {RINGS[i].jp}
                 </text>
               </g>
             );
@@ -349,7 +349,7 @@ export default function StarMap({
                   }
                 }}
               >
-                <title>{n.fog ? "Unentdeckt" : `${x.name} · ${LEVELS[n.level]}`}</title>
+                <title>{n.fog ? "Unentdeckt" : `${x.name}, ${LEVELS[n.level]}`}</title>
                 <g className="n-in">
                   <circle className="hit" r="20" />
                   {n.level === 5 && !n.fog ? <circle className="aura" r={R + 8} /> : null}
@@ -383,7 +383,7 @@ export default function StarMap({
           {SECTORS.map((s) => (
             <text key={s.id} className="seclbl" onClick={() => focusSector(s.id)}>
               <textPath href={`#arc-${s.id}`} startOffset="50%" textAnchor="middle">
-                {s.name.toUpperCase()}
+                {s.name}
               </textPath>
             </text>
           ))}

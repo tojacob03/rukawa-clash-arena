@@ -22,7 +22,7 @@ export default function MapPage({ data, st, today, arg }: { data: ArcData; st: A
       <div className="map-head">
         <div>
           <MapSwitch value="karte" />
-          <p className="eyebrow">Skilltree · Sternkarte</p>
+          <p className="eyebrow">Skilltree</p>
           <h1 className="page-h">
             {st.discovered} von {TECHS.length} Sternen entdeckt
           </h1>

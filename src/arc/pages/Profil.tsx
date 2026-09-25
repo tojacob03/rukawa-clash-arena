@@ -5,7 +5,8 @@ import { APP_NAME } from "../core/lore.ts";
 import { BELTS, BELT, shortDate } from "../format.ts";
 import { exportJson, importJson, promote, resetAll, togglePause, updateProfile } from "../actions.ts";
 import { arcStore } from "../store.ts";
-import { Belt, SecTitle, Seg, Stepper } from "../components/ui.tsx";
+import { Belt, HeroKoma, SecTitle, Seg, Stepper } from "../components/ui.tsx";
+import { useTheme } from "../theme.ts";
 
 export default function Profil({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const p = data.profile;
@@ -15,6 +16,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
   const [confirm, setConfirm] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
+  const [theme, setTheme] = useTheme();
   if (!p) return null;
   const changedRank = belt !== p.belt || stripes !== p.stripes;
 
@@ -50,36 +52,56 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         </div>
       </section>
 
-      <section className="panel form-panel">
-        <h2 className="h3">Gürtelprüfung</h2>
-        <p className="muted small">Neuer Streifen oder Gürtel? Trag ihn hier ein. Das Datum wird gespeichert, damit sich später prüfen lässt, ob deine Werte vor einer Prüfung steigen.</p>
-        <div className="belt-pick" role="radiogroup" aria-label="Gürtel">
-          {BELTS.map((b) => (
-            <button key={b.id} type="button" role="radio" aria-checked={belt === b.id} className={belt === b.id ? "on" : ""} onClick={() => setBelt(b.id)}>
-              <Belt belt={b.id} stripes={belt === b.id ? stripes : 0} width={72} />
-              <span>{b.name}</span>
-            </button>
-          ))}
-        </div>
-        <div className="row wrap">
-          <div className="field">
-            <span className="fl">Streifen</span>
-            <Stepper value={stripes} onChange={setStripes} max={4} label="Streifen" />
-          </div>
-          <button type="button" className="btn primary" disabled={!changedRank} onClick={() => promote(today, belt, stripes)}>
-            <span>Prüfung eintragen</span>
-          </button>
-        </div>
-        {data.promotions.length ? (
-          <ul className="promos">
-            {[...data.promotions].reverse().map((pr, i) => (
-              <li key={i}>
-                <Belt belt={pr.belt} stripes={pr.stripes} width={56} /> {BELT[pr.belt].name}, {pr.stripes} Streifen · {shortDate(pr.date)}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+      <section className="panel form-panel" aria-label="Darstellung">
+        <h2 className="h3">Darstellung</h2>
+        <Seg
+          label="Ausgabe"
+          value={theme}
+          onChange={setTheme}
+          options={[
+            { v: "system", label: "Wie das System" },
+            { v: "papier", label: "Papier" },
+            { v: "nacht", label: "Nacht\u00adausgabe" },
+          ]}
+        />
+        <small className="muted">Papier ist die helle Ausgabe, die Nachtausgabe druckt auf Indigo.</small>
       </section>
+
+      <HeroKoma label="Gürtelprüfung">
+        <div className="exam">
+          <h2 className="h2">Gürtelprüfung</h2>
+          <div className="belt-hero">
+            <Belt belt={belt} stripes={stripes} width={360} />
+          </div>
+          <p className="muted small">Neuer Streifen oder Gürtel? Trag ihn hier ein. Das Datum wird gespeichert, damit sich später prüfen lässt, ob deine Werte vor einer Prüfung steigen. Auf der Seekarte segelt dein Schiff damit zur nächsten Insel.</p>
+          <div className="belt-pick" role="radiogroup" aria-label="Gürtel">
+            {BELTS.map((b) => (
+              <button key={b.id} type="button" role="radio" aria-checked={belt === b.id} className={belt === b.id ? "on" : ""} onClick={() => setBelt(b.id)}>
+                <Belt belt={b.id} stripes={belt === b.id ? stripes : 0} width={72} />
+                <span>{b.name}</span>
+              </button>
+            ))}
+          </div>
+          <div className="row wrap">
+            <div className="field">
+              <span className="fl">Streifen</span>
+              <Stepper value={stripes} onChange={setStripes} max={4} label="Streifen" />
+            </div>
+            <button type="button" className="btn primary" disabled={!changedRank} onClick={() => promote(today, belt, stripes)}>
+              <span>Prüfung eintragen</span>
+            </button>
+          </div>
+          {data.promotions.length ? (
+            <ul className="promos">
+              {[...data.promotions].reverse().map((pr, i) => (
+                <li key={i}>
+                  <Belt belt={pr.belt} stripes={pr.stripes} width={56} /> {BELT[pr.belt].name}, {pr.stripes} Streifen, am {shortDate(pr.date)}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      </HeroKoma>
 
       <section className="panel form-panel">
         <h2 className="h3">Daten</h2>

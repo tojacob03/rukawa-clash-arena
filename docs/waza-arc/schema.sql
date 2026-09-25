@@ -29,6 +29,10 @@ create table arc.profiles (
   training_since text check (training_since ~ '^[0-9]{4}-[0-9]{2}$'),
   cls          text check (cls in ('netzweber', 'druckwalze', 'anker', 'schatten', 'jaeger', 'ferse', 'sturm', 'festung', 'wandler')),
   home_sea     text check (home_sea in ('frost', 'morgen', 'abend', 'glut')),
+  -- Nebensport: [{ id, since }], since = Jahr
+  sports       jsonb not null default '[]' check (jsonb_typeof(sports) = 'array' and jsonb_array_length(sports) <= 8),
+  -- eigene Gewichtsklassen aus Turnieren, die letzten acht
+  weight_classes text[] not null default '{}' check (cardinality(weight_classes) <= 8),
   created_at   date not null default current_date
 );
 
@@ -82,6 +86,22 @@ create table arc.competitions (
   created_at  timestamptz not null default now()
 );
 
+-- Nebensport. Zählt nicht fürs BJJ-Wochenziel. Takedowns aus Ringen, Judo und
+-- Sambo zählen mit Gewicht 0,75 für Stand-Techniken (KONZEPT.md 6.10).
+create table arc.cross_sessions (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  date        date not null,
+  sport       text not null check (sport in ('ringen', 'judo', 'sambo', 'kraft', 'ausdauer', 'striking', 'mma', 'mobility')),
+  minutes     smallint not null check (minutes between 5 and 300),
+  intensity   smallint not null default 2 check (intensity between 1 and 3),
+  tech        text,
+  att         smallint check (att between 0 and 99),
+  succ        smallint check (succ between 0 and 99 and succ <= att),
+  created_at  timestamptz not null default now()
+);
+create index cross_sessions_user_date on arc.cross_sessions (user_id, date);
+
 create table arc.pauses (
   user_id  uuid not null references auth.users (id) on delete cascade,
   week     integer not null,
@@ -100,7 +120,7 @@ create table arc.promotions (
 do $$
 declare t text;
 begin
-  foreach t in array array['profiles', 'onboarding', 'characters', 'sessions', 'competitions', 'pauses', 'promotions'] loop
+  foreach t in array array['profiles', 'onboarding', 'characters', 'sessions', 'competitions', 'cross_sessions', 'pauses', 'promotions'] loop
     execute format('alter table arc.%I enable row level security', t);
     execute format('revoke all on arc.%I from public, anon', t);
     execute format('grant select, insert, update, delete on arc.%I to authenticated', t);

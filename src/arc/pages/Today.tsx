@@ -10,13 +10,13 @@ import { questTask } from "../questText.ts";
 import { KindBadge, SecTitle, Seg, Star } from "../components/ui.tsx";
 
 const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => string> = {
-  prog: (st, q) => `Kurz vor Stufe ${st.nodes[q.node].level + 1} · ${LEVELS[st.nodes[q.node].level + 1] ?? ""}`,
+  prog: (st, q) => `Kurz vor Stufe ${st.nodes[q.node].level + 1}, ${LEVELS[st.nodes[q.node].level + 1] ?? ""}`,
   unc: () => "Noch zu wenig Daten für eine sichere Quote",
   rust: (st, q) => `Rostet seit ${st.nodes[q.node].dAny} Tagen`,
   weak: (_st, q) => (TECH[q.node].sector === "fund" ? "Fundament festigen" : `Deine schwächste Achse: ${sectorName(TECH[q.node])}`),
   taught: () => "Diese Woche im Kurs gezeigt",
   explore: () => "Ein neuer Stern am Rand deiner Karte",
-  prove: (st, q) => `Beweise deine Einschätzung: Stufe ${st.nodes[q.node].claim} · ${LEVELS[st.nodes[q.node].claim]}`,
+  prove: (st, q) => `Beweise deine Einschätzung: Stufe ${st.nodes[q.node].claim}, ${LEVELS[st.nodes[q.node].claim]}`,
 };
 
 export default function Today({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
@@ -34,83 +34,93 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
 
   return (
     <div className="page today">
-      <section className="arc-banner" aria-label="Aktueller Arc">
-        <div>
+      <div className="today-top">
+        <section className="arc-banner" aria-label="Aktueller Arc">
           <p className="eyebrow">{longDate(today)}</p>
           <h1 className="arc-title">
-            <span className="arc-no">Arc {ROMAN[st.arc.index % ROMAN.length]}</span> {arcName}
+            <span className="arc-no">Arc {ROMAN[st.arc.index % ROMAN.length]}</span>
+            {arcName}
           </h1>
-        </div>
-        <div className="arc-weeks" aria-label={`Woche ${st.arc.week} von 8`}>
-          {Array.from({ length: 8 }, (_, i) => (
-            <i key={i} className={i < st.arc.week ? "on" : ""} />
-          ))}
-          <span>Woche {st.arc.week}/8</span>
-        </div>
-      </section>
-
-      <section className="flame-card">
-        <div className={`flame-ico${st.weekNow >= st.weekGoal ? " lit" : ""}`} aria-hidden="true">
-          <Flame size={30} />
-        </div>
-        <div className="flame-main">
-          <p className="flame-num">
-            {st.streak} <small>{st.streak === 1 ? "Woche" : "Wochen"} Flamme</small>
-          </p>
-          <div className="pips" aria-label={`${st.weekNow} von ${st.weekGoal} Trainings diese Woche`}>
-            {Array.from({ length: Math.max(st.weekGoal, st.weekNow) }, (_, i) => (
-              <i key={i} className={i < st.weekNow ? "on" : ""} />
+          <div className="arc-weeks" aria-label={`Woche ${st.arc.week} von 8`}>
+            {Array.from({ length: 8 }, (_, i) => (
+              <i key={i} className={i < st.arc.week ? "on" : ""} />
             ))}
-            <span>
-              {st.weekNow}/{st.weekGoal} diese Woche
-            </span>
+            <span>Woche {st.arc.week} von 8</span>
           </div>
-        </div>
-        <button type="button" className={`chip${st.paused ? " on" : ""}`} aria-pressed={st.paused} onClick={() => togglePause(today)} title="Verletzt oder krank: Die Woche zählt dann nicht gegen deine Flamme.">
-          <HeartPulse size={14} aria-hidden="true" /> {st.paused ? "Heilungsmodus an" : "Heilungsmodus"}
-        </button>
-      </section>
+        </section>
+
+        <section className="panel flame-card" aria-label="Wochenziel">
+          <div className={`flame-ico${st.weekNow >= st.weekGoal ? " lit" : ""}`} aria-hidden="true">
+            <Flame size={28} />
+          </div>
+          <div className="flame-main">
+            <p className="flame-num">
+              {st.streak} <small>{st.streak === 1 ? "Woche" : "Wochen"} Flamme</small>
+            </p>
+            <div className="pips" aria-label={`${st.weekNow} von ${st.weekGoal} BJJ-Trainings diese Woche`}>
+              {Array.from({ length: Math.max(st.weekGoal, st.weekNow) }, (_, i) => (
+                <i key={i} className={i < st.weekNow ? "on" : ""} />
+              ))}
+              <span>
+                {st.weekNow} von {st.weekGoal} BJJ-Trainings
+              </span>
+            </div>
+            {st.body.week || data.profile?.sports?.length ? (
+              <div className="pips" aria-label={`${st.body.week} Einheiten Nebensport diese Woche`}>
+                {Array.from({ length: Math.max(1, st.body.week) }, (_, i) => (
+                  <i key={i} className={`side${i < st.body.week ? " on" : ""}`} />
+                ))}
+                <span>
+                  {st.body.week} Nebensport, zählt nicht fürs Ziel
+                </span>
+              </div>
+            ) : null}
+          </div>
+          <button type="button" className={`chip${st.paused ? " on" : ""}`} aria-pressed={st.paused} onClick={() => togglePause(today)} title="Verletzt oder krank: Die Woche zählt dann nicht gegen deine Flamme.">
+            <HeartPulse size={15} aria-hidden="true" /> {st.paused ? "Heilungsmodus an" : "Heilungsmodus"}
+          </button>
+        </section>
+      </div>
 
       <SecTitle kanji="今日" eyebrow="Tagesquest" title="Zieh deine Karte">
         Eine Karte nimmst du mit auf die Matte. Im Training zählst du nur sie mit, das macht die Quest zur Messung.
       </SecTitle>
 
       <div className="row wrap between">
-        <div className="row">
+        <div className="row wrap">
           <span className="fl">Heute trainiere ich</span>
           <Seg value={attire} onChange={(v) => setTodayAttire(today, v)} label="Gi oder No-Gi" options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
         </div>
-        <button type="button" className="btn ghost small" disabled={rerolled} onClick={() => markReroll(today)}>
-          <RefreshCw size={14} aria-hidden="true" /> <span>{rerolled ? "Heute neu gezogen" : "Neu ziehen · 1× pro Tag"}</span>
+        <button type="button" className="btn small" disabled={rerolled} onClick={() => markReroll(today)}>
+          <RefreshCw size={15} aria-hidden="true" /> <span>{rerolled ? "Heute schon neu gezogen" : "Neu ziehen, einmal am Tag"}</span>
         </button>
       </div>
 
       {extra ? (
         <div className="quests single">
-          <QuestCard q={{ ...extra, P: 0, reason: "prog" }} st={st} today={today} accepted done={done} i={0} own />
+          <QuestCard q={{ ...extra, P: 0, reason: "prog" }} st={st} today={today} accepted done={done} own />
         </div>
       ) : null}
-      <div className="quests" key={`${attire}-${rerolled}`}>
-        {cards.map((q, i) => (
-          <QuestCard key={q.node} q={q} st={st} today={today} accepted={accepted?.node === q.node} done={done && accepted?.node === q.node} i={i} />
+      <div className="quests">
+        {cards.map((q) => (
+          <QuestCard key={q.node} q={q} st={st} today={today} accepted={accepted?.node === q.node} done={done && accepted?.node === q.node} />
         ))}
       </div>
 
       <Boss st={st} />
 
-      <section className="log-cta">
+      <section className="plain-sec log-cta">
         <div>
-          <p className="eyebrow">Nach dem Training</p>
           <p className="cta-line">{todays.length ? `Heute schon ${todays.length}× eingetragen.` : "Noch nichts eingetragen heute."}</p>
           {last ? (
             <p className="muted small">
-              Zuletzt: {shortDate(last.date)}, {last.attire === "gi" ? "Gi" : "No-Gi"}, {last.rolls.length} Rolls
-              {last.quest ? `, Quest ${TECH[last.quest.node]?.name ?? ""}` : ""}
+              Zuletzt am {shortDate(last.date)} im {last.attire === "gi" ? "Gi" : "No-Gi"} mit {last.rolls.length} Rolls
+              {last.quest ? `, Quest ${TECH[last.quest.node]?.name ?? ""}` : ""}.
             </p>
           ) : null}
         </div>
         <button type="button" className="btn primary big" onClick={() => go("log")}>
-          <Plus size={18} aria-hidden="true" />
+          <Plus size={20} aria-hidden="true" />
           <span>Training eintragen</span>
         </button>
       </section>
@@ -118,11 +128,11 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
   );
 }
 
-function QuestCard({ q, st, today, accepted, done, i, own }: { q: QuestOffer; st: ArcState; today: string; accepted: boolean; done: boolean; i: number; own?: boolean }) {
+function QuestCard({ q, st, today, accepted, done, own }: { q: QuestOffer; st: ArcState; today: string; accepted: boolean; done: boolean; own?: boolean }) {
   const x = TECH[q.node];
   const n = st.nodes[q.node];
   return (
-    <article className={`qcard r-${q.kind}${accepted ? " taken" : ""}${done ? " done" : ""} deal`} style={{ animationDelay: `${i * 110}ms` }}>
+    <article className={`qcard r-${q.kind}${accepted ? " taken" : ""}${done ? " done" : ""}`}>
       <span className="qcard-kanji" aria-hidden="true">
         {QUEST[q.kind].kanji}
       </span>
@@ -161,7 +171,7 @@ function Boss({ st }: { st: ArcState }) {
   const b = st.boss;
   if (!b) {
     return (
-      <section className="boss calm">
+      <section className="panel boss calm" aria-label="Wochenboss">
         <div>
           <p className="eyebrow">Wochenboss</p>
           <h3 className="boss-name">Ruhe im Dōjō</h3>
@@ -173,8 +183,7 @@ function Boss({ st }: { st: ArcState }) {
   const info = STUCK[b.key];
   const max = Math.max(b.hp, b.prev, 4);
   return (
-    <section className="boss">
-      <div className="boss-lines" aria-hidden="true" />
+    <section className="panel boss" aria-label="Wochenboss">
       <div className="boss-id">
         <p className="eyebrow">Wochenboss</p>
         <h3 className="boss-name">{info.boss}</h3>
@@ -184,7 +193,7 @@ function Boss({ st }: { st: ArcState }) {
         <div className="hp-top">
           <span>Lebenspunkte</span>
           <span>
-            {b.hp} / {max}
+            {b.hp} von {max}
           </span>
         </div>
         <div className="hp" aria-hidden="true">

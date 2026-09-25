@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { Check, Gift, Map as MapIcon, Minus, Plus, RotateCcw } from "lucide-react";
+import type { ReactNode } from "react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, Control, Format, QuestKind, Roll, Session, Size } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
-import { RARITY, SLOTS, inventory, itemById, perkText, talismanBonus } from "../core/items.ts";
+import { inventory, itemById, perkText, talismanBonus } from "../core/items.ts";
 import { SECTORS, TECH, TECHS } from "../core/techniques.ts";
-import { LEVELS, QUEST, SEALS, STUCK, rankOf } from "../core/lore.ts";
+import { LEVELS, QUEST, SEALS, STUCK } from "../core/lore.ts";
 import { compute, diff, pickCards, xpParts } from "../core/model.ts";
 import type { Diff } from "../core/model.ts";
 import { BELTS, nf0, signed } from "../format.ts";
@@ -12,11 +13,10 @@ import { deleteSession, saveSession } from "../actions.ts";
 import { go, uid } from "../store.ts";
 import { useGear } from "../useGear.ts";
 import { questTask, successLabel } from "../questText.ts";
-import { KindBadge, SecTitle, Seg, Stepper } from "../components/ui.tsx";
-import Burst from "../components/Burst.tsx";
+import { KindBadge, LvlStep, SecTitle, Seg, Stepper } from "../components/ui.tsx";
+import ChapterEnd from "../components/ChapterEnd.tsx";
+import { trainingRows } from "../chapterRows.tsx";
 import { LogSwitch } from "./Turnier.tsx";
-import ItemIcon from "../components/ItemIcon.tsx";
-import type { BurstEvent } from "../components/Burst.tsx";
 
 interface Draft {
   format: Format;
@@ -79,11 +79,10 @@ function withBonus(s: Session, talisman: ItemDef | undefined): Session {
 
 export default function Log({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const [draft, setDraft] = useState<Draft>(() => initialDraft(data, st, today));
-  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[] } | null>(null);
+  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[]; after: ArcState; before: ArcState } | null>(null);
   const { gear, owned } = useGear(data, st);
   const belt = data.profile?.belt ?? "weiss";
   const talisman = gear.talisman;
-  const [burst, setBurst] = useState<BurstEvent[]>([]);
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const setRoll = (i: number, patch: Partial<Roll>) => setDraft((d) => ({ ...d, rolls: d.rolls.map((r, j) => (j === i ? { ...r, ...patch } : r)) }));
   const setQuest = (patch: Partial<NonNullable<Draft["quest"]>>) => setDraft((d) => (d.quest ? { ...d, quest: { ...d.quest, ...patch } } : d));
@@ -108,49 +107,54 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
       .map((id) => itemById(id, next, after))
       .filter((x): x is ItemDef => !!x);
     saveSession(s);
-    setResult({ s, D, loot });
-    setBurst([...burstsFor(D, after), ...lootBursts(loot)]);
+    setResult({ s, D, loot, after, before: st });
     window.scrollTo({ top: 0 });
   };
 
   if (result) {
     return (
-      <div className="page log">
-        {burst.length ? <Burst ev={burst[0]} onClose={() => setBurst((b) => b.slice(1))} /> : null}
-        <SecTitle kanji="記録" eyebrow="Gespeichert" title="Training eingetragen" />
-        <ResultPanel s={result.s} D={result.D} saved loot={result.loot} belt={belt} />
-        <div className="row wrap">
-          <button type="button" className="btn primary" onClick={() => go("karte", result.D.levels[0]?.id ?? result.D.mastery[0]?.id)}>
-            <MapIcon size={16} aria-hidden="true" />
-            <span>Auf der Karte ansehen</span>
-          </button>
-          {result.loot.length ? (
-            <button type="button" className="btn ghost" onClick={() => go("held", "ausruestung")}>
-              <Gift size={16} aria-hidden="true" /> <span>Beute ausrüsten</span>
+      <ChapterEnd
+        kanji="記録"
+        title="Training eingetragen"
+        before={result.before}
+        after={result.after}
+        rows={trainingRows(result.D, result.after)}
+        loot={result.loot}
+        belt={belt}
+        actions={
+          <>
+            <button type="button" className="btn primary" onClick={() => go("karte", result.D.levels[0]?.id ?? result.D.mastery[0]?.id)}>
+              <MapIcon size={18} aria-hidden="true" />
+              <span>Auf der Sternkarte ansehen</span>
             </button>
-          ) : null}
-          <button type="button" className="btn ghost" onClick={() => go("heute")}>
-            Fertig
-          </button>
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={() => {
-              deleteSession(result.s.id);
-              setResult(null);
-            }}
-          >
-            <RotateCcw size={16} aria-hidden="true" /> Rückgängig
-          </button>
-        </div>
-      </div>
+            {result.loot.length ? (
+              <button type="button" className="btn" onClick={() => go("held", "ausruestung")}>
+                <Gift size={18} aria-hidden="true" /> <span>Beute ausrüsten</span>
+              </button>
+            ) : null}
+            <button type="button" className="btn" onClick={() => go("heute")}>
+              Fertig
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => {
+                deleteSession(result.s.id);
+                setResult(null);
+              }}
+            >
+              <RotateCcw size={16} aria-hidden="true" /> Rückgängig
+            </button>
+          </>
+        }
+      />
     );
   }
 
   return (
     <div className="page log">
       <SecTitle kanji="記録" eyebrow="Nach dem Training" title="Training eintragen">
-        Standardwerte sind vorausgefüllt, du tippst nur, was abweicht. Rechts siehst du live, was das Training bewegt.
+        Standardwerte sind vorausgefüllt, du tippst nur, was abweicht. Die Vorschau zeigt live, was das Training bewegt.
       </SecTitle>
       <LogSwitch value="training" />
       <div className="log-grid">
@@ -295,7 +299,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <fieldset className="step">
             <legend>
-              <b>4</b> Notiz <small>optional · +15 XP</small>
+              <b>4</b> Notiz <small>optional, +15 XP</small>
             </legend>
             <label className="field">
               <span className="fl">Hat funktioniert</span>
@@ -315,10 +319,10 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <div className="savebar">
             <span className="eta">
-              Eingabezeit etwa <b>{eta} s</b>
+              <b>etwa {eta} Sekunden</b>
               {talisman?.perk ? (
                 <small>
-                  Talisman {talisman.name}: {perkText(talisman.perk)}
+                  Talisman {talisman.name}, {perkText(talisman.perk)}
                 </small>
               ) : null}
             </span>
@@ -349,7 +353,7 @@ function TechSelect({ id, value, onChange, empty, attire }: { id: string; value:
       </optgroup>
       {SECTORS.flatMap((s) =>
         s.branches.map((b) => (
-          <optgroup key={`${s.id}-${b.id}`} label={`${s.name} · ${b.name}`}>
+          <optgroup key={`${s.id}-${b.id}`} label={`${s.name}: ${b.name}`}>
             {TECHS.filter((x) => x.sector === s.id && x.branch === b.id && (attire === "gi" || x.nogi)).map((x) => (
               <option key={x.id} value={x.id}>
                 {x.name}
@@ -362,14 +366,13 @@ function TechSelect({ id, value, onChange, empty, attire }: { id: string; value:
   );
 }
 
-function ResultPanel({ s, D, saved, loot, belt }: { s: Session; D: Diff; saved?: boolean; loot?: ItemDef[]; belt?: BeltId }) {
+function ResultPanel({ s, D }: { s: Session; D: Diff }) {
   const parts = xpParts(s, D);
   const ups = D.levels.filter((l) => l.to > l.from);
   const proven = D.dataLevels.filter((l) => l.to > l.from && !ups.some((u) => u.id === l.id));
   return (
-    <div className={`result${saved ? " saved" : ""}`}>
-      <div className="result-burst" aria-hidden="true" />
-      <p className="eyebrow">{saved ? "Beute dieses Trainings" : "Vorschau · noch nicht gespeichert"}</p>
+    <section className="panel result" aria-label="Vorschau">
+      <p className="eyebrow">Vorschau, noch nicht gespeichert</p>
       <p className="xp-gain">
         +{nf0.format(D.xp)}
         <small>XP</small>
@@ -383,56 +386,43 @@ function ResultPanel({ s, D, saved, loot, belt }: { s: Session; D: Diff; saved?:
         ))}
       </ul>
       <ul className="deltas">
-        {D.lvlTo > D.lvlFrom ? <li className="up big">Level {D.lvlFrom} → {D.lvlTo}</li> : null}
-        {D.weekGoal ? <li className="up">Wochenziel erreicht · Flamme {D.streakFrom} → {D.streakTo}</li> : null}
+        {D.lvlTo > D.lvlFrom ? (
+          <li className="up big">
+            Level-Aufstieg <LvlStep from={D.lvlFrom} to={D.lvlTo} label="Level" />
+          </li>
+        ) : null}
+        {D.weekGoal ? (
+          <li className="up">
+            Wochenziel erreicht, Flamme <LvlStep from={D.streakFrom} to={D.streakTo} label="Flamme" />
+          </li>
+        ) : null}
         {ups.map((l) => (
-          <li key={l.id} className="up">
+          <Delta key={l.id} up>
             <button type="button" className="linkish strong" onClick={() => go("karte", l.id)}>
               {TECH[l.id].name}
             </button>{" "}
-            · Stufe {l.from} → {l.to} {LEVELS[l.to]}
-          </li>
+            wird {LEVELS[l.to]} <LvlStep from={l.from} to={l.to} label="Stufe" />
+          </Delta>
         ))}
         {proven.map((l) => (
-          <li key={l.id} className="up">
-            <button type="button" className="linkish strong" onClick={() => go("karte", l.id)}>
-              {TECH[l.id].name}
-            </button>{" "}
-            · {D.confirmed.includes(l.id) ? `Einschätzung bestätigt, Stufe ${l.to}` : `Stufe ${l.to} im Roll bewiesen`}
-          </li>
+          <Delta key={l.id} up>
+            {TECH[l.id].name}: {D.confirmed.includes(l.id) ? `Einschätzung bestätigt, Stufe ${l.to}` : `Stufe ${l.to} im Roll bewiesen`}
+          </Delta>
         ))}
         {D.mastery
           .filter((m) => !ups.some((l) => l.id === m.id))
           .map((m) => (
-            <li key={m.id} className={m.d > 0 ? "up" : "down"}>
-              {TECH[m.id].name} · Meisterung {signed(m.d, 1)}
-            </li>
+            <Delta key={m.id} up={m.d > 0}>
+              {TECH[m.id].name}, Meisterung {signed(m.d, 1)}
+            </Delta>
           ))}
-        <li className={D.power >= 0 ? "up" : "down"}>Power Level {signed(D.power)}</li>
+        <Delta up={D.power >= 0}>Power Level {signed(D.power)}</Delta>
         {D.seals.map((id) => (
-          <li key={id} className="up">
-            Siegel: {SEALS.find((x) => x.id === id)?.name}
-          </li>
+          <Delta key={id} up>
+            Siegel „{SEALS.find((x) => x.id === id)?.name}“
+          </Delta>
         ))}
       </ul>
-      {loot?.length ? (
-        <div className="loot">
-          <p className="k">Beute</p>
-          <ul>
-            {loot.map((x) => (
-              <li key={x.id} className={`item r-${x.rarity}`} style={{ ["--rc" as string]: RARITY[x.rarity].color }}>
-                <ItemIcon item={x} belt={belt ?? "weiss"} size={44} />
-                <span>
-                  <b>{x.name}</b>
-                  <small>
-                    {RARITY[x.rarity].name} · {slotName(x)}
-                  </small>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
       <div className="adelta">
         {SECTORS.map((sc) => {
           const d = D.attrs[sc.id];
@@ -444,43 +434,10 @@ function ResultPanel({ s, D, saved, loot, belt }: { s: Session; D: Diff; saved?:
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
-function slotName(x: ItemDef) {
-  return x.slot === "patch" ? "Aufnäher" : SLOTS.find((s) => s.id === x.slot)?.name ?? x.slot;
+function Delta({ up, children }: { up: boolean; children: ReactNode }) {
+  return <li className={up ? "up" : "down"}>{children}</li>;
 }
-
-function lootBursts(loot: ItemDef[]): BurstEvent[] {
-  const drops = loot.filter((x) => x.src.t === "drop");
-  const earned = loot.filter((x) => x.src.t !== "drop");
-  const out: BurstEvent[] = [];
-  if (drops.length) {
-    const best = drops.find((x) => x.rarity === "legendary") ?? drops.find((x) => x.rarity === "epic") ?? drops[0];
-    out.push({
-      kicker: `Beute · ${RARITY[best.rarity].name}`,
-      title: drops.map((x) => x.name).join(" · "),
-      lines: drops.map((x) => x.desc),
-      tone: best.rarity === "legendary" || best.rarity === "epic" ? "gold" : "ai",
-    });
-  }
-  if (earned.length) out.push({ kicker: "Freigeschaltet", title: earned.map((x) => x.name).join(" · "), lines: earned.map((x) => x.desc), tone: "gold" });
-  return out;
-}
-
-function burstsFor(D: Diff, after: ArcState): BurstEvent[] {
-  const out: BurstEvent[] = [];
-  const tokui = D.levels.filter((l) => l.to === 5 && l.from < 5);
-  for (const t of tokui) out.push({ kicker: "Neue Tokui-Waza", title: TECH[t.id].name, lines: [`Titel freigeschaltet: ${after.title}`, "Diese Technik trifft jetzt auch gegen Stärkere."], tone: "gold" });
-  if (D.lvlTo > D.lvlFrom) {
-    const lines = [`Level ${D.lvlFrom} → ${D.lvlTo}`];
-    if (rankOf(D.lvlTo) !== rankOf(D.lvlFrom)) lines.push(`Neuer Rang: ${rankOf(D.lvlTo)}`);
-    out.push({ kicker: "Aufstieg", title: "Level up!", lines, tone: "ai" });
-  }
-  const sharp = D.levels.filter((l) => l.to === 4 && l.from < 4);
-  if (sharp.length) out.push({ kicker: "Stufe 4 · Geschärft", title: sharp.map((l) => TECH[l.id].name).join(" · "), lines: ["Funktioniert jetzt zuverlässig im Roll."], tone: "ai" });
-  if (D.seals.length) out.push({ kicker: "Siegel erhalten", title: SEALS.find((s) => s.id === D.seals[0])?.name ?? "Siegel", lines: D.seals.map((id) => SEALS.find((s) => s.id === id)?.desc ?? ""), tone: "beni" });
-  return out;
-}
-

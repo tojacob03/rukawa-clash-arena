@@ -207,6 +207,22 @@ export function buildDemo(todayIsoStr: string, seed = DEMO_SEED): ArcData {
       createdAt: (monday0 + 7 * 16 + 5) * 1000,
     },
   ];
+  // Other sports: strength most weeks, wrestling every other Saturday.
+  data.profile!.sports = [
+    { id: "kraft", since: Number(todayIsoStr.slice(0, 4)) - 4 },
+    { id: "ringen", since: Number(todayIsoStr.slice(0, 4)) - 15 },
+  ];
+  data.cross = [];
+  for (let w = 0; w < 20; w++) {
+    const tue = monday0 + 7 * w + 1;
+    if (tue < today && rng() < 0.75) data.cross.push({ id: `demo-x${w}k`, date: isoOf(tue), sport: "kraft", minutes: 60, intensity: 2, createdAt: tue * 1000 + 500 });
+    const sat = monday0 + 7 * w + 5;
+    if (w % 2 === 0 && sat < today && w !== 8 && w !== 16) {
+      const att = 3 + Math.floor(rng() * 4);
+      data.cross.push({ id: `demo-x${w}r`, date: isoOf(sat), sport: "ringen", minutes: 90, intensity: 3, tech: "t_double", att, succ: Math.floor(att * 0.5), createdAt: sat * 1000 + 500 });
+    }
+  }
+
   // Everything found up to ten days ago has been looked at; newer loot shows as new.
   const earlier = isoOf(today - 10);
   data.character!.seen = [...inventory(data, compute(data, earlier)).keys()];

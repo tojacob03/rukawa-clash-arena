@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Lock, ScanEye, Star as StarIcon, Trophy } from "lucide-react";
+import { Lock, Plus, ScanEye, Star as StarIcon, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Look, Slot } from "../core/types.ts";
 import type { ItemDef, Owned } from "../core/items.ts";
 import { ITEMS, RARITY, SLOTS, dynamicItems, perkText, unlockText } from "../core/items.ts";
@@ -20,10 +20,13 @@ import { CLASS_ICON } from "../classIcons.ts";
 import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
 import { FlagIcon } from "../components/Flag.tsx";
-import { ClassPicker, CountryPicker, LookEditor, SeaPicker } from "../components/CharacterForms.tsx";
+import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SportsPicker } from "../components/CharacterForms.tsx";
 import { DEFAULT_SEA } from "../core/sea.ts";
 import { Hexagon, PowerChart } from "../components/Charts.tsx";
-import { Belt, Seg } from "../components/ui.tsx";
+import { Belt, HeroKoma, Seg } from "../components/ui.tsx";
+import { BODY, SPORT, SPORTS } from "../core/sports.ts";
+import { SPORT_ICON } from "../sportIcons.ts";
+import type { SportId } from "../core/types.ts";
 
 type Tab = "uebersicht" | "aussehen" | "ausruestung" | "turniere" | "steckbrief";
 const TABS: { id: Tab; label: string }[] = [
@@ -99,37 +102,33 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
 
   return (
     <>
-      <section className="hero-card with-avatar">
-        <div className="hero-bg" aria-hidden="true" />
-        <button type="button" className="hero-avatar" onClick={() => go("held", "aussehen")} aria-label="Aussehen bearbeiten">
-          {avatar(200)}
-        </button>
+      <HeroKoma className="stage-card" label="Charakter">
+        <div className="stage">{avatar(230, true)}</div>
         <div className="hero-main">
-          <div className="row">
-            <span className="hex-badge small">
+          <div className="row wrap">
+            <span className="hex-badge" aria-hidden="true">
               <b>{st.lvl}</b>
             </span>
-            <p className="eyebrow">{rankOf(st.lvl)}</p>
+            <p className="eyebrow">
+              Level {st.lvl}, {rankOf(st.lvl)}
+            </p>
           </div>
           <h1 className="hero-name">{p.name}</h1>
-          <button type="button" className="btn small scan" onClick={() => window.dispatchEvent(new Event("arc:scan"))}>
-            <ScanEye size={15} aria-hidden="true" /> <span>Scouter</span>
-          </button>
-          <p className="hero-title">{st.title}</p>
+          {st.title ? <p className="hero-title">{st.title}</p> : null}
           <div className="row wrap">
-            <Belt belt={p.belt} stripes={p.stripes} width={110} />
+            <Belt belt={p.belt} stripes={p.stripes} width={120} />
             {p.countries?.map((c) => (
               <span key={c} title={COUNTRY[c]?.name}>
-                <FlagIcon code={c} width={26} />
+                <FlagIcon code={c} width={30} />
               </span>
             ))}
           </div>
-          <div className="xpline" aria-label={`${nf0.format(st.xp - st.lo)} von ${nf0.format(st.hi - st.lo)} XP bis Level ${st.lvl + 1}`}>
-            <div className="xpbar">
+          <div className="xpline">
+            <div className="xpbar" role="img" aria-label={`${nf0.format(st.xp - st.lo)} von ${nf0.format(st.hi - st.lo)} XP bis Level ${st.lvl + 1}`}>
               <i style={{ width: `${xpPct.toFixed(1)}%` }} />
             </div>
             <small>
-              {nf0.format(st.xp - st.lo)} / {nf0.format(st.hi - st.lo)} XP bis Level {st.lvl + 1}
+              {nf0.format(st.xp - st.lo)} von {nf0.format(st.hi - st.lo)} XP bis Level {st.lvl + 1}
             </small>
           </div>
           <dl className="bio">
@@ -138,11 +137,11 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
               <dd>
                 {chosen && ChosenIcon ? (
                   <span className="cls-tag" style={{ ["--cc" as string]: chosen.color }}>
-                    <ChosenIcon size={14} aria-hidden="true" /> {chosen.name}
+                    <ChosenIcon size={15} aria-hidden="true" /> {chosen.name}
                   </span>
                 ) : (
                   <button type="button" className="linkish" onClick={() => go("held", "steckbrief")}>
-                    wählen
+                    Klasse wählen
                   </button>
                 )}
               </dd>
@@ -155,7 +154,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
               <div>
                 <dt>Division</dt>
                 <dd>
-                  {div.name} <small>{div.age} J.</small>
+                  {div.name} <small>({div.age} Jahre)</small>
                 </dd>
               </div>
             ) : null}
@@ -172,27 +171,35 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
               </div>
             ) : null}
           </dl>
+          <div className="row wrap">
+            <button type="button" className="btn small scan" onClick={() => window.dispatchEvent(new Event("arc:scan"))}>
+              <ScanEye size={16} aria-hidden="true" /> <span>Scouter aufsetzen</span>
+            </button>
+            <button type="button" className="btn small" onClick={() => go("held", "aussehen")}>
+              Aussehen ändern
+            </button>
+          </div>
         </div>
-        <dl className="hero-stats">
-          <div>
-            <dt>Power Level</dt>
-            <dd>{power(st.ru)}</dd>
-          </div>
-          <div>
-            <dt>Trainings</dt>
-            <dd>{st.sessions}</dd>
-          </div>
-          <div>
-            <dt>Rolls</dt>
-            <dd>{st.rolls}</dd>
-          </div>
-          <div>
-            <dt>Sterne</dt>
-            <dd>{st.discovered}</dd>
-          </div>
-        </dl>
-      </section>
-      <p className="muted small">
+      </HeroKoma>
+      <dl className="hero-stats">
+        <div>
+          <dt>Power Level</dt>
+          <dd>{power(st.ru)}</dd>
+        </div>
+        <div>
+          <dt>Trainings</dt>
+          <dd>{st.sessions}</dd>
+        </div>
+        <div>
+          <dt>Rolls</dt>
+          <dd>{st.rolls}</dd>
+        </div>
+        <div>
+          <dt>Sterne</dt>
+          <dd>{st.discovered}</dd>
+        </div>
+      </dl>
+      <p className="bubble">
         {chosen && chosen.id !== detected.id
           ? `Gewählt hast du ${chosen.name}. Deine stärksten Techniken sprechen gerade für ${detected.name}: ${detected.style}.`
           : chosen
@@ -312,6 +319,8 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
         </section>
       </div>
 
+      <BodyPanel data={data} st={st} />
+
       <section className="panel">
         <div className="row wrap between">
           <h2 className="h3">Siegel</h2>
@@ -345,6 +354,45 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
         </section>
       ) : null}
     </>
+  );
+}
+
+/* ── Körperwerte ───────────────────────────────────────────────────────── */
+
+const BODY_ICON = { kraft: SPORT_ICON.kraft, ausdauer: SPORT_ICON.ausdauer, beweglichkeit: SPORT_ICON.mobility };
+
+function BodyPanel({ data, st }: { data: ArcData; st: ArcState }) {
+  const sports = data.profile?.sports ?? [];
+  return (
+    <section className="panel" aria-label="Körperwerte">
+      <div className="row wrap between">
+        <h2 className="h3">Körperwerte</h2>
+        <button type="button" className="btn small" onClick={() => go("log", "nebensport")}>
+          <Plus size={16} aria-hidden="true" /> <span>Nebensport eintragen</span>
+        </button>
+      </div>
+      <div className="body-stats">
+        {BODY.map((b) => {
+          const Icon = BODY_ICON[b.id];
+          return (
+            <div key={b.id} className="body-row">
+              <Icon size={20} aria-hidden="true" />
+              <span>{b.name}</span>
+              <div className="bar" role="img" aria-label={`${b.name} ${st.body[b.id]} von 100`}>
+                <i style={{ width: `${st.body[b.id]}%` }} />
+              </div>
+              <b>{st.body[b.id]}</b>
+            </div>
+          );
+        })}
+      </div>
+      <p className="small muted">
+        {st.body.total
+          ? `Aus ${st.body.total} ${st.body.total === 1 ? "Einheit" : "Einheiten"} Nebensport, gewichtet über die letzten acht Wochen. Sie zählen nicht fürs BJJ-Wochenziel und nicht fürs Hexagon.`
+          : "Noch kein Nebensport eingetragen. Kraft, Ausdauer, Ringen, Judo und Co. bauen hier deine Körperwerte auf."}
+        {sports.length ? ` Deine Sportarten: ${sports.map((x) => SPORT[x.id].name + (x.since ? ` seit ${x.since}` : "")).join(", ")}.` : ""}
+      </p>
+    </section>
   );
 }
 
@@ -427,7 +475,7 @@ function GearTab({
                     <small>{s.name}</small>
                     <b>{it?.name ?? "leer"}</b>
                   </span>
-                  {isNew ? <span className="badge-new">NEU</span> : null}
+                  {isNew ? <span className="badge-new">Neu</span> : null}
                 </button>
               );
             })}
@@ -456,10 +504,14 @@ function GearTab({
                   aria-pressed={on}
                   onClick={() => equip(slot, on && optional ? null : x.id)}
                 >
-                  {fresh.has(x.id) ? <span className="badge-new">NEU</span> : null}
-                  <ItemIcon item={x} belt={p.belt} size={52} />
+                  {on ? <span className="worn">Ausgerüstet</span> : null}
+                  {fresh.has(x.id) ? <span className="badge-new">Neu</span> : null}
+                  <ItemIcon item={x} belt={p.belt} size={56} />
                   <b>{x.name}</b>
-                  <small className="rar">{RARITY[x.rarity].name}</small>
+                  <small className="rar">
+                    <i aria-hidden="true" />
+                    {RARITY[x.rarity].name}
+                  </small>
                   {x.perk ? <small className="perk">{perkText(x.perk)}</small> : null}
                   <small className="desc">{x.desc}</small>
                   <small className="via">{owned.get(x.id)?.via}</small>
@@ -471,8 +523,11 @@ function GearTab({
                 <span className="lock" aria-hidden="true">
                   <Lock size={20} />
                 </span>
-                <b>{x.src.t === "drop" ? "???" : x.name}</b>
-                <small className="rar">{RARITY[x.rarity].name}</small>
+                <b>{x.src.t === "drop" ? "Unbekannter Fund" : x.name}</b>
+                <small className="rar">
+                  <i aria-hidden="true" />
+                  {RARITY[x.rarity].name}
+                </small>
                 {x.perk ? <small className="perk">{perkText(x.perk)}</small> : null}
                 <small className="via">{unlockText(x.src, p.homeSea)}</small>
               </div>
@@ -556,10 +611,10 @@ function CompTab({ data, st }: { data: ArcData; st: ArcState }) {
                   {x.place ? <span className={`medal m${x.place}`}>{x.place}</span> : <span className="medal none">–</span>}
                   <div className="grow">
                     <b>{x.name}</b>
-                    <small className="muted">
-                      {shortDate(x.date)} {x.date.slice(0, 4)} · {x.attire === "gi" ? "Gi" : "No-Gi"}
-                      {x.org ? ` · ${x.org}` : ""}
-                      {x.weight ? ` · ${x.weight}` : ""}
+                    <small className="comp-meta">
+                      Am {shortDate(x.date)} {x.date.slice(0, 4)} im {x.attire === "gi" ? "Gi" : "No-Gi"}
+                      {x.org ? `, ${x.org}` : ""}
+                      {x.weight ? `, Klasse ${x.weight}` : ""}
                     </small>
                   </div>
                   <span className="comp-rec">
@@ -569,7 +624,7 @@ function CompTab({ data, st }: { data: ArcData; st: ArcState }) {
                 <div className="chips">
                   {x.matches.map((m, i) => (
                     <span key={i} className={`chip res-${m.result}`}>
-                      {m.result === "win" ? "S" : m.result === "loss" ? "N" : "U"} · {METHOD_NAME[m.method]}
+                      {m.result === "win" ? "Sieg" : m.result === "loss" ? "Niederlage" : "Unentschieden"} durch {METHOD_NAME[m.method]}
                       {m.tech && TECH[m.tech] ? ` (${TECH[m.tech].name})` : ""}
                       {m.oppBelt ? <small>{BELT[m.oppBelt].name}</small> : null}
                     </span>
@@ -630,6 +685,11 @@ function ProfileTab({ data, st }: { data: ArcData; st: ArcState }) {
         <h2 className="h3">Länder</h2>
         <p className="muted small">Wo du herkommst, wo du lebst oder trainierst. Jedes Land wird ein Aufnäher für Gi und Rashguard.</p>
         <CountryPicker value={p.countries ?? []} onChange={(countries) => updateProfile({ countries })} />
+      </section>
+      <section className="panel form-panel">
+        <h2 className="h3">Weitere Sportarten</h2>
+        <p className="muted small">Was du neben BJJ machst. Diese Sportarten stehen beim Eintragen von Nebensport oben.</p>
+        <SportsPicker value={p.sports ?? []} onChange={(sports) => updateProfile({ sports })} />
       </section>
       <section className="panel form-panel">
         <h2 className="h3">Heimatmeer</h2>
