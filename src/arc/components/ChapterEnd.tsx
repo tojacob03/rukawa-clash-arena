@@ -18,7 +18,7 @@ import { OPENING } from "../core/unlocks.ts";
 import { RARITY, SLOTS } from "../core/items.ts";
 import { rankOf } from "../core/lore.ts";
 import { nf0, nf1, power } from "../format.ts";
-import ItemIcon from "./ItemIcon.tsx";
+import LootChest from "./LootChest.tsx";
 import Hanko from "./Hanko.tsx";
 import { HeroKoma, LvlStep, SecTitle } from "./ui.tsx";
 import { motionReady } from "../motion.ts";
@@ -267,7 +267,7 @@ export default function ChapterEnd({
           <div className="chapter-loot">
             {loot.map((x, i) => (
               <div key={x.id} className={`item r-${x.rarity} ch-flip`} style={{ ["--rc" as string]: RARITY[x.rarity].color, ["--i" as string]: i } as CSSProperties}>
-                <ItemIcon item={x} belt={belt} size={56} />
+                <LootChest item={x} belt={belt} index={i} />
                 <b>{x.name}</b>
                 <small className="rar">
                   <i aria-hidden="true" />
