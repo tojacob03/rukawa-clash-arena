@@ -43,7 +43,7 @@
     {
       "name": "Training eintragen",
       "short_name": "Eintragen",
-      "description": "Nach dem Training in einer halben Minute",
+      "description": "Nach dem Training eintragen",
       "url": "/arc/#/log",
       "icons": [
         {
