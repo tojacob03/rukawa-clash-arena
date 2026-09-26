@@ -1,7 +1,7 @@
 // The mat passport: a stamp for every gym you trained in as a guest, the form
 // to enter visits from before, and the headwear the countries give you.
 
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { ArcData, ArcState, Belt } from "../core/types.ts";
 import type { Stamp } from "../core/visits.ts";
@@ -14,6 +14,8 @@ import { addVisit, deleteVisit } from "../actions.ts";
 import { uid } from "../store.ts";
 import ItemIcon from "../components/ItemIcon.tsx";
 import { FlagIcon } from "../components/Flag.tsx";
+import HatStand from "../components/HatStand.tsx";
+import StampPress from "../components/StampPress.tsx";
 
 /** Deterministic tilt and ink per stamp, so the page looks stamped by hand but never reshuffles. */
 function hash(s: string) {
@@ -23,10 +25,16 @@ function hash(s: string) {
 }
 const INKS = ["beni", "ai", "asagi"];
 
+/** Tilt and ink of a stamp, from its key. */
+function look(key: string) {
+  const r = hash(key);
+  return { r, tilt: Math.round((r - 0.5) * 16), ink: INKS[Math.floor(r * 97) % 3] };
+}
+const INK_HEX: Record<string, string> = { beni: "#b3321d", ai: "#33477f", asagi: "#25706a" };
+
 function GymStamp({ s }: { s: Stamp }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
-  const r = hash(s.key);
-  const tilt = Math.round((r - 0.5) * 16);
+  const { r, tilt } = look(s.key);
   const [y, m, d] = s.first.split("-");
   const land = COUNTRY[s.country]?.name ?? s.country;
   const top = land.length > 14 ? s.country : land;
@@ -63,6 +71,27 @@ export default function PassTab({ data, st, belt }: { data: ArcData; st: ArcStat
   const own = data.profile?.countries ?? [];
   const lands = new Set(list.map((s) => s.country));
   const hats = [...new Set([...own, ...visited.keys()])].map((c) => ({ code: c, item: dynamicItem(`hat:${c}`) })).filter((x) => x.item);
+  // Stamps that come in while the page is open are pressed by a stone; the ones already there are just printed.
+  const known = useRef<Set<string> | null>(null);
+  const [pressing, setPressing] = useState<Set<string>>(new Set());
+  const [inked, setInked] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const keys = list.map((x) => x.key);
+    if (!known.current) {
+      known.current = new Set(keys);
+      return;
+    }
+    const fresh = keys.filter((k) => !known.current!.has(k));
+    fresh.forEach((k) => known.current!.add(k));
+    if (fresh.length) setPressing((p) => new Set([...p, ...fresh]));
+  }, [list]);
+  const touch = (k: string) => setInked((p) => new Set([...p, k]));
+  const lift = (k: string) =>
+    setPressing((p) => {
+      const n = new Set(p);
+      n.delete(k);
+      return n;
+    });
 
   return (
     <div className="pass">
@@ -83,8 +112,9 @@ export default function PassTab({ data, st, belt }: { data: ArcData; st: ArcStat
         {list.length ? (
           <ul className="pass-stamps">
             {list.map((s) => (
-              <li key={s.key}>
+              <li key={s.key} className={pressing.has(s.key) && !inked.has(s.key) ? "unprinted" : undefined}>
                 <GymStamp s={s} />
+                {pressing.has(s.key) ? <StampPress ink={INK_HEX[look(s.key).ink]} tilt={look(s.key).tilt} onTouch={() => touch(s.key)} onDone={() => lift(s.key)} /> : null}
                 <p className="ps-cap">
                   <b>{s.gym}</b>
                   <span>
@@ -123,6 +153,7 @@ export default function PassTab({ data, st, belt }: { data: ArcData; st: ArcStat
             <p className="muted small">
               {hats.length} von {COUNTRIES.length}. Die deiner Länder aus dem Steckbrief trägst du von Anfang an, jedes weitere Land gibt dir seine, sobald du dort trainiert hast. Ausrüsten kannst du sie unter Ausrüstung, Kopf.
             </p>
+            {hats.length ? <HatStand hats={hats.map((h) => ({ code: h.code, item: h.item! }))} /> : null}
             {hats.length ? (
               <ul className="hat-list">
                 {hats.map(({ code, item }) => (

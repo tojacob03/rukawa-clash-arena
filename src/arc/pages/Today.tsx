@@ -16,11 +16,11 @@ import { OPENINGS, isOpen, logged, stillClosed } from "../core/unlocks.ts";
 import { questTask } from "../questText.ts";
 import { KindBadge, SecTitle, Seg } from "../components/ui.tsx";
 import { openScouter } from "../scan.ts";
-import SeaSerpent from "../components/SeaSerpent.tsx";
 import { useSocial } from "../cloud/social.ts";
 import { crewWeek, gymDay } from "../core/social.ts";
 import { motionReady } from "../motion.ts";
 import type { FlipState } from "../motion.ts";
+import { BossSerpent } from "../components/Sea3D.tsx";
 
 const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => string> = {
   prog: (st, q) => `Kurz vor Stufe ${st.nodes[q.node].level + 1}, ${LEVELS[st.nodes[q.node].level + 1] ?? ""}`,
@@ -469,7 +469,7 @@ function Boss({ st }: { st: ArcState }) {
         </button>
       </div>
       <div className="bs-sea">
-        <SeaSerpent hp={b.hp} max={max} height={150} label={`${info.boss}: ${b.hp} Buckel über Wasser, ${max - b.hp} schon untergetaucht`} />
+        <BossSerpent hp={b.hp} max={max} height={150} label={`${info.boss}: ${b.hp} Buckel über Wasser, ${max - b.hp} schon untergetaucht`} />
         <p className="bs-hp">
           <b>{b.hp}</b> von {max} Lebenspunkten
         </p>

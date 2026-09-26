@@ -19,6 +19,7 @@ import { ageDivision } from "../character.ts";
 import { CLASS_ICON } from "../classIcons.ts";
 import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
+import TrophyShelf from "../components/TrophyShelf.tsx";
 import { FlagIcon } from "../components/Flag.tsx";
 import { ClassPicker, CountryPicker, LookEditor, SeaPicker, SincePicker, SportsPicker } from "../components/CharacterForms.tsx";
 import { yearsSince } from "../core/since.ts";
@@ -746,6 +747,7 @@ function CompTab({ data, st }: { data: ArcData; st: ArcState }) {
             <dd>{fights ? `${nf0.format((100 * c.w) / fights)} %` : "–"}</dd>
           </div>
         </dl>
+        <TrophyShelf comps={data.competitions ?? []} />
         <div className="medals" aria-label="Medaillen">
           {[1, 2, 3].map((p) => (
             <span key={p} className="medal-count">

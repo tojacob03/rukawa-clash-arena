@@ -35,6 +35,7 @@ import { isOpen } from "./core/unlocks.ts";
 import { jumpTop, startSmooth } from "./smooth.ts";
 import Freunde from "./pages/Freunde.tsx";
 import { useSocial } from "./cloud/social.ts";
+import SealStone from "./components/SealStone.tsx";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -91,6 +92,21 @@ export default function ArcApp() {
     if (w.requestIdleCallback) w.requestIdleCallback(go, { timeout: 3000 });
     else setTimeout(go, 1200);
   }, [hasFigure]);
+
+  // The tab and home-screen icon: your own head, again when it changes.
+  const iconKey = figure ? JSON.stringify([figure.look, figure.mode, Object.values(figure.gear).map((x) => x?.id), figure.belt]) : "";
+  useEffect(() => {
+    if (!iconKey) return;
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    if (nav.connection?.saveData) return;
+    const t = window.setTimeout(() => {
+      const f = figureRef.current;
+      if (!f) return;
+      const { b, lf } = figureFactors(f.look.height, f.heightCm, f.weightKg);
+      void import("./appIcon.ts").then((m) => m.setOwnIcon({ look: f.look, mode: f.mode, gear: f.gear, belt: f.belt, stripes: f.stripes, b, lf })).catch(() => undefined);
+    }, 2500);
+    return () => window.clearTimeout(t);
+  }, [iconKey]);
 
   // The header floats over the page until it scrolls, then it gets its own ground.
   useEffect(() => {
@@ -275,9 +291,7 @@ export default function ArcApp() {
         <NavItem route="heute" current={route} kanji="今" label="Heute" />
         <NavItem route="karte" current={route === "meer" || route === "codex" ? "karte" : route} kanji="図" label="Karte" />
         <button type="button" className={`nav-log${route === "log" ? " on" : ""}`} aria-current={route === "log" ? "page" : undefined} onClick={() => go("log")}>
-          <span className="stamp-btn" aria-hidden="true">
-            記
-          </span>
+          <SealStone glyph="記" px={144} className="stamp-btn" />
           <span className="nl">Eintragen</span>
         </button>
         <NavItem route="freunde" current={route === "gym" || route === "einladung" ? "freunde" : route} kanji="友" label="Freunde" badge={social.incoming.length} />

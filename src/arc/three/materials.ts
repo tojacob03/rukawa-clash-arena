@@ -70,3 +70,34 @@ export function paperTexture() {
     }
   });
 }
+
+const inks = new Map<number, THREE.MeshBasicMaterial>();
+
+/** The ink line round a shape: its back faces pushed out along the normals by w (model units). */
+export function inkMaterial(w: number) {
+  let m = inks.get(w);
+  if (!m) {
+    m = new THREE.MeshBasicMaterial({ color: "#1b1512", side: THREE.BackSide });
+    m.onBeforeCompile = (sh) => {
+      sh.vertexShader = sh.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>\n  transformed += normalize(normal) * ${w.toFixed(4)};`);
+    };
+    m.customProgramCacheKey = () => `ink-${w}`;
+    inks.set(w, m);
+  }
+  return m;
+}
+
+/** Draw every mesh of a group with an ink line round it, as the chart draws its shapes. */
+export function inked(root: THREE.Object3D, w: number) {
+  const meshes: THREE.Mesh[] = [];
+  root.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.isMesh && !m.userData.noInk) meshes.push(m);
+  });
+  for (const m of meshes) {
+    const hull = new THREE.Mesh(m.geometry, inkMaterial(w));
+    hull.userData.noInk = true;
+    m.add(hull);
+  }
+  return root;
+}

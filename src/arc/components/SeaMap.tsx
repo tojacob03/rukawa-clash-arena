@@ -15,6 +15,8 @@ import type { LabelReq, PlacedLabel, Rect, Spot } from "../core/labels.ts";
 import type { WeatherKind } from "../core/voyage.ts";
 import { DockArt, ShipArt } from "./ShipArt.tsx";
 import { SerpentArt } from "./SeaSerpent.tsx";
+import ShipSprite from "./ShipSprite.tsx";
+import MapSprite from "./MapSprite.tsx";
 import { loadMotion, reducedMotion } from "../motion.ts";
 import type { Timeline } from "../motion.ts";
 
@@ -836,7 +838,9 @@ export default function SeaMap({
             return (
               <g key={o.id} className={`other-ship${o.crew ? " crew" : ""}`} aria-hidden="true">
                 <g transform={`translate(${p.x} ${p.y + 6}) scale(${p.left ? -shipScale * 0.7 : shipScale * 0.7} ${shipScale * 0.7}) translate(-100 -128)`}>
-                  <ShipArt belt={o.belt} sail={o.sail} flag={o.flag} />
+                  <ShipSprite look={{ belt: o.belt, sail: o.sail, flag: o.flag }} wind={0.6} px={240}>
+                    <ShipArt belt={o.belt} sail={o.sail} flag={o.flag} />
+                  </ShipSprite>
                 </g>
               </g>
             );
@@ -846,7 +850,7 @@ export default function SeaMap({
           {boss ? (
             <g ref={serpentRef} style={sailing ? { opacity: 0 } : undefined}>
               <g transform={`translate(${boss.x - boss.w / 2} ${boss.y}) scale(${boss.sc})`} aria-hidden="true">
-                <SerpentArt hp={marks.bossHp ?? 1} max={marks.bossMax ?? 4} />
+                <SerpentSprite hp={marks.bossHp ?? 1} max={marks.bossMax ?? 4} />
               </g>
             </g>
           ) : null}
@@ -1098,39 +1102,78 @@ const SeaBackground = memo(function SeaBackground({ sea }: { sea: SeaId }) {
   );
 });
 
+/** The boss as its 3D serpent (three/serpent.ts); the drawn serpent without WebGL. */
+function SerpentSprite({ hp, max }: { hp: number; max: number }) {
+  const n = Math.max(1, Math.min(8, max));
+  // serpentBox in three/serpent.ts
+  const box = { x: -16, y: -36, w: 36 + n * 16 + 22, h: 52 };
+  return (
+    <MapSprite id={`serpent|${hp}|${max}`} draw={() => import("../three/serpent.ts").then((m) => m.serpentPicture(hp, max, 3))} {...box} className="serpent-3d">
+      <SerpentArt hp={hp} max={max} />
+    </MapSprite>
+  );
+}
+
+/** The sea an island's diorama belongs to: its home sea, or the great current. */
+const biome = (is: Island) => is.sea ?? "strom";
+
+/** The island as its 3D diorama (three/island.ts) over the chart's shallows; the drawing without WebGL. */
 function IslandGlyph({ is }: { is: Island }) {
   const r = isleR(is);
+  // The diorama's radius 1 is the island's shore (r + 3); its picture is 2.8 wide.
+  const size = 2.8 * (r + 3) * (is.kind === "tor" || is.kind === "pass" ? 0.85 : 1);
+  const seed = hash(is.id);
+  const sprite = (fallback: ReactNode) => (
+    <MapSprite
+      id={`isle|${biome(is)}|${is.kind ?? ""}|${seed}`}
+      draw={() => import("../three/island.ts").then((m) => m.islandPicture(biome(is), is.kind, seed, 192))}
+      x={is.x - size / 2}
+      y={is.y - size * 0.575}
+      w={size}
+      h={size}
+      className="isle-3d"
+    >
+      {fallback}
+    </MapSprite>
+  );
   if (is.kind === "tor") {
     const d = `M${is.x - 14} ${is.y + 10} V${is.y - 4} Q${is.x} ${is.y - 22} ${is.x + 14} ${is.y - 4} V${is.y + 10}`;
-    return (
+    return sprite(
       <g>
         <path d={d} fill="none" stroke="#d4a94f" strokeWidth={4} strokeLinecap="round" />
         <path d={d} fill="none" stroke="#4a120d" strokeWidth={1.4} />
-      </g>
+      </g>,
     );
   }
   if (is.kind === "pass") {
-    return <polygon points={`${is.x - 14},${is.y + 8} ${is.x - 4},${is.y - 12} ${is.x + 2},${is.y - 2} ${is.x + 8},${is.y - 14} ${is.x + 16},${is.y + 8}`} fill="#8e2a1c" stroke="#1a0504" strokeWidth={1.5} />;
+    return sprite(<polygon points={`${is.x - 14},${is.y + 8} ${is.x - 4},${is.y - 12} ${is.x + 2},${is.y - 2} ${is.x + 8},${is.y - 14} ${is.x + 16},${is.y + 8}`} fill="#8e2a1c" stroke="#1a0504" strokeWidth={1.5} />);
   }
   return (
     <g>
       {/* Shallow water and a depth line around the coast */}
       <path d={blob(is.id + "s", is.x, is.y, r + 9)} className="isle-shallow" />
       <path d={blob(is.id + "c", is.x, is.y, r + 15)} className="isle-contour" />
-      <path d={blob(is.id, is.x, is.y, r + 3, 1.6, 2.4)} className="isle-shade" />
-      <path d={blob(is.id, is.x, is.y, r + 3)} className="isle-sand" />
-      <path d={blob(is.id + "g", is.x, is.y - 1, r)} className="isle-green" />
-      <path d={blob(is.id + "h", is.x - r * 0.25, is.y - r * 0.3, r * 0.42)} className="isle-hill" />
-      {is.kind === "hafen" ? <path d={`M${is.x + r} ${is.y + 2} h10 M${is.x + r + 4} ${is.y + 2} v5 M${is.x + r + 9} ${is.y + 2} v5`} stroke="#7a5230" strokeWidth={2} /> : null}
-      {is.kind === "kap" ? (
-        <g>
-          <path d={`M${is.x} ${is.y - 4} V${is.y - 26}`} stroke="#1b1512" strokeWidth={1.6} />
-          <path d={`M${is.x} ${is.y - 26} h14 l-4 5 l4 5 h-14 Z`} fill="#0b0d0e" stroke="#d4a94f" strokeWidth={0.8} />
-        </g>
-      ) : null}
+      {sprite(
+        <>
+          <path d={blob(is.id, is.x, is.y, r + 3, 1.6, 2.4)} className="isle-shade" />
+          <path d={blob(is.id, is.x, is.y, r + 3)} className="isle-sand" />
+          <path d={blob(is.id + "g", is.x, is.y - 1, r)} className="isle-green" />
+          <path d={blob(is.id + "h", is.x - r * 0.25, is.y - r * 0.3, r * 0.42)} className="isle-hill" />
+          {is.kind === "hafen" ? <path d={`M${is.x + r} ${is.y + 2} h10 M${is.x + r + 4} ${is.y + 2} v5 M${is.x + r + 9} ${is.y + 2} v5`} stroke="#7a5230" strokeWidth={2} /> : null}
+          {is.kind === "kap" ? (
+            <g>
+              <path d={`M${is.x} ${is.y - 4} V${is.y - 26}`} stroke="#1b1512" strokeWidth={1.6} />
+              <path d={`M${is.x} ${is.y - 26} h14 l-4 5 l4 5 h-14 Z`} fill="#0b0d0e" stroke="#d4a94f" strokeWidth={0.8} />
+            </g>
+          ) : null}
+        </>,
+      )}
     </g>
   );
 }
+
+/** How hard the wind blows for each weather: the flag of the 3D ship waves with it. */
+const WIND = { tailwind: 1, breeze: 0.66, light: 0.4, calm: 0.1, dock: 0 } as const;
 
 /** Your ship at the origin, bow to the right; the chart moves and turns it. */
 function ShipMark({ marks, scale }: { marks: MapMarks; scale: number }) {
@@ -1160,7 +1203,9 @@ function ShipMark({ marks, scale }: { marks: MapMarks; scale: number }) {
       <g transform={`scale(${scale}) translate(-100 -128)`}>
         {marks.weather === "dock" ? <DockArt belt={marks.belt} /> : null}
         <g className="ship-roll">
-          <ShipArt belt={marks.belt} sail={marks.shipColor} flag={marks.flag} hull={marks.hull} sails={marks.sails} barnacles={marks.barnacles} />
+          <ShipSprite look={{ belt: marks.belt, sail: marks.shipColor, flag: marks.flag, hull: marks.hull, sails: marks.sails, barnacles: marks.barnacles }} wind={WIND[marks.weather]} frames={6}>
+            <ShipArt belt={marks.belt} sail={marks.shipColor} flag={marks.flag} hull={marks.hull} sails={marks.sails} barnacles={marks.barnacles} />
+          </ShipSprite>
         </g>
       </g>
     </g>

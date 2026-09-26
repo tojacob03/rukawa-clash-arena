@@ -28,7 +28,7 @@ export function PeerHead({ peer, size = 56 }: { peer: Peer; size?: number }) {
     );
   return (
     <span className="peer-head" style={{ width: size, height: size }} aria-hidden="true">
-      <Avatar look={c.look} mode={c.mode} gear={gear} belt={c.belt} stripes={c.stripes} size={size} crop="head" still />
+      <Avatar look={c.look} mode={c.mode} gear={gear} belt={c.belt} stripes={c.stripes} size={size} crop="icon" still />
     </span>
   );
 }
