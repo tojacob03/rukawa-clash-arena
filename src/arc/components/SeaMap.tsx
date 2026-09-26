@@ -31,7 +31,7 @@ export interface MapMarks {
   comps: Record<string, { n: number; best: number }>;
   shipColor: string;
   boss?: string | null;
-  /** Its life points (times stuck in 14 days) and the highest count: humps of the serpent. */
+  /** Its life points (humps above water) and its humps in all (times stuck in 14 days). */
   bossHp?: number;
   bossMax?: number;
   /** Ship class follows the belt. */

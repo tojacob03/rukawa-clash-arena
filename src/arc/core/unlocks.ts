@@ -24,7 +24,7 @@ export interface Opening {
 export const OPENINGS: Opening[] = [
   { id: "sea", after: 1, kanji: "海", name: "Seekarte", says: "Dein Schiff legt ab. Jedes Training bringt Seemeilen, Gürtel und Streifen sind Häfen." },
   { id: "power", after: 2, kanji: "測", name: "Power Level und Scouter", says: "Aus deinen Rolls misst der Scouter, wie stark du gerade bist, und vergleicht dich mit Partnern." },
-  { id: "boss", after: 3, kanji: "狩", name: "Wochenboss", says: "Wo du im Roll feststeckst, taucht eine Seeschlange auf. Jede Quest dagegen drückt sie unter Wasser." },
+  { id: "boss", after: 3, kanji: "狩", name: "Wochenboss", says: "Wo du im Roll feststeckst, taucht eine Seeschlange auf. Jede Quest dagegen drückt einen Buckel unter Wasser." },
   { id: "hexagon", after: 4, kanji: "型", name: "Hexagon", says: "Die Form deines Spiels über sechs Achsen: wo du stark bist und wo schwach." },
 ];
 

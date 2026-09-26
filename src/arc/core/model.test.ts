@@ -107,3 +107,28 @@ test("demo: shows every state the app can show", () => {
   assert.ok(st.boss, "a weekly boss");
   assert.equal(st.weekNow, 1, "one training this week, so logging today reaches the goal");
 });
+
+test("boss: quests against it push humps under water, the draft offers them", () => {
+  const data = base();
+  const q = (node: string, att: number) => ({ node, kind: "jagd" as const, xp: 50, att, succ: 0, done: false });
+  // Stuck under side control three times in 14 days.
+  for (const date of ["2026-09-12", "2026-09-15", "2026-09-18"]) data.sessions.push(sess(date, { stuck: "sidebottom" }));
+  data.sessions.push(sess("2026-09-16", { stuck: "standing" }));
+  const before = compute(data, TODAY).boss!;
+  assert.equal(before.key, "sidebottom");
+  assert.deepEqual([before.raw, before.struck, before.hp], [3, 0, 3]);
+  // The draft offers a technique against it, with its own reason.
+  const offer = compute(data, TODAY).offers.find((o) => STUCK.sidebottom.nodes.includes(o.node));
+  assert.equal(offer?.reason, "boss");
+  // Two quests against it (tried at least once) and one elsewhere; an untried one does not count.
+  data.sessions.push(sess("2026-09-19", { quest: q("d_side", 4) }));
+  data.sessions.push(sess("2026-09-20", { quest: q("d_frames", 2) }));
+  data.sessions.push(sess("2026-09-21", { quest: q("s_triangle", 5) }));
+  data.sessions.push(sess("2026-09-22", { quest: q("d_side", 0) }));
+  const after = compute(data, TODAY).boss!;
+  assert.deepEqual([after.raw, after.struck, after.hp], [3, 2, 1]);
+  // Never more under water than it has humps.
+  for (const date of ["2026-09-17", "2026-09-18"]) data.sessions.push(sess(date, { quest: q("d_ghost", 3) }));
+  const sunk = compute(data, TODAY).boss!;
+  assert.deepEqual([sunk.raw, sunk.struck, sunk.hp], [3, 3, 0]);
+});

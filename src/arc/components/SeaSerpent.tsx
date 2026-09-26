@@ -1,7 +1,6 @@
-// The weekly boss as a sea serpent. Every hump above the water is one time
-// you got stuck in the boss's position in the last 14 days (its life
-// points); the humps under the surface are the ones it has lost, up to the
-// highest count. A wave runs from head to tail, and it stops with reduced
+// The weekly boss as a sea serpent. It has one hump for every time you got
+// stuck in its position in the last 14 days; each quest against it pushes one
+// under the surface, the ones above the water are its life points. A wave runs from head to tail, and it stops with reduced
 // motion.
 
 import type { CSSProperties } from "react";

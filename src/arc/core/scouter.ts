@@ -307,7 +307,10 @@ export interface BossScan {
   key: string;
   boss: string;
   position: string;
+  /** Humps above water, of `raw` times stuck; `struck` pushed under by quests. */
   hp: number;
+  raw: number;
+  struck: number;
   prev: number;
   /** Beaten when it happens at most this often in the next 14 days. */
   goal: number;
@@ -324,9 +327,11 @@ export function bossScan(st: ArcState): BossScan | null {
     boss: info.boss,
     position: info.name,
     hp: b.hp,
+    raw: b.raw,
+    struck: b.struck,
     prev: b.prev,
-    goal: Math.floor(b.hp / 2),
-    trend: b.hp > b.prev ? "wächst" : b.hp < b.prev ? "schrumpft" : "unverändert",
+    goal: Math.floor(b.raw / 2),
+    trend: b.raw > b.prev ? "wächst" : b.raw < b.prev ? "schrumpft" : "unverändert",
     counters: info.nodes.filter((id) => TECH[id]).map((id) => ({ id, level: st.nodes[id].level, M: st.nodes[id].M, rust: st.nodes[id].rust })),
   };
 }

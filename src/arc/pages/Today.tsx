@@ -30,6 +30,7 @@ const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => stri
   taught: () => "Diese Woche im Kurs gezeigt",
   explore: () => "Eine neue Knospe am Rand deines Zweigs",
   prove: (st, q) => `Beweise deine Einschätzung: Stufe ${st.nodes[q.node].claim}, ${LEVELS[st.nodes[q.node].claim]}`,
+  boss: (st) => (st.boss ? `Gegen den Boss „${STUCK[st.boss.key].boss}“: drückt einen Buckel unter Wasser` : "Gegen deinen Wochenboss"),
 };
 
 export default function Today({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
@@ -446,7 +447,6 @@ function Boss({ st }: { st: ArcState }) {
     );
   }
   const info = STUCK[b.key];
-  const max = Math.max(b.hp, b.prev, 4);
   return (
     <section className="boss-scene" aria-label="Wochenboss">
       <div className="bs-text">
@@ -454,7 +454,9 @@ function Boss({ st }: { st: ArcState }) {
         <h2 className="bs-name">{info.boss}</h2>
         <p className="bs-pos">{info.name}</p>
         <p className="bs-note">
-          {b.hp}× hier festgehangen in 14 Tagen, davor {b.prev}×. Besiegt, wenn es in den nächsten 14 Tagen höchstens {Math.floor(b.hp / 2)}× passiert.
+          {b.raw}× hier festgehangen in 14 Tagen, davor {b.prev}×.{" "}
+          {b.struck ? `${b.struck === 1 ? "Eine Quest hat einen Buckel" : `${b.struck} Quests haben ${b.struck} Buckel`} unter Wasser gedrückt. ` : "Jede Quest dagegen drückt einen Buckel unter Wasser. "}
+          {b.raw >= 2 ? `Besiegt, wenn es in den nächsten 14 Tagen höchstens ${Math.floor(b.raw / 2)}× passiert.` : "Besiegt, wenn es in den nächsten 14 Tagen nicht mehr passiert."}
         </p>
         <div className="bs-counter">
           <span className="fl">Dagegen</span>
@@ -469,9 +471,9 @@ function Boss({ st }: { st: ArcState }) {
         </button>
       </div>
       <div className="bs-sea">
-        <BossSerpent hp={b.hp} max={max} height={150} label={`${info.boss}: ${b.hp} Buckel über Wasser, ${max - b.hp} schon untergetaucht`} />
+        <BossSerpent hp={b.hp} max={b.raw} height={150} label={`${info.boss}: ${b.hp} Buckel über Wasser, ${b.struck} von deinen Quests untergetaucht`} />
         <p className="bs-hp">
-          <b>{b.hp}</b> von {max} Lebenspunkten
+          <b>{b.hp}</b> von {b.raw} Lebenspunkten
         </p>
       </div>
     </section>

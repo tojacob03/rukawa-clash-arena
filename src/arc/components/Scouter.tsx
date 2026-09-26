@@ -599,7 +599,9 @@ function BossView({ st, onTech }: { st: ArcState; onTech: (id: string) => void }
       </div>
     );
   }
-  const max = Math.max(b.hp, b.prev, 4);
+  // One pip per time stuck (at most eight): lit above water, dark where a quest pushed it under.
+  const max = Math.min(8, b.raw);
+  const up = Math.min(max, b.hp);
   return (
     <>
       <div className="sc-grid">
@@ -611,14 +613,15 @@ function BossView({ st, onTech }: { st: ArcState; onTech: (id: string) => void }
           <p className="sc-name">{b.boss}</p>
           <p className="sc-tier">{b.position}</p>
           <p className="sc-k">Lebenspunkte</p>
-          <div className="sc-hp" role="img" aria-label={`${b.hp} von ${max} Lebenspunkten`}>
+          <div className="sc-hp" role="img" aria-label={`${b.hp} von ${b.raw} Lebenspunkten, ${b.struck} mit Quests unter Wasser gedrückt`}>
             {Array.from({ length: max }, (_, i) => (
-              <i key={i} className={i < b.hp ? "on" : ""} />
+              <i key={i} className={i < up ? "on" : ""} />
             ))}
           </div>
           <Rows
             rows={[
-              { label: "Festgehangen, 14 Tage", value: `${b.hp}×` },
+              { label: "Festgehangen, 14 Tage", value: `${b.raw}×` },
+              { label: "Mit Quests unter Wasser", value: `${b.struck}` },
               { label: "Die 14 Tage davor", value: `${b.prev}×` },
               { label: "Der Boss", value: b.trend },
             ]}
@@ -628,7 +631,8 @@ function BossView({ st, onTech }: { st: ArcState; onTech: (id: string) => void }
       <section className="sc-sec wide">
         <h3>So besiegst du ihn</h3>
         <p className="small">
-          {b.goal ? `Besiegt, wenn du in den nächsten 14 Tagen höchstens ${b.goal}× hier festhängst.` : "Besiegt, wenn du in den nächsten 14 Tagen hier nicht mehr festhängst."} Diese Techniken helfen, die Quest-Karten schlagen sie dir auch vor:
+          Jede Quest mit einer dieser Techniken drückt einen Buckel unter Wasser, die Quest-Karten schlagen sie dir vor.{" "}
+          {b.goal ? `Besiegt ist er, wenn du in den nächsten 14 Tagen höchstens ${b.goal}× hier festhängst.` : "Besiegt ist er, wenn du in den nächsten 14 Tagen hier nicht mehr festhängst."}
         </p>
         <TechChips ids={b.counters.map((c) => c.id)} st={st} onTech={onTech} />
       </section>
