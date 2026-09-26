@@ -12,6 +12,7 @@ import Hanko from "../components/Hanko.tsx";
 import type { Occurrence } from "../core/schedule.ts";
 import { getPlan, plannedAttire } from "../plan.ts";
 import { go } from "../store.ts";
+import { OPENINGS, isOpen, logged, stillClosed } from "../core/unlocks.ts";
 import { questTask } from "../questText.ts";
 import { KindBadge, SecTitle, Seg } from "../components/ui.tsx";
 import { openScouter } from "../scan.ts";
@@ -70,7 +71,8 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
         <Hand cards={cards} taken={accepted?.node ?? null} done={done} st={st} today={today} />
       </section>
 
-      <Boss st={st} />
+      {isOpen(data, "boss") ? <Boss st={st} /> : null}
+      <Openings data={data} />
 
       <p className="today-foot">
         {todays.length ? `Heute schon ${todays.length}× eingetragen.` : "Heute noch nichts eingetragen."}
@@ -87,6 +89,53 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
 }
 
 const DAY_KANJI = ["月", "火", "水", "木", "金", "土", "日"];
+
+/**
+ * For new players: the ways still to come, as the contents page of the
+ * book. The page number is the training that opens it; opened ones are
+ * written in gold and lead there. Gone once everything is open.
+ */
+function Openings({ data }: { data: ArcData }) {
+  if (!stillClosed(data).length) return null;
+  const n = logged(data);
+  const home: Record<string, () => void> = { sea: () => go("meer"), power: () => openScouter({ mode: "du" }), boss: () => document.querySelector(".boss-scene")?.scrollIntoView({ block: "center" }), hexagon: () => go("held") };
+  return (
+    <section className="openings" aria-label="Was sich als Nächstes öffnet">
+      <SecTitle kanji="次" eyebrow="Inhalt" title="Was sich als Nächstes öffnet">
+        Dein Heft wächst mit dir. Jedes Training schlägt eine Seite auf, die Zahl rechts ist das Training, mit dem sie sich öffnet.
+      </SecTitle>
+      <ol className="toc">
+        {OPENINGS.map((o) => {
+          const open = isOpen(data, o.id);
+          const next = !open && stillClosed(data)[0]?.id === o.id;
+          return (
+            <li key={o.id} className={open ? "open" : next ? "next" : ""}>
+              <span className="toc-k" aria-hidden="true">
+                {o.kanji}
+              </span>
+              <span className="toc-b">
+                {open ? (
+                  <button type="button" className="toc-n linkish" onClick={home[o.id]}>
+                    {o.name}
+                  </button>
+                ) : (
+                  <b className="toc-n">{o.name}</b>
+                )}
+                <small>{o.says}</small>
+              </span>
+              <span className="toc-dots" aria-hidden="true" />
+              <span className="toc-p">
+                {open ? <span className="sr-only">offen, seit Training </span> : <span className="sr-only">öffnet mit Training </span>}
+                {o.after}
+                {next && o.after - n === 1 ? <small> das nächste</small> : null}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
 
 /** The day, set like the first page of a chapter: the date large, the weekday written downwards. */
 function DaySpread({ today, st, arcName }: { today: string; st: ArcState; arcName: string }) {

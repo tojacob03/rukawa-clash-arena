@@ -17,11 +17,14 @@ import { KindBadge, LvlStep, SecTitle, Seg, Stepper } from "../components/ui.tsx
 import ChapterEnd from "../components/ChapterEnd.tsx";
 import type { SeaStep } from "../core/reward.ts";
 import { seaFor } from "../reward.ts";
+import { newlyOpen, stillClosed } from "../core/unlocks.ts";
+import type { Feature, Opening } from "../core/unlocks.ts";
 import { trainingWays } from "../chapterRows.tsx";
 import { LogSwitch } from "./Turnier.tsx";
 import { openScouter } from "../scan.ts";
 import { plannedAttire } from "../plan.ts";
 import { cleanGuest, knownGyms } from "../core/visits.ts";
+import { isOpen } from "../core/unlocks.ts";
 import { COUNTRIES } from "../core/countries.ts";
 
 interface Draft {
@@ -96,7 +99,7 @@ function withBonus(s: Session, talisman: ItemDef | undefined): Session {
 
 export default function Log({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const [draft, setDraft] = useState<Draft>(() => initialDraft(data, st, today));
-  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[]; after: ArcState; before: ArcState; sea: SeaStep } | null>(null);
+  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[]; after: ArcState; before: ArcState; sea: SeaStep; opened: Opening[]; closed: Feature[] } | null>(null);
   const { gear, owned } = useGear(data, st);
   const belt = data.profile?.belt ?? "weiss";
   const talisman = gear.talisman;
@@ -124,7 +127,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
       .map((id) => itemById(id, next, after))
       .filter((x): x is ItemDef => !!x);
     saveSession(s);
-    setResult({ s, D, loot, after, before: st, sea: seaFor(data, next, today, s.date, "session") });
+    setResult({ s, D, loot, after, before: st, sea: seaFor(data, next, today, s.date, "session"), opened: newlyOpen(data, next), closed: stillClosed(next).map((o) => o.id) });
     window.scrollTo({ top: 0 });
   };
 
@@ -138,6 +141,8 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
         after={result.after}
         ways={trainingWays(result.D, result.after)}
         sea={result.sea}
+        opened={result.opened}
+        closed={result.closed}
         loot={result.loot}
         belt={belt}
         actions={
@@ -242,9 +247,11 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
                     <span className="fl">Kontrolle</span>
                     <Seg label={`Kontrolle Roll ${i + 1}`} value={r.c} onChange={(v) => setRoll(i, { c: v })} options={CTRL} />
                   </div>
-                  <button type="button" className="btn small scan roll-scan" onClick={() => openScouter({ mode: "partner", belt: r.belt, size: r.size, attire: draft.attire })}>
-                    <ScanEye size={14} aria-hidden="true" /> <span>Partner scannen</span>
-                  </button>
+                  {isOpen(data, "power") ? (
+                    <button type="button" className="btn small scan roll-scan" onClick={() => openScouter({ mode: "partner", belt: r.belt, size: r.size, attire: draft.attire })}>
+                      <ScanEye size={14} aria-hidden="true" /> <span>Partner scannen</span>
+                    </button>
+                  ) : null}
                 </div>
               ))}
             </div>

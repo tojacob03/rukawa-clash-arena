@@ -7,6 +7,7 @@ Protokoll der eigenständigen Arbeit am Backlog ([BACKLOG.md](BACKLOG.md)): was 
 _(Rückfragen, Ablehnungen und Entscheidungen, die du bestätigen oder ändern solltest)_
 
 - **Kopfbedeckungen, Auswahl je Land:** Die Zuordnung steht in `src/arc/core/headwear.ts`, eine Zeile pro Land. Bitte einmal durchsehen, vor allem Länder mit mehreren Kandidaten (Deutschland: Trachtenhut mit Gamsbart statt Bollenhut, Vereinigtes Königreich: Melone, England: Schiebermütze, Brasilien: Chapéu de couro, Indien: Pagri aus Rajasthan). Religiöse Kopfbedeckungen habe ich bewusst ausgelassen.
+- **Progressive Disclosure, Schwellen:** Seekarte öffnet mit dem 1. Eintrag, Power Level und Scouter mit dem 2., Wochenboss mit dem 3., Hexagon mit dem 4. (`src/arc/core/unlocks.ts`, eine Zeile je Schwelle). Wer heute schon 1 bis 3 Einträge hat, sieht einzelne Teile kurz wieder zu, bis die Schwelle erreicht ist. Falls dich das stört: ein Stichtag, vor dem angelegte Profile alles offen haben, ist eine Zeile.
 - **Gym-Besuche liegen im Hauptdatensatz** (`visits` im Root-Record), nicht als eigene Record-Art. Grund: Der Server erlaubt nur die Arten root, session, comp, cross und promo, eine neue Art bräuchte eine Migration auf der Produktionsdatenbank. Für ein paar Dutzend Einträge reicht der Root-Record. Wenn du eine eigene Art willst: Migration freigeben, dann ziehe ich sie um.
 
 ## Protokoll
@@ -63,7 +64,7 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - Die Demo hat zwei Stempel (Lissabon nachgetragen, Amsterdam als Gasttraining).
 - Geprüft: Typecheck, Lint, 101 Unit-Tests (neu: Zuordnung für alle Länder, Freischaltung, Stempel, Sync, kaputte Einträge), Konto-E2E 23/23, Social-E2E 44/44, Build, kein waagrechter Überlauf bei 390 px.
 
-### Belohnungsmoment nach dem Loggen
+### Belohnungsmoment nach dem Loggen (`439e1d7`)
 
 *Befund:* Das Kapitelende zeigte XP, Level und Stempel gut, danach aber eine flache Liste mit Icons in beliebiger Reihenfolge. Die Seereise fehlte ganz, obwohl jedes Training Seemeilen bringt.
 
@@ -73,3 +74,17 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - Der Knopf heißt jetzt „Auf dem Zweig ansehen“ statt „Auf der Sternkarte ansehen“.
 - *Warum so:* Nach dem Eintragen soll man in drei Sekunden sehen, was es gebracht hat, und zwar in denselben fünf Wegen wie überall in der App. Keine Konfetti, keine Karten: Die Bewegung (Knospe öffnet sich, Schiff segelt) kommt aus der Welt der App.
 - Geprüft: 102 Unit-Tests (neu: Seemeilen und Ankunft pro Eintrag), Lint, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung: 0 Animationen, keine GSAP-Anfrage.
+
+### Progressive Disclosure für neue Spieler
+
+*Befund:* Ein neuer Spieler sah am ersten Tag ein Power Level von 1.000 ohne einen einzigen Roll, einen Wochenboss „Ruhe im Dōjō“, im Charakterbogen Hexagon und Achsentabelle voller Nullen, Körperwerte, 17 gesperrte Siegel und „Laut Daten: Wandler“ ohne Daten.
+
+- **Start:** Trainingsheft (Tag, Woche), Tagesquest, Zweig und Codex. Alles andere öffnet sich mit den Einträgen, jeweils in dem Moment, in dem es etwas zu zeigen hat: 海 Seekarte mit dem 1. Eintrag (das Schiff legt ab), 測 Power Level und Scouter mit dem 2. (erste Messung aus Rolls), 狩 Wochenboss mit dem 3., 型 Hexagon mit dem 4. Gezählt werden Trainings, Turniere und Nebensport. Die Demo zeigt alles.
+- **Heute:** Solange noch etwas zu ist, steht unter der Quest ein Inhaltsverzeichnis „Was sich als Nächstes öffnet“: Kanji, Name, ein Satz, und als Seitenzahl das Training, mit dem es sich öffnet. Offenes steht in Gold und führt hin, das nächste ist markiert. Sind alle offen, verschwindet es.
+- **Kapitelende:** Ein neuer Abschnitt 新 „Neu in deinem Heft“ sagt, was sich mit diesem Eintrag geöffnet hat. Am Tag, an dem der Scouter öffnet, steht die erste Messung unter Stärke; davor sagt die Zeile, wann er misst.
+- **Geschlossen, aber sichtbar:** Die Seekarte zeigt vor dem ersten Training den Heimathafen mit „Dein Schiff liegt noch vor Anker“ und dem Knopf zum ersten Training. Im Charakterbogen stehen geschlossene Wege mit ihrer Frage und „Öffnet mit dem 2. Training“, damit man weiß, was kommt.
+- **Ausgeblendet bis offen:** Power Level oben rechts, „Scouter aufsetzen“, „Partner scannen“ in den Roll-Karten, Wochenboss, Hexagon, Achsen, Power-Kurve, „Laut Daten“. Körperwerte erst mit Nebensport, eingetragenen Sportarten oder dem Hexagon.
+- **Siegel:** Gezeigt werden die errungenen und die nächsten vier; der Rest auf Knopfdruck („Alle Siegel zeigen“). Das gilt für alle, nicht nur für neue Spieler, weil 17 gesperrte Kacheln auch später eher Wand als Ziel sind.
+- *Warum so:* Jedes System erklärt sich am besten in dem Moment, in dem es zum ersten Mal einen echten Wert hat. Das Inhaltsverzeichnis macht das Warten zur Vorfreude statt zum Versteckspiel und passt zum Heft.
+- Nebenbei: Kopfbedeckungen der eigenen Länder gelten beim Anlegen des Profils als gesehen (wie die Flaggen), damit Ausrüstung nicht sofort „Neu“ ruft.
+- Geprüft: 105 Unit-Tests (neu: Reihenfolge, einmaliges Öffnen, Turniere zählen, Demo), Lint, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung ohne Animation, Bildschirmfotos für 0, 1 und 2 Einträge bei 1280 und 390 px.

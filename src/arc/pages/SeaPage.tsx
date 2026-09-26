@@ -77,6 +77,7 @@ import { shipsOf } from "../socialCard.ts";
 import { crewNow, shipNow } from "../ship.ts";
 import type { ShipNow } from "../ship.ts";
 import { gearItems } from "../core/social.ts";
+import { isOpen } from "../core/unlocks.ts";
 
 export function MapSwitch({ value }: { value: "karte" | "meer" }) {
   return (
@@ -115,17 +116,40 @@ const VIEWS: { id: View; label: string; icon: ReactNode }[] = [
     : []),
 ];
 
-export default function SeaPage({
-  data,
-  st,
-  today,
-  arg,
-}: {
+type SeaProps = {
   data: ArcData;
   st: ArcState;
   today: string;
   arg: string | null;
-}) {
+};
+
+/** Before the first training the ship is still in harbour: the chart opens with it. */
+export default function SeaPage(props: SeaProps) {
+  if (isOpen(props.data, "sea")) return <OpenSea {...props} />;
+  const harbour = route(props.data.profile?.homeSea ?? DEFAULT_SEA)[0];
+  return (
+    <div className="page sea-page">
+      <MapSwitch value="meer" />
+      <section className="harbour">
+        <span className="harbour-k" aria-hidden="true">
+          海
+        </span>
+        <div>
+          <h1 className="h2">Dein Schiff liegt noch vor Anker</h1>
+          <p className="lede">
+            {harbour.name}. {harbour.desc}
+          </p>
+          <p>Mit deinem ersten Training legt es ab. Jedes Training bringt Seemeilen, auch Nebensport, und mit regelmäßigem Rhythmus kommt Rückenwind dazu. Gürtel und Streifen sind Häfen auf dem Weg.</p>
+          <button type="button" className="btn primary" onClick={() => go("log")}>
+            Erstes Training eintragen
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function OpenSea({ data, st, today, arg }: SeaProps) {
   const p = data.profile!;
   const view: View =
     arg === "schiff" || arg === "logbuch" || (arg === "crew" && cloudConfigured)

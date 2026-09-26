@@ -110,7 +110,7 @@ export function createProfile(
     profile: { ...p, startBelt: p.belt, startStripes: p.stripes, createdAt: today },
     onboarding: { date: today, known, claims },
     // Start gear and flags are not "new"; only what you find later is.
-    character: { ...getCharacter(emptyData()), look, mode, seen: [...ITEMS.filter((x) => x.src.t === "start").map((x) => x.id), ...(p.countries ?? []).map((c) => `flag:${c}`)] },
+    character: { ...getCharacter(emptyData()), look, mode, seen: [...ITEMS.filter((x) => x.src.t === "start").map((x) => x.id), ...(p.countries ?? []).flatMap((c) => [`flag:${c}`, `hat:${c}`])] },
   });
 }
 

@@ -13,9 +13,11 @@ import type { CSSProperties, ReactNode } from "react";
 import type { ArcState, Belt } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
 import type { SeaStep } from "../core/reward.ts";
+import type { Feature, Opening } from "../core/unlocks.ts";
+import { OPENING } from "../core/unlocks.ts";
 import { RARITY, SLOTS } from "../core/items.ts";
 import { rankOf } from "../core/lore.ts";
-import { nf0, nf1 } from "../format.ts";
+import { nf0, nf1, power } from "../format.ts";
 import ItemIcon from "./ItemIcon.tsx";
 import Hanko from "./Hanko.tsx";
 import { HeroKoma, LvlStep, SecTitle } from "./ui.tsx";
@@ -47,6 +49,8 @@ export default function ChapterEnd({
   after,
   ways,
   sea,
+  opened = [],
+  closed = [],
   loot,
   belt,
   actions,
@@ -58,6 +62,10 @@ export default function ChapterEnd({
   after: ArcState;
   ways: ChapterWays;
   sea?: SeaStep;
+  /** Ways this entry opened (progressive disclosure, core/unlocks.ts). */
+  opened?: Opening[];
+  /** Ways still closed after it: their lines stay out of the page. */
+  closed?: Feature[];
   loot: ItemDef[];
   belt: Belt;
   actions: ReactNode;
@@ -203,13 +211,39 @@ export default function ChapterEnd({
       <ol className="ways-page" aria-label="Was sich bewegt hat">
         <Way k="稽" name="Einsatz" i={0} rows={ways.effort} />
         <Way k="技" name="Können" i={1} rows={ways.skill} quiet="Heute ist keine Knospe weitergewachsen. Quest-Treffer und Rolls lassen den Zweig wachsen." />
-        <Way k="測" name="Stärke" i={2} rows={ways.strength} quiet="Ohne Rolls misst der Scouter heute nichts." />
+        <Way
+          k="測"
+          name="Stärke"
+          i={2}
+          rows={[
+            // The first reading, the day the Scouter opens.
+            ...(opened.some((o) => o.id === "power") && !ways.strength.some((r) => r.key === "power") ? [{ key: "power", text: `Power Level ${power(after.ru)}, deine erste Messung` }] : []),
+            ...ways.strength.filter((r) => !(closed.includes("power") && r.key === "power") && !(closed.includes("hexagon") && r.key === "hex")),
+          ]}
+          quiet={closed.includes("power") ? `Mit deinem ${OPENING.power.after}. Training misst der Scouter zum ersten Mal dein Power Level.` : "Ohne Rolls misst der Scouter heute nichts."}
+        />
         {sea ? (
           <Way k="海" name="Reise" i={3} rows={[]}>
             <SeaLeg sea={sea} />
           </Way>
         ) : null}
         {ways.seals.length ? <Way k="章" name="Siegel" i={4} rows={ways.seals} /> : null}
+        {opened.length ? (
+          <Way
+            k="新"
+            name="Neu in deinem Heft"
+            i={5}
+            rows={opened.map((o) => ({
+              key: `open-${o.id}`,
+              icon: <span className="cw-open">{o.kanji}</span>,
+              text: (
+                <>
+                  <b>{o.name}</b>: {o.says}
+                </>
+              ),
+            }))}
+          />
+        ) : null}
       </ol>
 
       {loot.length ? (

@@ -34,6 +34,8 @@ import { SYSTEMS } from "../core/systems.ts";
 import type { SystemId } from "../core/systems.ts";
 import { voyage } from "../core/voyage.ts";
 import PassTab from "./Pass.tsx";
+import { OPENING, isOpen } from "../core/unlocks.ts";
+import type { Feature } from "../core/unlocks.ts";
 
 type Tab = "uebersicht" | "aussehen" | "ausruestung" | "pass" | "turniere" | "steckbrief";
 const TABS: { id: Tab; label: string }[] = [
@@ -96,6 +98,7 @@ type View = "zeit" | "gi";
 
 function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; today: string; avatar: AvatarFn }) {
   const [view, setView] = useState<View>("zeit");
+  const [allSeals, setAllSeals] = useState(false);
   const back = compute(data, isoMinus(today, 56));
   const cmp = useCompare(data, today);
   const p = data.profile!;
@@ -159,10 +162,12 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
                 )}
               </dd>
             </div>
-            <div>
-              <dt>Laut Daten</dt>
-              <dd>{detected.name}</dd>
-            </div>
+            {isOpen(data, "hexagon") ? (
+              <div>
+                <dt>Laut Daten</dt>
+                <dd>{detected.name}</dd>
+              </div>
+            ) : null}
             {div ? (
               <div>
                 <dt>Division</dt>
@@ -191,9 +196,11 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
             ) : null}
           </dl>
           <div className="row wrap">
-            <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "du" })}>
-              <ScanEye size={16} aria-hidden="true" /> <span>Scouter aufsetzen</span>
-            </button>
+            {isOpen(data, "power") ? (
+              <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "du" })}>
+                <ScanEye size={16} aria-hidden="true" /> <span>Scouter aufsetzen</span>
+              </button>
+            ) : null}
             <button type="button" className="btn small" onClick={() => go("held", "aussehen")}>
               Aussehen ändern
             </button>
@@ -201,127 +208,133 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
         </div>
       </section>
       <Ways data={data} st={st} today={today} />
-      <p className="bubble">
-        {chosen && chosen.id !== detected.id
-          ? `Gewählt hast du ${chosen.name}. Deine stärksten Techniken sprechen gerade für ${detected.name}: ${detected.style}.`
-          : chosen
-            ? `${chosen.name}: Deine Daten bestätigen deine Wahl. ${chosen.perk}.`
-            : `Deine Daten sprechen für ${detected.name}: ${detected.style}.`}
-        {st.prologXp > 0 ? ` Prolog: ${nf0.format(st.prologXp)} XP aus der Zeit vor der App (${BELT[p.startBelt].name}gurt, ${p.startStripes ?? 0} Streifen, ab Level ${PROLOG_LEVEL[p.startBelt] + (p.startStripes ?? 0)}).` : ""}
-      </p>
+      {isOpen(data, "hexagon") || st.prologXp > 0 ? (
+        <p className="bubble">
+          {isOpen(data, "hexagon")
+            ? chosen && chosen.id !== detected.id
+              ? `Gewählt hast du ${chosen.name}. Deine stärksten Techniken sprechen gerade für ${detected.name}: ${detected.style}.`
+              : chosen
+                ? `${chosen.name}: Deine Daten bestätigen deine Wahl. ${chosen.perk}.`
+                : `Deine Daten sprechen für ${detected.name}: ${detected.style}.`
+            : ""}
+          {st.prologXp > 0 ? ` Prolog: ${nf0.format(st.prologXp)} XP aus der Zeit vor der App (${BELT[p.startBelt].name}gurt, ${p.startStripes ?? 0} Streifen, ab Level ${PROLOG_LEVEL[p.startBelt] + (p.startStripes ?? 0)}).` : ""}
+        </p>
+      ) : null}
 
-      <div className="held-grid">
-        <section className="panel">
-          <div className="row wrap between">
-            <h2 className="h3">Hexagon</h2>
-            <Seg
-              label="Vergleich"
-              value={view}
-              onChange={(v) => setView(v)}
-              options={[
-                { v: "zeit", label: "vor 8 Wochen" },
-                { v: "gi", label: "Gi / No-Gi" },
-              ]}
+      {isOpen(data, "hexagon") ? (
+        <div className="held-grid">
+          <section className="panel">
+            <div className="row wrap between">
+              <h2 className="h3">Hexagon</h2>
+              <Seg
+                label="Vergleich"
+                value={view}
+                onChange={(v) => setView(v)}
+                options={[
+                  { v: "zeit", label: "vor 8 Wochen" },
+                  { v: "gi", label: "Gi / No-Gi" },
+                ]}
+              />
+            </div>
+            {view === "gi" && !cmp ? (
+              <p className="muted small">Der Vergleich erscheint, sobald Gi und No-Gi in den letzten 8 Wochen je mindestens 20 Rolls haben.</p>
+            ) : null}
+            <Hexagon
+              series={
+                view === "gi" && cmp
+                  ? [
+                      { vals: SECTORS.map((s) => cmp.gi.attrs[s.id].val), cls: "gi", label: "Gi" },
+                      { vals: SECTORS.map((s) => cmp.nogi.attrs[s.id].val), cls: "nogi", label: "No-Gi" },
+                      { vals: now, cls: "now", label: "Gesamt" },
+                    ]
+                  : [
+                      { vals: prev, cls: "prev", label: "vor 8 Wochen" },
+                      { vals: now, cls: "now", label: "jetzt" },
+                    ]
+              }
+              labelIndex={view === "gi" && cmp ? 2 : 1}
             />
-          </div>
-          {view === "gi" && !cmp ? (
-            <p className="muted small">Der Vergleich erscheint, sobald Gi und No-Gi in den letzten 8 Wochen je mindestens 20 Rolls haben.</p>
-          ) : null}
-          <Hexagon
-            series={
-              view === "gi" && cmp
-                ? [
-                    { vals: SECTORS.map((s) => cmp.gi.attrs[s.id].val), cls: "gi", label: "Gi" },
-                    { vals: SECTORS.map((s) => cmp.nogi.attrs[s.id].val), cls: "nogi", label: "No-Gi" },
-                    { vals: now, cls: "now", label: "Gesamt" },
-                  ]
-                : [
-                    { vals: prev, cls: "prev", label: "vor 8 Wochen" },
-                    { vals: now, cls: "now", label: "jetzt" },
-                  ]
-            }
-            labelIndex={view === "gi" && cmp ? 2 : 1}
-          />
-          <div className="hex-key">
-            {view === "gi" && cmp ? (
-              <>
-                <span>
-                  <i className="k-gi" /> Gi
-                </span>
-                <span>
-                  <i className="k-nogi" /> No-Gi
-                </span>
-                <span>
-                  <i className="k-now" /> Gesamt
-                </span>
-              </>
-            ) : (
-              <>
-                <span>
-                  <i className="k-now" /> jetzt
-                </span>
-                <span>
-                  <i className="k-prev" /> vor 8 Wochen
-                </span>
-              </>
-            )}
-            <span>Ringe: Richtwerte pro Gürtel</span>
-          </div>
-          {claimed ? <p className="muted small">Enthält Selbsteinschätzungen vom Start. Sie zählen vorläufig, bis deine Rolls sie bestätigen.</p> : null}
-        </section>
+            <div className="hex-key">
+              {view === "gi" && cmp ? (
+                <>
+                  <span>
+                    <i className="k-gi" /> Gi
+                  </span>
+                  <span>
+                    <i className="k-nogi" /> No-Gi
+                  </span>
+                  <span>
+                    <i className="k-now" /> Gesamt
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    <i className="k-now" /> jetzt
+                  </span>
+                  <span>
+                    <i className="k-prev" /> vor 8 Wochen
+                  </span>
+                </>
+              )}
+              <span>Ringe: Richtwerte pro Gürtel</span>
+            </div>
+            {claimed ? <p className="muted small">Enthält Selbsteinschätzungen vom Start. Sie zählen vorläufig, bis deine Rolls sie bestätigen.</p> : null}
+          </section>
 
-        <section className="panel">
-          <h2 className="h3">Achsen</h2>
-          <div className="tbl">
-            <table className="attr">
-              <thead>
-                <tr>
-                  <th>Achse</th>
-                  <th>Baum</th>
-                  <th>Form</th>
-                  <th>Wert</th>
-                  <th>Δ 8 Wo.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {SECTORS.map((s, i) => {
-                  const a = st.attrs[s.id];
-                  const d = now[i] - prev[i];
-                  return (
-                    <tr key={s.id}>
-                      <td>
-                        {s.name}
-                        {a.claimed ? <sup title="enthält Selbsteinschätzung"> *</sup> : null}
-                      </td>
-                      <td>{nf0.format(a.baum)}</td>
-                      <td>{a.form === null ? "–" : nf0.format(a.form)}</td>
-                      <td>
-                        <b>{nf0.format(a.val)}</b>
-                      </td>
-                      <td className={d >= 0.5 ? "pos" : d <= -0.5 ? "neg" : ""}>{signed(d)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <p className="muted small">
-            Baum: Breite und Tiefe deiner Techniken im Sektor. Form: was du in den letzten 8 Wochen im Roll zeigst.{claimed ? " *: enthält Selbsteinschätzung." : ""}
-          </p>
-          <h2 className="h3">Power Level</h2>
-          <PowerChart
-            series={st.ruSeries}
-            today={st.asOf}
-            extra={cmp ? [{ series: cmp.gi.ruSeries, cls: "gi" }, { series: cmp.nogi.ruSeries, cls: "nogi" }] : undefined}
-          />
-          <p className="muted small">
-            Kommt aus einem Elo-Rating über alle Roll-Karten und Turnierkämpfe: 100 Elo-Punkte mehr verdoppeln es. Ein Weißgurt startet bei 1.000, ein Schwarzgurt bei rund 37.000. Es bleibt privat und ist kein Ranking.
-            {cmp ? " Die dünnen Linien zeigen Gi und No-Gi einzeln." : ""}
-          </p>
-        </section>
-      </div>
+          <section className="panel">
+            <h2 className="h3">Achsen</h2>
+            <div className="tbl">
+              <table className="attr">
+                <thead>
+                  <tr>
+                    <th>Achse</th>
+                    <th>Baum</th>
+                    <th>Form</th>
+                    <th>Wert</th>
+                    <th>Δ 8 Wo.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SECTORS.map((s, i) => {
+                    const a = st.attrs[s.id];
+                    const d = now[i] - prev[i];
+                    return (
+                      <tr key={s.id}>
+                        <td>
+                          {s.name}
+                          {a.claimed ? <sup title="enthält Selbsteinschätzung"> *</sup> : null}
+                        </td>
+                        <td>{nf0.format(a.baum)}</td>
+                        <td>{a.form === null ? "–" : nf0.format(a.form)}</td>
+                        <td>
+                          <b>{nf0.format(a.val)}</b>
+                        </td>
+                        <td className={d >= 0.5 ? "pos" : d <= -0.5 ? "neg" : ""}>{signed(d)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="muted small">
+              Baum: Breite und Tiefe deiner Techniken im Sektor. Form: was du in den letzten 8 Wochen im Roll zeigst.{claimed ? " *: enthält Selbsteinschätzung." : ""}
+            </p>
+            <h2 className="h3">Power Level</h2>
+            <PowerChart
+              series={st.ruSeries}
+              today={st.asOf}
+              extra={cmp ? [{ series: cmp.gi.ruSeries, cls: "gi" }, { series: cmp.nogi.ruSeries, cls: "nogi" }] : undefined}
+            />
+            <p className="muted small">
+              Kommt aus einem Elo-Rating über alle Roll-Karten und Turnierkämpfe: 100 Elo-Punkte mehr verdoppeln es. Ein Weißgurt startet bei 1.000, ein Schwarzgurt bei rund 37.000. Es bleibt privat und ist kein Ranking.
+              {cmp ? " Die dünnen Linien zeigen Gi und No-Gi einzeln." : ""}
+            </p>
+          </section>
+        </div>
+      ) : null}
 
-      <BodyPanel data={data} st={st} />
+      {st.body.total || data.profile?.sports?.length || isOpen(data, "hexagon") ? <BodyPanel data={data} st={st} /> : null}
 
       <section className="panel">
         <div className="row wrap between">
@@ -331,16 +344,24 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
           </span>
         </div>
         <ul className="seals">
-          {SEALS.map((s, i) => (
-            <li key={s.id} className={st.seals[i].got ? "got" : ""}>
-              <span className="seal-mark" aria-hidden="true">
-                <StarIcon size={18} strokeWidth={2.4} />
-              </span>
-              <b>{s.name}</b>
-              <small>{s.desc}</small>
-            </li>
-          ))}
+          {SEALS.map((s, i) => ({ s, i, got: st.seals[i].got }))
+            // Earned seals and the next four to go for; the rest on request.
+            .filter((x, _, all) => allSeals || x.got || all.filter((y) => !y.got).indexOf(x) < 4)
+            .map(({ s, i }) => (
+              <li key={s.id} className={st.seals[i].got ? "got" : ""}>
+                <span className="seal-mark" aria-hidden="true">
+                  <StarIcon size={18} strokeWidth={2.4} />
+                </span>
+                <b>{s.name}</b>
+                <small>{s.desc}</small>
+              </li>
+            ))}
         </ul>
+        {SEALS.length - got > 4 ? (
+          <button type="button" className="linkish" aria-expanded={allSeals} onClick={() => setAllSeals((v) => !v)}>
+            {allSeals ? "Nur die nächsten zeigen" : `Alle Siegel zeigen (${SEALS.length - got - 4} weitere)`}
+          </button>
+        ) : null}
       </section>
 
       {st.tokui.length ? (
@@ -407,6 +428,7 @@ function BodyPanel({ data, st }: { data: ArcData; st: ArcState }) {
 function Ways({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const strongest = [...SECTORS].sort((a, b) => st.attrs[b.id].val - st.attrs[a.id].val)[0];
   const miles = voyage(data, today).miles;
+  const gate: Partial<Record<SystemId, Feature>> = { power: "power", hexagon: "hexagon", sea: "sea" };
   const value: Record<SystemId, { v: string; sub: string; go: () => void }> = {
     level: { v: String(st.lvl), sub: `${rankOf(st.lvl)}, ${st.sessions} Trainings`, go: () => go("held", "ausruestung") },
     power: { v: power(st.ru), sub: `${st.rolls} Rolls gewertet`, go: () => openScouter({ mode: "du" }) },
@@ -418,19 +440,29 @@ function Ways({ data, st, today }: { data: ArcData; st: ArcState; today: string 
     <section className="ways" aria-label="Deine fünf Wege">
       <h2 className="ways-h">Fünf Wege, fünf Fragen</h2>
       <ol className="ways-list">
-        {SYSTEMS.map((x) => (
-          <li key={x.id}>
-            <button type="button" className="way" onClick={value[x.id].go} title={`${x.grows} ${x.falls}`}>
-              <span className="way-k" aria-hidden="true">
-                {x.kanji}
-              </span>
-              <span className="way-n">{x.name}</span>
-              <b className="way-v">{value[x.id].v}</b>
-              <small className="way-s">{value[x.id].sub}</small>
-              <span className="way-q">{x.question}</span>
-            </button>
-          </li>
-        ))}
+        {SYSTEMS.map((x) => {
+          const g = gate[x.id];
+          const closed = g && !isOpen(data, g) ? OPENING[g] : null;
+          return (
+            <li key={x.id}>
+              <button type="button" className={`way${closed ? " closed" : ""}`} onClick={value[x.id].go} disabled={!!closed} title={`${x.grows} ${x.falls}`}>
+                <span className="way-k" aria-hidden="true">
+                  {x.kanji}
+                </span>
+                <span className="way-n">{x.name}</span>
+                {closed ? (
+                  <small className="way-s">Öffnet mit dem {closed.after}. Training</small>
+                ) : (
+                  <>
+                    <b className="way-v">{value[x.id].v}</b>
+                    <small className="way-s">{value[x.id].sub}</small>
+                  </>
+                )}
+                <span className="way-q">{x.question}</span>
+              </button>
+            </li>
+          );
+        })}
       </ol>
     </section>
   );

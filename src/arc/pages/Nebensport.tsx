@@ -15,6 +15,8 @@ import { SPORT_ICON } from "../sportIcons.ts";
 import ChapterEnd from "../components/ChapterEnd.tsx";
 import type { SeaStep } from "../core/reward.ts";
 import { seaFor } from "../reward.ts";
+import { newlyOpen, stillClosed } from "../core/unlocks.ts";
+import type { Feature, Opening } from "../core/unlocks.ts";
 import { crossWays } from "../chapterRows.tsx";
 import { SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import { LogSwitch } from "./Turnier.tsx";
@@ -51,7 +53,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
   const mine = (data.profile?.sports ?? []).map((s) => s.id);
   const ordered = [...SPORTS].sort((a, b) => Number(mine.includes(b.id)) - Number(mine.includes(a.id)));
   const [draft, setDraft] = useState<Draft>({ sport: ordered[0].id, date: today, minutes: 60, intensity: 2, tech: "", att: 0, succ: 0 });
-  const [result, setResult] = useState<{ c: CrossSession; D: Diff; loot: ItemDef[]; before: ArcState; after: ArcState; sea: SeaStep } | null>(null);
+  const [result, setResult] = useState<{ c: CrossSession; D: Diff; loot: ItemDef[]; before: ArcState; after: ArcState; sea: SeaStep; opened: Opening[]; closed: Feature[] } | null>(null);
   const { owned } = useGear(data, st);
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const sport = SPORT[draft.sport];
@@ -73,7 +75,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
       .map((id) => itemById(id, next, after))
       .filter((x): x is ItemDef => !!x);
     saveCross(c);
-    setResult({ c, D, loot, before: st, after, sea: seaFor(data, next, today, c.date, "cross") });
+    setResult({ c, D, loot, before: st, after, sea: seaFor(data, next, today, c.date, "cross"), opened: newlyOpen(data, next), closed: stillClosed(next).map((o) => o.id) });
     window.scrollTo({ top: 0 });
   };
 
@@ -87,6 +89,8 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
         after={result.after}
         ways={crossWays(result.D, result.after)}
         sea={result.sea}
+        opened={result.opened}
+        closed={result.closed}
         loot={result.loot}
         belt={belt}
         actions={

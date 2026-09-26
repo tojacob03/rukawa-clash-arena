@@ -30,6 +30,7 @@ import { setBadge } from "./push.ts";
 import { useSocialPublish } from "./socialCard.ts";
 import { preloadMotion } from "./motion.ts";
 import InkVeil from "./components/InkVeil.tsx";
+import { isOpen } from "./core/unlocks.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -191,10 +192,12 @@ export default function ArcApp() {
           </span>
         </button>
         <div className="hud-stats">
-          <button type="button" className="hud-stat pl" title="Power Level aus deinen Rolls und Turnierkämpfen: 100 Elo-Punkte mehr verdoppeln es. Tippen öffnet den Scouter." onClick={() => setScan({ mode: "du" })}>
-            <b>{power(st.ru)}</b>
-            <small>Power Level</small>
-          </button>
+          {isOpen(data, "power") ? (
+            <button type="button" className="hud-stat pl" title="Power Level aus deinen Rolls und Turnierkämpfen: 100 Elo-Punkte mehr verdoppeln es. Tippen öffnet den Scouter." onClick={() => setScan({ mode: "du" })}>
+              <b>{power(st.ru)}</b>
+              <small>Power Level</small>
+            </button>
+          ) : null}
           <span className={`hud-stat flame${st.weekNow >= st.weekGoal ? " lit" : ""}`} title="Wochen in Folge mit erreichtem Wochenziel">
             <Flame size={16} aria-hidden="true" />
             <b>{st.streak}</b>
