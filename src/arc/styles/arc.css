@@ -934,10 +934,10 @@ html.lenis, html.lenis body { height: auto; }
 .chapter-xp { display: grid; gap: 12px; }
 /* The dōjō seal is the mark of this page; the seam stays off so the corner holds one thing. */
 .chapter .hk-frame::after { display: none; }
-.chapter-xp .xp-gain { font-size: clamp(64px, 12vw, 116px); }
+.chapter-xp .xp-gain { font-size: clamp(44px, 13vw, 116px); }
 /* The fighter beside the XP: its face reacts when the count lands. */
-.ch-hero { display: flex; align-items: flex-end; gap: clamp(8px, 3vw, 22px); }
-.ch-face { flex: none; width: clamp(96px, 22vw, 150px); margin-bottom: -6px; }
+.ch-hero { display: flex; align-items: flex-end; gap: clamp(8px, 3vw, 22px); min-width: 0; }
+.ch-face { flex: none; width: clamp(80px, 22vw, 150px); margin-bottom: -6px; }
 .ch-face .avatar { display: block; width: 100%; height: auto; }
 .chapter .xpbar { height: 8px; }
 .chapter-lvl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
