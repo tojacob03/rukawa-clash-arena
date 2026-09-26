@@ -1,11 +1,14 @@
-// The floor of the character stage: two tatami side by side, their long
-// edges bound in black cloth (heri), as in any dōjō. The fighter stands on
-// the seam between them.
+// The floor of the character stage: tatami side by side, their long edges
+// bound in black cloth (heri), as in any dōjō. A single fighter stands on
+// the seam between two of them.
 
 import * as THREE from "three";
 
+let straw: THREE.CanvasTexture | null = null;
+
 /** Rush straw: fine strands along the mat, a woven line every few strands. */
-function strawTexture() {
+export function strawTexture() {
+  if (straw) return straw;
   const c = document.createElement("canvas");
   c.width = 256;
   c.height = 512;
@@ -23,10 +26,12 @@ function strawTexture() {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
+  straw = t;
   return t;
 }
 
-export function dojo() {
+/** n tatami side by side (two for one fighter, more for a crew), centred on the seam or the middle mat. */
+export function dojo(n = 2, z = -0.25) {
   const g = new THREE.Group();
   g.name = "dojo";
   const straw = new THREE.MeshStandardMaterial({ map: strawTexture(), roughness: 0.95 });
@@ -34,14 +39,15 @@ export function dojo() {
   const W = 0.95;
   const L = 1.9;
   const H = 0.05;
-  for (const s of [-1, 1]) {
+  for (let i = 0; i < n; i++) {
+    const x = (i - (n - 1) / 2) * W;
     const mat = new THREE.Mesh(new THREE.BoxGeometry(W, H, L), straw);
-    mat.position.set((s * W) / 2, -H / 2, -0.25);
+    mat.position.set(x, -H / 2, z);
     mat.receiveShadow = true;
     g.add(mat);
     for (const e of [-1, 1]) {
       const band = new THREE.Mesh(new THREE.BoxGeometry(0.055, H + 0.004, L + 0.004), heri);
-      band.position.set((s * W) / 2 + e * (W / 2 - 0.0275), -H / 2 + 0.002, -0.25);
+      band.position.set(x + e * (W / 2 - 0.0275), -H / 2 + 0.002, z);
       band.receiveShadow = true;
       g.add(band);
     }

@@ -11,6 +11,7 @@ import type { SocialView } from "../cloud/social.ts";
 import { CodeBox, FlameCount, PeerRow } from "../components/Social.tsx";
 import { useAct } from "../useAct.tsx";
 import CrewFlag, { WavingFlag } from "../components/CrewFlag.tsx";
+import CrewPhoto from "../components/CrewPhoto.tsx";
 import { HeroKoma } from "../components/ui.tsx";
 
 /** The crew part of the friends page: your crew, or how to found or join one. */
@@ -114,6 +115,8 @@ function CrewHome({ s, data, today }: { s: SocialView; data: ArcData; today: str
           </div>
         </div>
       </HeroKoma>
+
+      <CrewPhoto members={crew.members} name={crew.name} />
 
       <section className="plain-sec" aria-labelledby="crew-list-h">
         <h2 id="crew-list-h" className="h3">

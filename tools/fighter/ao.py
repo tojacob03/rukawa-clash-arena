@@ -9,7 +9,7 @@ import bpy
 
 BODY = ("torso", "neck", "armL", "armR", "fistL", "fistR", "legL", "legR", "footL", "footR")
 HEAD = ("head", "ear0L", "ear0R")
-NOGI = ("ng_top", "ng_collar", "ng_longL", "ng_longR", "ng_longcuffL", "ng_longcuffR", "ng_shorts", "ng_waist")
+NOGI = ("ng_top", "ng_collar", "ng_longL", "ng_longR", "ng_longcuffL", "ng_longcuffR", "ng_shorts")
 STRENGTH = 0.7
 
 

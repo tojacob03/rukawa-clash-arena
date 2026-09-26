@@ -19,6 +19,7 @@ import { go } from "../store.ts";
 import { selfRows } from "../scan.ts";
 import type { ScoutMode, ScoutRequest } from "../scan.ts";
 import { LevelPill, Seg } from "./ui.tsx";
+import Duel from "./Duel.tsx";
 import { loadMotion } from "../motion.ts";
 import type { Timeline, Tween } from "../motion.ts";
 
@@ -485,7 +486,15 @@ function FoeView({
     <>
       <div className="sc-grid">
         <Target>
-          <Silhouette width={180} belt={belt} build={kind === "partner" ? size : "gleich"} />
+          <Duel
+            data={data}
+            st={st}
+            belt={belt}
+            attire={attire}
+            size={kind === "partner" ? size : "gleich"}
+            label={`Du und ${kind === "partner" ? "dein Partner" : label ?? "dein Gegner"} auf der Matte, ${BELT[belt].name}gurt`}
+            fallback={<Silhouette width={180} belt={belt} build={kind === "partner" ? size : "gleich"} />}
+          />
         </Target>
         <div className="sc-read">
           <div className="sc-pick">

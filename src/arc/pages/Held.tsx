@@ -59,8 +59,20 @@ export default function Held({ data, st, today, arg }: Props) {
   const g = useGear(data, st);
   const p = data.profile;
   if (!p) return null;
-  const avatar = (size: number, still?: boolean, crop?: "stage") => (
-    <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={p.belt} stripes={p.stripes} weightKg={p.weightKg} heightCm={p.heightCm} size={size} still={still} crop={crop} label={`${p.name}, dein Charakter`} />
+  const avatar: AvatarFn = (size, o = {}) => (
+    <Avatar
+      look={g.character.look}
+      mode={o.mode ?? g.character.mode}
+      gear={o.gear ?? g.gear}
+      belt={p.belt}
+      stripes={p.stripes}
+      weightKg={p.weightKg}
+      heightCm={p.heightCm}
+      size={size}
+      crop={o.stage ? "stage" : undefined}
+      interactive={o.stage}
+      label={o.label ?? `${p.name}, dein Charakter`}
+    />
   );
 
   return (
@@ -91,7 +103,7 @@ export default function Held({ data, st, today, arg }: Props) {
   );
 }
 
-type AvatarFn = (size: number, still?: boolean, crop?: "stage") => ReactElement;
+type AvatarFn = (size: number, o?: { stage?: boolean; gear?: Partial<Record<Slot, ItemDef | undefined>>; mode?: Attire; label?: string }) => ReactElement;
 
 /* ── Übersicht ─────────────────────────────────────────────────────────── */
 
@@ -118,7 +130,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
   return (
     <>
       <section className="held-stage" aria-label="Charakter">
-        <div className="hs-fighter">{avatar(420, false, "stage")}</div>
+        <div className="hs-fighter">{avatar(420, { stage: true })}</div>
         <div className="hero-main">
           <div className="row wrap">
             <span className="hex-badge" aria-hidden="true">
@@ -501,7 +513,13 @@ function GearTab({
   unseen: string[];
   avatar: AvatarFn;
 }) {
-  const [slot, setSlot] = useState<Slot>("gi");
+  const [slot, setSlotNow] = useState<Slot>("gi");
+  // Anprobe: an item shown on the fighter without putting it on.
+  const [trying, setTrying] = useState<ItemDef | null>(null);
+  const setSlot = (s: Slot) => {
+    setSlotNow(s);
+    setTrying(null);
+  };
   // Keep the NEU badges for this visit, but count them as seen right away.
   const [fresh] = useState(() => new Set(unseen));
   useEffect(() => {
@@ -520,11 +538,46 @@ function GearTab({
   const optional = slot !== "gi" && slot !== "top" && slot !== "bottom";
   const hiddenInMode = (mode === "gi" && (slot === "top" || slot === "bottom")) || (mode === "nogi" && slot === "gi");
   const total = every.length;
+  // Trying on a gi shows the gi, trying on no-gi clothes shows no-gi.
+  const tryMode: Attire = trying?.slot === "gi" ? "gi" : trying?.slot === "top" || trying?.slot === "bottom" ? "nogi" : mode;
+  const tryOn = (x: ItemDef) => {
+    if (trying?.id === x.id && owned.has(x.id)) {
+      equip(slot, x.id);
+      setTrying(null);
+    } else setTrying(x);
+  };
 
   return (
-    <div className="studio">
+    <div className={`studio${trying ? " trying" : ""}`}>
       <div className="studio-stage">
-        {avatar(260)}
+        {trying ? avatar(260, { gear: { ...gear, [slot]: trying }, mode: tryMode, label: `Anprobe: ${trying.name}` }) : avatar(260)}
+        {trying ? (
+          <div className="try-bar" role="status">
+            <p>
+              <small>Anprobe</small>
+              <b>{trying.name}</b>
+            </p>
+            <div className="row">
+              {owned.has(trying.id) ? (
+                <button
+                  type="button"
+                  className="btn primary small"
+                  onClick={() => {
+                    equip(slot, trying.id);
+                    setTrying(null);
+                  }}
+                >
+                  Anlegen
+                </button>
+              ) : (
+                <small className="muted">{unlockText(trying.src, p.homeSea)}</small>
+              )}
+              <button type="button" className="btn ghost small" onClick={() => setTrying(null)}>
+                Ausziehen
+              </button>
+            </div>
+          </div>
+        ) : null}
         <Seg value={mode} onChange={setMode} label="Vorschau" options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
         <p className="muted small">
           {owned.size} von {total} Items gesammelt
@@ -570,12 +623,13 @@ function GearTab({
                 <button
                   key={x.id}
                   type="button"
-                  className={`item r-${x.rarity}${on ? " on" : ""}`}
+                  className={`item r-${x.rarity}${on ? " on" : ""}${trying?.id === x.id ? " tried" : ""}`}
                   style={{ ["--rc" as string]: RARITY[x.rarity].color }}
                   aria-pressed={on}
-                  onClick={() => equip(slot, on && optional ? null : x.id)}
+                  aria-description={on || !wearable(x) ? undefined : trying?.id === x.id ? "Anprobe. Nochmal antippen zum Anlegen." : "Antippen zum Anprobieren"}
+                  onClick={() => (on ? equip(slot, optional ? null : x.id) : wearable(x) ? tryOn(x) : equip(slot, x.id))}
                 >
-                  {on ? <span className="worn">Ausgerüstet</span> : null}
+                  {on ? <span className="worn">Ausgerüstet</span> : trying?.id === x.id ? <span className="worn">Anprobe</span> : null}
                   {fresh.has(x.id) ? <span className="badge-new">Neu</span> : null}
                   <ItemIcon item={x} belt={p.belt} size={56} />
                   <b>{x.name}</b>
@@ -589,20 +643,41 @@ function GearTab({
                 </button>
               );
             })}
-            {locked.map((x) => (
-              <div key={x.id} className={`item locked r-${x.rarity}`} style={{ ["--rc" as string]: RARITY[x.rarity].color }}>
-                <span className="lock" aria-hidden="true">
-                  <Lock size={20} />
-                </span>
-                <b>{x.src.t === "drop" ? "Unbekannter Fund" : x.name}</b>
-                <small className="rar">
-                  <i aria-hidden="true" />
-                  {RARITY[x.rarity].name}
-                </small>
-                {x.perk ? <small className="perk">{perkText(x.perk)}</small> : null}
-                <small className="via">{unlockText(x.src, p.homeSea)}</small>
-              </div>
-            ))}
+            {locked.map((x) => {
+              const inner = (
+                <>
+                  <span className="lock" aria-hidden="true">
+                    <Lock size={20} />
+                  </span>
+                  <b>{x.src.t === "drop" ? "Unbekannter Fund" : x.name}</b>
+                  <small className="rar">
+                    <i aria-hidden="true" />
+                    {RARITY[x.rarity].name}
+                  </small>
+                  {x.perk ? <small className="perk">{perkText(x.perk)}</small> : null}
+                  <small className="via">{unlockText(x.src, p.homeSea)}</small>
+                </>
+              );
+              // Unknown finds stay a secret; everything else can be tried on before it is yours.
+              return x.src.t === "drop" || !wearable(x) ? (
+                <div key={x.id} className={`item locked r-${x.rarity}`} style={{ ["--rc" as string]: RARITY[x.rarity].color }}>
+                  {inner}
+                </div>
+              ) : (
+                <button
+                  key={x.id}
+                  type="button"
+                  className={`item locked r-${x.rarity}${trying?.id === x.id ? " tried" : ""}`}
+                  style={{ ["--rc" as string]: RARITY[x.rarity].color }}
+                  aria-pressed={trying?.id === x.id}
+                  aria-description="Noch nicht deins. Antippen zum Anprobieren."
+                  onClick={() => setTrying(trying?.id === x.id ? null : x)}
+                >
+                  {trying?.id === x.id ? <span className="worn">Anprobe</span> : null}
+                  {inner}
+                </button>
+              );
+            })}
           </div>
           {slot === "talisman" ? (
             <p className="muted small">Talismane geben nur XP für Einsatz, nie Meisterung. Der Bonus wird beim Speichern eines Trainings festgeschrieben.</p>
@@ -630,6 +705,9 @@ function GearTab({
     </div>
   );
 }
+
+/** Items the fighter shows (talismans do not). */
+const wearable = (x: ItemDef) => x.slot !== "talisman";
 
 /* ── Turniere ──────────────────────────────────────────────────────────── */
 

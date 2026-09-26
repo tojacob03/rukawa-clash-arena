@@ -7,6 +7,7 @@ import type { ItemDef } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { HAIR_COLORS, hairOf, normalizeLook, shade, skinOf } from "../avatarOptions.ts";
 import { drawFace, faceKey } from "./face.ts";
+import type { Mood } from "./face.ts";
 import { hairTexture, weaveNormal } from "./textures.tsx";
 import { bandTexture } from "./hats.ts";
 import { makeAura } from "./aura.ts";
@@ -23,6 +24,8 @@ export interface Spec {
   b: number;
   /** Leg length, 0.84 … 1.16. */
   lf: number;
+  /** A passing expression on the face (face.ts). */
+  mood?: Mood;
 }
 
 // Joints of the build script (tools/fighter/body.py) in three.js axes:
@@ -34,8 +37,19 @@ const WRIST = new THREE.Vector3(0.418, 0.578, 0.03);
 const HEAD_W = [1, 1.035, 1, 1.023, 0.965, 1.105];
 const HEAD_C = new THREE.Vector3(0, 1.45, 0);
 
-const ARM_PARTS = /^(arm|fist|gi_sleeve|ng_long|ng_short|x_tape)/;
+const ARM_PARTS = /^(arm|fist|gi_sleeve|ng_long|ng_short(?!s)|x_tape)/;
 const HEAD_PARTS = /^(head$|face$|ear|ring_|hair_|beard_|hw_)/;
+
+/** The part files a figure wears (tools/fighter/build.py, groups), besides the base. */
+export function partsFor(spec: Pick<Spec, "look" | "mode" | "gear">) {
+  const look = normalizeLook(spec.look);
+  const files = [spec.mode === "gi" ? "gi" : "nogi"];
+  if (look.hair !== 7) files.push(`hair_${String(look.hair).padStart(2, "0")}`);
+  if (look.beard >= 2) files.push(`beard_${look.beard}`);
+  if (spec.gear.head?.art.style) files.push(`hw_${spec.gear.head.art.style}`);
+  if (spec.gear.extra?.art.style) files.push("extras");
+  return files;
+}
 
 const smooth = (a: number, b: number, x: number) => {
   const k = Math.max(0, Math.min(1, (x - a) / (b - a)));
@@ -133,6 +147,8 @@ export class Figure {
   private faceWas = "";
   private shapeWas = "";
   private dressing = 0;
+  /** How far the head is raised by longer legs (lowered by shorter ones). */
+  lift = 0;
   /** Where the hat cuts the hair, in head coordinates, and the same plane in the world. */
   private clipLocal: THREE.Plane | null = null;
   private clipWorld = new THREE.Plane();
@@ -274,6 +290,11 @@ export class Figure {
     for (const [name, p] of this.parts) p.mesh.visible = test(name);
   }
 
+  /** Of what is shown, keep only the parts that pass the test (an item on its own). */
+  only(test: (name: string) => boolean) {
+    for (const [name, p] of this.parts) p.mesh.visible &&= test(name);
+  }
+
   /** Stretch legs, widen the body, thicken the arms. Head parts only move. */
   private shape(b: number, muscle: number, lf: number) {
     const key = `${b}|${muscle}|${lf}`;
@@ -314,6 +335,7 @@ export class Figure {
       part.mesh.geometry.computeBoundingSphere();
     }
     this.head.position.set(HEAD_C.x, HEAD_C.y + lift, HEAD_C.z);
+    this.lift = lift;
   }
 
   /** Dress the figure. Resolves once every texture is in place. */
@@ -324,7 +346,6 @@ export class Figure {
     const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(x) ? x : 0));
     const b = spec.b * (1 + 0.07 * clamp(look.build, -2, 2));
     const muscle = clamp(look.muscle, 0, 3);
-    this.shape(Math.round(b * 100) / 100, muscle, spec.lf);
 
     const skin = skinOf(look);
     const hair = hairOf(look);
@@ -346,13 +367,10 @@ export class Figure {
     const stripes = Math.min(4, spec.stripes);
     const cauli = trait === "ear";
 
-    const files = [mode === "gi" ? "gi" : "nogi"];
-    if (look.hair !== 7) files.push(hairId);
-    if (look.beard >= 2) files.push(`beard_${look.beard}`);
-    if (hat) files.push(`hw_${hatStyle}`);
-    if (extra) files.push("extras");
-    await this.need(files);
+    await this.need(partsFor(spec));
     if (token !== this.dressing) return false;
+    // After loading: parts that just arrived take the same height and build.
+    this.shape(Math.round(b * 100) / 100, muscle, spec.lf);
 
     this.show((n) => {
       if (/^(head|face|torso|neck|arm[LR]|fist[LR]|leg[LR]|foot[LR])$/.test(n)) return true;
@@ -381,7 +399,7 @@ export class Figure {
         if (n === "ng_top" || n === "ng_collar") return true;
         if (n.startsWith("ng_long")) return sleeve === "long";
         if (n.startsWith("ng_short") && !n.startsWith("ng_shorts")) return sleeve === "short";
-        if (n === "ng_shorts" || n === "ng_waist") return shorts;
+        if (n === "ng_shorts") return shorts;
         if (n === "ng_spats") return spats;
         return false;
       }
@@ -469,10 +487,11 @@ export class Figure {
       if (this.aura) this.root.add(this.aura.group);
     }
 
-    const fk = faceKey({ look, scar: trait === "scar" });
+    const face = { look, scar: trait === "scar", mood: spec.mood };
+    const fk = faceKey(face);
     if (fk !== this.faceWas) {
       this.faceWas = fk;
-      drawFace(this.faceCanvas, { look, scar: trait === "scar" });
+      drawFace(this.faceCanvas, face);
       this.faceTex.needsUpdate = true;
     }
 

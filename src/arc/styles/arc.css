@@ -927,6 +927,10 @@ html.lenis, html.lenis body { height: auto; }
 /* The dōjō seal is the mark of this page; the seam stays off so the corner holds one thing. */
 .chapter .hk-frame::after { display: none; }
 .chapter-xp .xp-gain { font-size: clamp(64px, 12vw, 116px); }
+/* The fighter beside the XP: its face reacts when the count lands. */
+.ch-hero { display: flex; align-items: flex-end; gap: clamp(8px, 3vw, 22px); }
+.ch-face { flex: none; width: clamp(96px, 22vw, 150px); margin-bottom: -6px; }
+.ch-face .avatar { display: block; width: 100%; height: auto; }
 .chapter .xpbar { height: 8px; }
 .chapter-lvl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 /* The page after the XP: one line per way, in the order of the five systems, its kanji in the margin. */
@@ -1387,6 +1391,23 @@ button.item:hover { border-color: var(--ink-2); }
 .item .badge-new { position: absolute; top: 8px; left: calc(50% + 22px); }
 .item.locked { color: var(--ink-2); }
 .item .lock { display: grid; place-items: center; background: none; box-shadow: none; border: 1px dashed var(--ink-3); color: var(--ink-3); }
+button.item.locked:hover .lock { border-color: var(--ink-2); color: var(--ink-2); }
+/* Anprobe: the item on the fighter, not yet put on. */
+.item.tried > .item-ico, .item.tried > .lock { box-shadow: inset 0 0 0 1.5px var(--asagi); border-color: var(--asagi); }
+.item.tried .worn { color: var(--asagi); }
+.try-bar { display: grid; gap: 8px; justify-items: center; width: 100%; max-width: 300px; padding-top: 10px; border-top: 1px solid var(--gold-line); }
+.try-bar p { display: grid; margin: 0; }
+.try-bar p small { font-size: 12px; color: var(--ink-2); }
+.try-bar p b { font-size: 15px; }
+.try-bar .row { justify-content: center; align-items: center; flex-wrap: wrap; }
+/* On a phone the stage stays in sight while you try things on further down. */
+@media (max-width: 760px) {
+  .studio.trying .studio-stage { position: sticky; top: calc(var(--hud-h) + 4px); z-index: 3; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 12px; padding: 8px 12px; background: var(--paper); border-bottom: 1px solid var(--gold-line); }
+  .studio.trying .studio-stage .avatar { width: 108px; grid-row: span 3; }
+  .studio.trying .studio-stage .try-bar { justify-items: start; border-top: 0; padding-top: 0; text-align: left; }
+  .studio.trying .studio-stage .try-bar .row { justify-content: start; }
+  .studio.trying .studio-stage > :not(.avatar, .try-bar) { display: none; }
+}
 .loot { display: grid; gap: 8px; }
 .loot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .loot li.item { display: flex; align-items: center; gap: 12px; padding: 14px 12px 10px; text-align: left; justify-items: start; }
@@ -1635,6 +1656,15 @@ button.item:hover { border-color: var(--ink-2); }
 @media (max-width: 600px) { .sc-grid { grid-template-columns: minmax(0, 1fr); } .sc-target { max-width: 220px; margin: 0 auto; } }
 .sc-target { position: relative; display: grid; place-items: center; padding: 16px; border: 1px solid rgba(237, 227, 209, 0.18); }
 .sc-target .avatar { width: 100%; height: auto; max-width: 220px; }
+.sc-target .duel { width: 100%; height: auto; }
+/* The crew photo: the whole width, the names under it like on a print. */
+.crew-photo { margin: 0; display: grid; gap: 6px; }
+.crew-photo canvas.scene3d { width: 100%; }
+.crew-photo figcaption { text-align: center; }
+/* 3D scenes fade in with their first frame. */
+canvas.scene3d { display: block; width: var(--aw); max-width: 100%; height: auto; opacity: 0; transition: opacity 0.2s ease-out; }
+canvas.scene3d.ready { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { canvas.scene3d { transition: none; } }
 /* The scan line of a reading, with the lens's own line pattern trailing it */
 .sc-scan { position: absolute; top: 0; left: 6px; right: 6px; height: 2px; background: #e2bd68; opacity: 0; pointer-events: none; }
 .sc-scan::before { content: ""; position: absolute; left: 0; right: 0; bottom: 2px; height: 34px; background: repeating-linear-gradient(0deg, rgba(226, 189, 104, 0.22) 0 1px, transparent 1px 4px); }
@@ -1720,7 +1750,13 @@ button.item:hover { border-color: var(--ink-2); }
 /* ── Avatar ───────────────────────────────────────────────────────────── */
 .avatar { display: block; flex: none; overflow: visible; }
 /* The 3D fighter's canvas: its pixel size follows the screen, its CSS width the size it was asked for. */
-canvas.avatar { width: var(--aw); height: auto; }
+canvas.avatar { width: var(--aw); height: auto; opacity: 0; transition: opacity 0.2s ease-out; }
+canvas.avatar.ready { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { canvas.avatar { transition: none; } }
+/* The stage fighter turns under the finger; vertical swipes still scroll the page. */
+canvas.avatar.turns { cursor: grab; touch-action: pan-y; }
+canvas.avatar.turns:active { cursor: grabbing; }
+canvas.avatar.turns:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
 .avatar.crop { overflow: hidden; }
 
 /* ── Progressive disclosure ─────────────────────────────────────────── */
@@ -1856,6 +1892,7 @@ canvas.avatar { width: var(--aw); height: auto; }
 .exam { display: grid; gap: 18px; }
 .belt-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
 .belt-hero .belt { width: min(100%, 360px); height: auto; }
+.belt-hero canvas.belt-3d { width: min(100%, 460px); }
 
 /* ── Konto ────────────────────────────────────────────────────────────── */
 .solo .main { padding-bottom: 32px; }

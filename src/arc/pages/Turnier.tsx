@@ -14,6 +14,7 @@ import { go, uid } from "../store.ts";
 import { useGear } from "../useGear.ts";
 import { openScouter } from "../scan.ts";
 import ChapterEnd from "../components/ChapterEnd.tsx";
+import OwnAvatar from "../components/OwnAvatar.tsx";
 import type { SeaStep } from "../core/reward.ts";
 import { seaFor } from "../reward.ts";
 import { newlyOpen, stillClosed } from "../core/unlocks.ts";
@@ -93,6 +94,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
         sea={result.sea}
         opened={result.opened}
         closed={result.closed}
+        fighter={(mood) => <OwnAvatar data={data} st={result.after} crop="icon" size={150} still mood={mood} />}
         loot={result.loot}
         belt={own}
         actions={

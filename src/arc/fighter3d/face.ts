@@ -89,12 +89,13 @@ function eye(ctx: Ctx, shape: number, color: string, skin: string, lash: number)
       return;
     }
     case 4: {
+      // Only the eye below the heavy lid is drawn, so no edge of it shows above.
+      ctx.save();
+      ctx.clip(new Path2D("M-14 0.5 Q0 3.5 14 0.5 L14 16 L-14 16 Z"));
       ctx.fillStyle = white;
       ctx.fill(ell(0, 0, 11, 13));
-      ctx.save();
       ctx.clip(ell(0, 0, 11, 13));
       iris(ctx, color, 0, 2, 8.2, 10.5);
-      fillD(ctx, "M-14 -16 L14 -16 L14 0.5 Q0 3.5 -14 0.5 Z", skin);
       ctx.restore();
       strokeD(ctx, "M-12 0 Q0 3 12 0", LINE, 3.2);
       lashes(ctx, lash);
@@ -263,17 +264,49 @@ function stubble(ctx: Ctx, kind: number, hair: string) {
   ctx.globalAlpha = 1;
 }
 
+/**
+ * A passing expression at the end of a chapter: a smile after a good
+ * training, a battle cry for a new Tokui-Waza, tired eyes after a hard week.
+ */
+export type Mood = "smile" | "cry" | "tired";
+
 export interface FaceOpts {
   look: Look;
   /** The trait "scar" of the gear. */
   scar?: boolean;
+  mood?: Mood;
 }
 
-export const faceKey = ({ look: l, scar }: FaceOpts) =>
-  [l.skin, l.skinHex, l.eyeShape, l.eyeColor, l.eyeHex, l.eyeColor2, l.eyeSize, l.eyeGap, l.lashes, l.brows, l.nose, l.mouth, l.hairColor, l.hairHex, l.hair === 7, l.beard, l.marks.join("."), scar ? 1 : 0].join("|");
+export const faceKey = ({ look: l, scar, mood }: FaceOpts) =>
+  [l.skin, l.skinHex, l.eyeShape, l.eyeColor, l.eyeHex, l.eyeColor2, l.eyeSize, l.eyeGap, l.lashes, l.brows, l.nose, l.mouth, l.hairColor, l.hairHex, l.hair === 7, l.beard, l.marks.join("."), scar ? 1 : 0, mood ?? ""].join("|");
+
+/** Eyes shut in two arcs, pushed up by the cheeks. */
+function happyEye(ctx: Ctx) {
+  strokeD(ctx, "M-11 4 Q0 -7 11 4", LINE, 3.6);
+  strokeD(ctx, "M-8 8.5 Q0 6 8 8.5", LINE, 1.2);
+}
+
+/** The mouth wide open in a shout, the upper teeth showing. */
+function shout(ctx: Ctx) {
+  const d = "M109 119 Q120 113 131 119 Q131 136 120 138 Q109 136 109 119 Z";
+  fillD(ctx, d, "#5c1a26");
+  fillD(ctx, "M111.5 119.5 Q120 115.5 128.5 119.5 L127.8 122.4 Q120 120.2 112.2 122.4 Z", "#fbf8f2");
+  ctx.fillStyle = "#c95a6c";
+  ctx.fill(ell(120, 133, 5.2, 2.6));
+  strokeD(ctx, d, LINE, 2.1);
+}
+
+/** What a mood changes in a look: the rest of the face stays the player's own. */
+function moodLook(look: Look, mood: Mood | undefined): Look {
+  if (mood === "cry") return { ...look, brows: 4, mouth: -1 };
+  if (mood === "tired") return { ...look, eyeShape: 4, brows: 3, mouth: 0, marks: [...new Set([...look.marks, "bags"])] };
+  if (mood === "smile") return { ...look, mouth: 1 };
+  return look;
+}
 
 /** Draws the face onto a transparent square canvas of the given size. */
-export function drawFace(canvas: HTMLCanvasElement | OffscreenCanvas, { look, scar }: FaceOpts) {
+export function drawFace(canvas: HTMLCanvasElement | OffscreenCanvas, { look: own, scar, mood }: FaceOpts) {
+  const look = moodLook(own, mood);
   const S = canvas.width;
   const ctx = canvas.getContext("2d") as Ctx | null;
   if (!ctx) return;
@@ -299,7 +332,8 @@ export function drawFace(canvas: HTMLCanvasElement | OffscreenCanvas, { look, sc
     ctx.save();
     ctx.translate(x, 110);
     ctx.scale(m * s, s);
-    eye(ctx, look.eyeShape, c, skin, look.lashes);
+    if (mood === "smile") happyEye(ctx);
+    else eye(ctx, look.eyeShape, c, skin, look.lashes);
     ctx.restore();
   }
   const brow = look.hair === 7 ? shade(hair, -0.2) : shade(hair, -0.25);
@@ -308,7 +342,8 @@ export function drawFace(canvas: HTMLCanvasElement | OffscreenCanvas, { look, sc
     [138 + gap, -1],
   ] as const) {
     ctx.save();
-    ctx.translate(x, 91);
+    // Raised with a smile, drawn together and down with a shout, sagging when tired.
+    ctx.translate(x + (mood === "cry" ? -m * 1.5 : 0), 91 + (mood === "smile" ? -2.5 : mood === "cry" ? 2 : mood === "tired" ? 1.5 : 0));
     ctx.scale(m * 0.95, 0.9);
     (BROWS[look.brows] ?? BROWS[0])(ctx, brow);
     ctx.restore();
@@ -321,9 +356,11 @@ export function drawFace(canvas: HTMLCanvasElement | OffscreenCanvas, { look, sc
   ctx.restore();
   ctx.save();
   ctx.translate(120, 128.5);
-  ctx.scale(0.8, 0.8);
+  // A shout opens the mouth wide.
+  ctx.scale(mood === "cry" ? 1.08 : 0.8, mood === "cry" ? 1.08 : 0.8);
   ctx.translate(-120, -124);
-  mouth(ctx, look.mouth);
+  if (mood === "cry") shout(ctx);
+  else mouth(ctx, look.mouth);
   ctx.restore();
   marksOver(ctx, marks, !!scar);
 }

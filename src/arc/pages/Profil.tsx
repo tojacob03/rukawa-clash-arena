@@ -6,6 +6,7 @@ import { BELTS, BELT, shortDate } from "../format.ts";
 import { exportJson, importJson, promote, resetAll, togglePause, updateProfile } from "../actions.ts";
 import { arcStore } from "../store.ts";
 import { Belt, HeroKoma, SecTitle, Seg, Stepper } from "../components/ui.tsx";
+import BeltExam from "../components/BeltExam.tsx";
 import { useTheme } from "../theme.ts";
 import { useCloud } from "../cloud/state.ts";
 import { go } from "../store.ts";
@@ -132,7 +133,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         <div className="exam">
           <h2 className="h2">Gürtelprüfung</h2>
           <div className="belt-hero">
-            <Belt belt={belt} stripes={stripes} width={360} tape />
+            <BeltExam data={data} st={st} belt={belt} stripes={stripes} />
           </div>
           <p className="muted small">Neuer Streifen oder Gürtel? Trag ihn hier ein. Das Datum wird gespeichert, damit sich später prüfen lässt, ob deine Werte vor einer Prüfung steigen. Auf der Seekarte segelt dein Schiff damit zur nächsten Insel.</p>
           <div className="belt-pick" role="radiogroup" aria-label="Gürtel">
