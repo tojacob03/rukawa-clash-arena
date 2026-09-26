@@ -1,7 +1,7 @@
 {
   "name": "Waza Arc",
   "short_name": "Waza Arc",
-  "description": "BJJ-Fortschritt als Anime-RPG: Tagesquests, Sternkarte, Seekarte, Power Level.",
+  "description": "BJJ-Fortschritt als Anime-RPG: Tagesquests, Zweig, Seekarte, Power Level.",
   "lang": "de",
   "start_url": "/arc/",
   "scope": "/arc/",

@@ -29,7 +29,7 @@ export default function TechniqueSheet({ id, st, cmp, acceptedNode, cls, onSelec
       <div className="sheet-body">
         <SheetHead onClose={onClose} eyebrow={`${sectorName(x)}, Ring ${ring.jp}`} />
         <h3 className="sheet-title">Unentdeckt</h3>
-        <p className="muted">Dieser Stern liegt noch im Nebel. Er wird sichtbar, sobald du eine benachbarte Technik gesehen, gedrillt oder versucht hast.</p>
+        <p className="muted">Diese Knospe liegt noch im Nebel. Sie wird sichtbar, sobald du eine benachbarte Technik gesehen, gedrillt oder versucht hast.</p>
       </div>
     );
   }

@@ -22,8 +22,8 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
 
 ## Offen aus dem Gespräch
 
-- [ ] Texte, die noch von „Sternen“ und „Sternkarte“ sprechen, auf Zweig, Knospen und Blüten umstellen (Codex, Charakterbogen, Siegel, Quests, Kapitelende)
-- [ ] Konzeptdokument (docs/waza-arc/KONZEPT.md) nachziehen: Zweig statt Sternkarte, neuer Rahmen und Navigation, Heute als Trainingsheft
+- [x] Texte, die noch von „Sternen“ und „Sternkarte“ sprechen, auf Zweig, Knospen und Blüten umstellen (Codex, Charakterbogen, Siegel, Quests, Kapitelende)
+- [x] Konzeptdokument (docs/waza-arc/KONZEPT.md) nachziehen: Zweig statt Sternkarte, neuer Rahmen und Navigation, Heute als Trainingsheft
 
 ## Eigene Ergänzungen
 

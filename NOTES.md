@@ -89,7 +89,7 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - Nebenbei: Kopfbedeckungen der eigenen Länder gelten beim Anlegen des Profils als gesehen (wie die Flaggen), damit Ausrüstung nicht sofort „Neu“ ruft.
 - Geprüft: 105 Unit-Tests (neu: Reihenfolge, einmaliges Öffnen, Turniere zählen, Demo), Lint, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung ohne Animation, Bildschirmfotos für 0, 1 und 2 Einträge bei 1280 und 390 px.
 
-### AI-Card-Merkmale und Verläufe entfernt, hochwertige Bibliotheken
+### AI-Card-Merkmale und Verläufe entfernt, hochwertige Bibliotheken (`569b398`)
 
 *Bestandsaufnahme:* 43 umrandete Kästen mit Hintergrund (`.panel`), Item-Karten mit farbigem Oberrand und Nahtbild, Siegel als gestrichelte Kacheln mit Stern-Icon, Ausrüstungsplätze als Kachelraster, ein Kasten um die Figur; dazu ein blaues Leuchten hinter jeder Figur, ein Verlauf unter der Power-Kurve, ein Lack-Verlauf und eine Vignette im Seekartenraum.
 
@@ -99,3 +99,8 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - **Verläufe:** Leuchten hinter der Figur nur noch mit ausgerüsteter Aura (die ist ein Item und darf leuchten), Power-Kurve mit flacher Goldlasur statt Verlauf, Lack und Seekartenraum als flache Farbe. Geblieben sind nur Verläufe, die etwas darstellen: Nebel auf der Seekarte, Rollen der Washi-Rolle, gefärbte Haarspitzen, Schatten unter Figuren.
 - **Bibliotheken** (beide Standard auf Awwwards-Seiten, beide schon im Projekt): **GSAP SplitText** schreibt Abschnittstitel: das Kanji am Rand wird von oben nach unten gezogen (seine Schreibrichtung), dann steigen die Zeilen des Titels aus ihrer Grundlinie. Einmal pro Titel, wenn er ins Bild kommt, danach wird die Aufteilung zurückgenommen (Text bleibt normal auswählbar und umbrechbar). **Lenis** für weiches Scrollen mit Maus und Trackpad; Touch bleibt nativ, Zweig, Seekarte und Dialoge scrollen selbst. Beide werden erst nachgeladen und bei reduzierter Bewegung gar nicht (geprüft: keine GSAP-Anfrage, kein Lenis).
 - Geprüft: Typecheck, Lint, 105 Unit-Tests, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung, Scrolltest (weich mit Maus, kein Seitenscroll über dem Zweig, Seitenwechsel springt nach oben), Bildschirmfotos in Urushi und Washi bei 1280 und 390 px.
+
+### Sterne-Texte und Konzept nachgezogen
+
+- **App:** Seitentitel „Zweig“ statt „Sternkarte“, „Diese Knospe liegt noch im Nebel“ im Technikblatt, Startbildschirm („Daraus entstehen ein Zweig mit 193 Techniken …“), Beschreibung in `arc/index.html` und im Web-App-Manifest. Siegel „Kartograf: 50 Sterne“ heißt jetzt „Blühender Zweig: 50 Knospen im Training geöffnet“, das Item dazu „Rashguard Blütenzweig“ (goldene Blüten statt Sterne), der Aufnäher fürs erste Training „Erster Schritt“. Sterne, die wirklich Sterne sind (Galaxie-Spats, Kap Abendstern, Waza-Stern auf der Flagge), bleiben.
+- **Konzept:** Abschnitt 5 neu als „Zweig (Skilltree)“ (Aufbau aus Stamm, Ästen und Trieben, Zustände einer Knospe, Fäden, Bedienung, Layout), Abschnitt 7 neu (Rahmen mit Kanji-Navigation und Hanko, Heute als Trainingsheft, Eintragen als Heftseite, Karte, Codex, Held mit Mattenpass, Register, Einstieg), Kapitelende in der Reihenfolge der Wege, Flächen ohne Karten-Raster, SplitText und Lenis, neuer Abschnitt 7.2 „Was sich wann öffnet“, Kopfbedeckungen und Mattenpass unter 6.5.

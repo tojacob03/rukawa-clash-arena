@@ -36,7 +36,7 @@ import { jumpTop, startSmooth } from "./smooth.ts";
 const TITLES: Record<Route, string> = {
   heute: "Heute",
   log: "Training eintragen",
-  karte: "Sternkarte",
+  karte: "Zweig",
   meer: "Seekarte",
   codex: "Waza-Codex",
   held: "Charakter",

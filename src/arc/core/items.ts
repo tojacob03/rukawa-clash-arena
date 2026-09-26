@@ -154,7 +154,7 @@ export const ITEMS: ItemDef[] = [
   I("rg_rot_k", "Rashguard Rot, kurz", "top", "common", { t: "sessions", n: 3 }, "Rot mit schwarzen Seiten.", { c: "#b3261e", c2: "#1d1d26", pattern: "side", sleeve: "short" }),
   I("rg_split", "Rashguard Zweifarbig", "top", "rare", { t: "sessions", n: 8 }, "Halb Nacht, halb Gold.", { c: "#1d1d26", c2: "#f1bf57", pattern: "split" }),
   I("rg_ringel", "Rashguard Ringel", "top", "common", { t: "sessions", n: 15 }, "Matrosenstreifen für Leute, die bald in See stechen.", { c: "#f4f1ea", c2: "#1b2a55", pattern: "stripes", sleeve: "short" }),
-  I("rg_waben", "Rashguard Waben", "top", "rare", { t: "sessions", n: 25 }, "Sechsecke wie auf der Sternkarte.", { c: "#141c34", c2: "#5f90ea", pattern: "hex" }),
+  I("rg_waben", "Rashguard Waben", "top", "rare", { t: "sessions", n: 25 }, "Sechsecke wie das Hexagon deines Spiels.", { c: "#141c34", c2: "#5f90ea", pattern: "hex" }),
   I("rg_zickzack", "Rashguard Zickzack", "top", "rare", { t: "sessions", n: 40 }, "Pink auf Nacht. Laut und stolz.", { c: "#2a1b2e", c2: "#e46aa6", pattern: "chevron", sleeve: "short" }),
   I("rg_tarn", "Rashguard Tarnmuster", "top", "rare", { t: "rolls", n: 50 }, "Tarnt nicht, aber sieht nach Arbeit aus.", { c: "#3b4a2f", c2: "#7d8c56", pattern: "camo" }),
   I("rg_schuppen", "Rashguard Fischschuppen", "top", "epic", { t: "rolls", n: 300 }, "Glatt wie ein Fisch, schwer zu greifen.", { c: "#0e3b4a", c2: "#4fc3c9", pattern: "scales" }),
@@ -176,7 +176,7 @@ export const ITEMS: ItemDef[] = [
   I("rg_blitz", "Rashguard Blitz", "top", "rare", { t: "drop" }, "Für schnelle Pässe und schnellere Ausreden.", { c: "#23232e", c2: "#ffd24a", pattern: "bolt" }),
   I("rg_sakura", "Rashguard Kirschblüte", "top", "epic", { t: "drop" }, "Blütenblätter auf Nachtschwarz.", { c: "#2a1b2e", c2: "#f3a6c0", pattern: "petals" }),
   I("rg_tiger", "Rashguard Tigerstreifen", "top", "epic", { t: "level", n: 18 }, "Orange mit schwarzen Streifen.", { c: "#e08a2c", c2: "#1d1d26", pattern: "tiger" }),
-  I("rg_stern", "Rashguard Sternbild", "top", "epic", { t: "seal", id: "map50" }, "Deine Sternkarte zum Anziehen.", { c: "#101838", c2: "#f1bf57", pattern: "stars" }),
+  I("rg_stern", "Rashguard Blütenzweig", "top", "epic", { t: "seal", id: "map50" }, "Dein Zweig zum Anziehen: goldene Blüten auf Nachtblau.", { c: "#101838", c2: "#f1bf57", pattern: "petals" }),
   I("rg_phoenix", "Rashguard Phönix", "top", "legendary", { t: "level", n: 25 }, "Aus der Asche jedes verlorenen Rolls.", { c: "#b3261e", c2: "#ffcf5a", pattern: "flame" }),
   I("rg_drache", "Rashguard Drachenschuppe", "top", "legendary", { t: "drop" }, "Grüne Flammen. Seltener als ein sauberer Berimbolo.", { c: "#0f3d2e", c2: "#4fd18b", pattern: "flame" }),
 
@@ -247,7 +247,7 @@ export const ITEMS: ItemDef[] = [
 
   // Patches
   I("pa_waza", "Waza-Arc-Abzeichen", "patch", "common", { t: "start" }, "Das Zeichen der App.", { emblem: "logo" }),
-  I("pa_stern", "Erster Stern", "patch", "common", { t: "seal", id: "first" }, "Für das erste Training.", { emblem: "star" }),
+  I("pa_stern", "Erster Schritt", "patch", "common", { t: "seal", id: "first" }, "Für das erste Training.", { emblem: "star" }),
   I("pa_welle", "Arc-Welle", "patch", "rare", { t: "arc", n: 1 }, "Für den zweiten Arc.", { emblem: "wave" }),
   I("pa_flamme", "Flammen-Abzeichen", "patch", "rare", { t: "seal", id: "flame4" }, "Vier Wochen Flamme.", { emblem: "flame" }),
   I("pa_krone", "Boss-Krone", "patch", "epic", { t: "seal", id: "boss" }, "Einen Wochenboss besiegt.", { emblem: "crown" }),
