@@ -11,12 +11,14 @@ import type {
   Attire,
   Attr,
   Belt,
+  Boss,
   Competition,
   Control,
   CrossSession,
   NodeState,
   QuestKind,
   QuestOffer,
+  QuestResult,
   ReasonKey,
   Roll,
   SectorId,
@@ -25,7 +27,7 @@ import type {
   Technique,
 } from "./types.ts";
 import { COMBOS, NEIGH, SECTORS, TECH, TECHS, baseOf } from "./techniques.ts";
-import { EPITHET, SEALS } from "./lore.ts";
+import { EPITHET, SEALS, STUCK } from "./lore.ts";
 import { CLASS, CLASSES, classXp } from "./classes.ts";
 import { BODY_W, CROSS_W, INTENSITY, SPORT } from "./sports.ts";
 import { fullyExplored } from "./voyage.ts";
@@ -124,7 +126,7 @@ export function questShape(
 export function sessionXp(s: Session) {
   let g = 40 + 5 * s.rolls.length;
   const q = s.quest;
-  if (q && (q.kind === "kata" ? q.done : q.att > 0)) g += q.xp + Math.min(50, 5 * (q.succ || 0));
+  if (q && questMet(q)) g += q.xp + Math.min(50, 5 * (q.succ || 0));
   if (s.worked || s.stuck) g += 15;
   return g + (s.bonus ?? 0);
 }
@@ -473,7 +475,16 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
   const c14 = countStuck(asOf - 14, asOf);
   const p14 = countStuck(asOf - 28, asOf - 14);
   const top = Object.entries(c14).sort((a, b) => b[1] - a[1])[0];
-  const boss = top ? { key: top[0], hp: top[1], prev: p14[top[0]] ?? 0 } : null;
+  // Every quest against the boss done in the same 14 days pushes one hump
+  // under water; whether it is beaten still depends on getting stuck less.
+  let boss: Boss | null = null;
+  if (top) {
+    const counter = new Set(STUCK[top[0]]?.nodes ?? []);
+    const hits = der.filter(({ s, day }) => day > asOf - 14 && day <= asOf && s.quest && counter.has(s.quest.node) && questMet(s.quest)).length;
+    const struck = Math.min(hits, top[1]);
+    boss = { key: top[0], raw: top[1], struck, hp: top[1] - struck, prev: p14[top[0]] ?? 0 };
+  }
+  const bossNodes = new Set(boss ? STUCK[boss.key]?.nodes ?? [] : []);
   let bossBeaten = false;
   if (der.length) {
     for (let d = der[0].day + 14; d + 14 <= asOf && !bossBeaten; d += 7) {
@@ -488,7 +499,8 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
   const offers: QuestOffer[] = [];
   for (const x of TECHS) {
     const st = nodes[x.id];
-    if (st.fog) continue;
+    // The boss lifts the fog over what helps against it.
+    if (st.fog && !bossNodes.has(x.id)) continue;
     if (x.sector === "fund" && st.level >= 2) continue;
     const attrV = x.sector === "fund" ? 50 : attrs[x.sector].val;
     const c: Record<ReasonKey, number> = {
@@ -499,8 +511,10 @@ export function compute(data: ArcData, asOfIso: string, opt: ComputeOptions = {}
       taught: taught7.has(x.id) ? 0.9 : 0,
       explore: st.level <= 1 ? 0.35 : 0,
       prove: st.claim > st.dataLevel ? 0.8 : 0,
+      // What helps against the weekly boss: at most one card, since the draft takes one per sector.
+      boss: bossNodes.has(x.id) ? 1.1 : 0,
     };
-    let P = c.prog + c.unc + c.rust + c.weak + c.taught + c.explore + c.prove;
+    let P = c.prog + c.unc + c.rust + c.weak + c.taught + c.explore + c.prove + c.boss;
     if (recentQ.includes(x.id)) P -= 1.5;
     if (st.level === 5) P -= 0.8;
     const reason = (Object.entries(c) as [ReasonKey, number][]).sort((a, b) => b[1] - a[1])[0][0];
@@ -602,6 +616,11 @@ export function rankAt(data: ArcData, day: number): { belt: Belt; stripes: numbe
 }
 
 /** Three cards from three sectors, at most one Schmiede and one Kata card. */
+/** A quest counts (XP, the boss) once it was tried, or, for a kata, done. */
+export function questMet(q: Pick<QuestResult, "kind" | "att" | "done">) {
+  return q.kind === "kata" ? q.done : q.att > 0;
+}
+
 export function pickCards(offers: QuestOffer[], opt: { attire?: Attire; exclude?: Set<string> } = {}) {
   const out: QuestOffer[] = [];
   const secs = new Set<string>();
@@ -680,7 +699,7 @@ export function xpParts(s: Session, D: Diff): [string, number][] {
   const parts: [string, number][] = [["Training", 40]];
   if (s.rolls.length) parts.push([`${s.rolls.length} Roll-Karten`, 5 * s.rolls.length]);
   const q = s.quest;
-  if (q && (q.kind === "kata" ? q.done : q.att > 0)) {
+  if (q && questMet(q)) {
     parts.push(["Quest", q.xp]);
     if (q.succ) parts.push([`${q.succ} Treffer`, Math.min(50, 5 * q.succ)]);
   }

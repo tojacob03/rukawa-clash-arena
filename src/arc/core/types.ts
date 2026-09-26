@@ -335,7 +335,7 @@ export interface Attr {
   val: number;
 }
 
-export type ReasonKey = "prog" | "unc" | "rust" | "weak" | "taught" | "explore" | "prove";
+export type ReasonKey = "prog" | "unc" | "rust" | "weak" | "taught" | "explore" | "prove" | "boss";
 
 export interface QuestOffer {
   node: string;
@@ -347,7 +347,13 @@ export interface QuestOffer {
 
 export interface Boss {
   key: string;
+  /** Times you got stuck in its position in the last 14 days: its humps. */
+  raw: number;
+  /** Quests against it done in the same 14 days: humps pushed under water (at most raw). */
+  struck: number;
+  /** Humps still above water: raw - struck. */
   hp: number;
+  /** Times stuck in the 14 days before, for the trend. */
   prev: number;
 }
 

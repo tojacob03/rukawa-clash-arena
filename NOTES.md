@@ -206,3 +206,11 @@ Auftrag: „bei der seekarte liegt die schrift teils über der karte und ein kli
 - **Mein Schiff:** zoomt so nah heran, dass das Schiff etwa die halbe Höhe der Ansicht füllt (vorher blieb es beim Startausschnitt). Die Karte lässt dafür näher heran, die Schrift bleibt dabei gleich groß, und das Schiffsbild wird je nach Nähe schärfer gerendert (320, 720 oder 1024 Pixel).
 - **Crew an Deck** (`src/arc/three/deck.ts`): Aus der Nähe steht die Crew auf dem Schiff, jede und jeder als eigene Figur, der Kapitän am Heck, die anderen bis zum Bug verteilt (`deckSpots`, auf kleinen Schiffen weniger Platz). Auf dem eigenen Schiff stehst du allein. Die Figuren sind ein eigenes Bild über dem Schiff, das mit ihm rollt; nur der Rumpf verdeckt ihre Füße hinter der Reling. Im Schiff-Reiter steht niemand auf dem lebenden Schiff, weil dort die Bäume der Segel durch die Figuren gingen.
 - **Steckbriefe:** ein bedrucktes Blatt an einem Nagel, mit gerissenen Rändern (für jeden Namen andere), Faltlinien, fleckigem Papier, einem Foto von Kopf und Schultern in warmem Druck (neuer Ausschnitt `bust`), großem Kopfgeld, dem roten Siegel 懸賞 und einer Nummer des Rats der vier Meere.
+
+### Wochenboss: Quests drücken ihn unter Wasser
+
+Auftrag: die drei Stellen angleichen, an denen Text und Code beim Boss auseinanderlagen.
+
+- **Quests gegen den Boss zählen:** Jede Quest mit einer Technik gegen seine Position, die in denselben 14 Tagen zählt (versucht, bei Kata erledigt, dieselbe Regel wie für die XP, jetzt `questMet` in `core/model.ts`), drückt einen Buckel unter Wasser. Die Lebenspunkte sind die Buckel über Wasser. Besiegt ist er weiterhin erst, wenn du seltener festhängst.
+- **Boss in der Quest-Auswahl:** Seine Techniken bekommen den Grund „Gegen den Boss“ und lichten dafür den Nebel; der Draft nimmt höchstens eine davon (eine Karte pro Sektor).
+- **Die Seeschlange zeigt es ehrlich:** so viele Buckel wie Fälle (bis acht), untergetaucht genau die, die Quests gedrückt haben, statt Füllbuckeln bis vier. Heute, Seekarte und Boss-Scouter zeigen dieselben Zahlen.

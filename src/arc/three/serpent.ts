@@ -1,8 +1,8 @@
 // The weekly boss as a sea serpent in 3D (b1, b2), in the units of the drawn
 // serpent (SeaSerpent.tsx: the tail at x = 10, a hump every 16, the head at
-// the right, the waterline at y = 0, up is up here). Every hump above the
-// water is one time you got stuck in the boss's position in the last 14
-// days; the ones it has lost lie under the surface, marked by rings. When
+// the right, the waterline at y = 0, up is up here). One hump for every time
+// you got stuck in the boss's position in the last 14 days; those your quests
+// against it pushed under lie below the surface, marked by rings. When
 // every hump is up, the tail fluke shows too. Scaled red skin, vermilion
 // fins, a horned head with an open jaw and a gold eye, inked like the chart.
 

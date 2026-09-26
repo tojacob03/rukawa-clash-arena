@@ -471,7 +471,7 @@ function ChartView({
                 shipColor: ship.sail,
                 boss: st.boss ? STUCK[st.boss.key].boss : null,
                 bossHp: st.boss?.hp,
-                bossMax: st.boss ? Math.max(st.boss.hp, st.boss.prev, 4) : undefined,
+                bossMax: st.boss?.raw,
                 belt: ship.belt,
                 flag: ship.flag,
                 progress: pos.progress,

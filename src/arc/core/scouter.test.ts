@@ -82,7 +82,8 @@ test("self scan: series of 17 weekly points ending today, peak not below today",
 test("boss scan: goal is half the cases, counters come from the position", () => {
   const b = bossScan(st);
   if (!b) return;
-  assert.equal(b.goal, Math.floor(b.hp / 2));
+  assert.equal(b.goal, Math.floor(b.raw / 2));
+  assert.equal(b.hp + b.struck, b.raw);
   assert.deepEqual(
     b.counters.map((c) => c.id),
     STUCK[b.key].nodes,
