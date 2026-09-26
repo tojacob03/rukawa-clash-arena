@@ -19,6 +19,8 @@ import { trainingRows } from "../chapterRows.tsx";
 import { LogSwitch } from "./Turnier.tsx";
 import { openScouter } from "../scan.ts";
 import { plannedAttire } from "../plan.ts";
+import { cleanGuest, knownGyms } from "../core/visits.ts";
+import { COUNTRIES } from "../core/countries.ts";
 
 interface Draft {
   format: Format;
@@ -28,6 +30,8 @@ interface Draft {
   quest: { node: string; kind: QuestKind; xp: number; att: number; succ: number; done: boolean } | null;
   worked: string;
   stuck: string;
+  /** Trained as a guest in another gym; null at home. */
+  guest: { gym: string; country: string } | null;
 }
 
 const SIZES: { v: Size; label: string }[] = [
@@ -62,6 +66,7 @@ function initialDraft(data: ArcData, st: ArcState, today: string): Draft {
     quest: top ? { node: top.node, kind: top.kind, xp: top.xp, ...counted } : null,
     worked: "",
     stuck: "",
+    guest: null,
   };
 }
 
@@ -77,6 +82,7 @@ function toSession(d: Draft, today: string, id: string): Session {
     worked: d.worked || null,
     stuck: d.stuck || null,
     createdAt: Date.now(),
+    ...(cleanGuest(d.guest) ? { guest: cleanGuest(d.guest)! } : {}),
   };
 }
 
@@ -187,6 +193,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
               <span className="fl">Heute im Kurs gezeigt (optional)</span>
               <TechSelect id="arc-taught" value={draft.taught} onChange={(v) => set({ taught: v })} empty="nichts Neues" attire={draft.attire} />
             </label>
+            <GuestField data={data} value={draft.guest} onChange={(guest) => set({ guest })} />
           </fieldset>
 
           <fieldset className="step">
@@ -455,4 +462,49 @@ function ResultPanel({ s, D }: { s: Session; D: Diff }) {
 
 function Delta({ up, children }: { up: boolean; children: ReactNode }) {
   return <li className={up ? "up" : "down"}>{children}</li>;
+}
+
+/** "Als Gast in einem anderen Gym": the gym goes into the mat passport, its country's headwear into the inventory. */
+function GuestField({ data, value, onChange }: { data: ArcData; value: Draft["guest"]; onChange: (v: Draft["guest"]) => void }) {
+  const known = useMemo(() => knownGyms(data), [data]);
+  const pick = (gym: string) => {
+    const k = known.find((g) => g.gym.toLowerCase() === gym.trim().toLowerCase());
+    onChange({ gym, country: k ? k.country : value?.country ?? "" });
+  };
+  return (
+    <div className="guest">
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={!!value}
+          onChange={(e) => onChange(e.target.checked ? (known[0] ? { gym: known[0].gym, country: known[0].country } : { gym: "", country: "" }) : null)}
+        />{" "}
+        Als Gast in einem anderen Gym
+      </label>
+      {value ? (
+        <div className="row wrap">
+          <label className="field grow">
+            <span className="fl">Gym</span>
+            <input id="arc-guest-gym" value={value.gym} maxLength={60} list="arc-guest-gyms" autoComplete="off" onChange={(e) => pick(e.target.value)} />
+            <datalist id="arc-guest-gyms">
+              {known.map((g) => (
+                <option key={`${g.country}${g.gym}`} value={g.gym} />
+              ))}
+            </datalist>
+          </label>
+          <label className="field grow">
+            <span className="fl">Land</span>
+            <select id="arc-guest-country" value={value.country} onChange={(e) => onChange({ ...value, country: e.target.value })}>
+              <option value="">Land wählen</option>
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : null}
+    </div>
+  );
 }

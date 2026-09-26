@@ -9,6 +9,7 @@ import type { ItemDef, PatternKind } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { EYE_COLORS, HAIR_COLORS, eyeOf, hairOf, normalizeLook, shade, skinOf } from "../avatarOptions.ts";
 import { FlagIn } from "./Flag.tsx";
+import Headwear from "./Headwear.tsx";
 import { bodyOf } from "../core/body.ts";
 import type { Body } from "../core/body.ts";
 
@@ -189,7 +190,7 @@ export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg,
           </g>
           <g transform={fit}>
             <FrontHair style={look.hair} fill={hairFill} hair={hair} hairD={hairD} />
-            <Headgear art={gear.head?.art} />
+            <Headgear art={gear.head?.art} uid={uid} />
           </g>
         </g>
       </g>
@@ -822,17 +823,8 @@ function FrontHair({ style, fill, hair, hairD }: { style: number; fill: string; 
   }
 }
 
-function Headgear({ art }: { art?: ItemDef["art"] }) {
+function Headgear({ art, uid }: { art?: ItemDef["art"]; uid: string }) {
   if (!art) return null;
-  if (art.style === "band") {
-    return (
-      <g>
-        <path d="M74 76 Q120 60 166 76 L166 88 Q120 72 74 88 Z" fill={art.c} stroke={OL} strokeWidth={2.2} strokeLinejoin="round" />
-        <path d="M166 80 Q186 86 192 104 Q182 96 170 92 Z M166 82 Q188 80 198 92 Q184 90 170 88 Z" fill={art.c} stroke={OL} strokeWidth={2} strokeLinejoin="round" />
-        <circle cx={120} cy={73} r={4.5} fill={art.c === "#f4f1ea" ? "#c8302a" : "#fff"} opacity={0.9} />
-      </g>
-    );
-  }
   if (art.style === "bandana") {
     return (
       <g>
@@ -861,7 +853,8 @@ function Headgear({ art }: { art?: ItemDef["art"] }) {
       </g>
     );
   }
-  return null;
+  // Hachimaki and the headwear of the countries.
+  return <Headwear art={art} uid={uid} />;
 }
 
 /* ── Body and clothes ──────────────────────────────────────────────────── */

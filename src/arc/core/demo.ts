@@ -175,6 +175,11 @@ export function buildDemo(todayIsoStr: string, seed = DEMO_SEED): ArcData {
       data.sessions.push(s);
     }
   }
+  // The mat passport: a gym from a holiday before the app, and an open mat
+  // as a guest on a weekend away.
+  data.visits = [{ id: "demo-visit-1", gym: "Arte Suave Lisboa", city: "Lissabon", country: "PT", date: isoOf(monday0 - 240), createdAt: (monday0 - 240) * 1000 }];
+  const away = data.sessions.find((s) => s.format === "open" && s.date >= isoOf(monday0 + 7 * 11));
+  if (away) away.guest = { gym: "Tri-Force Amsterdam", city: "Amsterdam", country: "NL" };
   // Two tournaments on Saturdays in past weeks.
   data.competitions = [
     {

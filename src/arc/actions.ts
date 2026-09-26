@@ -1,4 +1,4 @@
-import type { ArcData, Attire, Belt, Character, Competition, CrossSession, FlagDesign, Look, MatCount, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import type { ArcData, Attire, Belt, Character, Competition, CrossSession, FlagDesign, GymVisit, Look, MatCount, Profile, QuestKind, Session, Slot } from "./core/types.ts";
 import type { TrainingPlan } from "./core/schedule.ts";
 import { getCharacter } from "./character.ts";
 import { ITEMS } from "./core/items.ts";
@@ -82,6 +82,15 @@ export function rememberWeightClass(w: string) {
 
 export function deleteCompetition(id: string) {
   arcStore.set((d) => ({ ...d, competitions: (d.competitions ?? []).filter((x) => x.id !== id) }));
+}
+
+/** A gym visit entered by hand (the mat passport). */
+export function addVisit(v: GymVisit) {
+  arcStore.set((d) => ({ ...d, visits: [...(d.visits ?? []).filter((x) => x.id !== v.id), v] }));
+}
+
+export function deleteVisit(id: string) {
+  arcStore.set((d) => ({ ...d, visits: (d.visits ?? []).filter((x) => x.id !== id) }));
 }
 
 export function deleteSession(id: string) {

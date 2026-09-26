@@ -33,12 +33,14 @@ import { openScouter } from "../scan.ts";
 import { SYSTEMS } from "../core/systems.ts";
 import type { SystemId } from "../core/systems.ts";
 import { voyage } from "../core/voyage.ts";
+import PassTab from "./Pass.tsx";
 
-type Tab = "uebersicht" | "aussehen" | "ausruestung" | "turniere" | "steckbrief";
+type Tab = "uebersicht" | "aussehen" | "ausruestung" | "pass" | "turniere" | "steckbrief";
 const TABS: { id: Tab; label: string }[] = [
   { id: "uebersicht", label: "Übersicht" },
   { id: "aussehen", label: "Aussehen" },
   { id: "ausruestung", label: "Ausrüstung" },
+  { id: "pass", label: "Mattenpass" },
   { id: "turniere", label: "Turniere" },
   { id: "steckbrief", label: "Steckbrief" },
 ];
@@ -73,6 +75,8 @@ export default function Held({ data, st, today, arg }: Props) {
         <LookTab look={g.character.look} mode={g.character.mode} avatar={avatar} heightCm={p.heightCm} />
       ) : tab === "ausruestung" ? (
         <GearTab data={data} st={st} owned={g.owned} gear={g.gear} mode={g.character.mode} unseen={g.unseen} avatar={avatar} />
+      ) : tab === "pass" ? (
+        <PassTab data={data} st={st} belt={p.belt} />
       ) : tab === "turniere" ? (
         <CompTab data={data} st={st} />
       ) : tab === "steckbrief" ? (
@@ -570,6 +574,15 @@ function GearTab({
           {slot === "talisman" ? (
             <p className="muted small">Talismane geben nur XP für Einsatz, nie Meisterung. Der Bonus wird beim Speichern eines Trainings festgeschrieben.</p>
           ) : null}
+          {def.accepts === "head" ? (
+            <p className="muted small">
+              Traditionelle Kopfbedeckungen: die deiner Länder trägst du von Anfang an, jedes weitere Land gibt dir seine, sobald du dort als Gast trainiert hast. Deine Stempel stehen im{" "}
+              <button type="button" className="linkish" onClick={() => go("held", "pass")}>
+                Mattenpass
+              </button>
+              .
+            </p>
+          ) : null}
           {def.accepts === "patch" && !p.countries?.length ? (
             <p className="muted small">
               Flaggen-Aufnäher bekommst du für jedes Land im{" "}
@@ -716,7 +729,7 @@ function ProfileTab({ data, st }: { data: ArcData; st: ArcState }) {
       </section>
       <section className="panel form-panel">
         <h2 className="h3">Länder</h2>
-        <p className="muted small">Wo du herkommst, wo du lebst oder trainierst. Jedes Land wird ein Aufnäher für Gi und Rashguard.</p>
+        <p className="muted small">Wo du herkommst oder lebst. Jedes Land gibt dir einen Aufnäher für Gi und Rashguard und seine traditionelle Kopfbedeckung. Gyms im Ausland stempelst du im Mattenpass.</p>
         <CountryPicker value={p.countries ?? []} onChange={(countries) => updateProfile({ countries })} />
       </section>
       <section className="panel form-panel">

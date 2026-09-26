@@ -17,6 +17,8 @@ import { TECH } from "./techniques.ts";
 import { ROMAN, SEALS } from "./lore.ts";
 import { dayNum, isoOf } from "./model.ts";
 import { reachedIsles } from "./voyage.ts";
+import { hatOf } from "./headwear.ts";
+import { visitedCountries } from "./visits.ts";
 
 export type Source =
   | { t: "start" }
@@ -27,6 +29,8 @@ export type Source =
   | { t: "seal"; id: string }
   | { t: "arc"; n: number }
   | { t: "country"; code: string }
+  /** Training as a guest in a gym in that country (see visits.ts). */
+  | { t: "visit"; code: string }
   | { t: "tokui"; tech: string }
   /**
    * Reaching an island on the sea chart (`home:2` is the third island of any
@@ -77,6 +81,10 @@ export interface ItemArt {
   style?: string;
   emblem?: "logo" | "flame" | "crown" | "wave" | "star" | "flag" | "tokui" | "anchor" | "skull" | "compass";
   code?: string;
+  /** Stripes, top to bottom (headbands in flag colours, ribbons). */
+  cs?: string[];
+  /** A variant of the style, e.g. the feather on a hat (see headwear.ts). */
+  trim?: string;
 }
 
 export interface ItemDef {
@@ -250,19 +258,34 @@ export const ITEMS: ItemDef[] = [
   I("pa_finisher", "Finisher", "patch", "epic", { t: "comp", what: "subwin" }, "Ein Turnierkampf per Aufgabe gewonnen.", { emblem: "flame", c: "#1d1d26" }),
 ];
 
-/** Items that depend on the profile or on progress: flags and Tokui patches. */
-/** A flag or Tokui patch from its id alone ("flag:DE", "tokui:armbar"), e.g. on a friend's avatar. */
+/**
+ * Items that depend on the profile or on progress: flags, Tokui patches and
+ * the headwear of countries. From the id alone ("flag:DE", "tokui:armbar",
+ * "hat:MX"), e.g. on a friend's avatar.
+ */
 export function dynamicItem(id: string): ItemDef | undefined {
   const [kind, code = ""] = id.split(":");
   const has = (o: object) => Object.prototype.hasOwnProperty.call(o, code);
   if (kind === "flag" && has(COUNTRY)) return I(id, `Flagge ${COUNTRY[code].name}`, "patch", "common", { t: "country", code }, "Aus deinem Steckbrief.", { emblem: "flag", code });
   if (kind === "tokui" && has(TECH)) return I(id, `Tokui-Aufnäher: ${TECH[code].name}`, "patch", "legendary", { t: "tokui", tech: code }, "Für eine Technik auf Tokui-Waza-Stufe.", { emblem: "tokui", code });
+  if (kind === "hat") {
+    const h = hatOf(code);
+    if (h) return I(id, h.name, "head", "rare", { t: "country", code }, h.desc, { style: h.style, c: h.c, c2: h.c2, c3: h.c3, cs: h.cs, trim: h.trim, code });
+  }
   return undefined;
 }
 
 export function dynamicItems(data: ArcData, st: ArcState): ItemDef[] {
-  const ids = [...(data.profile?.countries ?? []).map((c) => `flag:${c}`), ...st.tokui.map((t) => `tokui:${t}`)];
-  return ids.map(dynamicItem).filter((x): x is ItemDef => !!x);
+  const own = data.profile?.countries ?? [];
+  const ids = [...own.map((c) => `flag:${c}`), ...st.tokui.map((t) => `tokui:${t}`), ...own.map((c) => `hat:${c}`)];
+  const out = ids.map(dynamicItem).filter((x): x is ItemDef => !!x);
+  // The headwear of every other country you trained in as a guest.
+  for (const code of visitedCountries(data, isoOf(st.asOf)).keys()) {
+    if (own.includes(code)) continue;
+    const x = dynamicItem(`hat:${code}`);
+    if (x) out.push({ ...x, src: { t: "visit", code } });
+  }
+  return out;
 }
 
 export const ITEM = Object.fromEntries(ITEMS.map((x) => [x.id, x])) as Record<string, ItemDef>;
@@ -290,6 +313,8 @@ export function unlockText(src: Source, sea: SeaId = DEFAULT_SEA): string {
       return `Arc ${ROMAN[src.n]} erreichen`;
     case "country":
       return "Land im Steckbrief";
+    case "visit":
+      return `Als Gast in einem Gym in ${COUNTRY[src.code]?.name ?? src.code} trainiert`;
     case "tokui":
       return "Tokui-Waza erreichen";
     case "rank": {
@@ -340,12 +365,14 @@ export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
   const sea = p?.homeSea ?? DEFAULT_SEA;
   const comps = (data.competitions ?? []).filter((c) => dayNum(c.date) <= st.asOf);
   const isles = reachedIsles(data, isoOf(st.asOf));
+  const visited = visitedCountries(data, isoOf(st.asOf));
   const reached = (id: string) => (id.startsWith("home:") ? [...isles].some((x) => /^(frost|morgen|abend|glut)\d$/.test(x) && x.endsWith(id.slice(5))) : isles.has(id));
   for (const x of [...ITEMS, ...dynamicItems(data, st)]) {
     const s = x.src;
     const ok =
       s.t === "start" ||
       s.t === "country" ||
+      s.t === "visit" ||
       s.t === "tokui" ||
       (s.t === "level" && st.lvl >= s.n) ||
       (s.t === "sessions" && st.sessions >= s.n) ||
@@ -359,7 +386,7 @@ export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
           : s.what === "subwin"
             ? comps.some((c) => c.matches.some((m) => m.result === "win" && m.method === "sub"))
             : comps.some((c) => c.place === s.n)));
-    if (ok) owned.set(x.id, { id: x.id, via: unlockText(s, sea) });
+    if (ok) owned.set(x.id, { id: x.id, via: unlockText(s, sea), date: s.t === "visit" ? visited.get(s.code) : undefined });
   }
 
   // Random drops, in order of the trainings. A drop can be a duplicate of an

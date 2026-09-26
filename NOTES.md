@@ -6,6 +6,9 @@ Protokoll der eigenständigen Arbeit am Backlog ([BACKLOG.md](BACKLOG.md)): was 
 
 _(Rückfragen, Ablehnungen und Entscheidungen, die du bestätigen oder ändern solltest)_
 
+- **Kopfbedeckungen, Auswahl je Land:** Die Zuordnung steht in `src/arc/core/headwear.ts`, eine Zeile pro Land. Bitte einmal durchsehen, vor allem Länder mit mehreren Kandidaten (Deutschland: Trachtenhut mit Gamsbart statt Bollenhut, Vereinigtes Königreich: Melone, England: Schiebermütze, Brasilien: Chapéu de couro, Indien: Pagri aus Rajasthan). Religiöse Kopfbedeckungen habe ich bewusst ausgelassen.
+- **Gym-Besuche liegen im Hauptdatensatz** (`visits` im Root-Record), nicht als eigene Record-Art. Grund: Der Server erlaubt nur die Arten root, session, comp, cross und promo, eine neue Art bräuchte eine Migration auf der Produktionsdatenbank. Für ein paar Dutzend Einträge reicht der Root-Record. Wenn du eine eigene Art willst: Migration freigeben, dann ziehe ich sie um.
+
 ## Protokoll
 
 ### Ausgangslage
@@ -49,3 +52,13 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - Wochenziel-Knöpfe (1–5) waren bei 320 px nur 23 px breit → Mindestbreite 36 px für alle Auswahlreihen.
 - „Woche 5 von 8“ brach bei 320 px um → kürzere Striche, kein Umbruch.
 - Icons in Tabs (Seekarte: Karte, Schiff, Logbuch, Crew) wurden auf schmalen Bildschirmen zu Punkten zusammengedrückt → Icons in Bedienelementen schrumpfen nicht mehr.
+
+### Traditionelle Kopfbedeckungen und Mattenpass
+
+- **Eine Kopfbedeckung pro Land:** 92 der 125 Länder haben eine eigene (Sombrero, Papacha, Nón lá, Tarbusch, Chullo, Gat, Mongkol, Vinok, Lička kapa …), gezeichnet in 36 Formen im Stil des Avatars (`components/Headwear.tsx`). Die übrigen 33 bekommen ein Stirnband in den Farben ihrer Flagge und sagen das auch so („Stirnband Niederlande“). *Standardentscheidungen:* Nur Volks- und Arbeitstracht, keine religiösen Kopfbedeckungen. Wo mehrere Kandidaten gingen, habe ich den bekanntesten genommen, der auf der Figur lesbar bleibt. Alle Kopfbedeckungen sind „Selten“.
+- **Eigene Länder sofort:** Jedes Land im Steckbrief gibt neben dem Flaggen-Aufnäher seine Kopfbedeckung.
+- **Weitere durch Gym-Besuche:** Wer als Gast in einem Gym eines anderen Landes trainiert, bekommt dessen Kopfbedeckung, ab dem Tag des Besuchs. Sie taucht wie jede Beute im Kapitelende auf.
+- **Neue Funktion Mattenpass** (Held, neuer Reiter): ein Passblatt mit einem Einreisestempel pro Gym (Land, Datum des ersten Besuchs, Tinte je Gym verschieden), dazu „Besuch nachtragen“ für frühere Besuche und die Liste aller freigeschalteten Kopfbedeckungen. Beim Eintragen eines Trainings gibt es unter Check-in „Als Gast in einem anderen Gym“ mit Gym und Land; bekannte Gyms werden vorgeschlagen und füllen das Land aus. Dasselbe Gym aus beiden Quellen ist ein Stempel, auch wenn es anders geschrieben wurde.
+- *Warum so:* Der Pass passt zum Hanko-Stempel im Trainingsheft und macht Reisen sichtbar, ohne ein weiteres Fortschrittssystem einzuführen: Er schaltet nur Ausrüstung frei, zählt keine XP.
+- Die Demo hat zwei Stempel (Lissabon nachgetragen, Amsterdam als Gasttraining).
+- Geprüft: Typecheck, Lint, 101 Unit-Tests (neu: Zuordnung für alle Länder, Freischaltung, Stempel, Sync, kaputte Einträge), Konto-E2E 23/23, Social-E2E 44/44, Build, kein waagrechter Überlauf bei 390 px.

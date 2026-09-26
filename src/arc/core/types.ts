@@ -158,6 +158,24 @@ export interface Session {
   /** XP from equipped talismans, fixed when the session was saved. */
   bonus?: number;
   aboard?: Aboard;
+  /** Trained as a guest in another gym (see visits.ts). */
+  guest?: GuestGym;
+}
+
+/** A gym you trained in as a guest. */
+export interface GuestGym {
+  gym: string;
+  /** Country code from countries.ts. */
+  country: string;
+  city?: string;
+}
+
+/** A gym visit entered by hand, e.g. from before you used the app. */
+export interface GymVisit extends GuestGym {
+  id: string;
+  /** Day of the (first) visit. */
+  date: string;
+  createdAt: number;
 }
 
 export type CompResult = "win" | "loss" | "draw";
@@ -276,6 +294,8 @@ export interface ArcData {
   character?: Character;
   competitions?: Competition[];
   cross?: CrossSession[];
+  /** Gyms visited before, entered by hand. Guest trainings logged since live on the sessions. */
+  visits?: GymVisit[];
   demo?: boolean;
 }
 

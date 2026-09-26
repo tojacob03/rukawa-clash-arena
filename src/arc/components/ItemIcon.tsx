@@ -8,6 +8,8 @@ import type { ItemDef } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { shade } from "../avatarOptions.ts";
 import { Patch, Pattern } from "./Avatar.tsx";
+import Headwear from "./Headwear.tsx";
+import { hatBox } from "../core/headwear.ts";
 
 const OL = "#1c1526";
 
@@ -109,6 +111,12 @@ function art(item: ItemDef, belt: Belt, uid: string): ReactNode {
       );
     }
     case "head":
+      if (a.style !== "bandana" && a.style !== "ears" && !(a.style === "band" && !a.cs))
+        return (
+          <svg x={0} y={0} width={48} height={48} viewBox={hatBox(a.style)} overflow="visible">
+            <Headwear art={a} uid={uid} />
+          </svg>
+        );
       if (a.style === "bandana")
         return (
           <g strokeLinejoin="round">

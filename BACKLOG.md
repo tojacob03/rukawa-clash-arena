@@ -11,11 +11,11 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
 - [x] **Stufe 3 des UI-Reworks:** Codex, Profil, Konto, Plan, Onboarding
 - [x] **Rollen der Fortschritts-Systeme festlegen:** Level/XP, Power Level, Skilltree (früher Sternkarte), Seekarte, Hexagon
 - [x] **Mobile UI ausbessern**
-- [ ] **Traditionelle Kopfbedeckungen je Land**
-  - [ ] Eine Kopfbedeckung pro Land (wo es keine passende gibt, etwas anderes, etwa ein Stirnband in den Landesfarben)
-  - [ ] Jeder bekommt die seines Landes bzw. seiner Länder direkt
-  - [ ] Weitere als Items freischalten, indem man Gyms in den Ländern besucht
-  - [ ] Neue Funktion: besuchte Gyms eintragen, rückwirkend und ab jetzt laufend
+- [x] **Traditionelle Kopfbedeckungen je Land**
+  - [x] Eine Kopfbedeckung pro Land (wo es keine passende gibt, etwas anderes, etwa ein Stirnband in den Landesfarben)
+  - [x] Jeder bekommt die seines Landes bzw. seiner Länder direkt
+  - [x] Weitere als Items freischalten, indem man Gyms in den Ländern besucht
+  - [x] Neue Funktion: besuchte Gyms eintragen, rückwirkend und ab jetzt laufend
 - [ ] **Belohnungsmoment nach dem Loggen** prüfen und bauen
 - [ ] **Progressive Disclosure** für neue Spieler einführen
 - [ ] **Typische AI-Card-Merkmale und Verläufe entfernen**, durch hochwertige Libraries ersetzen (nur solche, die auch eine Awwwards-Siegerseite verwenden würde)
