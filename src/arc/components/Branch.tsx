@@ -40,6 +40,31 @@ const STROKES = TREE.strokes.map((s) => ({ ...s, d: brushPath(s), line: linePath
 const FIBRES = fibres(W, H, 420);
 const byX = [...TECHS].sort((a, b) => TREE.buds[a.id].x - TREE.buds[b.id].x);
 
+type Dir = "left" | "right" | "up" | "down";
+const KEY_DIR: Record<string, Dir> = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" };
+
+/** The nearest bud in a direction: along the direction first, sideways counts double. */
+function nextBud(from: string, dir: Dir, open: (id: string) => boolean): string | null {
+  const a = TREE.buds[from];
+  let best: string | null = null;
+  let score = Infinity;
+  for (const x of byX) {
+    if (x.id === from || !open(x.id)) continue;
+    const b = TREE.buds[x.id];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const along = dir === "right" ? dx : dir === "left" ? -dx : dir === "down" ? dy : -dy;
+    const side = dir === "left" || dir === "right" ? Math.abs(dy) : Math.abs(dx);
+    if (along <= 2) continue;
+    const s = along + 2 * side;
+    if (s < score) {
+      score = s;
+      best = x.id;
+    }
+  }
+  return best;
+}
+
 export default function Branch({ st, selected, onSelect }: { st: ArcState; selected: string | null; onSelect: (id: string) => void }) {
   const stage = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -48,6 +73,16 @@ export default function Branch({ st, selected, onSelect }: { st: ArcState; selec
   const [view, setView] = useState({ ppu: 0.5, x0: 0, y0: 0, x1: W, y1: H });
   const [growing, setGrowing] = useState(() => !grown && !reducedMotion());
   const miniView = useRef<SVGRectElement>(null);
+  // One tab stop for the whole branch (roving tabindex): the arrow keys walk from bud to bud.
+  const budEls = useRef(new Map<string, SVGGElement>());
+  const openBud = (id: string) => !st.nodes[id].fog;
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const tabStop = focusId && openBud(focusId) ? focusId : selected && openBud(selected) ? selected : (byX.find((x) => openBud(x.id))?.id ?? null);
+  const moveFocus = (id: string | null) => {
+    if (!id) return;
+    setFocusId(id);
+    budEls.current.get(id)?.focus();
+  };
   const settle = useRef(0);
 
   useEffect(() => {
@@ -356,6 +391,9 @@ export default function Branch({ st, selected, onSelect }: { st: ArcState; selec
           </button>
         </div>
       </div>
+      <p id="arc-branch-keys" className="sr-only">
+        Pfeiltasten wechseln zur nächsten Knospe in der Richtung, Pos1 und Ende zum Anfang und Ende des Zweigs, Enter öffnet die Technik.
+      </p>
       <svg ref={svgRef} className={`scroll${growing ? " growing" : ""}`} viewBox={`${WORLD.x0} ${WORLD.y0} 1200 ${H + 2 * PAD}`} role="group" aria-label="Skilltree: der Zweig deiner Techniken">
         <defs>
           <linearGradient id="roller" x1="0" x2="1">
@@ -396,17 +434,30 @@ export default function Branch({ st, selected, onSelect }: { st: ArcState; selec
                 key={x.id}
                 className={`bud l${n.level}${n.rust ? " rust" : ""}${n.fog ? " fog" : ""}${x.id === selected ? " sel" : ""}`}
                 transform={`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)})`}
-                tabIndex={n.fog ? -1 : 0}
+                ref={(el) => {
+                  if (el) budEls.current.set(x.id, el);
+                  else budEls.current.delete(x.id);
+                }}
+                tabIndex={x.id === tabStop ? 0 : -1}
                 role="button"
+                aria-describedby="arc-branch-keys"
                 aria-label={n.fog ? "Unentdeckte Technik" : `${x.name}, Stufe ${n.level} ${LEVELS[n.level]}${n.rust ? ", rostet" : ""}`}
                 onClick={() => !n.fog && onSelect(x.id)}
                 onKeyDown={(e) => {
                   if (!n.fog && (e.key === "Enter" || e.key === " ")) {
                     e.preventDefault();
                     onSelect(x.id);
+                  } else if (KEY_DIR[e.key]) {
+                    e.preventDefault();
+                    moveFocus(nextBud(x.id, KEY_DIR[e.key], openBud));
+                  } else if (e.key === "Home" || e.key === "End") {
+                    e.preventDefault();
+                    const open = byX.filter((y) => openBud(y.id));
+                    moveFocus((e.key === "Home" ? open[0] : open[open.length - 1])?.id ?? null);
                   }
                 }}
                 onFocus={() => {
+                  setFocusId(x.id);
                   const v = vb.current;
                   if (b.x < v.x || b.x > v.x + v.w || b.y < v.y || b.y > v.y + v.h) animateTo({ ...v, x: b.x - v.w / 2, y: b.y - v.h / 2 }, 300);
                 }}

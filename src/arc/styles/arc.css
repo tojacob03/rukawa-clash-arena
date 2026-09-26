@@ -1031,7 +1031,8 @@ svg.scroll:active { cursor: grabbing; }
 .bud { cursor: pointer; outline: none; }
 .bud.fog { cursor: default; }
 .bud .hit { fill: transparent; }
-.bud:focus-visible .hit { stroke: #c93a25; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.bud:focus { outline: none; }
+.bud:focus-visible .hit { stroke: #c93a25; stroke-width: 2.5; stroke-dasharray: 4 3; }
 .bud-in { transform: scale(var(--ns, 1)); transform-box: fill-box; transform-origin: center; }
 .bud-open { transform-box: fill-box; transform-origin: center; }
 .bud-prog { fill: none; stroke: #1b1512; stroke-opacity: 0.35; stroke-width: 1.3; stroke-linecap: round; }

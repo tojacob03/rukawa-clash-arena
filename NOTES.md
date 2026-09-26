@@ -130,3 +130,7 @@ axe-core (WCAG 2.0/2.1 A und AA plus Best Practices) über 20 Seiten in beiden A
 - **XP-Naht oben** lag außerhalb jeder Landmarke; sie ist ein Bild desselben Standes, der im Kopf als Text steht, und ist jetzt für Screenreader ausgeblendet.
 - **Kontrast:** Die Quest-Art im zinnoberroten Knopf „Als heutige Quest nehmen“ war Rot auf Rot (1,5 : 1); jetzt in der Schriftfarbe des Knopfes.
 - Ergebnis: keine Verstöße mehr. Farbkontrast hat axe sonst überall bestanden.
+
+### Zweig per Tastatur
+
+Die Knospen waren schon Knöpfe, aber jede einzelne ein Tab-Stopp: Wer den Zweig mit der Tastatur verlassen wollte, musste bis zu 193-mal Tab drücken. Jetzt hat der Zweig einen einzigen Tab-Stopp (die gewählte Knospe oder die erste sichtbare), die Pfeiltasten gehen zur nächsten Knospe in der Richtung (entlang der Richtung gemessen, seitlicher Versatz zählt doppelt), Pos1 und Ende springen an den Anfang und das Ende des Zweigs, Enter oder Leertaste öffnen das Technikblatt. Knospen im Nebel werden übersprungen. Der Fokusring ist kräftiger, und ein Hinweis für Screenreader erklärt die Tasten. Die Kamera fährt mit, wenn die fokussierte Knospe außerhalb des Ausschnitts liegt. Geprüft per Browser-Test (1 Tab-Stopp von 193, Pfeile, Pos1/Ende, Enter öffnet, Tab verlässt den Zweig).
