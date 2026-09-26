@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import {
-  AnimatePresence,
-  animate,
-  motion,
-  useInView,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import { AnimatePresence, animate, motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { scrollToSection } from "@/lib/smoothScroll";
 import { usePublicStats } from "@/hooks/usePublicStats";
@@ -23,7 +15,7 @@ const MARQUEE = "Battle logs · Duel detection · Game 1 tendencies · Remaining
 // Proof first, decoration second: these carry the hero, not artwork.
 const PROOF = [
   { value: "Top 2, 3 & 4", label: "CRL Monthly Finals results of players I prepared, 2025-26" },
-  { value: "2 of 2", label: "players I prepare qualified for the CRL World Finals 2026" },
+  { value: "2 of 2", label: "players I help prepare qualified for the CRL World Finals 2026" },
   { value: "Since 2019", label: "analyst for teams, a national team and players" },
 ];
 
@@ -52,7 +44,15 @@ const CountUp = ({ value }: { value: number }) => {
 };
 
 // One headline line: the text slides up out of a clipping mask on load.
-const Line = ({ children, delay, className = "" }: { children: React.ReactNode; delay: number; className?: string }) => (
+const Line = ({
+  children,
+  delay,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay: number;
+  className?: string;
+}) => (
   <span className="block overflow-hidden pb-[0.08em]">
     <motion.span
       className={`block ${className}`}
@@ -187,8 +187,8 @@ const KineticHero = () => {
           className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between"
         >
           <p className="max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Clash Royale analyst for Solo CRL, currently preparing two players for the CRL World Finals. I build
-            the data tooling behind it myself, and use the same approach beyond esports.
+            Clash Royale analyst for Solo CRL, currently helping to prepare two players for the CRL World Finals. I
+            build the data tooling behind it myself, and use the same approach beyond esports.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
