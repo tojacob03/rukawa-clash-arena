@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import SiteNav from "@/components/portfolio/SiteNav";
 import Footer from "@/components/portfolio/Footer";
 import StintChart from "@/components/racing/StintChart";
@@ -288,7 +289,12 @@ const RaceStrategy = () => {
             </a>
             . Unofficial project, not associated in any way with the Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA
             FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One Licensing B.V. The
-            fuel correction is an estimate; treat small differences with care.
+            fuel correction is an estimate. Within a stint tyre age and fuel load change together, so the absolute wear
+            figures move one-for-one with it; the differences between compounds don&apos;t.{" "}
+            <Link to="/work/race-strategy-lab" className="underline underline-offset-2 hover:text-foreground">
+              How I found that out
+            </Link>
+            .
           </p>
         </section>
       </main>

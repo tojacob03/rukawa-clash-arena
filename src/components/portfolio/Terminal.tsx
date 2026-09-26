@@ -140,11 +140,11 @@ const Terminal = () => {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="group mx-auto flex items-center gap-2 font-mono text-xs text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+        className="group mx-auto flex items-center gap-2 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         <SquareTerminal className="h-3.5 w-3.5" />
-        <span className="text-clash-gold/40 transition-colors group-hover:text-clash-gold/70">rukawa@portfolio</span>
-        <span className="text-muted-foreground/40">:~$</span>
+        <span className="text-clash-gold/80 transition-colors group-hover:text-clash-gold">rukawa@portfolio</span>
+        <span className="text-muted-foreground">:~$</span>
         {!open && <span className="ml-0.5 inline-block h-[1em] w-[0.55em] translate-y-[0.15em] animate-caret bg-current" />}
       </button>
 
