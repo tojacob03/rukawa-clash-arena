@@ -2,6 +2,18 @@
 
 Protokoll der eigenständigen Arbeit am Backlog ([BACKLOG.md](BACKLOG.md)): was gemacht wurde und warum, getroffene Standardentscheidungen und was morgen geklärt werden sollte.
 
+## Kurzfassung
+
+Alle Punkte aus dem Auftrag und aus dem Gespräch sind erledigt und gepusht, danach zehn eigene Punkte (UI-Konsistenz, Barrierefreiheit, Tastatur, Aufräumen, Mobile-Audit, Sammlung, Performance). Zum Anschauen in dieser Reihenfolge:
+
+1. **Charakterbogen → Mattenpass**: Stempel pro Gym, Besuch nachtragen, Kopfbedeckungen und „Ganze Sammlung zeigen“. Beim Eintragen unter Check-in „Als Gast in einem anderen Gym“.
+2. **Ein Training eintragen**: das Kapitelende liest sich jetzt als 稽 Einsatz, 技 Können, 測 Stärke, 海 Reise (Schiff segelt), 章 Siegel, 新 Neu.
+3. **Neues Profil anlegen** (oder Daten löschen): Heute zeigt das Inhaltsverzeichnis „Was sich als Nächstes öffnet“, die Seekarte liegt vor Anker, der Charakterbogen ist ruhig.
+4. **Ausrüstung und Siegel**: Items als Exponate auf Washi, Siegel als Stempel, Abschnitte ohne Kästen überall.
+5. **Mit der Maus scrollen** (weich, Lenis) und auf **Überschriften** achten (Kanji wird geschrieben, Zeilen steigen, GSAP SplitText).
+
+Commits dieser Runde: `b15bc17` Kopfbedeckungen und Mattenpass, `439e1d7` Kapitelende, `03bad71` Progressive Disclosure, `569b398` Kästen, Karten, Verläufe, SplitText, Lenis, `626094c` Zweig-Texte und Konzept, `bc90661` UI-Konsistenz, `4a7ef4a` Barrierefreiheit, `4d45b37` Zweig per Tastatur, `2f967a3` Aufräumen, `7ce8c6a` Sammlung, `222ee23` Performance.
+
 ## Für morgen
 
 _(Rückfragen, Ablehnungen und Entscheidungen, die du bestätigen oder ändern solltest)_
