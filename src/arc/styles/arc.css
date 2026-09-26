@@ -1657,6 +1657,10 @@ button.item.locked:hover .lock { border-color: var(--ink-2); color: var(--ink-2)
 .sc-target { position: relative; display: grid; place-items: center; padding: 16px; border: 1px solid rgba(237, 227, 209, 0.18); }
 .sc-target .avatar { width: 100%; height: auto; max-width: 220px; }
 .sc-target .duel { width: 100%; height: auto; }
+/* The crew photo: the whole width, the names under it like on a print. */
+.crew-photo { margin: 0; display: grid; gap: 6px; }
+.crew-photo canvas.scene3d { width: 100%; }
+.crew-photo figcaption { text-align: center; }
 /* 3D scenes fade in with their first frame. */
 canvas.scene3d { display: block; width: var(--aw); max-width: 100%; height: auto; opacity: 0; transition: opacity 0.2s ease-out; }
 canvas.scene3d.ready { opacity: 1; }
