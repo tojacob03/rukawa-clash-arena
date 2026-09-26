@@ -59,8 +59,8 @@ export default function Held({ data, st, today, arg }: Props) {
   const g = useGear(data, st);
   const p = data.profile;
   if (!p) return null;
-  const avatar = (size: number, still?: boolean) => (
-    <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={p.belt} stripes={p.stripes} weightKg={p.weightKg} heightCm={p.heightCm} size={size} still={still} label={`${p.name}, dein Charakter`} />
+  const avatar = (size: number, still?: boolean, crop?: "stage") => (
+    <Avatar look={g.character.look} mode={g.character.mode} gear={g.gear} belt={p.belt} stripes={p.stripes} weightKg={p.weightKg} heightCm={p.heightCm} size={size} still={still} crop={crop} label={`${p.name}, dein Charakter`} />
   );
 
   return (
@@ -91,7 +91,7 @@ export default function Held({ data, st, today, arg }: Props) {
   );
 }
 
-type AvatarFn = (size: number, still?: boolean) => ReactElement;
+type AvatarFn = (size: number, still?: boolean, crop?: "stage") => ReactElement;
 
 /* ── Übersicht ─────────────────────────────────────────────────────────── */
 
@@ -118,10 +118,7 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
   return (
     <>
       <section className="held-stage" aria-label="Charakter">
-        <div className="hs-fighter">
-          <div className="tatami" aria-hidden="true" />
-          <div className="stage">{avatar(300, true)}</div>
-        </div>
+        <div className="hs-fighter">{avatar(420, false, "stage")}</div>
         <div className="hero-main">
           <div className="row wrap">
             <span className="hex-badge" aria-hidden="true">
