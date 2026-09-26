@@ -24,13 +24,13 @@ export default function Einladung({ data, st, today, arg }: { data: ArcData; st:
       <div className="page invite-page">
         <SecTitle h1 kanji="招" eyebrow="Einladung" title="Dieser Link ist unvollständig" />
         <p className="lede">Frag nach einem neuen Link oder gib den Code direkt ein.</p>
-        <button type="button" className="btn" onClick={() => go("meer", "crew")}>
+        <button type="button" className="btn" onClick={() => go("freunde", "crew")}>
           Zur Crew
         </button>
       </div>
     );
   const t = TEXT[inv.kind];
-  const next = inv.kind === "g" ? () => go("gym") : () => go("meer", "crew");
+  const next = inv.kind === "g" ? () => go("gym") : inv.kind === "c" ? () => go("freunde", "crew") : () => go("freunde");
   return (
     <div className="page invite-page">
       <SecTitle h1 kanji="招" eyebrow="Einladung" title={t.title}>

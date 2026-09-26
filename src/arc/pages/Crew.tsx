@@ -1,42 +1,21 @@
-// The Crew tab on the sea chart: your pirate crew (up to 12 who sail
-// together) and your circle of friends. The gym is a separate page.
+// Your pirate crew (up to 12 who sail together), on the friends page.
 
 import { useState } from "react";
-import { Anchor, Flag as FlagIcon, LogOut, UserPlus, Users } from "lucide-react";
-import type { ArcData, ArcState } from "../core/types.ts";
+import { Flag as FlagIcon, LogOut, UserPlus, Users } from "lucide-react";
+import type { ArcData } from "../core/types.ts";
 import { cleanCode, crewWeek, weekOf } from "../core/social.ts";
 import type { Peer } from "../core/social.ts";
 import { getCharacter } from "../character.ts";
 import { nf0 } from "../format.ts";
-import { go } from "../store.ts";
 import type { SocialView } from "../cloud/social.ts";
-import { CodeBox, FlameCount, PeerRow, SocialGate, SocialSettings } from "../components/Social.tsx";
-import { beltLine } from "../socialCard.ts";
+import { CodeBox, FlameCount, PeerRow } from "../components/Social.tsx";
 import { useAct } from "../useAct.tsx";
 import CrewFlag, { WavingFlag } from "../components/CrewFlag.tsx";
 import { HeroKoma } from "../components/ui.tsx";
 
-export default function CrewView({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
-  return (
-    <div className="crew-view">
-      <SocialGate data={data} st={st} today={today} back={{ route: "meer", arg: "crew" }} intro="Gründe mit deinen Trainingsleuten eine Crew, segelt zusammen über die Seekarte und seht, wer diese Woche schon auf der Matte war.">
-        {(s) => (
-          <>
-            {s.crew ? <CrewHome s={s} data={data} today={today} /> : <NoCrew data={data} />}
-            <Friends s={s} today={today} />
-            <p className="small muted gym-hint">
-              Wer sonst noch in deinem Gym trainiert, siehst du getrennt davon auf der{" "}
-              <button type="button" className="linkish" onClick={() => go("gym")}>
-                Gym-Seite
-              </button>
-              .
-            </p>
-            <SocialSettings s={s} data={data} st={st} today={today} />
-          </>
-        )}
-      </SocialGate>
-    </div>
-  );
+/** The crew part of the friends page: your crew, or how to found or join one. */
+export default function CrewPanel({ s, data, today }: { s: SocialView; data: ArcData; today: string }) {
+  return s.crew ? <CrewHome s={s} data={data} today={today} /> : <NoCrew data={data} />;
 }
 
 function NoCrew({ data }: { data: ArcData }) {
@@ -242,124 +221,5 @@ function CrewHome({ s, data, today }: { s: SocialView; data: ArcData; today: str
         {act.msg}
       </section>
     </>
-  );
-}
-
-function Friends({ s, today }: { s: SocialView; today: string }) {
-  const me = s.me!;
-  const [code, setCode] = useState("");
-  const act = useAct();
-  const clean = cleanCode(code);
-  const RESULT: Record<string, string> = {
-    requested: "Anfrage verschickt. Sobald sie angenommen ist, seht ihr eure Schiffe auf der Seekarte.",
-    pending: "Die Anfrage läuft schon.",
-    accepted: "Ihr seid jetzt befreundet.",
-    friends: "Ihr seid schon befreundet.",
-  };
-  return (
-    <section className="plain-sec friends" aria-labelledby="friends-h">
-      <h2 id="friends-h" className="h3">
-        <Anchor size={16} aria-hidden="true" /> Freundeskreis
-      </h2>
-
-      {s.incoming.length ? (
-        <div className="incoming">
-          <p className="ch-name">Anfragen an dich</p>
-          <ul className="peers">
-            {s.incoming.map((p) => (
-              <PeerRow key={p.id} peer={p}>
-                <button type="button" className="btn small" disabled={act.busy} onClick={() => void act.run((m) => m.friendAnswer(p.id, true), `Du und ${p.name} seid jetzt befreundet.`)}>
-                  Annehmen
-                </button>
-                <button type="button" className="btn small ghost" disabled={act.busy} onClick={() => void act.run((m) => m.friendAnswer(p.id, false))}>
-                  Ablehnen
-                </button>
-              </PeerRow>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {s.friends.length ? (
-        <ul className="peers">
-          {s.friends.map((f) => (
-            <FriendRow key={f.id} f={f} today={today} onRemove={() => act.run((m) => m.friendRemove(f.id))} busy={act.busy} />
-          ))}
-        </ul>
-      ) : (
-        <p className="muted">Noch niemand. Schick deinen Code an Leute, mit denen du trainierst.</p>
-      )}
-
-      <form
-        className="row wrap social-inline"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (clean) void act.run((m) => m.friendAdd(clean), (r) => (Object.prototype.hasOwnProperty.call(RESULT, String(r)) ? RESULT[String(r)] : "Erledigt.")).then((ok) => ok && setCode(""));
-        }}
-      >
-        <label className="field">
-          <span className="fl">Code von jemandem eingeben</span>
-          <input className="code-field" value={code} maxLength={11} placeholder="ABCD-EFGH" autoCapitalize="characters" autoComplete="off" spellCheck={false} onChange={(e) => setCode(e.target.value)} />
-        </label>
-        <button type="submit" className="btn small" disabled={act.busy || !clean}>
-          <UserPlus size={14} aria-hidden="true" /> <span>Hinzufügen</span>
-        </button>
-      </form>
-      {act.msg}
-
-      {s.outgoing.length ? (
-        <div className="outgoing">
-          <p className="ch-name">Wartet auf Antwort</p>
-          <ul className="plain-list">
-            {s.outgoing.map((o) => (
-              <li key={o.id} className="row wrap between">
-                <span>{o.name}</span>
-                <button type="button" className="btn small ghost" disabled={act.busy} onClick={() => void act.run((m) => m.friendRemove(o.id))}>
-                  Zurückziehen
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      <CodeBox label="Dein Code für Freundschaften" kind="f" code={me.code} text="Lass uns bei Waza Arc zusammen segeln." />
-    </section>
-  );
-}
-
-function FriendRow({ f, today, onRemove, busy }: { f: Peer; today: string; onRemove: () => void; busy: boolean }) {
-  const [sure, setSure] = useState(false);
-  const c = f.card;
-  return (
-    <PeerRow
-      peer={f}
-      sub={c ? `${beltLine(f)}, Power Level ${nf0.format(c.pl)}` : undefined}
-      side={
-        c ? (
-          <>
-            <span>
-              {weekOf(c, today)} von {c.goal} diese Woche
-            </span>
-            <FlameCount n={c.flame} />
-          </>
-        ) : null
-      }
-    >
-      {sure ? (
-        <>
-          <button type="button" className="btn small danger-btn" disabled={busy} onClick={onRemove}>
-            Entfernen
-          </button>
-          <button type="button" className="btn small ghost" onClick={() => setSure(false)}>
-            Abbrechen
-          </button>
-        </>
-      ) : (
-        <button type="button" className="btn small ghost" onClick={() => setSure(true)} aria-label={`${f.name} aus dem Freundeskreis entfernen`}>
-          Entfernen
-        </button>
-      )}
-    </PeerRow>
   );
 }

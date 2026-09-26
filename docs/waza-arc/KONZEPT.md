@@ -413,16 +413,17 @@ Die Gym-Seite aus 6.13 ist der erste Schritt. Darauf aufbauend:
 
 ## 7. Screens
 
-**Rahmen:** Oben eine schmale Kopfzeile mit Level-Siegel, Rang und XP, Power Level (sobald offen), Flamme, Wolke und Profil; über der ganzen Breite läuft eine Goldnaht als XP-Balken. Navigiert wird mit vier Kanji: 今 Heute, 図 Karte, 書 Codex, 武 Held. Dazwischen, auf dem Handy in der Mitte der unteren Leiste und auf breiten Bildschirmen oben in der linken Leiste, steht der Hanko-Knopf 記 „Eintragen“. Seitenwechsel laufen als Tusche, die sich vom Tipp-Punkt aus über das Blatt zieht, mit Goldkante (WebGL, bei reduzierter Bewegung aus).
+**Rahmen:** Oben eine schmale Kopfzeile mit Level-Siegel, Rang und XP, Power Level (sobald offen), Flamme, Wolke und Profil; über der ganzen Breite läuft eine Goldnaht als XP-Balken. Navigiert wird mit vier Kanji: 今 Heute, 図 Karte (Zweig, Seekarte und Codex), 友 Freunde, 武 Held. Offene Freundschaftsanfragen stehen als kleines rotes Siegel mit Zahl auf 友, wie der rote Punkt im Sozial-Reiter eines Spiels. Dazwischen, auf dem Handy in der Mitte der unteren Leiste und auf breiten Bildschirmen oben in der linken Leiste, steht der Hanko-Knopf 記 „Eintragen“. Seitenwechsel laufen als Tusche, die sich vom Tipp-Punkt aus über das Blatt zieht, mit Goldkante (WebGL, bei reduzierter Bewegung aus).
 
 1. **Heute als Trainingsheft:** links das Datum groß wie die erste Seite eines Kapitels, Wochentag als Kanji senkrecht, Arc und Woche; rechts die Wochenseite mit sieben Tagen, in die jede Einheit als roter Hanko gestempelt wird (geplante Trainings stehen mit Bleistift). Darunter Crew und Gym (wenn vorhanden), die Hand mit den Quest-Karten, der Wochenboss als Seeschlange und, solange noch nicht alles offen ist, das Inhaltsverzeichnis „Was sich als Nächstes öffnet“ (7.2).
 2. **Eintragen als Heftseite:** Check-in (mit „Als Gast in einem anderen Gym“), Roll-Karten, Quest-Zähler, Notiz auf einem Washi-Blatt mit rotem Heftrand und Kanji-Schrittnummern (一 二 三 四); gespeichert wird mit dem Siegel (記, 試, 鍛). Umschalter zu Turnier (6.7) und Nebensport (6.10). Danach das Kapitelende (7.1).
-3. **Karte:** Zweig (5) und Seekarte (6.9) mit einem Umschalter. Die Seekarte ist ein randloser dunkler Raum mit Nebel in zwei Ebenen; auf breiten Bildschirmen schwebt die Inselkarte rechts darüber.
-4. **Codex:** Nachschlagewerk mit Daumenregister (ein Kanji je Kapitel mit Trefferzahl), Suche auch in anderen Namen, Stufenfilter als Wortreihe.
-5. **Held (Charakter):** sechs Reiter. Übersicht (Figur auf zwei Tatami in einem dunklen Dōjō-Raum, Steckbrief daneben wie ein Aushang, die Reihe „Fünf Wege, fünf Fragen“, Hexagon, Achsen, Power-Level-Verlauf, Körperwerte, Siegel als Stempel), Aussehen (Editor), Ausrüstung (Plätze als Liste, Items als Exponate auf Washi-Scheiben), Mattenpass (6.5), Turniere (Kampfrekord) und Steckbrief.
-6. **Profil, Plan, Konto:** Einstellungen als Register (Überschrift links, Eintrag rechts, Haarlinie dazwischen); der Wochenplan als Stundenplan mit Wochentags-Kanji; Konto mit Anmelde-Panel oder Kontoausweis (8.5).
-7. **Einstieg:** Deckblatt mit 技 und Goldnaht, dann sieben Schritte, jeder wie ein Kapitel mit seiner Nummer als Kanji (一 bis 七).
-8. **Arc und Rückblick (später):** Staffelziel, Monats- und Jahreskarte zum Teilen.
+3. **Karte:** Zweig (5), Seekarte (6.9) und Codex mit einem Umschalter. Die Seekarte ist ein randloser dunkler Raum mit Nebel in zwei Ebenen; auf breiten Bildschirmen schwebt die Inselkarte rechts darüber.
+4. **Freunde (友):** oben „Freund hinzufügen“ (Einladungslink teilen oder Code eingeben, in einem Dialog), darunter Anfragen an dich, dann die Freundesliste, sortiert nach Trainings dieser Woche, mit Power Level, Woche und Flamme. Antippen öffnet die Karte des Freundes: Figur groß, Gürtel, Level, Power Level, Woche, Flamme, Klasse, Kopfgeld, „Mit dem Scouter vergleichen“. Reiter Crew und Gym daneben; die Crew war vorher ein Reiter der Seekarte.
+5. **Codex:** Nachschlagewerk mit Daumenregister (ein Kanji je Kapitel mit Trefferzahl), Suche auch in anderen Namen, Stufenfilter als Wortreihe.
+6. **Held (Charakter):** sechs Reiter. Übersicht (Figur auf zwei Tatami in einem dunklen Dōjō-Raum, Steckbrief daneben wie ein Aushang, die Reihe „Fünf Wege, fünf Fragen“, Hexagon, Achsen, Power-Level-Verlauf, Körperwerte, Siegel als Stempel), Aussehen (Editor), Ausrüstung (Plätze als Liste, Items als Exponate auf Washi-Scheiben), Mattenpass (6.5), Turniere (Kampfrekord) und Steckbrief.
+7. **Profil, Plan, Konto:** Einstellungen als Register (Überschrift links, Eintrag rechts, Haarlinie dazwischen); der Wochenplan als Stundenplan mit Wochentags-Kanji; Konto mit Anmelde-Panel oder Kontoausweis (8.5).
+8. **Einstieg:** Deckblatt mit 技 und Goldnaht, dann sieben Schritte, jeder wie ein Kapitel mit seiner Nummer als Kanji (一 bis 七).
+9. **Arc und Rückblick (später):** Staffelziel, Monats- und Jahreskarte zum Teilen.
 
 ### 7.1 Gestaltung: Kintsugi
 

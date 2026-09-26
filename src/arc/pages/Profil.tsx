@@ -81,7 +81,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
         <div className="reg-b">
           <p className="small">Segelt als Crew zusammen, fügt euch per Code hinzu und seht, wer aus deinem Gym heute trainiert. Andere sehen nur deine Karte, nie dein Trainingstagebuch.</p>
           <div className="row wrap">
-            <button type="button" className="btn" onClick={() => go("meer", "crew")}>
+            <button type="button" className="btn" onClick={() => go("freunde", "crew")}>
               <span>Crew und Freundeskreis</span>
             </button>
             <button type="button" className="btn" onClick={() => go("gym")}>

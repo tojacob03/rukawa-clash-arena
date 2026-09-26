@@ -11,6 +11,7 @@ import { go } from "../store.ts";
 import { useCompare } from "../useCompare.ts";
 import TechniqueSheet from "../components/TechniqueSheet.tsx";
 import { SecTitle, Seg } from "../components/ui.tsx";
+import { MapSwitch } from "./SeaPage.tsx";
 
 type LevelFilter = "alle" | "entdeckt" | "erprobt" | "rost" | "offen";
 const LEVEL_FILTERS: { v: LevelFilter; label: string }[] = [
@@ -67,6 +68,7 @@ export default function Codex({ data, st, today }: { data: ArcData; st: ArcState
 
   return (
     <div className="page codex">
+      <MapSwitch value="codex" />
       <SecTitle h1 kanji="書" eyebrow="Waza-Codex" title={`${TECHS.length} Techniken`}>
         Alle Techniken deines Zweigs zum Nachschlagen. Gesucht wird auch in anderen Namen, z. B. „Scarf Hold“ oder „Juji-gatame“.
       </SecTitle>

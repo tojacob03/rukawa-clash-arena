@@ -15,6 +15,7 @@ import { go } from "../store.ts";
 import { CodeBox, PeerRow, SocialGate } from "../components/Social.tsx";
 import { useAct } from "../useAct.tsx";
 import { HeroKoma, SecTitle } from "../components/ui.tsx";
+import { SocialTabs } from "./Freunde.tsx";
 
 export default function Gym({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   return (
@@ -22,6 +23,7 @@ export default function Gym({ data, st, today }: { data: ArcData; st: ArcState; 
       <SecTitle h1 kanji="道" eyebrow="Gym" title="Dein Gym">
         Sieh, wer aus deinem Gym auch mit Waza Arc trainiert und wer heute auf der Matte steht. Das ist unabhängig von deiner Crew.
       </SecTitle>
+      <SocialTabs current="gym" />
       <SocialGate data={data} st={st} today={today} back={{ route: "gym" }} intro="Tritt deinem Gym bei und sieh, wer von dort heute trainiert.">
         {(s) => (s.gym ? <GymHome s={s} today={today} /> : <FindGym />)}
       </SocialGate>
@@ -90,12 +92,12 @@ function GymHome({ s, today }: { s: SocialView; today: string }) {
               ))}
             </div>
           ) : (
-            <p className="muted">Noch teilt hier niemand Trainingszeiten. Das geht bei deiner Karte im Crew-Bereich der Seekarte, aus deinem Wochenplan.</p>
+            <p className="muted">Noch teilt hier niemand Trainingszeiten. Das geht unter Freunde bei deiner Karte, aus deinem Wochenplan.</p>
           )}
           {!me.shareTimes ? (
             <p className="small muted">
               Deine eigenen Zeiten teilst du gerade nicht.{" "}
-              <button type="button" className="linkish" onClick={() => go("meer", "crew")}>
+              <button type="button" className="linkish" onClick={() => go("freunde", "crew")}>
                 Einstellungen deiner Karte
               </button>
             </p>
