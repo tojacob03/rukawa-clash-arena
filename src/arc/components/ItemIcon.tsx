@@ -7,7 +7,7 @@ import type { Belt } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { shade } from "../avatarOptions.ts";
-import { Patch, Pattern } from "./Avatar.tsx";
+import { Patch, Pattern } from "./AvatarSvg.tsx";
 import Headwear from "./Headwear.tsx";
 import { hatBox } from "../core/headwear.ts";
 
