@@ -7,7 +7,7 @@ import type { ItemDef } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { HAIR_COLORS, hairOf, normalizeLook, shade, skinOf } from "../avatarOptions.ts";
 import { drawFace, faceKey } from "./face.ts";
-import { hairTexture } from "./textures.tsx";
+import { hairTexture, weaveNormal } from "./textures.tsx";
 import { bandTexture } from "./hats.ts";
 import { makeAura } from "./aura.ts";
 import type { Aura } from "./aura.ts";
@@ -64,6 +64,15 @@ function makeMaterial(name: string) {
     case "beltbar":
     case "stripe":
       m.roughness = 0.9;
+      break;
+    case "gi":
+    case "top":
+    case "bottom":
+    case "spats":
+      // Woven cotton; the garments carry the planar UVs of the body frame.
+      m.normalMap = weaveNormal();
+      m.normalScale.set(0.35, 0.35);
+      m.roughness = name === "gi" ? 0.88 : 0.7;
       break;
     case "medal":
     case "gold":
@@ -224,6 +233,22 @@ export class Figure {
 
   private aura: Aura | null = null;
   private auraWas = "";
+
+  /** Frees the GPU memory of this figure (shared textures stay). */
+  dispose() {
+    this.dressing++;
+    for (const { mesh } of this.parts.values()) mesh.geometry.dispose();
+    for (const m of this.mats.values()) m.dispose();
+    this.ink.dispose();
+    this.inkHair.dispose();
+    this.faceTex.dispose();
+    this.aura?.group.traverse((o) => {
+      const m = o as THREE.Mesh;
+      m.geometry?.dispose();
+      (m.material as THREE.Material | undefined)?.dispose();
+    });
+    this.root.removeFromParent();
+  }
 
   /** Moves the aura to the moment t (seconds). */
   tick(t: number) {

@@ -123,14 +123,15 @@ function eye(ctx: Ctx, shape: number, color: string, skin: string, lash: number)
   }
 }
 
+// Brows as brush strokes: thick at the inner end (towards the nose, +x), tapering outward.
 const BROWS: Record<number, (ctx: Ctx, c: string) => void> = {
-  0: (ctx, c) => strokeD(ctx, "M-12 1 L11 1", c, 4),
-  1: (ctx, c) => strokeD(ctx, "M-12 3 Q0 -5 11 1", c, 3.6),
-  2: (ctx, c) => fillD(ctx, "M-13 3 Q-1 -6 12 0 L11 5 Q0 1 -12 7 Z", c),
-  3: (ctx, c) => strokeD(ctx, "M-11 2 Q0 -3 10 1", c, 2),
-  4: (ctx, c) => strokeD(ctx, "M-13 -2 L11 5", c, 4.2),
-  5: (ctx, c) => strokeD(ctx, "M-13 5 L11 -2", c, 3.6),
-  6: (ctx, c) => strokeD(ctx, "M-13 1 L-3 1 M1 1 L11 1", c, 4),
+  0: (ctx, c) => fillD(ctx, "M-12.5 -0.4 L10.6 -2.4 Q12.8 0 10.8 2.3 L-12.3 1 Q-13.6 0.3 -12.5 -0.4 Z", c),
+  1: (ctx, c) => fillD(ctx, "M-13 3.2 Q-2 -6.2 10.8 -1.8 Q12.8 0.4 10.8 2.2 Q-1 -2 -12.2 4.6 Q-13.8 4.1 -13 3.2 Z", c),
+  2: (ctx, c) => fillD(ctx, "M-13.5 3.4 L-12 1 L-9 1.6 Q-1 -6.4 11.6 -1.2 L12.4 1.4 L11 5.4 Q0 1.4 -8 5.6 L-12 7.2 Z", c),
+  3: (ctx, c) => fillD(ctx, "M-11.5 2.6 Q-0.5 -3.6 10.2 0 Q10.8 0.9 10 1.4 Q-0.5 -1.6 -11 3.4 Z", c),
+  4: (ctx, c) => fillD(ctx, "M-13.2 -2.8 Q-12.4 -3.8 -11.2 -3 L11.2 3 Q12.8 4.6 11 5.8 L-12.8 -0.4 Q-14 -1.4 -13.2 -2.8 Z", c),
+  5: (ctx, c) => fillD(ctx, "M-13.2 4.8 L10 -2.6 Q12 -2.4 11.4 -0.2 L-12 6.8 Q-13.8 6.2 -13.2 4.8 Z", c),
+  6: (ctx, c) => fillD(ctx, "M-12.5 -0.2 L-3.4 -1 L-3.2 2 L-12.3 1.2 Q-13.6 0.5 -12.5 -0.2 Z M0.6 -1.4 L10.6 -2.4 Q12.8 0 10.8 2.3 L0.8 1.8 Z", c),
 };
 
 function nose(ctx: Ctx, kind: number, skin: string) {

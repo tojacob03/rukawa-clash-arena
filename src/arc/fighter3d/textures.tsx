@@ -98,3 +98,41 @@ export function hairTexture(hair: string, tip: string | null) {
   }
   return t;
 }
+
+let weave: THREE.CanvasTexture | null = null;
+
+/** A normal map of woven cotton, tiled over the garments' body frame. */
+export function weaveNormal() {
+  if (weave) return weave;
+  const n = 64;
+  const cell = 8;
+  const h = new Float32Array(n * n);
+  for (let y = 0; y < n; y++)
+    for (let x = 0; x < n; x++) {
+      const across = (Math.floor(x / cell) + Math.floor(y / cell)) % 2 === 0;
+      const t = ((across ? y : x) % 4) / 4;
+      h[y * n + x] = Math.sin(t * Math.PI) * (across ? 1 : 0.8);
+    }
+  const c = document.createElement("canvas");
+  c.width = c.height = n;
+  const g = c.getContext("2d")!;
+  const img = g.createImageData(n, n);
+  const at = (x: number, y: number) => h[((y + n) % n) * n + ((x + n) % n)];
+  for (let y = 0; y < n; y++)
+    for (let x = 0; x < n; x++) {
+      const dx = (at(x + 1, y) - at(x - 1, y)) * 0.5;
+      const dy = (at(x, y + 1) - at(x, y - 1)) * 0.5;
+      const len = Math.hypot(dx, dy, 1);
+      const i = (y * n + x) * 4;
+      img.data[i] = ((-dx / len) * 0.5 + 0.5) * 255;
+      img.data[i + 1] = ((dy / len) * 0.5 + 0.5) * 255;
+      img.data[i + 2] = ((1 / len) * 0.5 + 0.5) * 255;
+      img.data[i + 3] = 255;
+    }
+  g.putImageData(img, 0, 0);
+  weave = new THREE.CanvasTexture(c);
+  weave.wrapS = weave.wrapT = THREE.RepeatWrapping;
+  weave.repeat.set(30, 30);
+  weave.flipY = false;
+  return weave;
+}

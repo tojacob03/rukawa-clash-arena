@@ -85,7 +85,7 @@ const FRAME: Record<Crop, { y: number; h: number; yaw: number; tilt: number }> =
   full: { y: 1.1, h: 2.36, yaw: -0.32, tilt: 0.1 },
   stage: { y: 1.0, h: 2.5, yaw: -0.36, tilt: 0.22 },
   head: { y: 1.6, h: 1.2, yaw: -0.2, tilt: 0.06 },
-  face: { y: 1.42, h: 0.5, yaw: -0.12, tilt: 0.04 },
+  face: { y: 1.34, h: 0.56, yaw: -0.12, tilt: 0.04 },
 };
 
 function shoot(c: Ctx, fig: Figure, crop: Crop, w: number, h: number, target: HTMLCanvasElement, sway = 0) {
@@ -114,6 +114,8 @@ function shoot(c: Ctx, fig: Figure, crop: Crop, w: number, h: number, target: HT
 }
 
 let queue: Promise<unknown> = Promise.resolve();
+/** Still figures waiting; while there are any, breathing figures hold their breath. */
+let pending = 0;
 const bitmaps = new Map<string, ImageBitmap>();
 
 function remember(key: string, bmp: ImageBitmap) {
@@ -140,12 +142,15 @@ export function still(target: HTMLCanvasElement, spec: Spec, crop: Crop) {
     g?.drawImage(hit, 0, 0);
     return Promise.resolve();
   }
-  const job = queue.then(async () => {
-    const c = await context();
-    await c.still.dress(spec);
-    shoot(c, c.still, crop, w, h, target);
-    if (typeof createImageBitmap === "function") remember(key, await createImageBitmap(target));
-  });
+  pending++;
+  const job = queue
+    .then(async () => {
+      const c = await context();
+      await c.still.dress(spec);
+      shoot(c, c.still, crop, w, h, target);
+      if (typeof createImageBitmap === "function") remember(key, await createImageBitmap(target));
+    })
+    .finally(() => pending--);
   queue = job.catch(() => undefined);
   return job;
 }
@@ -174,7 +179,8 @@ export async function live(target: HTMLCanvasElement, crop: Crop) {
     fig.head.rotation.set(still ? 0 : 0.018 * Math.sin((t * Math.PI * 2) / 3.6 + 0.8), 0, still ? 0 : 0.02 * Math.sin((t * Math.PI * 2) / 5.2));
     const sway = still ? 0 : 0.035 * Math.sin((t * Math.PI * 2) / 7.3);
     fig.tick(still ? 1.3 : t);
-    if (now - last > 30 || still) {
+    const every = pending > 0 ? 500 : 30;
+    if (now - last > every || still) {
       last = now;
       shoot(c, fig, crop, target.width, target.height, target, sway);
     }
@@ -202,6 +208,7 @@ export async function live(target: HTMLCanvasElement, crop: Crop) {
     stop() {
       stopped = true;
       if (raf) cancelAnimationFrame(raf);
+      fig.dispose();
       io?.disconnect();
       document.removeEventListener("visibilitychange", onVis);
       mq?.removeEventListener("change", kick);
