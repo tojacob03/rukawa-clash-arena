@@ -1,6 +1,6 @@
 // Loot comes in a lacquer chest (b3): when the chest comes into view, its lid
 // swings open and the item rises out of the red lacquered inside and stays
-// there, turning a little. The chest tells the rarity: plain keyaki for
+// there. The chest tells the rarity: plain keyaki for
 // common finds, black lacquer with silver lines for rare, vermilion lacquer
 // for epic, black lacquer with gold maki-e waves for legendary. With
 // reduced motion the chest stands open with the item above it.
@@ -201,7 +201,7 @@ export async function mountChest(canvas: HTMLCanvasElement, args: ChestArgs, rea
     hinge.rotation.x = (-Math.PI * 0.62 * Math.min(1.08, swing));
     const rise = Math.min(1, Math.max(0, (k - OPEN_S * 0.6) / RISE_S));
     const eased = 1 - (1 - rise) * (1 - rise);
-    sprite.position.set(0, 0.25 + eased * 0.72 + (calm ? 0 : 0.03 * Math.sin(t * 2.2) * eased), 0.05);
+    sprite.position.set(0, 0.25 + eased * 0.72, 0.05);
     sprite.material.opacity = Math.min(1, rise * 2.5);
     sprite.visible = rise > 0;
     frame(camera, canvas.width, canvas.height, at, 1.9, 0.42);
@@ -210,6 +210,8 @@ export async function mountChest(canvas: HTMLCanvasElement, args: ChestArgs, rea
       shown = true;
       ready();
     }
+    // Open and the item out: nothing moves any more, the loop rests.
+    return !(calm || (start >= 0 && k > OPEN_S * 0.6 + RISE_S + 0.3));
   });
 
   return {
