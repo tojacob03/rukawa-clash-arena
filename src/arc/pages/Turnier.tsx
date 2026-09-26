@@ -6,7 +6,7 @@ import { inventory, itemById } from "../core/items.ts";
 import { TECH } from "../core/techniques.ts";
 import { SEALS } from "../core/lore.ts";
 import type { ArcState as State } from "../core/types.ts";
-import { compXp, compute, diff } from "../core/model.ts";
+import { compute, diff } from "../core/model.ts";
 import type { Diff } from "../core/model.ts";
 import { BELTS, nf0, signed } from "../format.ts";
 import { deleteCompetition, rememberWeightClass, saveCompetition } from "../actions.ts";
@@ -281,8 +281,8 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
           <div className="savebar">
             <span className="eta">
-              <b>+{nf0.format(compXp(preview.c))} XP</b>
-              <small>fürs Antreten, jeden Kampf und die Platzierung</small>
+              <b>+{nf0.format(preview.D.xp)} XP</b>
+              <small>fürs Antreten, jeden Kampf, die Platzierung und was deine Techniken dabei beweisen</small>
             </span>
             <button type="submit" className="btn primary big seal-btn">
               <span className="seal" aria-hidden="true">

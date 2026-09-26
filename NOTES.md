@@ -104,3 +104,16 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 
 - **App:** Seitentitel „Zweig“ statt „Sternkarte“, „Diese Knospe liegt noch im Nebel“ im Technikblatt, Startbildschirm („Daraus entstehen ein Zweig mit 193 Techniken …“), Beschreibung in `arc/index.html` und im Web-App-Manifest. Siegel „Kartograf: 50 Sterne“ heißt jetzt „Blühender Zweig: 50 Knospen im Training geöffnet“, das Item dazu „Rashguard Blütenzweig“ (goldene Blüten statt Sterne), der Aufnäher fürs erste Training „Erster Schritt“. Sterne, die wirklich Sterne sind (Galaxie-Spats, Kap Abendstern, Waza-Stern auf der Flagge), bleiben.
 - **Konzept:** Abschnitt 5 neu als „Zweig (Skilltree)“ (Aufbau aus Stamm, Ästen und Trieben, Zustände einer Knospe, Fäden, Bedienung, Layout), Abschnitt 7 neu (Rahmen mit Kanji-Navigation und Hanko, Heute als Trainingsheft, Eintragen als Heftseite, Karte, Codex, Held mit Mattenpass, Register, Einstieg), Kapitelende in der Reihenfolge der Wege, Flächen ohne Karten-Raster, SplitText und Lenis, neuer Abschnitt 7.2 „Was sich wann öffnet“, Kopfbedeckungen und Mattenpass unter 6.5.
+
+## Eigene Ergänzungen
+
+### UI-Konsistenz nach dem Umbau der Kästen
+
+Durchgesehen: Eintragen (Training, Turnier, Nebensport), Seekarte (Schiff, Logbuch), Charakterbogen (alle Reiter), Profil, Konto, Plan, Matte, in Urushi bei 1280 px und in Washi bei 390 px. Behoben:
+
+- **Klasse und Heimatmeer im Steckbrief** waren Kachelraster; jetzt Listen mit Haarlinie, gewählt mit farbiger Randlinie und goldenem Namen.
+- **Turnierkämpfe** waren farbig umrandete Chips; jetzt eine Liste mit den Zeichen der japanischen Anzeigetafel: 勝 Sieg, 負 Niederlage, 分 Unentschieden (Schrift um diese drei Zeichen ergänzt).
+- **Kampfrekord bei 390 px:** „60 %“ brach um; die vier Werte stehen auf dem Handy jetzt in zwei Reihen.
+- **Turnier eintragen:** Vorschau und Speicherleiste nannten verschiedene XP (300 und 200), weil die Leiste nur Antreten, Kämpfe und Platzierung zählte. Beide zeigen jetzt dieselbe Summe.
+- **Vorschau-Zeilen** hatten „+“ und „−“ in kleinen Kästchen; jetzt als Zeichen ohne Rahmen.
+- Nebenbei: Das Prüfskript für die Seekarte meldete Überlappungen zwischen Linien innerhalb von Icons (Fehlalarm); es schaut jetzt nur noch auf Text. Ergebnis: keine Überlappung.

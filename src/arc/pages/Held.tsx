@@ -702,15 +702,21 @@ function CompTab({ data, st }: { data: ArcData; st: ArcState }) {
                     {w}-{l}
                   </span>
                 </div>
-                <div className="chips">
+                {/* The bouts as on a Japanese scoreboard: 勝 won, 負 lost, 分 drawn. */}
+                <ol className="bouts">
                   {x.matches.map((m, i) => (
-                    <span key={i} className={`chip res-${m.result}`}>
-                      {m.result === "win" ? "Sieg" : m.result === "loss" ? "Niederlage" : "Unentschieden"} durch {METHOD_NAME[m.method]}
-                      {m.tech && TECH[m.tech] ? ` (${TECH[m.tech].name})` : ""}
-                      {m.oppBelt ? <small>{BELT[m.oppBelt].name}</small> : null}
-                    </span>
+                    <li key={i}>
+                      <span className={`bout-k ${m.result}`} aria-hidden="true">
+                        {m.result === "win" ? "勝" : m.result === "loss" ? "負" : "分"}
+                      </span>
+                      <span>
+                        <b>{m.result === "win" ? "Sieg" : m.result === "loss" ? "Niederlage" : "Unentschieden"}</b> durch {METHOD_NAME[m.method]}
+                        {m.tech && TECH[m.tech] ? ` (${TECH[m.tech].name})` : ""}
+                        {m.oppBelt ? <small>, gegen {BELT[m.oppBelt].name}gurt</small> : null}
+                      </span>
+                    </li>
                   ))}
-                </div>
+                </ol>
                 <div className="row">
                   {confirm === x.id ? (
                     <>
