@@ -1892,6 +1892,7 @@ canvas.avatar.turns:focus-visible { outline: 2px solid var(--gold); outline-offs
 .exam { display: grid; gap: 18px; }
 .belt-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
 .belt-hero .belt { width: min(100%, 360px); height: auto; }
+.belt-hero canvas.belt-3d { width: min(100%, 460px); }
 
 /* ── Konto ────────────────────────────────────────────────────────────── */
 .solo .main { padding-bottom: 32px; }
