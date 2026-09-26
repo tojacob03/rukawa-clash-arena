@@ -35,15 +35,41 @@ export function svgMarkup(children: ReactElement, viewBox = VIEWBOX) {
   return out;
 }
 
-async function raster(markup: string, px = size) {
+async function raster(markup: string, px = size, py = px) {
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = px;
+  canvas.width = px;
+  canvas.height = py;
   const img = new Image();
   img.decoding = "async";
   img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
   await img.decode();
-  canvas.getContext("2d")!.drawImage(img, 0, 0, px, px);
+  canvas.getContext("2d")!.drawImage(img, 0, 0, px, py);
   return canvas;
+}
+
+const drawings = new Map<string, Promise<HTMLCanvasElement>>();
+
+/** Any SVG drawing (React elements in its viewBox) as a canvas of w × h pixels, kept per drawing. */
+export function svgCanvas(children: ReactElement, viewBox: string, w: number, h: number) {
+  const host = document.createElement("div");
+  const root = createRoot(host);
+  flushSync(() =>
+    root.render(
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox={viewBox} width={w} height={h} preserveAspectRatio="none">
+        {children}
+      </svg>,
+    ),
+  );
+  const markup = host.innerHTML;
+  root.unmount();
+  let c = drawings.get(markup);
+  if (!c) {
+    c = raster(markup, w, h);
+    drawings.set(markup, c);
+    c.catch(() => drawings.delete(markup));
+    if (drawings.size > 24) drawings.delete(drawings.keys().next().value as string);
+  }
+  return c;
 }
 
 function texture(canvas: HTMLCanvasElement) {

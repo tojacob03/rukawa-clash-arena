@@ -67,7 +67,8 @@ import type { Tween } from "../motion.ts";
 import Wanted from "../components/Wanted.tsx";
 import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
-import CrewFlag, { WavingFlag } from "../components/CrewFlag.tsx";
+import CrewFlag from "../components/CrewFlag.tsx";
+import Flag3D from "../components/Flag3D.tsx";
 import Ship from "../components/ShipArt.tsx";
 import { HeroKoma, Seg } from "../components/ui.tsx";
 import { useSocial } from "../cloud/social.ts";
@@ -1078,12 +1079,7 @@ function FlagEditor({ flag, wind }: { flag: FlagDesign; wind: number }) {
             Wind: je regelmäßiger du trainierst, desto mehr Fahrt.
           </p>
         </div>
-        <WavingFlag
-          design={flag}
-          wind={wind}
-          width={200}
-          label={`Deine Flagge: ${EMBLEMS[flag.emblem]}`}
-        />
+        <Flag3D design={flag} wind={wind} width={220} label={`Deine Flagge: ${EMBLEMS[flag.emblem]}`} />
       </div>
       <div className="flag-group">
         <span className="fl" id="flag-bg">

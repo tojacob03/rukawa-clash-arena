@@ -10,7 +10,8 @@ import { nf0 } from "../format.ts";
 import type { SocialView } from "../cloud/social.ts";
 import { CodeBox, FlameCount, PeerRow } from "../components/Social.tsx";
 import { useAct } from "../useAct.tsx";
-import CrewFlag, { WavingFlag } from "../components/CrewFlag.tsx";
+import CrewFlag from "../components/CrewFlag.tsx";
+import Flag3D from "../components/Flag3D.tsx";
 import CrewPhoto from "../components/CrewPhoto.tsx";
 import { HeroKoma } from "../components/ui.tsx";
 
@@ -97,7 +98,7 @@ function CrewHome({ s, data, today }: { s: SocialView; data: ArcData; today: str
     <>
       <HeroKoma label={`Crew ${crew.name}`} className="crew-koma">
         <div className="crew-hero">
-          <WavingFlag design={crew.flag} wind={wk.goal ? wk.done / wk.goal : 0} width={150} label={`Flagge der ${crew.name}`} />
+          <Flag3D design={crew.flag} wind={wk.goal ? wk.done / wk.goal : 0} width={170} label={`Flagge der ${crew.name}`} />
           <div className="crew-hero-main">
             <h2 className="crew-name">{crew.name}</h2>
             <p className="muted">
