@@ -6,8 +6,8 @@ import SectionIntro from "@/components/portfolio/SectionIntro";
 const results = [
   { result: "Top 2, 3, 3 & 4", event: "CRL Monthly Finals", context: "Players I prepared · CRL 2025 & 2026" },
   { result: "Top 6", event: "Supremacy League Copa América", context: "Selección Colombia · 2025" },
-  { result: "Champion", event: "Amazon University Esports Masters", context: "Season 4 · Germany" },
-  { result: "4th place", event: "GGtoor x Haneki Cup", context: "Season 1" },
+  { result: "Champion", event: "Amazon University Esports Masters", context: "As analyst · Season 4 · Germany" },
+  { result: "4th place", event: "GGtoor x Haneki Cup", context: "As analyst · Season 1" },
 ];
 
 const AchievementsSection = () => (

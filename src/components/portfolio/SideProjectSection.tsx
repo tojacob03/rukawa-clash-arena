@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
@@ -73,12 +74,59 @@ const StintPreview = () => (
   </figure>
 );
 
-const projects = [
+// Three screens of the app (Today, the skill branch, the character), taken
+// from its demo dōjō.
+const ArcPreview = () => (
+  <figure>
+    <img
+      src="/projects/waza-arc.jpg"
+      alt=""
+      width={1200}
+      height={640}
+      loading="lazy"
+      decoding="async"
+      className="h-auto w-full rounded-md"
+    />
+    <figcaption className="mt-2 text-xs text-muted-foreground">Today, the skill branch and your fighter, from the demo dōjō</figcaption>
+  </figure>
+);
+
+type Project = {
+  title: string;
+  href: string;
+  /** A separate app outside the portfolio's router (a full page load). */
+  external?: boolean;
+  linkLabel: string;
+  caseStudy: { href: string; label: string } | null;
+  Chart: ComponentType;
+  /** Spans both columns (the biggest project). */
+  wide?: boolean;
+  body: string;
+  note: string | null;
+  facts: { value: string; label: string }[];
+};
+
+const projects: Project[] = [
+  {
+    title: "Waza Arc",
+    href: "/arc/",
+    external: true,
+    wide: true,
+    linkLabel: "Open Waza Arc (German)",
+    caseStudy: null,
+    Chart: ArcPreview,
+    body: "A Brazilian jiu-jitsu training log that plays like an anime RPG. After class you log the session in about half a minute; during class you count one thing, your daily quest. From that the app estimates progress per technique, shows how sure it is, and turns it into a skill branch, a sea voyage with your crew and a 3D fighter you dress yourself.",
+    note: "The app is in German. The demo dōjō on its start page shows it with sample data, no account needed.",
+    facts: [
+      { value: "193", label: "techniques in the skill branch" },
+      { value: "~30 s", label: "to log a session" },
+    ],
+  },
   {
     title: "Race Strategy Lab",
     href: "/race-strategy",
     linkLabel: "Open Race Strategy Lab",
-    caseStudy: null,
+    caseStudy: { href: "/work/race-strategy-lab", label: "Read the case study" },
     Chart: StintPreview,
     body: "Tyre strategy, tyre wear, race pace and pit stops for every Grand Prix since 2023. A database job pulls lap and pit data after each race, SQL cleans it (safety cars, in- and out-laps, fuel burn) and fits a regression of lap time against tyre age for every stint.",
     note: null,
@@ -118,13 +166,13 @@ const SideProjectSection = () => {
           {projects.map((p) => (
             <Card
               key={p.title}
-              className="group gradient-card flex flex-col border-border/50 p-6 shadow-card transition-all duration-500 hover:-translate-y-1 hover:border-clash-gold/30 hover:shadow-glow sm:p-8"
+              className={`group gradient-card flex flex-col${p.wide ? " lg:col-span-2" : ""} border-border/50 p-6 shadow-card transition-all duration-500 hover:-translate-y-1 hover:border-clash-gold/30 hover:shadow-glow sm:p-8`}
             >
               <div className="mb-7 rounded-xl border border-border/50 bg-background/50 p-4">
                 <p.Chart />
               </div>
               <h3 className="text-2xl font-semibold text-foreground">{p.title}</h3>
-              <p className="mt-3 leading-relaxed text-muted-foreground">{p.body}</p>
+              <p className="mt-3 max-w-3xl leading-relaxed text-muted-foreground">{p.body}</p>
               {p.note && <p className="mt-3 text-sm leading-relaxed text-muted-foreground/80">{p.note}</p>}
 
               <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border/50 pt-5">
@@ -140,13 +188,23 @@ const SideProjectSection = () => {
               </dl>
 
               <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
-                <Link
-                  to={p.href}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
-                >
-                  {p.linkLabel}
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
+                {p.external ? (
+                  <a
+                    href={p.href}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
+                  >
+                    {p.linkLabel}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <Link
+                    to={p.href}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-clash-gold transition-colors hover:text-foreground"
+                  >
+                    {p.linkLabel}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                )}
                 {p.caseStudy && (
                   <Link
                     to={p.caseStudy.href}
