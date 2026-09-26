@@ -128,7 +128,7 @@ export default function Start({ today }: { today: string }) {
             </h1>
             <p className="start-sub">
               Dein BJJ-Training als RPG. Nach dem Training trägst du in einer halben Minute ein, was passiert ist. Im Training zählst du nur eine Sache mit, deine
-              Tagesquest. Daraus entstehen eine Sternkarte mit {TECHS.length} Techniken, ein Charakter mit Ausrüstung, eine Seekarte deiner Reise und dein Power Level.
+              Tagesquest. Daraus entstehen ein Zweig mit {TECHS.length} Techniken, ein Charakter mit Ausrüstung, eine Seekarte deiner Reise und dein Power Level.
             </p>
             <div className="start-actions">
               <button type="button" className="btn primary big" onClick={() => setStep("steckbrief")}>
@@ -157,18 +157,24 @@ export default function Start({ today }: { today: string }) {
   const preview = (
     <Avatar look={look} mode={mode} gear={gear} belt={belt} stripes={stripes} weightKg={kg ?? undefined} heightCm={cm ?? undefined} size={220} label={name ? `${name}, dein Charakter` : "Dein Charakter"} />
   );
+  // Each step opens like a chapter: its number written large in kanji beside the title.
   const head = (title: string) => (
-    <>
-      <div className="stepper-dots" aria-label={`Schritt ${idx + 1} von ${steps.length}`}>
-        {steps.map((s, i) => (
-          <i key={s} className={i < idx ? "done" : i === idx ? "on" : ""} />
-        ))}
-        <span>
-          Schritt {idx + 1} von {steps.length}
-        </span>
+    <header className="onb-head">
+      <span className="onb-k" aria-hidden="true">
+        {"一二三四五六七"[idx] ?? ""}
+      </span>
+      <div className="onb-t">
+        <div className="stepper-dots" aria-label={`Schritt ${idx + 1} von ${steps.length}`}>
+          {steps.map((s, i) => (
+            <i key={s} className={i < idx ? "done" : i === idx ? "on" : ""} />
+          ))}
+          <span>
+            Schritt {idx + 1} von {steps.length}
+          </span>
+        </div>
+        <h1 className="page-h">{title}</h1>
       </div>
-      <h1 className="page-h">{title}</h1>
-    </>
+    </header>
   );
 
   if (step === "steckbrief") {
@@ -200,7 +206,7 @@ export default function Start({ today }: { today: string }) {
         <div className="field">
           <span className="fl">Land oder Länder</span>
           <CountryPicker value={countries} onChange={setCountries} />
-          <small className="muted">Jedes Land wird ein Aufnäher für Gi und Rashguard. Das erste kommt auf die Schulter.</small>
+          <small className="muted">Jedes Land wird ein Aufnäher für Gi und Rashguard und bringt seine traditionelle Kopfbedeckung mit. Das erste kommt auf die Schulter.</small>
         </div>
         <div className="field">
           <span className="fl">Weitere Sportarten (optional)</span>

@@ -23,4 +23,6 @@ export const BELT = Object.fromEntries(BELTS.map((b) => [b.id, b])) as Record<Be
 
 export const longDate = (iso: string) =>
   new Date(iso + "T12:00:00").toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+/** Day, month and year, e.g. "3. April 2021". */
+export const dayDate = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
 export const shortDate = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("de-DE", { day: "numeric", month: "short" });

@@ -1,4 +1,4 @@
-import type { ArcData, Attire, Belt, Character, Competition, CrossSession, FlagDesign, Look, MatCount, Profile, QuestKind, Session, Slot } from "./core/types.ts";
+import type { ArcData, Attire, Belt, Character, Competition, CrossSession, FlagDesign, GymVisit, Look, MatCount, Profile, QuestKind, Session, Slot } from "./core/types.ts";
 import type { TrainingPlan } from "./core/schedule.ts";
 import { getCharacter } from "./character.ts";
 import { ITEMS } from "./core/items.ts";
@@ -84,6 +84,15 @@ export function deleteCompetition(id: string) {
   arcStore.set((d) => ({ ...d, competitions: (d.competitions ?? []).filter((x) => x.id !== id) }));
 }
 
+/** A gym visit entered by hand (the mat passport). */
+export function addVisit(v: GymVisit) {
+  arcStore.set((d) => ({ ...d, visits: [...(d.visits ?? []).filter((x) => x.id !== v.id), v] }));
+}
+
+export function deleteVisit(id: string) {
+  arcStore.set((d) => ({ ...d, visits: (d.visits ?? []).filter((x) => x.id !== id) }));
+}
+
 export function deleteSession(id: string) {
   arcStore.set((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== id) }));
 }
@@ -101,7 +110,7 @@ export function createProfile(
     profile: { ...p, startBelt: p.belt, startStripes: p.stripes, createdAt: today },
     onboarding: { date: today, known, claims },
     // Start gear and flags are not "new"; only what you find later is.
-    character: { ...getCharacter(emptyData()), look, mode, seen: [...ITEMS.filter((x) => x.src.t === "start").map((x) => x.id), ...(p.countries ?? []).map((c) => `flag:${c}`)] },
+    character: { ...getCharacter(emptyData()), look, mode, seen: [...ITEMS.filter((x) => x.src.t === "start").map((x) => x.id), ...(p.countries ?? []).flatMap((c) => [`flag:${c}`, `hat:${c}`])] },
   });
 }
 

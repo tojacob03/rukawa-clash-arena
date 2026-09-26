@@ -117,7 +117,7 @@ export const SEALS: { id: string; name: string; desc: string }[] = [
   { id: "flame12", name: "Flamme XII", desc: "Zwölf Wochen in Folge das Wochenziel erreicht." },
   { id: "boss", name: "Boss besiegt", desc: "Eine Position, in der du festhingst, halbiert." },
   { id: "strong", name: "Gegen den Strom", desc: "Drei Quest-Treffer in Trainings gegen stärkere Partner." },
-  { id: "map50", name: "Kartograf", desc: "50 Sterne im Training erreicht." },
+  { id: "map50", name: "Blühender Zweig", desc: "50 Knospen im Training geöffnet." },
   { id: "both", name: "Beide Welten", desc: "Je fünf Trainings im Gi und im No-Gi." },
   { id: "arena", name: "Arena", desc: "Das erste Turnier eingetragen." },
   { id: "podium", name: "Podest", desc: "Eine Medaille auf einem Turnier." },

@@ -1,17 +1,20 @@
 import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
-import { Building2, CalendarClock, Flame, HeartPulse, Plus, RefreshCw, ScanEye, Timer, Users } from "lucide-react";
+import { Blossom } from "../components/Blossom.tsx";
+import { Building2, CalendarClock, Flame, HeartPulse, RefreshCw, ScanEye, Timer, Users } from "lucide-react";
 import type { ArcData, ArcState, Attire, QuestOffer } from "../core/types.ts";
 import { TECH, sectorName } from "../core/techniques.ts";
 import { ARCS, LEVELS, QUEST, ROMAN, STUCK } from "../core/lore.ts";
 import { pickCards } from "../core/model.ts";
 import { longDate, shortDate } from "../format.ts";
 import { acceptQuest, markReroll, matStart, setTodayAttire, togglePause } from "../actions.ts";
-import { DAY_NAMES, addDays, nextTraining, weekdayOf } from "../core/schedule.ts";
+import { DAY_NAMES, addDays, nextTraining, occurrences, weekdayOf } from "../core/schedule.ts";
+import Hanko from "../components/Hanko.tsx";
 import type { Occurrence } from "../core/schedule.ts";
 import { getPlan, plannedAttire } from "../plan.ts";
 import { go } from "../store.ts";
+import { OPENINGS, isOpen, logged, stillClosed } from "../core/unlocks.ts";
 import { questTask } from "../questText.ts";
-import { KindBadge, SecTitle, Seg, Star } from "../components/ui.tsx";
+import { KindBadge, SecTitle, Seg } from "../components/ui.tsx";
 import { openScouter } from "../scan.ts";
 import SeaSerpent from "../components/SeaSerpent.tsx";
 import { useSocial } from "../cloud/social.ts";
@@ -25,7 +28,7 @@ const REASON: Record<QuestOffer["reason"], (st: ArcState, q: QuestOffer) => stri
   rust: (st, q) => `Rostet seit ${st.nodes[q.node].dAny} Tagen`,
   weak: (_st, q) => (TECH[q.node].sector === "fund" ? "Fundament festigen" : `Deine schwächste Achse: ${sectorName(TECH[q.node])}`),
   taught: () => "Diese Woche im Kurs gezeigt",
-  explore: () => "Ein neuer Stern am Rand deiner Karte",
+  explore: () => "Eine neue Knospe am Rand deines Zweigs",
   prove: (st, q) => `Beweise deine Einschätzung: Stufe ${st.nodes[q.node].claim}, ${LEVELS[st.nodes[q.node].claim]}`,
 };
 
@@ -45,95 +48,205 @@ export default function Today({ data, st, today }: { data: ArcData; st: ArcState
   return (
     <div className="page today">
       <div className="today-top">
-        <section className="arc-banner" aria-label="Aktueller Arc">
-          <p className="eyebrow">{longDate(today)}</p>
-          <h1 className="arc-title">
-            <span className="arc-no">Arc {ROMAN[st.arc.index % ROMAN.length]}</span>
-            {arcName}
-          </h1>
-          <div className="arc-weeks" aria-label={`Woche ${st.arc.week} von 8`}>
-            {Array.from({ length: 8 }, (_, i) => (
-              <i key={i} className={i < st.arc.week ? "on" : ""} />
-            ))}
-            <span>Woche {st.arc.week} von 8</span>
-          </div>
-        </section>
-
-        <section className="panel flame-card" aria-label="Wochenziel">
-          <div className={`flame-ico${st.weekNow >= st.weekGoal ? " lit" : ""}`} aria-hidden="true">
-            <Flame size={28} />
-          </div>
-          <div className="flame-main">
-            <p className="flame-num">
-              {st.streak} <small>{st.streak === 1 ? "Woche" : "Wochen"} Flamme</small>
-            </p>
-            <div className="pips" aria-label={`${st.weekNow} von ${st.weekGoal} BJJ-Trainings diese Woche`}>
-              {Array.from({ length: Math.max(st.weekGoal, st.weekNow) }, (_, i) => (
-                <i key={i} className={i < st.weekNow ? "on" : ""} />
-              ))}
-              <span>
-                {st.weekNow} von {st.weekGoal} BJJ-Trainings
-              </span>
-            </div>
-            {st.body.week || data.profile?.sports?.length ? (
-              <div className="pips" aria-label={`${st.body.week} Einheiten Nebensport diese Woche`}>
-                {Array.from({ length: Math.max(1, st.body.week) }, (_, i) => (
-                  <i key={i} className={`side${i < st.body.week ? " on" : ""}`} />
-                ))}
-                <span>
-                  {st.body.week} Nebensport, zählt nicht fürs Ziel
-                </span>
-              </div>
-            ) : null}
-          </div>
-          <button type="button" className={`chip${st.paused ? " on" : ""}`} aria-pressed={st.paused} onClick={() => togglePause(today)} title="Verletzt oder krank: Die Woche zählt dann nicht gegen deine Flamme.">
-            <HeartPulse size={15} aria-hidden="true" /> {st.paused ? "Heilungsmodus an" : "Heilungsmodus"}
-          </button>
-        </section>
+        <DaySpread today={today} st={st} arcName={arcName} />
+        <WeekBook data={data} st={st} today={today} />
       </div>
-
-      <NextTraining data={data} today={today} />
       <SocialStrip today={today} />
 
-      <SecTitle kanji="今日" eyebrow="Tagesquest" title="Zieh deine Karte">
-        Eine Karte nimmst du mit auf die Matte. Im Training zählst du nur sie mit, das macht die Quest zur Messung.
-      </SecTitle>
-
-      <div className="row wrap between">
-        <div className="row wrap">
-          <span className="fl">Heute trainiere ich</span>
+      <section className="quest-sec" aria-label="Tagesquest">
+        <SecTitle kanji="札" eyebrow="Tagesquest" title="Zieh deine Karte">
+          Eine Karte nimmst du mit auf die Matte. Im Training zählst du nur sie mit, das macht die Quest zur Messung.
+        </SecTitle>
+        <div className="quest-bar">
           <Seg value={attire} onChange={(v) => setTodayAttire(today, v)} label="Gi oder No-Gi" options={[{ v: "gi", label: "Gi" }, { v: "nogi", label: "No-Gi" }]} />
+          <button type="button" className="linkish reroll" disabled={rerolled} onClick={() => markReroll(today)}>
+            <RefreshCw size={15} aria-hidden="true" /> {rerolled ? "Heute schon neu gezogen" : "Neu ziehen, einmal am Tag"}
+          </button>
         </div>
-        <button type="button" className="btn small" disabled={rerolled} onClick={() => markReroll(today)}>
-          <RefreshCw size={15} aria-hidden="true" /> <span>{rerolled ? "Heute schon neu gezogen" : "Neu ziehen, einmal am Tag"}</span>
-        </button>
-      </div>
-
-      {extra ? (
-        <div className="quests single">
-          <QuestCard q={{ ...extra, P: 0, reason: "prog" }} st={st} today={today} accepted done={done} own />
-        </div>
-      ) : null}
-      <Hand cards={cards} taken={accepted?.node ?? null} done={done} st={st} today={today} />
-
-      <Boss st={st} />
-
-      <section className="plain-sec log-cta">
-        <div>
-          <p className="cta-line">{todays.length ? `Heute schon ${todays.length}× eingetragen.` : "Noch nichts eingetragen heute."}</p>
-          {last ? (
-            <p className="muted small">
-              Zuletzt am {shortDate(last.date)} im {last.attire === "gi" ? "Gi" : "No-Gi"} mit {last.rolls.length} Rolls
-              {last.quest ? `, Quest ${TECH[last.quest.node]?.name ?? ""}` : ""}.
-            </p>
-          ) : null}
-        </div>
-        <button type="button" className="btn primary big" onClick={() => go("log")}>
-          <Plus size={20} aria-hidden="true" />
-          <span>Training eintragen</span>
-        </button>
+        {extra ? (
+          <div className="quests single">
+            <QuestCard q={{ ...extra, P: 0, reason: "prog" }} st={st} today={today} accepted done={done} own />
+          </div>
+        ) : null}
+        <Hand cards={cards} taken={accepted?.node ?? null} done={done} st={st} today={today} />
       </section>
+
+      {isOpen(data, "boss") ? <Boss st={st} /> : null}
+      <Openings data={data} />
+
+      <p className="today-foot">
+        {todays.length ? `Heute schon ${todays.length}× eingetragen.` : "Heute noch nichts eingetragen."}
+        {last ? (
+          <>
+            {" "}
+            Zuletzt am {shortDate(last.date)} im {last.attire === "gi" ? "Gi" : "No-Gi"} mit {last.rolls.length} Rolls
+            {last.quest ? `, Quest ${TECH[last.quest.node]?.name ?? ""}` : ""}.
+          </>
+        ) : null}
+      </p>
     </div>
+  );
+}
+
+const DAY_KANJI = ["月", "火", "水", "木", "金", "土", "日"];
+
+/**
+ * For new players: the ways still to come, as the contents page of the
+ * book. The page number is the training that opens it; opened ones are
+ * written in gold and lead there. Gone once everything is open.
+ */
+function Openings({ data }: { data: ArcData }) {
+  if (!stillClosed(data).length) return null;
+  const n = logged(data);
+  const home: Record<string, () => void> = { sea: () => go("meer"), power: () => openScouter({ mode: "du" }), boss: () => document.querySelector(".boss-scene")?.scrollIntoView({ block: "center" }), hexagon: () => go("held") };
+  return (
+    <section className="openings" aria-label="Was sich als Nächstes öffnet">
+      <SecTitle kanji="次" eyebrow="Inhalt" title="Was sich als Nächstes öffnet">
+        Dein Heft wächst mit dir. Jedes Training schlägt eine Seite auf, die Zahl rechts ist das Training, mit dem sie sich öffnet.
+      </SecTitle>
+      <ol className="toc">
+        {OPENINGS.map((o) => {
+          const open = isOpen(data, o.id);
+          const next = !open && stillClosed(data)[0]?.id === o.id;
+          return (
+            <li key={o.id} className={open ? "open" : next ? "next" : ""}>
+              <span className="toc-k" aria-hidden="true">
+                {o.kanji}
+              </span>
+              <span className="toc-b">
+                {open ? (
+                  <button type="button" className="toc-n linkish" onClick={home[o.id]}>
+                    {o.name}
+                  </button>
+                ) : (
+                  <b className="toc-n">{o.name}</b>
+                )}
+                <small>{o.says}</small>
+              </span>
+              <span className="toc-dots" aria-hidden="true" />
+              <span className="toc-p">
+                {open ? <span className="sr-only">offen, seit Training </span> : <span className="sr-only">öffnet mit Training </span>}
+                {o.after}
+                {next && o.after - n === 1 ? <small> das nächste</small> : null}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
+/** The day, set like the first page of a chapter: the date large, the weekday written downwards. */
+function DaySpread({ today, st, arcName }: { today: string; st: ArcState; arcName: string }) {
+  const wd = weekdayOf(today);
+  const d = new Date(today + "T12:00:00");
+  return (
+    <section className="day-spread" aria-label={longDate(today)}>
+      <p className="ds-num" aria-hidden="true">
+        {d.getDate()}
+      </p>
+      <p className="ds-kanji" aria-hidden="true">
+        {DAY_KANJI[wd]}曜日
+      </p>
+      <div className="ds-meta">
+        <p className="ds-date">
+          {DAY_NAMES[wd]}, {d.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+        </p>
+        <h1 className="ds-arc">
+          <span className="arc-no">Arc {ROMAN[st.arc.index % ROMAN.length]}</span> {arcName}
+        </h1>
+        <div className="arc-weeks" aria-label={`Woche ${st.arc.week} von 8`}>
+          {Array.from({ length: 8 }, (_, i) => (
+            <i key={i} className={i < st.arc.week ? "on" : ""} />
+          ))}
+          <span>Woche {st.arc.week} von 8</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The week as a page of the dōjō training book: a column for each day, and
+ * the dōjō's date stamp on every day you trained (稽古 training, 試合
+ * competition, 鍛錬 conditioning). Planned trainings are pencilled in.
+ */
+function WeekBook({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
+  const monday = addDays(today, -weekdayOf(today));
+  const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const plan = getPlan(data);
+  const now = Date.now();
+  const planned = plan.slots.length ? occurrences(plan, now - 7 * 864e5, now + 8 * 864e5) : [];
+  const next: Occurrence | null = plan.slots.length ? nextTraining(plan, now) : null;
+  const soon = !!next && next.slot.sport === "bjj" && next.start - now < 90 * 60_000;
+  const reached = st.weekNow >= st.weekGoal;
+  return (
+    <section className={`week-book${st.paused ? " paused" : ""}`} aria-label="Diese Woche">
+      <header className="wb-head">
+        <p className="wb-goal">
+          <b>{st.weekNow}</b> von {st.weekGoal} Trainings diese Woche
+        </p>
+        <p className={`wb-flame${reached ? " lit" : ""}`} title="Wochen in Folge mit erreichtem Wochenziel">
+          <Flame size={16} aria-hidden="true" />
+          <b>{st.streak}</b> {st.streak === 1 ? "Woche" : "Wochen"} Flamme
+        </p>
+      </header>
+      <ol className="wb-days">
+        {days.map((iso, i) => {
+          const bjj = data.sessions.filter((x) => x.date === iso).length;
+          const comp = (data.competitions ?? []).some((c) => c.date === iso);
+          const cross = (data.cross ?? []).filter((c) => c.date === iso).length;
+          const plan = iso >= today ? planned.filter((o) => o.date === iso && o.slot.sport === "bjj") : [];
+          const kind = comp ? "試合" : bjj ? "稽古" : cross ? "鍛錬" : null;
+          const n = bjj + cross + (comp ? 1 : 0);
+          const said = [bjj ? `${bjj}× BJJ` : "", comp ? "Turnier" : "", cross ? `${cross}× Nebensport` : "", plan.length ? `geplant ${plan[0].slot.start}` : ""].filter(Boolean).join(", ");
+          return (
+            <li key={iso} className={`${iso === today ? "today" : ""}${iso > today ? " ahead" : ""}`} aria-label={`${DAY_NAMES[i]}${said ? `: ${said}` : ""}`}>
+              <span className="wd" aria-hidden="true">
+                {DAY_KANJI[i]}
+              </span>
+              <span className="dn" aria-hidden="true">
+                {Number(iso.slice(8))}
+              </span>
+              <span className="cell" aria-hidden="true">
+                {kind ? <Hanko kind={kind} date={iso} size={48} className={cross && !bjj && !comp ? "side" : undefined} /> : plan.length ? <span className="pencil">{plan[0].slot.start}</span> : null}
+                {n > 1 ? <span className="times">×{n}</span> : null}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      <footer className="wb-foot">
+        <p className="wb-next">
+          <CalendarClock size={16} aria-hidden="true" />
+          {!plan.slots.length ? (
+            <span>Noch kein Wochenplan. Mit Plan erinnert dich Waza Arc vor jedem Training an deine Quest.</span>
+          ) : next ? (
+            <span>
+              {next.start <= now ? "Läuft gerade" : `${dayWord(next.date, today)} um ${next.slot.start}`}: <b>{next.slot.label}</b>
+              {next.slot.place ? `, ${next.slot.place}` : ""}
+            </span>
+          ) : (
+            <span>In den nächsten sieben Tagen steht kein Training im Plan.</span>
+          )}
+        </p>
+        <div className="wb-acts">
+          {soon ? (
+            <button type="button" className="btn small" onClick={() => go("matte")}>
+              <Timer size={15} aria-hidden="true" /> <span>Auf die Matte</span>
+            </button>
+          ) : null}
+          <button type="button" className="linkish" onClick={() => go("plan")}>
+            {plan.slots.length ? "Wochenplan" : "Wochenplan anlegen"}
+          </button>
+          <button type="button" className={`linkish heal${st.paused ? " on" : ""}`} aria-pressed={st.paused} onClick={() => togglePause(today)} title="Verletzt oder krank: Die Woche zählt dann nicht gegen deine Flamme.">
+            <HeartPulse size={15} aria-hidden="true" /> {st.paused ? "Heilungsmodus an" : "Heilungsmodus"}
+          </button>
+        </div>
+        {st.body.week ? <p className="wb-side">{st.body.week} Einheiten Nebensport, sie zählen nicht fürs Wochenziel.</p> : null}
+      </footer>
+    </section>
   );
 }
 
@@ -223,7 +336,7 @@ function QuestCard({ q, st, today, accepted, done, own, onTake }: { q: QuestOffe
       <div className="qcard-top">
         <KindBadge kind={q.kind} />
         <span className="qsec">
-          <Star level={n.level} rust={n.rust} prov={n.prov} size={14} /> {sectorName(x)}
+          <Blossom level={n.level} rust={n.rust} prov={n.prov} size={14} /> {sectorName(x)}
         </span>
       </div>
       <h3>{x.name}</h3>
@@ -251,7 +364,7 @@ function QuestCard({ q, st, today, accepted, done, own, onTake }: { q: QuestOffe
         )}
       </div>
       <button type="button" className="linkish" onClick={() => go("karte", q.node)}>
-        Stern auf der Karte zeigen
+        Auf dem Zweig zeigen
       </button>
       {done ? (
         <span className="stamp" aria-label="Erfüllt">
@@ -318,94 +431,48 @@ function SocialStrip({ today }: { today: string }) {
   );
 }
 
-/** The next planned training, with the way onto the mat when it is close. */
-function NextTraining({ data, today }: { data: ArcData; today: string }) {
-  const plan = getPlan(data);
-  const now = Date.now();
-  const o: Occurrence | null = plan.slots.length ? nextTraining(plan, now) : null;
-  if (!plan.slots.length) {
-    return (
-      <section className="plan-strip" aria-label="Wochenplan">
-        <CalendarClock size={20} aria-hidden="true" />
-        <p>Trag ein, wann du trainierst. Dann erinnert dich Waza Arc vor jedem Training an deine Quest.</p>
-        <button type="button" className="btn small" onClick={() => go("plan")}>
-          Wochenplan anlegen
-        </button>
-      </section>
-    );
-  }
-  const soon = !!o && o.slot.sport === "bjj" && o.start - now < 90 * 60_000;
-  return (
-    <section className="plan-strip" aria-label="Nächstes Training">
-      <CalendarClock size={20} aria-hidden="true" />
-      <p>
-        {o ? (
-          <>
-            {o.start <= now ? "Läuft gerade" : `${dayWord(o.date, today)} um ${o.slot.start}`}: <b>{o.slot.label}</b>
-            {o.slot.place ? `, ${o.slot.place}` : ""}
-          </>
-        ) : (
-          "In den nächsten sieben Tagen steht kein Training im Plan."
-        )}
-      </p>
-      <div className="row wrap">
-        {soon ? (
-          <button type="button" className="btn small" onClick={() => go("matte")}>
-            <Timer size={15} aria-hidden="true" /> <span>Auf die Matte</span>
-          </button>
-        ) : null}
-        <button type="button" className="linkish" onClick={() => go("plan")}>
-          Wochenplan
-        </button>
-      </div>
-    </section>
-  );
-}
-
+/** The weekly boss as its own scene: the serpent large across a strip of sea, its name beside it. */
 function Boss({ st }: { st: ArcState }) {
   const b = st.boss;
   if (!b) {
     return (
-      <section className="panel boss calm" aria-label="Wochenboss">
-        <div>
+      <section className="boss-scene calm" aria-label="Wochenboss">
+        <div className="bs-text">
           <p className="eyebrow">Wochenboss</p>
-          <h3 className="boss-name">Ruhe im Dōjō</h3>
+          <h2 className="bs-name">Ruhe im Dōjō</h2>
+          <p className="bs-note">In den letzten 14 Tagen hast du nirgends festgehangen. Trag bei der Notiz ein, wo du feststeckst, dann taucht hier ein Boss auf.</p>
         </div>
-        <p className="muted">In den letzten 14 Tagen hast du nirgends festgehangen. Trag bei der Notiz ein, wo du feststeckst, dann erscheint hier ein Boss.</p>
       </section>
     );
   }
   const info = STUCK[b.key];
   const max = Math.max(b.hp, b.prev, 4);
   return (
-    <section className="panel boss" aria-label="Wochenboss">
-      <div className="boss-id">
+    <section className="boss-scene" aria-label="Wochenboss">
+      <div className="bs-text">
         <p className="eyebrow">Wochenboss</p>
-        <h3 className="boss-name">{info.boss}</h3>
-        <p className="boss-pos">{info.name}</p>
-      </div>
-      <div className="boss-hp">
-        <div className="hp-top">
-          <span>Lebenspunkte</span>
-          <span>
-            {b.hp} von {max}
-          </span>
-        </div>
-        <SeaSerpent hp={b.hp} max={max} height={84} label={`${info.boss}: ${b.hp} Buckel über Wasser, ${max - b.hp} schon untergetaucht`} />
-        <p className="small">
+        <h2 className="bs-name">{info.boss}</h2>
+        <p className="bs-pos">{info.name}</p>
+        <p className="bs-note">
           {b.hp}× hier festgehangen in 14 Tagen, davor {b.prev}×. Besiegt, wenn es in den nächsten 14 Tagen höchstens {Math.floor(b.hp / 2)}× passiert.
         </p>
-        <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "boss" })}>
-          <ScanEye size={14} aria-hidden="true" /> <span>Boss scannen</span>
-        </button>
-        <div className="chips">
+        <div className="bs-counter">
+          <span className="fl">Dagegen</span>
           {info.nodes.map((id) => (
-            <button key={id} type="button" className="chip" onClick={() => go("karte", id)}>
-              <Star level={st.nodes[id].level} rust={st.nodes[id].rust} size={14} />
-              {TECH[id].name}
+            <button key={id} type="button" className="linkish" onClick={() => go("karte", id)}>
+              <Blossom level={st.nodes[id].level} rust={st.nodes[id].rust} size={16} /> {TECH[id].name}
             </button>
           ))}
         </div>
+        <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "boss" })}>
+          <ScanEye size={14} aria-hidden="true" /> <span>Boss scannen</span>
+        </button>
+      </div>
+      <div className="bs-sea">
+        <SeaSerpent hp={b.hp} max={max} height={150} label={`${info.boss}: ${b.hp} Buckel über Wasser, ${max - b.hp} schon untergetaucht`} />
+        <p className="bs-hp">
+          <b>{b.hp}</b> von {max} Lebenspunkten
+        </p>
       </div>
     </section>
   );

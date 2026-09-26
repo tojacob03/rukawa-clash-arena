@@ -4,7 +4,7 @@ Eine BJJ-Fortschritts-App im Stil eines Anime-RPGs. Der Arbeitstitel war „Tata
 
 **Stand:** Die App läuft unter `/arc/` als eigener Einstiegspunkt im Portfolio (Code in `src/arc/`, Tests in `src/arc/core/model.test.ts`). Die Daten liegen im Browser (localStorage, Export und Import als JSON). Mit einem Konto werden sie im Supabase-Schema `arc` gesichert und zwischen Geräten abgeglichen (8.5). Was im Supabase-Dashboard noch einzuschalten ist, steht in [`KONTO-SETUP.md`](KONTO-SETUP.md).
 
-**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Sternkarte (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere, Nebensport (Kraftsport, Ringen und andere) und eine Seekarte deiner Reise. Die Oberfläche ist als Kintsugi gestaltet: schwarzer Lack, Tusche und Blattgold als „Urushi“, helles Papier als „Washi“ (Abschnitt 7.1).
+**Kurz:** Nach dem Training loggst du in gut einer halben Minute, was passiert ist. Im Training zählst du nur eine Sache mit, deine Tagesquest. Daraus rechnet die App deinen Fortschritt pro Technik aus, gewichtet nach Partnerstärke und Datenlage, und zeigt ihn als Zweig (Skilltree), Hexagon und Power Level. Dazu kommen ein frei gestaltbarer Charakter, Turniere, Nebensport (Kraftsport, Ringen und andere) und eine Seekarte deiner Reise. Die Oberfläche ist als Kintsugi gestaltet: schwarzer Lack, Tusche und Blattgold als „Urushi“, helles Papier als „Washi“ (Abschnitt 7.1).
 
 Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](prototyp.html).
 
@@ -15,8 +15,24 @@ Erster klickbarer Prototyp (noch unter dem alten Namen): [`prototyp.html`](proto
 1. **Die Quest ist das Messinstrument.** Im Training zählt man genau eine Sache mit: Versuche und Treffer der Tagesquest. Das kann man sich realistisch merken, es macht das Rollen bewusster (Deliberate Practice) und liefert saubere Daten pro Technik. Weil die Quests über Wochen durch den Baum rotieren, entsteht Abdeckung, ohne dass man alles loggen muss.
 2. **Aufwand und Können sind getrennte Währungen.** XP und Level messen Aufwand und sinken nie. Meisterung misst Können, braucht Belege aus Rolls und kann rosten. So belohnt die App das Dranbleiben, ohne das Können schönzurechnen.
 3. **Keine Anreize für Ego-Rolls.** Punkte gibt es für Konstanz, Quests und Reflexion, nicht für Siege. Subs gegen schwächere Partner zählen weniger, Taps gegen stärkere kaum.
-4. **Pausen werden nicht bestraft.** Wochenserie statt Tagesserie, Heilungsmodus bei Verletzung. Stufen fallen nicht durch Pausen, Sterne rosten nur.
+4. **Pausen werden nicht bestraft.** Wochenserie statt Tagesserie, Heilungsmodus bei Verletzung. Stufen fallen nicht durch Pausen, Techniken welken nur.
 5. **Unsicherheit wird ehrlich gezeigt.** Jede Quote ist eine Schätzung mit Untergrenze. 3 Treffer aus 3 Versuchen sind noch keine Meisterschaft.
+
+### 1.1 Fünf Wege, fünf Fragen
+
+Die Fortschritts-Systeme konkurrieren nicht: Jedes misst etwas, das die anderen nicht messen, beantwortet genau eine Frage, hat ein Zuhause in der App und sagt offen, ob es sinken kann. Die Festlegung steht als eine Quelle im Code (`src/arc/core/systems.ts`) und im Charakterbogen als Reihe „Fünf Wege, fünf Fragen“.
+
+| System | Zeichen | Frage | Was es bewegt | Kann es sinken? | Zuhause |
+|---|---|---|---|---|---|
+| Level (XP) | 稽 | Wie viel steckst du hinein? | Jedes Training, jede Quest, Notiz, Turnier | Nie. Einsatz bleibt Einsatz. | Goldnaht oben, Level-Siegel, Titel, Ausrüstung |
+| Power Level | 測 | Wie stark bist du gerade, verglichen mit anderen? | Rolls und Turnierkämpfe, nach Gürtel und Größe gewichtet (Elo) | Ja, mit den Ergebnissen | Oben rechts, Scouter |
+| Zweig | 技 | Was kannst du, und woran arbeitest du? | Versuche und Treffer pro Technik | Techniken welken nach 60 Tagen ohne Training; die Stufe fällt nicht | Karte, Zweig |
+| Hexagon | 型 | Wie kämpfst du, wo bist du stark und wo schwach? | Breite des Zweigs je Sektor und Form der letzten acht Wochen | Die Form folgt den letzten Rolls | Held, Übersicht |
+| Seekarte | 海 | Bleibst du dran, und mit wem? | Seemeilen aus jedem Training (auch Nebensport), schneller mit Rhythmus; Gürtel und Streifen als Häfen | Nie; in der Flaute langsamer | Karte, Seekarte, Crew |
+
+Abgrenzung der zwei Systeme, die beide mit Trainingsmenge wachsen: **XP belohnt, was du einträgst** (Quests, Rolls, Notizen, Wochenziel), **Seemeilen belohnen, dass du hingehst**, egal welcher Sport, und wie regelmäßig. Wer nur kurz „Training war“ einträgt, segelt gleich weit wie jemand mit zehn Roll-Karten, bekommt aber weniger XP. Umgekehrt bringt ein langer Eintrag keine zusätzliche Meile.
+
+Für Belohnungsmomente gilt dieselbe Reihenfolge: erst Einsatz (XP, Level), dann Können (Zweig, Hexagon), dann Stärke (Power Level), zuletzt die Reise (Seemeilen, Insel).
 
 ---
 
@@ -147,11 +163,11 @@ Stufen sind feste Schwellen, damit jeder Aufstieg erklärbar ist. Sie verwenden 
 Dazu kommen zwei Zustände:
 
 - **Vorläufig:** Stufe 2 nur durch das Onboarding erreicht, oder Stufe 3/4 aus der Selbsteinschätzung (4.8), die die Daten noch nicht bestätigt haben. Wird im Baum gestrichelt gezeigt.
-- **Rost:** Stufe ≥ 3 und seit 60 Tagen nicht trainiert (kein Kurs, kein Drill, keine Quest, keine Notiz). Der Stern verfärbt sich, die Meisterung sinkt über die Frische, die Stufe bleibt.
+- **Rost:** Stufe ≥ 3 und seit 60 Tagen nicht trainiert (kein Kurs, kein Drill, keine Quest, keine Notiz). Die Blüte welkt (rostbraun, die Blätter hängen), die Meisterung sinkt über die Frische, die Stufe bleibt.
 
 ### 4.5 Attribute (Hexagon)
 
-Sechs Achsen, identisch mit den sechs Sektoren der Sternkarte.
+Sechs Achsen, identisch mit den sechs Ästen des Zweigs.
 
 ```text
 Achse = 0,65 · Baum + 0,35 · Form            (nur Baum, wenn noch keine Form-Daten da sind)
@@ -215,18 +231,22 @@ Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand a
 
 ---
 
-## 5. Sternkarte (Skilltree)
+## 5. Zweig (Skilltree)
 
-- **Aufbau:** 193 Techniken auf fünf Ringen, benannt nach den klassischen Stufen der Überlieferung: Kiso (Fundament), Shoden, Chūden, Okuden, Hiden. Jeder Sektor ist in Zweige geteilt (Guard z. B. in Closed Guard, Offene Guard, Half Guard, Haken & Beine, Gi-Guards), die als eigene Arme der Sternkarte nach außen wachsen. Submission hat neben Armhebeln, Dreiecken, Kragenwürgern, Kopf-Arm-Würgern und Beinhebeln einen Zweig „Kurbeln & Kompression“ für Can Opener, Twister und Kosovo Cradle. Dazu kommen Nischen-Techniken wie Waki-gatame, Hiza-gatame, Locoplata, Kata-ha-jime, Brabo, Ninja und Buggy Choke, Suloev Stretch und Electric Chair. Wo ein Ring voll wird, stehen die Sterne abwechselnd innen und außen, auch über die Grenze zweier Zweige hinweg. Dazu sechs Sektoren: Guard, Submission, Kontrolle, Passing, Stand, Verteidigung. Die Sektoren sind so angeordnet, dass verwandte Bereiche nebeneinanderliegen (Guard neben Submission, Kontrolle neben Passing).
-- **Namen:** so, wie sie auf deutschen Matten gesagt werden (meist englisch oder portugiesisch). Deutsche Namen nur, wo sie dort wirklich fallen: Shrimp statt Hüftflucht, Breakfall statt Fallschule, Technical Stand-up statt Aufstehen in Base. Die deutschen Namen bleiben als „auch:“ suchbar. Japanische Begriffe stehen in Kodokan-Schreibweise mit Bindestrich, deutsche Judo-Namen nach dem Deutschen Judo-Bund (O-soto-gari = Große Außensichel). Andere Namen stehen als „auch:“ dabei und sind im Codex durchsuchbar. Benannte Techniken (Williams Guard, Tarikoplata, Baratoplata, Estima Lock, Imanari Roll) nennen ihren Namensgeber. Reine Gi-Techniken sind markiert. Beinhebel und riskante Techniken tragen einen Sicherheitshinweis.
-- **Kanten:** Voraussetzungs-Kanten innerhalb eines Sektors. Dazu Kombo-Kanten quer über Sektoren, z. B. Scissor Sweep → Mount → Armbar oder Snap Down → Rücken. Eine Kombo leuchtet auf, sobald beide Enden Stufe 3 haben.
-- **Zustände:** Die Größe, Füllung und das Leuchten eines Sterns zeigen die Stufe. Ein Fortschrittsring zeigt den Weg zur nächsten Stufe. Gold heißt Tokui-Waza, Rostfarbe heißt Rost, gestrichelt heißt vorläufig.
-- **Nebel:** Sterne ohne gesehenen Nachbarn sind nur Punkte ohne Namen. Die Karte deckt sich beim Lernen auf.
-- **Hexagon als Schatten:** Hinter der Karte liegt das Attribut-Hexagon, auf dieselben sechs Achsen ausgerichtet. Der Baum und der Charakterbogen sind damit visuell dasselbe Objekt.
+Der Skilltree ist ein Pflaumenzweig, mit Tusche auf eine Washi-Handrolle (Emakimono) gemalt. Der Pflaumenbaum blüht als erster im Jahr, noch im Schnee, und passt damit zu einer Kunst, in der man lange übt, bevor etwas aufgeht. Früher war es eine Sternkarte; die Daten und Regeln sind gleich geblieben, nur das Bild ist ein anderes.
+
+- **Aufbau:** Ein Stamm läuft von links über die Rolle. Aus ihm wachsen die sechs Sektoren als Äste, in der Reihenfolge eines Kampfes: Stand, Guard, Passing, Kontrolle, Submission, Verteidigung, abwechselnd nach oben und nach unten. Jeder Ast trägt für jeden Zweig des Sektors einen Trieb (Guard z. B. Closed Guard, Offene Guard, Half Guard, Haken & Beine, Gi-Guards; Submission u. a. „Kurbeln & Kompression“ für Can Opener, Twister und Kosovo Cradle). Die Techniken sitzen als Knospen am Trieb, Stufe für Stufe vom Ast nach außen: innen Kiso (Fundament), dann Shoden, Chūden, Okuden, außen Hiden. Die Fundament-Techniken sitzen direkt am Stamm. 193 Techniken, darunter Nischen wie Waki-gatame, Hiza-gatame, Locoplata, Kata-ha-jime, Brabo, Ninja und Buggy Choke, Suloev Stretch und Electric Chair.
+- **Layout:** fest und berechnet (`src/arc/core/branch.ts`): Äste im Zickzack wie ein gemalter Pflaumenzweig, Knospen mit Mindestabstand, Pinselstriche als Umrisse, die zur Spitze dünner werden. Kein Zufall pro Aufruf, kein Force-Layout: dieselbe Bibliothek ergibt immer denselben Zweig. Beschriftungen werden so gesetzt, dass sie weder einander noch Knospen oder Sektortafeln überdecken.
+- **Namen:** so, wie sie auf deutschen Matten gesagt werden (meist englisch oder portugiesisch). Deutsche Namen nur, wo sie dort wirklich fallen: Shrimp statt Hüftflucht, Breakfall statt Fallschule, Technical Stand-up statt Aufstehen in Base. Die deutschen Namen bleiben als „auch:“ suchbar. Japanische Begriffe stehen in Kodokan-Schreibweise mit Bindestrich, deutsche Judo-Namen nach dem Deutschen Judo-Bund (O-soto-gari = Große Außensichel). Benannte Techniken (Williams Guard, Tarikoplata, Baratoplata, Estima Lock, Imanari Roll) nennen ihren Namensgeber. Reine Gi-Techniken sind markiert. Beinhebel und riskante Techniken tragen einen Sicherheitshinweis.
+- **Fäden:** Voraussetzungen sind feine Goldfäden zwischen Knospen. Kombos quer über Sektoren (z. B. Scissor Sweep → Mount → Armbar, Snap Down → Rücken) sind rote gestrichelte Fäden; eine Kombo läuft, sobald beide Enden Stufe 3 haben.
+- **Zustände einer Knospe:** Nebel (graue Wolke, noch nicht entdeckt), Samenkorn (sichtbar, noch nie gemacht), geschlossene Knospe (gesehen), Knospe mit roter Spitze (gedrillt), halb offene Blüte (im Roll erprobt), rote Blüte (geschärft), Goldblüte mit Kintsugi-Naht (Tokui-Waza). Gestrichelt heißt vorläufig (Selbsteinschätzung vom Start), welk heißt 60 Tage nicht trainiert. Ein feiner Ring zeigt den Weg zur nächsten Stufe. Die Legende steht auf der Seite.
+- **Nebel:** Knospen ohne gesehenen Nachbarn liegen im Nebel, ohne Namen. Der Zweig deckt sich beim Lernen auf.
+- **Bedienung:** Die Rolle zieht man seitlich mit Schwung, Mausrad oder Pinch zoomen, ein Register mit den Kanji der sechs Sektoren springt zum Ast, eine Minikarte zeigt den Ausschnitt. Beim ersten Öffnen in einem Besuch wächst der Zweig einmal vom Stamm aus; mit reduzierter Bewegung ist er einfach da.
+- **Hexagon:** Die sechs Achsen des Hexagons sind die sechs Äste. Der Charakterbogen zeigt die Form des Zweigs als Hexagon.
 - **Onboarding-Kalibrierung:** Beim Start markiert man, was man kennt, was im Roll klappt und bis zu fünf Stärken (4.8). Selbsteinschätzungen sind vorläufig, bis die Daten sie bestätigen.
-- **Detailfeld pro Stern:** Stufe, Meisterung, Bedingungen für die nächste Stufe mit aktuellem Stand, Versuche roh und gewichtet, geglättete Quote, Untergrenze gegen die Basisquote, zuletzt live, Voraussetzungen, freigeschaltete Techniken und Kombos.
-- **Wachstum:** Die Bibliothek darf wachsen. Das Layout trägt bis zu vier Sterne pro Ring und Sektor im Kern und fünf in den äußeren Ringen. Darüber hinaus rücken die Sterne enger oder es kommt ein sechster Ring dazu.
-- **Filter:** Gi/No-Gi-Ansicht (Abschnitt 4.7), später nur Kombos und nur Rost.
+- **Detailfeld pro Technik:** Stufe, Meisterung, Bedingungen für die nächste Stufe mit aktuellem Stand, Versuche roh und gewichtet, geglättete Quote, Untergrenze gegen die Basisquote, zuletzt live, Voraussetzungen, freigeschaltete Techniken und Kombos.
+- **Wachstum:** Die Bibliothek darf wachsen; ein neuer Zweig eines Sektors wird ein neuer Trieb, neue Techniken neue Knospen. Die Rolle wird dafür länger, nicht voller.
+- **Filter:** Gi/No-Gi-Ansicht (Abschnitt 4.7), später nur Kombos und nur Welkes.
 - **Später:** eine Weltkarte der Positionen. Positionen sind Orte, Techniken die Wege dazwischen. Daraus entsteht eine Übergangsanalyse: Wo verlierst du Rolls?
 
 ---
@@ -237,7 +257,7 @@ Wer die App startet, hat meist schon trainiert. Der Einstieg holt diesen Stand a
 
 Vor dem Training zieht die App drei Karten, man nimmt eine. Einmal pro Tag darf man neu ziehen. Die Wahl stärkt die Autonomie, die Karten steuern die Datenerhebung dorthin, wo sie am meisten bringt.
 
-Priorität pro sichtbarem Stern:
+Priorität pro sichtbarer Knospe:
 
 ```text
 P =  1,2 · Fortschritt zur nächsten Stufe        (Stufe 2–4)
@@ -274,7 +294,7 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
 - **Rang** nach Level: Mattenneuling, Schüler des Dōjō, Wanderer der Matte, Techniksucher, Rollkrieger, Klingenschmied, Dōjō-Veteran, Legende der Matte.
 - **Titel** = beste Tokui-Waza als Beiname, z. B. Triangle → „Die Dreiecksfalle“, Knee Cut → „Die Knieklinge“.
 - **Gürtelprüfung** = Klassenwechsel-Event mit eigener Animation. Das Datum wird als Ground Truth gespeichert.
-- **Siegel** (17 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3 und 4, erste Tokui-Waza, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, 50 im Training erreichte Sterne (ohne die vom Start), je fünf Trainings in Gi und No-Gi, Arena (erstes Turnier), Podest (erste Medaille), Zweite Disziplin (zehn Einheiten Nebensport), Entdecker (drei Inseln der Seekarte vollständig erkundet).
+- **Siegel** (17 Stück): erstes Training, zehn Trainings, 100 Rolls, erste Technik auf Stufe 3 und 4, erste Tokui-Waza, erste aktive Kombo, Flamme IV und XII, Boss besiegt, drei Treffer gegen Stärkere, Blühender Zweig (50 im Training geöffnete Knospen, ohne die vom Start), je fünf Trainings in Gi und No-Gi, Arena (erstes Turnier), Podest (erste Medaille), Zweite Disziplin (zehn Einheiten Nebensport), Entdecker (drei Inseln der Seekarte vollständig erkundet).
 
 ### 6.5 Charakter und Ausrüstung
 
@@ -288,7 +308,9 @@ Acht-Wochen-Staffeln, gezählt ab dem ersten Tag: Arc I „Erwachen“, II „Er
   - Tattoo und Schmuck: 6 Arm-Tattoos (links, rechts, beide), Hals-Tattoo, Ohrringe. Tattoos sieht man im No-Gi mit kurzen Ärmeln oder Tanktop.
   Jede Option zeigt eine Vorschau des eigenen Kopfes. Ältere Speicherstände werden beim Laden übernommen.
 - **Plätze:** Gi, Oberteil und Unterteil (No-Gi), Kopf, Accessoire, Merkmal, Talisman, Aura und drei Aufnäher (Schulter, Brust, Bein).
-- **Items:** 108 feste Items plus Flaggen- und Tokui-Aufnäher, in vier Seltenheiten (gewöhnlich, selten, episch, legendär). No-Gi hat die größte Auswahl: 34 Oberteile (Rashguards lang und kurz, Shirts, Tanktops, 18 Muster von Ringel über Waben und Tarn bis Krake und Seekarte) und 22 Unterteile (Shorts, Spats, Shorts über Spats). Zum Start liegen 6 Oberteile und 4 Unterteile bereit. Quellen: Startausrüstung, Meilensteine (Level, Trainings, Rolls, Siegel, Arcs), Inseln der Seekarte (also Gürtel und Streifen), Turniere, Länder aus dem Steckbrief (Flaggen-Aufnäher), Tokui-Waza und Zufallsbeute nach dem Training.
+- **Items:** 108 feste Items plus Flaggen- und Tokui-Aufnäher, in vier Seltenheiten (gewöhnlich, selten, episch, legendär). No-Gi hat die größte Auswahl: 34 Oberteile (Rashguards lang und kurz, Shirts, Tanktops, 18 Muster von Ringel über Waben und Tarn bis Krake und Seekarte) und 22 Unterteile (Shorts, Spats, Shorts über Spats). Zum Start liegen 6 Oberteile und 4 Unterteile bereit. Quellen: Startausrüstung, Meilensteine (Level, Trainings, Rolls, Siegel, Arcs), Inseln der Seekarte (also Gürtel und Streifen), Turniere, Länder aus dem Steckbrief (Flaggen-Aufnäher und Kopfbedeckung), besuchte Gyms im Ausland (Kopfbedeckung), Tokui-Waza und Zufallsbeute nach dem Training.
+- **Traditionelle Kopfbedeckungen** (`core/headwear.ts`): eine pro Land, aus Volks- und Arbeitstracht, nie religiös. 92 Länder haben eine eigene (Sombrero, Papacha, Nón lá, Tarbusch, Chullo, Gat, Mongkol, Vinok, Lička kapa, Janjin Malgai …), in 36 Formen im Stil des Avatars gezeichnet; die übrigen bekommen ein Stirnband in den Farben ihrer Flagge. Die Kopfbedeckungen der eigenen Länder trägt man von Anfang an, jedes weitere Land gibt seine, sobald man dort als Gast trainiert hat.
+- **Mattenpass** (Held, eigener Reiter): ein Passblatt mit einem Einreisestempel pro Gym (Land, Datum des ersten Besuchs). Frühere Besuche trägt man dort nach (`visits` im Hauptdatensatz), Gasttrainings ab jetzt beim Eintragen („Als Gast in einem anderen Gym“, am Training gespeichert). Dasselbe Gym aus beiden Quellen ist ein Stempel. Der Pass schaltet nur Ausrüstung frei und zählt keine XP.
 - **Beute:** Das Inventar wird nicht gespeichert, sondern aus den Daten berechnet. Ob ein Training etwas abwirft, entscheidet ein Hash aus Datum und Position des Trainings am Tag: gleiche Daten, gleiche Beute, und Löschen und neu Speichern würfelt nicht neu. Chance 12 %, mehr bei Quest-Treffern (+13 %), erledigter Kata (+8 %) und Notiz (+4 %). Seltenheit: 3 % legendär, 12 % episch, 30 % selten, 55 % gewöhnlich. Duplikate bringen nichts, dadurch bleiben seltene Stücke selten.
 - **Talismane** geben nur XP für Einsatz, nie Meisterung, z. B. +10 XP pro Training, +50 % auf Kata-Quests oder +3 XP pro Roll-Karte. Der Bonus wird beim Speichern festgeschrieben, damit ein späterer Wechsel die Vergangenheit nicht umschreibt.
 - **Flaggen:** 125 Länder und Regionen (u. a. Iran, Palästina, Aserbaidschan, Albanien, Kosovo, Kurdistan, Dagestan, England, Schottland, Wales), alphabetisch mit Suche. Flaggen mit Wappen oder feinen Emblemen sind vereinfacht, wo es eine Zivilflagge gibt, wird sie verwendet.
@@ -314,7 +336,7 @@ Alle Zahlen kommen aus demselben Rechenkern wie der Rest der App (`src/arc/core/
 
 ### 6.9 Seekarte
 
-Die Reise als Seefahrt, als zweite Karte neben der Sternkarte. Der Aufbau der Welt ist an bekannte Piraten-Anime angelehnt (vier Meere, ein großer Seeweg quer über die Welt, ein Gebirgskamm, windstille Gürtel). Alle Namen, Inseln und Texte sind eigene, damit keine geschützten Namen oder Motive übernommen werden:
+Die Reise als Seefahrt, als zweite Karte neben dem Zweig. Der Aufbau der Welt ist an bekannte Piraten-Anime angelehnt (vier Meere, ein großer Seeweg quer über die Welt, ein Gebirgskamm, windstille Gürtel). Alle Namen, Inseln und Texte sind eigene, damit keine geschützten Namen oder Motive übernommen werden:
 
 - **Welt:** Der Scharlachkamm teilt die Welt von Nord nach Süd, die Große Strömung umrundet sie von West nach Ost. Wo sich beide kreuzen, liegt das Tor der vier Strömungen. Zu beiden Seiten der Strömung liegen die Kalmengürtel (der reale Begriff für die Windstillen am Äquator).
 - **Vier Heimatmeere:** Frostmeer, Morgenmeer, Abendmeer, Glutmeer. Man wählt eins im Steckbrief.
@@ -391,15 +413,16 @@ Die Gym-Seite aus 6.13 ist der erste Schritt. Darauf aufbauend:
 
 ## 7. Screens
 
-1. **Heute:** drei Quest-Karten, Wochenboss, Wochenziel, Knopf „Training loggen“.
-2. **Log-Flow:** Check-in, Roll-Karten als Kartenstapel zum Wischen, Quest-Zähler, optionale Notiz. Danach das Kapitelende (7.1) mit XP, Level, Stufenaufstiegen, Power-Level-Änderung und Beute. Ein Umschalter führt zur Turnier-Eingabe (6.7) und zum Nebensport (6.10).
-3. **Sternkarte:** zoombar, Sektor-Fokus, Detailfeld.
-4. **Charakter:** fünf Reiter. Übersicht (Figur, Scouter, Steckbrief-Daten, gewählte und erkannte Klasse, Hexagon, Power-Level-Verlauf, Siegel), Aussehen (Editor), Ausrüstung (Plätze, Inventar, gesperrte Items mit Freischalt-Bedingung), Turniere (Kampfrekord) und Steckbrief (Name, Länder, Geburtsjahr, Gewicht, Heimatmeer, Klasse).
-5. **Seekarte:** umschaltbar mit der Sternkarte, mit den Reitern Karte, Schiff und Logbuch (6.9).
-6. **Konto:** Anmelden mit allen eingeschalteten Wegen und Konto verwalten (8.5). Erreichbar über das Profil, den Startbildschirm und das Wolken-Symbol im Kopfbereich, sobald man angemeldet ist.
-7. **Arc und Rückblick:** Staffelziel, Monats- und Jahreskarte zum Teilen.
+**Rahmen:** Oben eine schmale Kopfzeile mit Level-Siegel, Rang und XP, Power Level (sobald offen), Flamme, Wolke und Profil; über der ganzen Breite läuft eine Goldnaht als XP-Balken. Navigiert wird mit vier Kanji: 今 Heute, 図 Karte, 書 Codex, 武 Held. Dazwischen, auf dem Handy in der Mitte der unteren Leiste und auf breiten Bildschirmen oben in der linken Leiste, steht der Hanko-Knopf 記 „Eintragen“. Seitenwechsel laufen als Tusche, die sich vom Tipp-Punkt aus über das Blatt zieht, mit Goldkante (WebGL, bei reduzierter Bewegung aus).
 
-Die App zeigt Heute, Log-Flow mit Live-Vorschau und Beute, Sternkarte, Codex und Charakter. Der Einstieg führt in fünf Schritten durch Steckbrief, Rang, Klasse, Aussehen und Technik-Stand.
+1. **Heute als Trainingsheft:** links das Datum groß wie die erste Seite eines Kapitels, Wochentag als Kanji senkrecht, Arc und Woche; rechts die Wochenseite mit sieben Tagen, in die jede Einheit als roter Hanko gestempelt wird (geplante Trainings stehen mit Bleistift). Darunter Crew und Gym (wenn vorhanden), die Hand mit den Quest-Karten, der Wochenboss als Seeschlange und, solange noch nicht alles offen ist, das Inhaltsverzeichnis „Was sich als Nächstes öffnet“ (7.2).
+2. **Eintragen als Heftseite:** Check-in (mit „Als Gast in einem anderen Gym“), Roll-Karten, Quest-Zähler, Notiz auf einem Washi-Blatt mit rotem Heftrand und Kanji-Schrittnummern (一 二 三 四); gespeichert wird mit dem Siegel (記, 試, 鍛). Umschalter zu Turnier (6.7) und Nebensport (6.10). Danach das Kapitelende (7.1).
+3. **Karte:** Zweig (5) und Seekarte (6.9) mit einem Umschalter. Die Seekarte ist ein randloser dunkler Raum mit Nebel in zwei Ebenen; auf breiten Bildschirmen schwebt die Inselkarte rechts darüber.
+4. **Codex:** Nachschlagewerk mit Daumenregister (ein Kanji je Kapitel mit Trefferzahl), Suche auch in anderen Namen, Stufenfilter als Wortreihe.
+5. **Held (Charakter):** sechs Reiter. Übersicht (Figur auf zwei Tatami in einem dunklen Dōjō-Raum, Steckbrief daneben wie ein Aushang, die Reihe „Fünf Wege, fünf Fragen“, Hexagon, Achsen, Power-Level-Verlauf, Körperwerte, Siegel als Stempel), Aussehen (Editor), Ausrüstung (Plätze als Liste, Items als Exponate auf Washi-Scheiben), Mattenpass (6.5), Turniere (Kampfrekord) und Steckbrief.
+6. **Profil, Plan, Konto:** Einstellungen als Register (Überschrift links, Eintrag rechts, Haarlinie dazwischen); der Wochenplan als Stundenplan mit Wochentags-Kanji; Konto mit Anmelde-Panel oder Kontoausweis (8.5).
+7. **Einstieg:** Deckblatt mit 技 und Goldnaht, dann sieben Schritte, jeder wie ein Kapitel mit seiner Nummer als Kanji (一 bis 七).
+8. **Arc und Rückblick (später):** Staffelziel, Monats- und Jahreskarte zum Teilen.
 
 ### 7.1 Gestaltung: Kintsugi
 
@@ -417,7 +440,7 @@ Die App soll sich wie ein hochwertiges Spiel anfühlen, nicht wie ein Dashboard.
 | Ai (Indigo) | `#8EA2D8` | `#33477F` | Daten: Gi-Linien, Stand-Quests |
 | Asagi | `#6CB8B0` | `#25706A` | Nebensport, Körperwerte, No-Gi, „erfüllt“ |
 
-Instrumente (Sternkarte, Seekarte, Scouter, das Startbild) sind in beiden Ausgaben schwarzer Lack: eine Lackschachtel auf Papier ist der stärkste Kontrast, den die Palette hat. Steckbriefe sind in beiden Ausgaben auf Washi gedruckt.
+Instrumente (Seekarte, Scouter, das Startbild, die Charakter-Bühne) sind in beiden Ausgaben schwarzer Lack: eine Lackschachtel auf Papier ist der stärkste Kontrast, den die Palette hat. Papierdinge sind in beiden Ausgaben Washi: der Zweig auf seiner Rolle, die Seite zum Eintragen, der Mattenpass, Steckbriefe.
 
 **Schrift:** Shippori Mincho B1 (600 und 800) für Überschriften, Zahlen und Kanji, Albert Sans (variabel, 400 bis 700) für Text und Bedienung. Beide selbst gehostet (SIL OFL), die Kanji als Teilmenge nur mit den Zeichen, die die App zeigt; keine Anfrage an Google.
 
@@ -428,25 +451,33 @@ Instrumente (Sternkarte, Seekarte, Scouter, das Startbild) sind in beiden Ausgab
 **Leitprinzipien:**
 
 1. **Ein mutiges Element pro Screen, der Rest ist ruhig.** Heute: die Quest-Karten als Lackkarten im Fächer. Log: das Kapitelende. Charakter: die Figur auf der Heldenbühne. Karte: die Karte selbst. Schiff: das Schiff mit Flagge. Konto: das Anmelde-Panel, angemeldet der Kontoausweis. Scouter: die Power-Level-Zahl in Gold. Das Heldenelement ist die eine Lackschachtel mit goldenem Rand und der Kintsugi-Naht in der Ecke, alles andere bleibt flach mit Haarlinie. Jeder Abschnitt beginnt mit seinem Kanji, senkrecht geschrieben neben einer goldenen Naht (今日, 記録, 書, 道 …).
-2. **Bewegung nur, wo sie etwas aus der Welt zeigt.** Jede Animation muss sich in einem Satz auf ein Stück Waza Arc zurückführen lassen (Gürtel, Techniken, die vier Meere, Sterne, Dōjō und Matte, das Waza-Vokabular); sonst fliegt sie raus. Keine Partikel, kein Konfetti, keine Glow-Ringe, keine schwebenden Formen, kein Hover-Gleiten. Alles läuft nur bei `prefers-reduced-motion: no-preference`; mit reduzierter Bewegung steht jede Seite still (per Browser-Test geprüft: null laufende Animationen). Was es gibt:
-   - **Kapitelende** nach Training, Turnier oder Nebensport, als eine Zeitleiste: Die XP zählen hoch, während der Balken sich mit ihnen füllt; bei einem Levelaufstieg läuft er voll, das Level-Abzeichen dreht sich auf die neue Stufe und der Balken fängt von vorn an. Auf dem Schlag, an dem die Zählung landet, kommt ein roter **Dōjō-Datumsstempel** herunter (稽古 Training, 試合 Turnier, 鍛錬 Nebensport, darunter 道場), weil im Dōjō jede Einheit ins Trainingsheft gestempelt wird, und das Papier gibt kurz nach. Dann die Zeilen der Reihe nach und die Beute, die sich umdreht. Überspringbar.
+2. **Bewegung nur, wo sie etwas aus der Welt zeigt.** Jede Animation muss sich in einem Satz auf ein Stück Waza Arc zurückführen lassen (Gürtel, Techniken, der Zweig, die vier Meere, Dōjō und Matte, Tusche und Papier, das Waza-Vokabular); sonst fliegt sie raus. Keine Partikel, kein Konfetti, keine Glow-Ringe, keine schwebenden Formen, kein Hover-Gleiten. Alles läuft nur bei `prefers-reduced-motion: no-preference`; mit reduzierter Bewegung steht jede Seite still (per Browser-Test geprüft: null laufende Animationen). Was es gibt:
+   - **Kapitelende** nach Training, Turnier oder Nebensport, als eine Zeitleiste: Die XP zählen hoch, während der Balken sich mit ihnen füllt; bei einem Levelaufstieg läuft er voll, das Level-Abzeichen dreht sich auf die neue Stufe und der Balken fängt von vorn an. Auf dem Schlag, an dem die Zählung landet, kommt ein roter **Dōjō-Datumsstempel** herunter (稽古 Training, 試合 Turnier, 鍛錬 Nebensport, darunter 道場), weil im Dōjō jede Einheit ins Trainingsheft gestempelt wird, und das Papier gibt kurz nach. Dann wird die Seite in der Reihenfolge der Wege (1.1) gelesen, jeder mit seinem Kanji am Rand: 稽 Einsatz (Wochenziel, Flamme, beim Turnier die Bilanz), 技 Können (Knospen, die aufgegangen sind, öffnen sich noch einmal), 測 Stärke (Power Level, der Hexagon-Sektor, der sich bewegt hat), 海 Reise (die Seemeilen zählen hoch, das Schiff segelt sein Stück der Etappe, eine neue Insel wird genannt), 章 Siegel, 新 was sich mit diesem Eintrag geöffnet hat (7.2). Hat sich ein Weg nicht bewegt, steht dort eine ruhige Zeile, damit die Reihenfolge immer dieselbe bleibt. Zuletzt die Beute, die sich umdreht. Überspringbar.
    - **Reise seit deinem letzten Blick** (Seekarte): Die App merkt sich pro Gerät und Konto, wo du dein Schiff zuletzt gesehen hast. Haben Trainings es seitdem weitergebracht, segelt es beim Öffnen der Karte von dort bis zu seiner jetzigen Stelle, vorbei an jeder Insel, die es dabei erreicht hat. Die Kamera folgt ihm, das Kielwasser zeichnet sich hinter dem Rumpf und schließt sich, sobald es liegt, die Seemeilen im Kopf zählen mit, und eine Logbuchzeile unter der Karte schreibt sich („Seit deinem letzten Blick auf die Karte: +24 Seemeilen“). Der Wochenboss taucht erst auf, wenn das Schiff ankommt, denn er wartet dort, wo du feststeckst. Beim ersten Blick legt das Schiff im Hafen der aktuellen Insel ab. Jede Berührung, das Mausrad oder eine Taste beendet die Fahrt sofort.
    - **Der Scouter misst** (Power Level): Das Fadenkreuz schließt sich um das Ziel, eine Abtastlinie im Zeilenmuster der Linse läuft darüber, und die Ziffern des Power Levels laufen und rasten von links nach rechts ein, wie eine Messung, die sich eingrenzt. Danach zeichnet sich der Verlauf der letzten 16 Wochen, die Balken füllen sich, beim Boss steigen seine Lebenspunkte einzeln auf. Ein anderer Gürtel beim Partner wird neu (und schneller) gemessen.
    - **Die Hand der Quest-Karten** (Heute): Die Tageskarten werden von einem Stapel in der Mitte ausgeteilt und fächern sich auf, einmal pro neuer Hand (am Tag und nach dem Neuziehen). Die Karte, die du annimmst, gleitet nach vorn in die Mitte des Fächers und steht auf; auf dem Handy legt sie sich oben auf den Stapel.
    - **Flagge im Wind** (Schiff-Reiter, Crew): Sie weht so kräftig wie der Wind, und Wind ist in Waza Arc der Trainingsrhythmus der letzten 14 Tage, bei der Crew die Crew-Woche. In der Flaute hängt sie am Mast.
    - **Schiff im Wetter** (Seekarte, Schiff-Reiter): Rollen, Dünung und Böen von achtern je nach Wetter; in der Flaute breiten sich nur Ringe auf glattem Wasser aus, in der Heilungswoche steht das Schiff im Trockendock auf Pallen und nichts bewegt sich.
    - **Wochenboss als Seeschlange** (Seekarte, Heute): Jeder Buckel über Wasser ist ein Mal, das du in 14 Tagen in seiner Position festgehangen hast, die untergetauchten sind die, die er schon verloren hat. Eine Welle läuft vom Kopf zum Schwanz.
-   - **Kombos laufen** (Sternkarte): Aktive Kombos sind Technik-Ketten; die Linie läuft in der Richtung, in der man die Kette im Roll ausführt.
-   - **Tokui-Waza funkelt** (Sternkarte): die höchste Stufe (Hiden) als hellster Stern mit Beugungsstrahlen, die unruhig funkeln wie echte Sterne, statt eines Rings.
+   - **Der Zweig wächst** (Karte): beim ersten Öffnen in einem Besuch zieht sich der Pinselstrich vom Stamm über die Äste in die Triebe, dann gehen die Knospen auf. Aktive Kombos laufen als roter Faden in der Richtung, in der man die Kette im Roll ausführt.
+   - **Überschriften werden geschrieben** (jede Seite): Das Kanji am Rand eines Abschnitts wird von oben nach unten gezogen, in seiner Schreibrichtung, dann steigen die Zeilen des Titels aus ihrer Grundlinie (GSAP SplitText). Einmal pro Titel, wenn er ins Bild kommt.
    - **Streifen als Tape** (Charakter, Gürtelprüfung): Streifen sind Tape, das der Coach um das schwarze Gürtelende wickelt; genau so kommen sie auf den Gürtel, einer nach dem anderen.
    - **Mattenmodus**: Ein Submission-Treffer zeigt das doppelte Abklopfen des Partners (und vibriert zweimal), Sweep, Takedown, Pass und Rücken zeigen die Punkte wie im Wettkampf (2, 2, 3, 4) und vibrieren so oft.
    - **Tusche und Naht** (jede Seite): Eine Seite läuft beim Öffnen einmal von oben herein wie Tusche, die sich auf dem Papier ausbreitet; das Kanji des Abschnitts schreibt sich von oben nach unten, und die goldene Naht daneben läuft mit. Auf dem Startbild schreibt sich 技 (Waza, die Technik), dann läuft die Goldnaht durch das Zeichen: die gebrochene und mit Gold gekittete Technik.
-   - Bedienung: Sternkarte und Seekarte fahren beim Fokussieren die Kamera hin, damit man die Orientierung behält; bei reduzierter Bewegung springen sie.
+   - Bedienung: Zweig und Seekarte fahren beim Fokussieren die Kamera hin, damit man die Orientierung behält; bei reduzierter Bewegung springen sie. Mit Maus und Trackpad scrollt die Seite weich wie ein schweres Blatt (Lenis); Touch bleibt nativ, Zweig, Seekarte und Dialoge scrollen selbst.
 
-   Technik: Dauerbewegung (Flagge, Schiff, Seeschlange, Sterne, Kombos) ist CSS in eigenen SVGs. Die vier inszenierten Szenen (Kapitelende, Reise, Scouter, Quest-Hand) laufen mit GSAP und den Plugins MotionPath, DrawSVG, Flip und CustomEase (seit Version 3.13 samt Plugins kostenlos unter der „Standard no charge“-Lizenz). GSAP liegt in eigenen Chunks, wird erst im Leerlauf nachgeladen und bei reduzierter Bewegung gar nicht: Dann zeigt jede Szene sofort ihren Endzustand (per Browser-Test geprüft: keine GSAP-Anfrage, null laufende Animationen). Szenen, die beim Öffnen einer Seite starten, spielen nur, wenn GSAP schon geladen ist, damit nie erst der Endzustand aufblitzt; das Kapitelende fällt sonst auf eine kürzere CSS-Fassung zurück.
+   Technik: Dauerbewegung (Flagge, Schiff, Seeschlange, Nebel, Kombos) ist CSS in eigenen SVGs. Die vier inszenierten Szenen (Kapitelende, Reise, Scouter, Quest-Hand) laufen mit GSAP und den Plugins MotionPath, DrawSVG, Flip und CustomEase (seit Version 3.13 samt Plugins kostenlos unter der „Standard no charge“-Lizenz), dazu SplitText für die Überschriften. Weiches Scrollen mit Lenis, nur mit Maus oder Trackpad. GSAP liegt in eigenen Chunks, wird erst im Leerlauf nachgeladen und bei reduzierter Bewegung gar nicht: Dann zeigt jede Szene sofort ihren Endzustand (per Browser-Test geprüft: keine GSAP-Anfrage, null laufende Animationen). Szenen, die beim Öffnen einer Seite starten, spielen nur, wenn GSAP schon geladen ist, damit nie erst der Endzustand aufblitzt; das Kapitelende fällt sonst auf eine kürzere CSS-Fassung zurück.
 3. **Text wie in einem Buch, nicht wie in einem Formular.** Keine Großbuchstaben-Überzeilen, keine Mittelpunkt-Reihen („A · B · C“), keine Monospace-Etiketten, keine Pfeile hinter Knöpfen. Überzeilen sind eine kurze Goldlinie mit ein paar Worten in normaler Schreibweise, Metadaten stehen als Satz. Auswahlen sind Wörter mit goldener Unterstreichung statt Kästchenleisten.
 
+**Flächen:** Keine Karten-Raster. Abschnitte sind Haarlinie, Überschrift und Luft, wie ein gedrucktes Register; die eine Lackfläche pro Seite ist das Heldenelement. Items stehen als Exponate auf Washi-Scheiben, Siegel sind Stempel, Ausrüstungsplätze eine Liste. Verläufe nur, wo sie etwas darstellen (Nebel, die Rollen der Handrolle, gefärbte Haarspitzen, Schatten unter Figuren); ein Leuchten nur mit einer ausgerüsteten Aura.
+
 **Grundqualität:** Kontrast mindestens 4,5 : 1 für Text in beiden Ausgaben (Gold als Text auf Washi nur im dunklen Textgold `#7D5A17`), sichtbarer Fokusrahmen, echte Knöpfe statt klickbarer Flächen, Umschalter als Radiogruppe, Chips mit `aria-pressed`, Dialoge mit Fokusfalle und Escape, Zielgrößen über dem WCAG-2.2-Minimum von 24 px (Hauptknöpfe 46 px), Layout ab 320 px Breite ohne waagrechtes Scrollen.
+
+### 7.2 Was sich wann öffnet
+
+Ein neuer Spieler beginnt mit dem Trainingsheft, der Tagesquest, dem Zweig und dem Codex. Die anderen Wege öffnen sich mit den Einträgen, jeweils in dem Moment, in dem sie etwas zu zeigen haben (`core/unlocks.ts`): die Seekarte mit dem ersten Eintrag (das Schiff legt ab), Power Level und Scouter mit dem zweiten (die erste Messung aus Rolls), der Wochenboss mit dem dritten, das Hexagon mit dem vierten. Gezählt werden Trainings, Turniere und Nebensport; die Demo zeigt alles.
+
+Bis dahin steht auf Heute ein Inhaltsverzeichnis: Kanji, Name, ein Satz, und als Seitenzahl das Training, mit dem sich der Weg öffnet. Geschlossene Wege sind sichtbar, aber ohne Nullen: Die Seekarte zeigt das Schiff vor Anker im Heimathafen, der Charakterbogen „Öffnet mit dem 2. Training“. Das Kapitelende sagt unter 新, was sich gerade geöffnet hat. Siegel zeigen die errungenen und die nächsten vier, der Rest auf Knopfdruck.
 
 ---
 
@@ -496,7 +527,7 @@ Sobald sich fremde Personen im Projekt anmelden können, haben sie die Rolle `au
 - **Stack:** React, TypeScript, Vite. Dauerbewegung ist CSS in eigenen SVGs; die vier inszenierten Szenen laufen mit GSAP (MotionPath, DrawSVG, Flip, CustomEase), nachgeladen im Leerlauf (`src/arc/motion.ts`, 7.1).
 - **Plattform:** mobile-first PWA, offline-fähig (lokal zuerst, Sync bei Netz, 8.5), später Web Push für die Erinnerung zum Kursende.
 - **Rechenkern:** `compute(history, asOf, filter?)` als reine Funktionen mit Unit-Tests für jede Formel und jede Stufenschwelle.
-- **Sternkarte:** SVG mit festem radialem Layout (Ring × Sektor), berechnet aus `techniques.ring` und der Reihenfolge im Sektor. Kein Force-Layout, damit die Karte stabil bleibt.
+- **Zweig:** SVG mit festem, berechnetem Layout (`core/branch.ts`): Stamm, sechs Äste, ein Trieb je Zweig eines Sektors, Knospen nach Stufe. Pinselstriche als geschlossene Umrisse, Wachstum über eine Maske. Kein Force-Layout, damit der Zweig stabil bleibt.
 
 ### 8.5 Konto und Sync
 
@@ -567,7 +598,7 @@ Daraus wird die Case Study: „Kann man BJJ-Fortschritt messen? Acht Wochen, zeh
 |---|---|---|
 | 0 Fundament | Erledigt: eigener Einstiegspunkt `/arc/`, App lokal-first, Rechte aufgeräumt (8.3), Schema `arc` angewendet, Anmeldung und Sync (8.5). Offen: Anmeldewege und Registrierung im Dashboard einschalten (`KONTO-SETUP.md`) | Die Architektur steht |
 | 1 Eigenversuch | Läuft ab sofort lokal: Log-Flow, alle 193 Techniken, Stufen und Meisterung, Tagesquest (ein Typ), Hexagon, XP. Nur du selbst | Du loggst 4 Wochen lang wirklich, erste echte Daten |
-| 2 Spielsysteme | Sternkarte mit Nebel und Kombos, Drei-Karten-Draft, Wochenboss, Klasse und Titel, Rückblick-Karte | Die App macht Spaß, nicht nur Sinn |
+| 2 Spielsysteme | Zweig mit Nebel und Kombos, Drei-Karten-Draft, Wochenboss, Klasse und Titel, Rückblick-Karte | Die App macht Spaß, nicht nur Sinn |
 | 3 Gym-Pilot | 5 bis 10 Leute, Kursplan vom Coach, Coach-Bewertung als Ground Truth | 8 Wochen Daten mehrerer Personen |
 | 4 Auswertung | Validierung (Abschnitt 10), Kalibrierung der Parameter, Case Study im Portfolio | Belegbare Modellgüte und eine Geschichte dazu |
 

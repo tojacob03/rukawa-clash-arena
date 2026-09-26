@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { useBrush } from "../useBrush.ts";
 import { Crosshair, Hammer, Repeat, Shield } from "lucide-react";
 import type { Belt as BeltId, QuestKind } from "../core/types.ts";
 import { LEVELS, QUEST } from "../core/lore.ts";
@@ -85,15 +87,18 @@ export function Stepper({
   );
 }
 
-export function SecTitle({ kanji, eyebrow, title, children }: { kanji: string; eyebrow: string; title: ReactNode; children?: ReactNode }) {
+/** A section title with its kanji in the margin; `h1` when it is the title of the page. */
+export function SecTitle({ kanji, eyebrow, title, children, h1 }: { kanji: string; eyebrow: string; title: ReactNode; children?: ReactNode; h1?: boolean }) {
+  const ref = useRef<HTMLElement>(null);
+  useBrush(ref);
   return (
-    <header className="sec-title">
+    <header className="sec-title" ref={ref}>
       <span className="wm" aria-hidden="true">
         {kanji}
       </span>
       <div className="sec-text">
         <p className="eyebrow">{eyebrow}</p>
-        <h2>{title}</h2>
+        {h1 ? <h1>{title}</h1> : <h2>{title}</h2>}
         {children ? <p className="lede">{children}</p> : null}
       </div>
     </header>
@@ -141,21 +146,9 @@ export function HeroKoma({ children, className, ai, label }: { children: ReactNo
 /** Two badges for a change of level, instead of an arrow. */
 export function LvlStep({ from, to, label }: { from: number; to: number; label: string }) {
   return (
-    <span className="lvl-step" aria-label={`${label} ${to}, vorher ${from}`}>
+    <span className="lvl-step" role="img" aria-label={`${label} ${to}, vorher ${from}`}>
       <span aria-hidden="true">{from}</span>
       <span aria-hidden="true">{to}</span>
     </span>
-  );
-}
-
-/** Tiny level glyph used in lists. */
-export function Star({ level, rust, prov, fog, size = 18 }: { level: number; rust?: boolean; prov?: boolean; fog?: boolean; size?: number }) {
-  const r = fog ? 3 : [6, 6.5, 7, 7.5, 8, 9][level];
-  return (
-    <svg className="star-ico" width={size} height={size} viewBox="-11 -11 22 22" aria-hidden="true">
-      <g className={`n l${level}${rust ? " rust" : ""}${prov ? " prov" : ""}${fog ? " fog" : ""}`}>
-        <circle className="n-core" r={r} />
-      </g>
-    </svg>
   );
 }

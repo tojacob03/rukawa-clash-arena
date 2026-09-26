@@ -101,6 +101,43 @@ function ridgePath(x: number, half: number) {
   return pts.join(" ");
 }
 
+/**
+ * Mist on the chart (a sumi-e sea is mostly what you cannot see): thick over
+ * the islands your route has not reached yet, thin over the home seas of
+ * others, and a few banks drifting over everything. Two layers, far and
+ * near, that move apart when you pull the chart.
+ */
+const MistBanks = memo(function MistBanks({ r, current, lap, layer }: { r: Island[]; current: number; lap: number; layer: "far" | "near" }) {
+  const puffs: { x: number; y: number; rx: number; ry: number; o: number; i: number }[] = [];
+  if (layer === "far") {
+    const onRoute = new Set(r.map((x) => x.id));
+    ISLANDS.forEach((is, k) => {
+      const idx = r.findIndex((x) => x.id === is.id);
+      const ahead = idx > current + 1 && !lap;
+      const other = !onRoute.has(is.id);
+      if (!ahead && !other) return;
+      const n = ahead ? 2 : 1;
+      for (let j = 0; j < n; j++) {
+        const a = hash(`${is.id}m${j}`) * Math.PI * 2;
+        puffs.push({ x: is.x + Math.cos(a) * 26, y: is.y + Math.sin(a) * 14, rx: 70 + 40 * hash(`${is.id}r${j}`), ry: 30 + 16 * hash(`${is.id}y${j}`), o: ahead ? 0.18 : 0.07, i: k + j });
+      }
+    });
+    for (let k = 0; k < 10; k++) puffs.push({ x: hash(`fx${k}`) * W, y: hash(`fy${k}`) * H, rx: 160 + 120 * hash(`fr${k}`), ry: 40 + 30 * hash(`fs${k}`), o: 0.05, i: k });
+  } else {
+    for (let k = 0; k < 6; k++) {
+      const edge = k % 2 ? H - 40 - 60 * hash(`ny${k}`) : 40 + 60 * hash(`ny${k}`);
+      puffs.push({ x: (k / 5) * W + 80 * hash(`nx${k}`), y: edge, rx: 220 + 120 * hash(`nr${k}`), ry: 60 + 30 * hash(`ns${k}`), o: 0.1, i: k });
+    }
+  }
+  return (
+    <>
+      {puffs.map((p, k) => (
+        <ellipse key={k} className="puff" cx={p.x.toFixed(0)} cy={p.y.toFixed(0)} rx={p.rx.toFixed(0)} ry={p.ry.toFixed(0)} fill="url(#sea-mist)" opacity={p.o} style={{ "--i": p.i } as CSSProperties} />
+      ))}
+    </>
+  );
+});
+
 const isleR = (is: Island) => (is.kind === "kap" ? 13 : is.kind ? 11 : 9 + 3 * hash(is.id));
 
 type Box = { x: number; y: number; w: number };
@@ -177,6 +214,7 @@ export default function SeaMap({
   voyage = null,
   onVoyage,
   note,
+  overlay = false,
 }: {
   marks: MapMarks;
   selected: string | null;
@@ -186,6 +224,8 @@ export default function SeaMap({
   onVoyage?: (e: VoyageEvent) => void;
   /** A line under the chart, such as the miles since your last look. */
   note?: ReactNode;
+  /** A card floats over the right side of the chart on wide screens: keep what you look at clear of it. */
+  overlay?: boolean;
 }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -194,6 +234,8 @@ export default function SeaMap({
   const flipRef = useRef<SVGGElement>(null);
   const serpentRef = useRef<SVGGElement>(null);
   const wakeRef = useRef<SVGGElement>(null);
+  const mistFar = useRef<SVGGElement>(null);
+  const mistNear = useRef<SVGGElement>(null);
   /** Ends a running voyage at once, when you take the helm (drag, zoom, keys). */
   const skipRef = useRef<(() => void) | null>(null);
   const onVoyageRef = useRef(onVoyage);
@@ -215,10 +257,19 @@ export default function SeaMap({
   const start = sailing ? { x: legs[0][0].x, y: legs[0][0].y, left: legs[0][1].x < legs[0][0].x } : pos;
 
   const maxW = () => Math.max(W, H / ar.current);
+  /** Map units hidden under the floating card, at view width w. */
+  const covered = useCallback(
+    (w: number) => {
+      if (!overlay || typeof window === "undefined" || !window.matchMedia?.("(min-width: 1000px)").matches) return 0;
+      const px = boxRef.current?.getBoundingClientRect().width ?? 1000;
+      return (346 / px) * w;
+    },
+    [overlay],
+  );
   const fit = (v: Box): Box => {
     const w = clampN(v.w, MIN_W, maxW());
     const h = w * ar.current;
-    const x = w >= W ? (W - w) / 2 : clampN(v.x, -PAD, W - w + PAD);
+    const x = w >= W ? (W - w) / 2 : clampN(v.x, -PAD, W - w + PAD + covered(w));
     const y = h >= H ? (H - h) / 2 : clampN(v.y, -PAD, H - h + PAD);
     return { x, y, w };
   };
@@ -234,6 +285,11 @@ export default function SeaMap({
     svg.setAttribute("viewBox", `${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${h.toFixed(1)}`);
     const ppu = (rect.width || 800) / v.w;
     const fs = clampN(12.5 / ppu, 6, 40);
+    // Parallax: the far mist lags behind the chart, the near mist runs ahead of it.
+    const dx = v.x + v.w / 2 - W / 2;
+    const dy = v.y + h / 2 - H / 2;
+    mistFar.current?.setAttribute("transform", `translate(${(dx * 0.07).toFixed(1)} ${(dy * 0.07).toFixed(1)})`);
+    mistNear.current?.setAttribute("transform", `translate(${(-dx * 0.14).toFixed(1)} ${(-dy * 0.14).toFixed(1)})`);
     svg.style.setProperty("--fs", `${fs.toFixed(2)}px`);
     const mini = miniRef.current;
     if (mini) {
@@ -293,8 +349,8 @@ export default function SeaMap({
   );
 
   const centerOn = useCallback(
-    (x: number, y: number, w = vb.current.w) => animateTo({ x: x - w / 2, y: y - (w * ar.current) / 2, w }),
-    [animateTo],
+    (x: number, y: number, w = vb.current.w) => animateTo({ x: x - w / 2 + covered(w) / 2, y: y - (w * ar.current) / 2, w }),
+    [animateTo, covered],
   );
   const toShip = useCallback(() => {
     const rect = boxRef.current?.getBoundingClientRect();
@@ -308,7 +364,7 @@ export default function SeaMap({
     const rect = boxRef.current?.getBoundingClientRect();
     if (rect && rect.width) ar.current = rect.height / rect.width;
     const w = clampN((rect?.width ?? 800) / 1.3, MIN_W, maxW());
-    vb.current = fit({ x: pos.x - w / 2, y: pos.y - (w * ar.current) / 2, w });
+    vb.current = fit({ x: pos.x - w / 2 + covered(w) / 2, y: pos.y - (w * ar.current) / 2, w });
     apply();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -700,7 +756,7 @@ export default function SeaMap({
   return (
     <div className="sea-chart">
       <div className="sea-view" ref={boxRef} tabIndex={0} role="group" aria-label="Seekarte. Ziehen verschiebt, Mausrad oder zwei Finger zoomen. Mit Pfeiltasten verschieben, Plus und Minus zoomen, S zeigt dein Schiff, 0 die ganze Welt." onKeyDown={onKey}>
-        <svg ref={svgRef} className="sea-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Seekarte deiner Reise">
+        <svg ref={svgRef} className="sea-map" viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Seekarte deiner Reise">
           <SeaBackground sea={marks.sea} />
 
           {/* Home sea routes */}
@@ -769,6 +825,11 @@ export default function SeaMap({
             );
           })}
 
+          {/* Mist over the waters ahead, and banks drifting over the whole sea */}
+          <g ref={mistFar} className="mist far" aria-hidden="true">
+            <MistBanks r={r} current={marks.current} lap={marks.lap} layer="far" />
+          </g>
+
           {/* Crew and friends */}
           {others.map((o, i) => {
             const p = fleet[i];
@@ -811,6 +872,9 @@ export default function SeaMap({
           </g>
 
           <CompassRose x={W - 70} y={H - 110} />
+          <g ref={mistNear} className="mist near" aria-hidden="true">
+            <MistBanks r={r} current={marks.current} lap={marks.lap} layer="near" />
+          </g>
 
           {/* All names, on top of everything else */}
           <g className="sea-labels">
@@ -940,6 +1004,11 @@ const SeaBackground = memo(function SeaBackground({ sea }: { sea: SeaId }) {
           <stop offset="0.5" stopColor="#111a1d" />
           <stop offset="1" stopColor="#0b1012" />
         </linearGradient>
+        <radialGradient id="sea-mist">
+          <stop offset="0" stopColor="#ede3d1" stopOpacity="1" />
+          <stop offset="0.55" stopColor="#ede3d1" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#ede3d1" stopOpacity="0" />
+        </radialGradient>
         <radialGradient id="sea-deep" cx="0.5" cy="0.5" r="0.75">
           <stop offset="0.55" stopColor="#000" stopOpacity="0" />
           <stop offset="1" stopColor="#000" stopOpacity="0.32" />

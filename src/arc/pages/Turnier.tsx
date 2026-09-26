@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import { Check, Gift, Minus, Plus, RotateCcw, ScanEye, Trophy } from "lucide-react";
+import { Gift, Minus, Plus, RotateCcw, ScanEye, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, CompMatch, Competition } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
 import { inventory, itemById } from "../core/items.ts";
 import { TECH } from "../core/techniques.ts";
 import { SEALS } from "../core/lore.ts";
 import type { ArcState as State } from "../core/types.ts";
-import { compXp, compute, diff } from "../core/model.ts";
+import { compute, diff } from "../core/model.ts";
 import type { Diff } from "../core/model.ts";
 import { BELTS, nf0, signed } from "../format.ts";
 import { deleteCompetition, rememberWeightClass, saveCompetition } from "../actions.ts";
@@ -14,7 +14,11 @@ import { go, uid } from "../store.ts";
 import { useGear } from "../useGear.ts";
 import { openScouter } from "../scan.ts";
 import ChapterEnd from "../components/ChapterEnd.tsx";
-import { compRows } from "../chapterRows.tsx";
+import type { SeaStep } from "../core/reward.ts";
+import { seaFor } from "../reward.ts";
+import { newlyOpen, stillClosed } from "../core/unlocks.ts";
+import type { Feature, Opening } from "../core/unlocks.ts";
+import { compWays } from "../chapterRows.tsx";
 import { LvlStep, SecTitle, Seg } from "../components/ui.tsx";
 import { METHODS, ORGS, PLACE_NAME, RESULTS, SUBS, WEIGHTS } from "../compText.ts";
 
@@ -46,7 +50,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
   const own = data.profile?.belt ?? "weiss";
   const lastAttire = [...data.sessions].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.attire ?? "gi";
   const [draft, setDraft] = useState<Draft>({ name: "", date: today, org: "", attire: lastAttire, weight: "", place: 0, matches: [{ result: "win", method: "points", oppBelt: own }] });
-  const [result, setResult] = useState<{ c: Competition; D: Diff; loot: ItemDef[]; before: State; after: State } | null>(null);
+  const [result, setResult] = useState<{ c: Competition; D: Diff; loot: ItemDef[]; before: State; after: State; sea: SeaStep; opened: Opening[]; closed: Feature[] } | null>(null);
   const [customW, setCustomW] = useState("");
   const knownW = [...WEIGHTS, ...(data.profile?.weightClasses ?? []).filter((w) => !WEIGHTS.includes(w))];
   const { owned } = useGear(data, st);
@@ -73,7 +77,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
       .filter((x): x is ItemDef => !!x);
     saveCompetition(c);
     if (c.weight && !WEIGHTS.includes(c.weight)) rememberWeightClass(c.weight);
-    setResult({ c, D, loot, before, after });
+    setResult({ c, D, loot, before, after, sea: seaFor(data, next, asOf, c.date, "comp"), opened: newlyOpen(data, next), closed: stillClosed(next).map((o) => o.id) });
     window.scrollTo({ top: 0 });
   };
 
@@ -85,7 +89,10 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
         title="Turnier eingetragen"
         before={result.before}
         after={result.after}
-        rows={compRows(result.c, result.D, result.after)}
+        ways={compWays(result.c, result.D, result.after)}
+        sea={result.sea}
+        opened={result.opened}
+        closed={result.closed}
         loot={result.loot}
         belt={own}
         actions={
@@ -116,13 +123,13 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
   return (
     <div className="page log">
-      <SecTitle kanji="試合" eyebrow="Wettkampf" title="Turnier eintragen">
+      <SecTitle h1 kanji="試合" eyebrow="Wettkampf" title="Turnier eintragen">
         Ein Turnier zählt doppelt: jeder Kampf bewegt dein Power Level stärker als ein Roll, Aufgabe-Siege gelten als harter Beleg für die Technik.
       </SecTitle>
       <LogSwitch value="turnier" />
       <div className="log-grid">
         <form
-          className="log-form"
+          className="log-form washi-sheet"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -130,7 +137,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
         >
           <fieldset className="step">
             <legend>
-              <b>1</b> Turnier
+              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Turnier
             </legend>
             <label className="field">
               <span className="fl">Name</span>
@@ -186,7 +193,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
           <fieldset className="step">
             <legend>
-              <b>2</b> Kämpfe <small>{draft.matches.length}</small>
+              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Kämpfe <small>{draft.matches.length}</small>
             </legend>
             <div className="rolls">
               {draft.matches.map((m, i) => (
@@ -257,7 +264,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
           <fieldset className="step quest-step">
             <legend>
-              <b>3</b> Platzierung
+              <b aria-hidden="true">三</b> <span className="sr-only">3.</span> Platzierung
             </legend>
             <div className="podium" role="radiogroup" aria-label="Platzierung">
               {[2, 1, 3].map((p) => (
@@ -274,11 +281,13 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
           <div className="savebar">
             <span className="eta">
-              <b>+{nf0.format(compXp(preview.c))} XP</b>
-              <small>fürs Antreten, jeden Kampf und die Platzierung</small>
+              <b>+{nf0.format(preview.D.xp)} XP</b>
+              <small>fürs Antreten, jeden Kampf, die Platzierung und was deine Techniken dabei beweisen</small>
             </span>
-            <button type="submit" className="btn primary big">
-              <Check size={18} aria-hidden="true" />
+            <button type="submit" className="btn primary big seal-btn">
+              <span className="seal" aria-hidden="true">
+                試
+              </span>
               <span>Turnier speichern</span>
             </button>
           </div>

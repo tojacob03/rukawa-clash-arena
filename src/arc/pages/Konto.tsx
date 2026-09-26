@@ -43,7 +43,7 @@ export default function Konto({ data }: { data: ArcData }) {
   if (!c.configured) {
     return (
       <div className="page konto">
-        <SecTitle kanji="鍵" eyebrow="Konto" title="Konten sind hier noch nicht eingerichtet" />
+        <SecTitle h1 kanji="鍵" eyebrow="Konto" title="Konten sind hier noch nicht eingerichtet" />
         <p className="lede">Diese Version läuft ohne Server. Deine Daten bleiben in diesem Browser; mit dem Export im Profil nimmst du sie mit.</p>
       </div>
     );
@@ -51,7 +51,7 @@ export default function Konto({ data }: { data: ArcData }) {
   if (loadErr) {
     return (
       <div className="page konto">
-        <SecTitle kanji="鍵" eyebrow="Konto" title="Konto gerade nicht erreichbar" />
+        <SecTitle h1 kanji="鍵" eyebrow="Konto" title="Konto gerade nicht erreichbar" />
         <p className="lede">{loadErr}</p>
         <button type="button" className="btn" onClick={() => window.location.reload()}>
           <RefreshCw size={16} aria-hidden="true" /> <span>Neu laden</span>
@@ -62,7 +62,7 @@ export default function Konto({ data }: { data: ArcData }) {
   if (!eng || c.status === "loading" || c.status === "off") {
     return (
       <div className="page konto">
-        <SecTitle kanji="鍵" eyebrow="Konto" title="Einen Moment" />
+        <SecTitle h1 kanji="鍵" eyebrow="Konto" title="Einen Moment" />
         <p className="lede" role="status">
           Konto wird geladen.
         </p>
@@ -456,7 +456,7 @@ function SignIn({ eng, notice }: { eng: Engine; notice: string | null }) {
 
   return (
     <div className="page konto">
-      <SecTitle kanji="鍵" eyebrow="Konto" title="Sichere deinen Fortschritt">
+      <SecTitle h1 kanji="鍵" eyebrow="Konto" title="Sichere deinen Fortschritt">
         Ohne Konto bleibt alles in diesem Browser. Mit Konto ist dein Fortschritt gesichert und auf jedem Gerät derselbe, auch wenn du offline loggst.
       </SecTitle>
       <div className="konto-grid">
@@ -531,7 +531,7 @@ function Account({ eng, c, data }: { eng: Engine; c: CloudState; data: ArcData }
 
   return (
     <div className="page konto">
-      <SecTitle kanji="鍵" eyebrow="Konto" title="Dein Konto" />
+      <SecTitle h1 kanji="鍵" eyebrow="Konto" title="Dein Konto" />
       <HeroKoma label="Kontoausweis" className="id-koma">
         <div className="id-card">
           <div className="id-main">

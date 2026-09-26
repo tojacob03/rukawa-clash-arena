@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Gift, Map as MapIcon, Minus, Plus, RotateCcw, ScanEye } from "lucide-react";
+import { Gift, Map as MapIcon, Minus, Plus, RotateCcw, ScanEye } from "lucide-react";
 import type { ReactNode } from "react";
 import type { ArcData, ArcState, Attire, Belt as BeltId, Control, Format, QuestKind, Roll, Session, Size } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
@@ -15,10 +15,17 @@ import { useGear } from "../useGear.ts";
 import { questTask, successLabel } from "../questText.ts";
 import { KindBadge, LvlStep, SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import ChapterEnd from "../components/ChapterEnd.tsx";
-import { trainingRows } from "../chapterRows.tsx";
+import type { SeaStep } from "../core/reward.ts";
+import { seaFor } from "../reward.ts";
+import { newlyOpen, stillClosed } from "../core/unlocks.ts";
+import type { Feature, Opening } from "../core/unlocks.ts";
+import { trainingWays } from "../chapterRows.tsx";
 import { LogSwitch } from "./Turnier.tsx";
 import { openScouter } from "../scan.ts";
 import { plannedAttire } from "../plan.ts";
+import { cleanGuest, knownGyms } from "../core/visits.ts";
+import { isOpen } from "../core/unlocks.ts";
+import { COUNTRIES } from "../core/countries.ts";
 
 interface Draft {
   format: Format;
@@ -28,6 +35,8 @@ interface Draft {
   quest: { node: string; kind: QuestKind; xp: number; att: number; succ: number; done: boolean } | null;
   worked: string;
   stuck: string;
+  /** Trained as a guest in another gym; null at home. */
+  guest: { gym: string; country: string } | null;
 }
 
 const SIZES: { v: Size; label: string }[] = [
@@ -62,6 +71,7 @@ function initialDraft(data: ArcData, st: ArcState, today: string): Draft {
     quest: top ? { node: top.node, kind: top.kind, xp: top.xp, ...counted } : null,
     worked: "",
     stuck: "",
+    guest: null,
   };
 }
 
@@ -77,6 +87,7 @@ function toSession(d: Draft, today: string, id: string): Session {
     worked: d.worked || null,
     stuck: d.stuck || null,
     createdAt: Date.now(),
+    ...(cleanGuest(d.guest) ? { guest: cleanGuest(d.guest)! } : {}),
   };
 }
 
@@ -88,7 +99,7 @@ function withBonus(s: Session, talisman: ItemDef | undefined): Session {
 
 export default function Log({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const [draft, setDraft] = useState<Draft>(() => initialDraft(data, st, today));
-  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[]; after: ArcState; before: ArcState } | null>(null);
+  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[]; after: ArcState; before: ArcState; sea: SeaStep; opened: Opening[]; closed: Feature[] } | null>(null);
   const { gear, owned } = useGear(data, st);
   const belt = data.profile?.belt ?? "weiss";
   const talisman = gear.talisman;
@@ -116,7 +127,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
       .map((id) => itemById(id, next, after))
       .filter((x): x is ItemDef => !!x);
     saveSession(s);
-    setResult({ s, D, loot, after, before: st });
+    setResult({ s, D, loot, after, before: st, sea: seaFor(data, next, today, s.date, "session"), opened: newlyOpen(data, next), closed: stillClosed(next).map((o) => o.id) });
     window.scrollTo({ top: 0 });
   };
 
@@ -128,14 +139,17 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
         title="Training eingetragen"
         before={result.before}
         after={result.after}
-        rows={trainingRows(result.D, result.after)}
+        ways={trainingWays(result.D, result.after)}
+        sea={result.sea}
+        opened={result.opened}
+        closed={result.closed}
         loot={result.loot}
         belt={belt}
         actions={
           <>
             <button type="button" className="btn primary" onClick={() => go("karte", result.D.levels[0]?.id ?? result.D.mastery[0]?.id)}>
               <MapIcon size={18} aria-hidden="true" />
-              <span>Auf der Sternkarte ansehen</span>
+              <span>Auf dem Zweig ansehen</span>
             </button>
             {result.loot.length ? (
               <button type="button" className="btn" onClick={() => go("held", "ausruestung")}>
@@ -163,13 +177,13 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
   return (
     <div className="page log">
-      <SecTitle kanji="記録" eyebrow="Nach dem Training" title="Training eintragen">
+      <SecTitle h1 kanji="記録" eyebrow="Nach dem Training" title="Training eintragen">
         Standardwerte sind vorausgefüllt, du tippst nur, was abweicht. Die Vorschau zeigt live, was das Training bewegt.
       </SecTitle>
       <LogSwitch value="training" />
       <div className="log-grid">
         <form
-          className="log-form"
+          className="log-form washi-sheet"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -177,7 +191,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
         >
           <fieldset className="step">
             <legend>
-              <b>1</b> Check-in <small>1 Tipp</small>
+              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Check-in <small>1 Tipp</small>
             </legend>
             <div className="row wrap">
               <Seg label="Trainingsart" value={draft.format} onChange={(v) => set({ format: v })} options={[{ v: "class", label: "Kurs" }, { v: "open", label: "Open Mat" }]} />
@@ -187,11 +201,12 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
               <span className="fl">Heute im Kurs gezeigt (optional)</span>
               <TechSelect id="arc-taught" value={draft.taught} onChange={(v) => set({ taught: v })} empty="nichts Neues" attire={draft.attire} />
             </label>
+            <GuestField data={data} value={draft.guest} onChange={(guest) => set({ guest })} />
           </fieldset>
 
           <fieldset className="step">
             <legend>
-              <b>2</b> Roll-Karten <small>≈ 4 s pro Roll</small>
+              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Roll-Karten <small>≈ 4 s pro Roll</small>
             </legend>
             <p className="note-line">Gürtel und Größe des Partners, Subs in beide Richtungen, wer den Roll kontrolliert hat.</p>
             <div className="rolls">
@@ -232,9 +247,11 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
                     <span className="fl">Kontrolle</span>
                     <Seg label={`Kontrolle Roll ${i + 1}`} value={r.c} onChange={(v) => setRoll(i, { c: v })} options={CTRL} />
                   </div>
-                  <button type="button" className="btn small scan roll-scan" onClick={() => openScouter({ mode: "partner", belt: r.belt, size: r.size, attire: draft.attire })}>
-                    <ScanEye size={14} aria-hidden="true" /> <span>Partner scannen</span>
-                  </button>
+                  {isOpen(data, "power") ? (
+                    <button type="button" className="btn small scan roll-scan" onClick={() => openScouter({ mode: "partner", belt: r.belt, size: r.size, attire: draft.attire })}>
+                      <ScanEye size={14} aria-hidden="true" /> <span>Partner scannen</span>
+                    </button>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -250,7 +267,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <fieldset className="step quest-step">
             <legend>
-              <b>3</b> Quest-Zähler <small>im Training mitgezählt</small>
+              <b aria-hidden="true">三</b> <span className="sr-only">3.</span> Quest-Zähler <small>im Training mitgezählt</small>
             </legend>
             {draft.quest ? (
               <>
@@ -312,7 +329,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <fieldset className="step">
             <legend>
-              <b>4</b> Notiz <small>optional, +15 XP</small>
+              <b aria-hidden="true">四</b> <span className="sr-only">4.</span> Notiz <small>optional, +15 XP</small>
             </legend>
             <label className="field">
               <span className="fl">Hat funktioniert</span>
@@ -339,8 +356,10 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
                 </small>
               ) : null}
             </span>
-            <button type="submit" className="btn primary big">
-              <Check size={18} aria-hidden="true" />
+            <button type="submit" className="btn primary big seal-btn">
+              <span className="seal" aria-hidden="true">
+                記
+              </span>
               <span>Training speichern</span>
             </button>
           </div>
@@ -453,4 +472,49 @@ function ResultPanel({ s, D }: { s: Session; D: Diff }) {
 
 function Delta({ up, children }: { up: boolean; children: ReactNode }) {
   return <li className={up ? "up" : "down"}>{children}</li>;
+}
+
+/** "Als Gast in einem anderen Gym": the gym goes into the mat passport, its country's headwear into the inventory. */
+function GuestField({ data, value, onChange }: { data: ArcData; value: Draft["guest"]; onChange: (v: Draft["guest"]) => void }) {
+  const known = useMemo(() => knownGyms(data), [data]);
+  const pick = (gym: string) => {
+    const k = known.find((g) => g.gym.toLowerCase() === gym.trim().toLowerCase());
+    onChange({ gym, country: k ? k.country : value?.country ?? "" });
+  };
+  return (
+    <div className="guest">
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={!!value}
+          onChange={(e) => onChange(e.target.checked ? (known[0] ? { gym: known[0].gym, country: known[0].country } : { gym: "", country: "" }) : null)}
+        />{" "}
+        Als Gast in einem anderen Gym
+      </label>
+      {value ? (
+        <div className="row wrap">
+          <label className="field grow">
+            <span className="fl">Gym</span>
+            <input id="arc-guest-gym" value={value.gym} maxLength={60} list="arc-guest-gyms" autoComplete="off" onChange={(e) => pick(e.target.value)} />
+            <datalist id="arc-guest-gyms">
+              {known.map((g) => (
+                <option key={`${g.country}${g.gym}`} value={g.gym} />
+              ))}
+            </datalist>
+          </label>
+          <label className="field grow">
+            <span className="fl">Land</span>
+            <select id="arc-guest-country" value={value.country} onChange={(e) => onChange({ ...value, country: e.target.value })}>
+              <option value="">Land wählen</option>
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : null}
+    </div>
+  );
 }

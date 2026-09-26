@@ -1,8 +1,12 @@
 import { SECTORS } from "../core/techniques.ts";
-import { polar, sectorAngle } from "../core/layout.ts";
+import type { SectorId } from "../core/types.ts";
 import { clamp, powerOf } from "../core/model.ts";
 import { nf0, shortDate } from "../format.ts";
 import { isoOf } from "../core/model.ts";
+
+/** The hexagon's axes: six sectors, 60 degrees apart, Guard at the top. */
+const sectorAngle = (id: SectorId) => -90 + 60 * SECTORS.findIndex((s) => s.id === id);
+const polar = (r: number, deg: number): [number, number] => [r * Math.cos((deg * Math.PI) / 180), r * Math.sin((deg * Math.PI) / 180)];
 
 /** Belt benchmarks drawn as rings. Placeholders until pilot data calibrates them. */
 const BENCH: [string, number][] = [
@@ -92,12 +96,6 @@ export function PowerChart({ series, today, extra }: { series: { d: number; r: n
   const ly = Y(powerOf(last.r));
   return (
     <svg className="ki-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Power Level von ${nf0.format(powerOf(series[0].r))} auf ${nf0.format(powerOf(last.r))}`}>
-      <defs>
-        <linearGradient id="kiFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#d4a94f" stopOpacity=".35" />
-          <stop offset="1" stopColor="#d4a94f" stopOpacity="0" />
-        </linearGradient>
-      </defs>
       {[ymax, ymin].map((v) => (
         <g key={v}>
           <line className="kc-grid" x1={l} x2={W - r} y1={Y(v)} y2={Y(v)} />
@@ -106,7 +104,7 @@ export function PowerChart({ series, today, extra }: { series: { d: number; r: n
           </text>
         </g>
       ))}
-      <path d={`M${X(x0)},${H - b} L${line(series).split(" ").join(" L")} L${lx},${H - b} Z`} fill="url(#kiFill)" />
+      <path d={`M${X(x0)},${H - b} L${line(series).split(" ").join(" L")} L${lx},${H - b} Z`} className="kc-area" />
       {(extra ?? []).map((e) => (e.series.length > 1 ? <polyline key={e.cls} className={`kc-line ${e.cls}`} points={line(e.series)} /> : null))}
       <polyline className="kc-line main" points={line(series)} />
       <circle className="kc-end" cx={lx} cy={ly} r="5" />

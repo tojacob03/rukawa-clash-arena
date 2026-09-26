@@ -77,6 +77,7 @@ import { shipsOf } from "../socialCard.ts";
 import { crewNow, shipNow } from "../ship.ts";
 import type { ShipNow } from "../ship.ts";
 import { gearItems } from "../core/social.ts";
+import { isOpen } from "../core/unlocks.ts";
 
 export function MapSwitch({ value }: { value: "karte" | "meer" }) {
   return (
@@ -85,7 +86,7 @@ export function MapSwitch({ value }: { value: "karte" | "meer" }) {
       value={value}
       onChange={(v) => go(v)}
       options={[
-        { v: "karte", label: "Sternkarte" },
+        { v: "karte", label: "Zweig" },
         { v: "meer", label: "Seekarte" },
       ]}
     />
@@ -115,17 +116,40 @@ const VIEWS: { id: View; label: string; icon: ReactNode }[] = [
     : []),
 ];
 
-export default function SeaPage({
-  data,
-  st,
-  today,
-  arg,
-}: {
+type SeaProps = {
   data: ArcData;
   st: ArcState;
   today: string;
   arg: string | null;
-}) {
+};
+
+/** Before the first training the ship is still in harbour: the chart opens with it. */
+export default function SeaPage(props: SeaProps) {
+  if (isOpen(props.data, "sea")) return <OpenSea {...props} />;
+  const harbour = route(props.data.profile?.homeSea ?? DEFAULT_SEA)[0];
+  return (
+    <div className="page sea-page">
+      <MapSwitch value="meer" />
+      <section className="harbour">
+        <span className="harbour-k" aria-hidden="true">
+          海
+        </span>
+        <div>
+          <h1 className="h2">Dein Schiff liegt noch vor Anker</h1>
+          <p className="lede">
+            {harbour.name}. {harbour.desc}
+          </p>
+          <p>Mit deinem ersten Training legt es ab. Jedes Training bringt Seemeilen, auch Nebensport, und mit regelmäßigem Rhythmus kommt Rückenwind dazu. Gürtel und Streifen sind Häfen auf dem Weg.</p>
+          <button type="button" className="btn primary" onClick={() => go("log")}>
+            Erstes Training eintragen
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function OpenSea({ data, st, today, arg }: SeaProps) {
   const p = data.profile!;
   const view: View =
     arg === "schiff" || arg === "logbuch" || (arg === "crew" && cloudConfigured)
@@ -187,7 +211,7 @@ export default function SeaPage({
   };
 
   return (
-    <div className="page sea-page">
+    <div className={`page sea-page${view === "karte" ? " chart" : ""}`}>
       <div className="map-head">
         <div>
           <MapSwitch value="meer" />
@@ -413,7 +437,7 @@ function ChartView({
 
   return (
     <>
-      <div className="sea-layout">
+      <div className="sea-room">
         <div className="sea-stage">
           <div className="sea-frame">
             <SeaMap
@@ -446,6 +470,7 @@ function ChartView({
               voyage={voyage}
               onVoyage={onVoyage}
               note={note}
+              overlay
             />
             <div className="sea-callout" aria-live="polite">
               <p>
@@ -494,7 +519,7 @@ function ChartView({
             })}
           </ol>
         </div>
-        <aside className="sea-side">
+        <aside className="sea-card">
           <IslandCard
             is={ISLAND[selected]}
             data={data}
@@ -504,17 +529,20 @@ function ChartView({
             comps={comps[selected]?.list ?? []}
             explored={expl.find((e) => e.island.id === selected) ?? null}
           />
-          {ship.crew ? (
-            <CrewShipCard data={data} today={today} ship={ship} />
-          ) : (
-            <Wanted
-              name={p.name}
-              bounty={bounty(data, st)}
-              line={`${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt, ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
-              portrait={avatar}
-            />
-          )}
         </aside>
+      </div>
+
+      <div className="sea-below">
+        {ship.crew ? (
+          <CrewShipCard data={data} today={today} ship={ship} />
+        ) : (
+          <Wanted
+            name={p.name}
+            bounty={bounty(data, st)}
+            line={`${rankOf(st.lvl)}, ${BELT[p.belt].name}gurt, ${p.cls ? CLASS[p.cls].name : CLASS[st.clsDetected].name}`}
+            portrait={avatar}
+          />
+        )}
       </div>
 
       {ship.crew && ship.crew.members.length ? (

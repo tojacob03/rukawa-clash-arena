@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, RotateCcw, UserRound } from "lucide-react";
+import { RotateCcw, UserRound } from "lucide-react";
 import type { ArcData, ArcState, CrossSession, SportId } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
 import { inventory, itemById } from "../core/items.ts";
@@ -13,7 +13,11 @@ import { go, uid } from "../store.ts";
 import { useGear } from "../useGear.ts";
 import { SPORT_ICON } from "../sportIcons.ts";
 import ChapterEnd from "../components/ChapterEnd.tsx";
-import { crossRows } from "../chapterRows.tsx";
+import type { SeaStep } from "../core/reward.ts";
+import { seaFor } from "../reward.ts";
+import { newlyOpen, stillClosed } from "../core/unlocks.ts";
+import type { Feature, Opening } from "../core/unlocks.ts";
+import { crossWays } from "../chapterRows.tsx";
 import { SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import { LogSwitch } from "./Turnier.tsx";
 
@@ -49,7 +53,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
   const mine = (data.profile?.sports ?? []).map((s) => s.id);
   const ordered = [...SPORTS].sort((a, b) => Number(mine.includes(b.id)) - Number(mine.includes(a.id)));
   const [draft, setDraft] = useState<Draft>({ sport: ordered[0].id, date: today, minutes: 60, intensity: 2, tech: "", att: 0, succ: 0 });
-  const [result, setResult] = useState<{ c: CrossSession; D: Diff; loot: ItemDef[]; before: ArcState; after: ArcState } | null>(null);
+  const [result, setResult] = useState<{ c: CrossSession; D: Diff; loot: ItemDef[]; before: ArcState; after: ArcState; sea: SeaStep; opened: Opening[]; closed: Feature[] } | null>(null);
   const { owned } = useGear(data, st);
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const sport = SPORT[draft.sport];
@@ -71,7 +75,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
       .map((id) => itemById(id, next, after))
       .filter((x): x is ItemDef => !!x);
     saveCross(c);
-    setResult({ c, D, loot, before: st, after });
+    setResult({ c, D, loot, before: st, after, sea: seaFor(data, next, today, c.date, "cross"), opened: newlyOpen(data, next), closed: stillClosed(next).map((o) => o.id) });
     window.scrollTo({ top: 0 });
   };
 
@@ -83,7 +87,10 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
         title={`${SPORT[result.c.sport].name} eingetragen`}
         before={result.before}
         after={result.after}
-        rows={crossRows(result.D, result.after)}
+        ways={crossWays(result.D, result.after)}
+        sea={result.sea}
+        opened={result.opened}
+        closed={result.closed}
         loot={result.loot}
         belt={belt}
         actions={
@@ -112,14 +119,14 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
 
   return (
     <div className="page log">
-      <SecTitle kanji="鍛" eyebrow="Neben der Matte" title="Nebensport eintragen">
+      <SecTitle h1 kanji="鍛" eyebrow="Neben der Matte" title="Nebensport eintragen">
         Kraft, Ausdauer, Ringen und Co. zählen nicht fürs BJJ-Wochenziel. Sie bringen XP und bauen deine Körperwerte auf. Takedowns aus Ringen, Judo und Sambo zählen für
         deine Stand-Techniken, mit drei Vierteln des Gewichts eines BJJ-Rolls.
       </SecTitle>
       <LogSwitch value="nebensport" />
       <div className="log-grid">
         <form
-          className="log-form"
+          className="log-form washi-sheet"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -127,7 +134,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
         >
           <fieldset className="step">
             <legend>
-              <b>1</b> Sportart
+              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Sportart
             </legend>
             <div className="sport-tiles" role="radiogroup" aria-label="Sportart">
               {ordered.map((s) => {
@@ -150,7 +157,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
 
           <fieldset className="step">
             <legend>
-              <b>2</b> Umfang
+              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Umfang
             </legend>
             <div className="field">
               <span className="fl">Dauer in Minuten</span>
@@ -177,7 +184,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
           {sport.grappling ? (
             <fieldset className="step quest-step">
               <legend>
-                <b>3</b> Takedowns <small>optional</small>
+                <b aria-hidden="true">三</b> <span className="sr-only">3.</span> Takedowns <small>optional</small>
               </legend>
               <label className="field">
                 <span className="fl">Technik</span>
@@ -211,8 +218,10 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
               <b>+{nf0.format(crossXp(preview.c))} XP</b>
               <small>zählt nicht fürs BJJ-Wochenziel</small>
             </span>
-            <button type="submit" className="btn primary big">
-              <Check size={18} aria-hidden="true" />
+            <button type="submit" className="btn primary big seal-btn">
+              <span className="seal" aria-hidden="true">
+                鍛
+              </span>
               <span>Speichern</span>
             </button>
           </div>

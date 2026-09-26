@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { Lock, Plus, ScanEye, Star as StarIcon, Trophy } from "lucide-react";
+import { Lock, Plus, ScanEye, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Look, Slot } from "../core/types.ts";
 import type { ItemDef, Owned } from "../core/items.ts";
 import { ITEMS, RARITY, SLOTS, dynamicItems, perkText, unlockText } from "../core/items.ts";
 import { CLASS } from "../core/classes.ts";
 import { COUNTRY } from "../core/countries.ts";
-import { SECTORS, TECH } from "../core/techniques.ts";
+import { SECTORS, TECH, TECHS } from "../core/techniques.ts";
 import { SEALS, rankOf } from "../core/lore.ts";
 import { PROLOG_LEVEL, compute, dayNum, isoOf } from "../core/model.ts";
 import { BELT, nf0, power, shortDate, signed } from "../format.ts";
@@ -30,12 +30,19 @@ import { BODY, SPORT, SPORTS } from "../core/sports.ts";
 import { SPORT_ICON } from "../sportIcons.ts";
 import type { SportId } from "../core/types.ts";
 import { openScouter } from "../scan.ts";
+import { SYSTEMS } from "../core/systems.ts";
+import type { SystemId } from "../core/systems.ts";
+import { voyage } from "../core/voyage.ts";
+import PassTab from "./Pass.tsx";
+import { OPENING, isOpen } from "../core/unlocks.ts";
+import type { Feature } from "../core/unlocks.ts";
 
-type Tab = "uebersicht" | "aussehen" | "ausruestung" | "turniere" | "steckbrief";
+type Tab = "uebersicht" | "aussehen" | "ausruestung" | "pass" | "turniere" | "steckbrief";
 const TABS: { id: Tab; label: string }[] = [
   { id: "uebersicht", label: "Übersicht" },
   { id: "aussehen", label: "Aussehen" },
   { id: "ausruestung", label: "Ausrüstung" },
+  { id: "pass", label: "Mattenpass" },
   { id: "turniere", label: "Turniere" },
   { id: "steckbrief", label: "Steckbrief" },
 ];
@@ -58,6 +65,7 @@ export default function Held({ data, st, today, arg }: Props) {
 
   return (
     <div className="page held">
+      {tab !== "uebersicht" ? <h1 className="sr-only">{`${p.name}: ${TABS.find((t) => t.id === tab)?.label}`}</h1> : null}
       <nav className="tabs" aria-label="Charakter">
         {TABS.map((t) => (
           <button key={t.id} type="button" className={tab === t.id ? "on" : ""} aria-current={tab === t.id ? "page" : undefined} onClick={() => go("held", t.id === "uebersicht" ? undefined : t.id)}>
@@ -70,6 +78,8 @@ export default function Held({ data, st, today, arg }: Props) {
         <LookTab look={g.character.look} mode={g.character.mode} avatar={avatar} heightCm={p.heightCm} />
       ) : tab === "ausruestung" ? (
         <GearTab data={data} st={st} owned={g.owned} gear={g.gear} mode={g.character.mode} unseen={g.unseen} avatar={avatar} />
+      ) : tab === "pass" ? (
+        <PassTab data={data} st={st} belt={p.belt} />
       ) : tab === "turniere" ? (
         <CompTab data={data} st={st} />
       ) : tab === "steckbrief" ? (
@@ -89,7 +99,9 @@ type View = "zeit" | "gi";
 
 function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; today: string; avatar: AvatarFn }) {
   const [view, setView] = useState<View>("zeit");
-  const back = compute(data, isoMinus(today, 56));
+  const [allSeals, setAllSeals] = useState(false);
+  // Eight weeks back, for the hexagon's second outline; the whole model once per change of data, not per render.
+  const back = useMemo(() => compute(data, isoMinus(today, 56)), [data, today]);
   const cmp = useCompare(data, today);
   const p = data.profile!;
   const now = SECTORS.map((s) => st.attrs[s.id].val);
@@ -105,8 +117,11 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
 
   return (
     <>
-      <HeroKoma className="stage-card" label="Charakter">
-        <div className="stage">{avatar(230, true)}</div>
+      <section className="held-stage" aria-label="Charakter">
+        <div className="hs-fighter">
+          <div className="tatami" aria-hidden="true" />
+          <div className="stage">{avatar(300, true)}</div>
+        </div>
         <div className="hero-main">
           <div className="row wrap">
             <span className="hex-badge" aria-hidden="true">
@@ -149,10 +164,12 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
                 )}
               </dd>
             </div>
-            <div>
-              <dt>Laut Daten</dt>
-              <dd>{detected.name}</dd>
-            </div>
+            {isOpen(data, "hexagon") ? (
+              <div>
+                <dt>Laut Daten</dt>
+                <dd>{detected.name}</dd>
+              </div>
+            ) : null}
             {div ? (
               <div>
                 <dt>Division</dt>
@@ -181,154 +198,145 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
             ) : null}
           </dl>
           <div className="row wrap">
-            <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "du" })}>
-              <ScanEye size={16} aria-hidden="true" /> <span>Scouter aufsetzen</span>
-            </button>
+            {isOpen(data, "power") ? (
+              <button type="button" className="btn small scan" onClick={() => openScouter({ mode: "du" })}>
+                <ScanEye size={16} aria-hidden="true" /> <span>Scouter aufsetzen</span>
+              </button>
+            ) : null}
             <button type="button" className="btn small" onClick={() => go("held", "aussehen")}>
               Aussehen ändern
             </button>
           </div>
         </div>
-      </HeroKoma>
-      <dl className="hero-stats">
-        <div>
-          <dt>Power Level</dt>
-          <dd>{power(st.ru)}</dd>
-        </div>
-        <div>
-          <dt>Trainings</dt>
-          <dd>{st.sessions}</dd>
-        </div>
-        <div>
-          <dt>Rolls</dt>
-          <dd>{st.rolls}</dd>
-        </div>
-        <div>
-          <dt>Sterne</dt>
-          <dd>{st.discovered}</dd>
-        </div>
-      </dl>
-      <p className="bubble">
-        {chosen && chosen.id !== detected.id
-          ? `Gewählt hast du ${chosen.name}. Deine stärksten Techniken sprechen gerade für ${detected.name}: ${detected.style}.`
-          : chosen
-            ? `${chosen.name}: Deine Daten bestätigen deine Wahl. ${chosen.perk}.`
-            : `Deine Daten sprechen für ${detected.name}: ${detected.style}.`}
-        {st.prologXp > 0 ? ` Prolog: ${nf0.format(st.prologXp)} XP aus der Zeit vor der App (${BELT[p.startBelt].name}gurt, ${p.startStripes ?? 0} Streifen, ab Level ${PROLOG_LEVEL[p.startBelt] + (p.startStripes ?? 0)}).` : ""}
-      </p>
+      </section>
+      <Ways data={data} st={st} today={today} />
+      {isOpen(data, "hexagon") || st.prologXp > 0 ? (
+        <p className="bubble">
+          {isOpen(data, "hexagon")
+            ? chosen && chosen.id !== detected.id
+              ? `Gewählt hast du ${chosen.name}. Deine stärksten Techniken sprechen gerade für ${detected.name}: ${detected.style}.`
+              : chosen
+                ? `${chosen.name}: Deine Daten bestätigen deine Wahl. ${chosen.perk}.`
+                : `Deine Daten sprechen für ${detected.name}: ${detected.style}.`
+            : ""}
+          {st.prologXp > 0 ? ` Prolog: ${nf0.format(st.prologXp)} XP aus der Zeit vor der App (${BELT[p.startBelt].name}gurt, ${p.startStripes ?? 0} Streifen, ab Level ${PROLOG_LEVEL[p.startBelt] + (p.startStripes ?? 0)}).` : ""}
+        </p>
+      ) : null}
 
-      <div className="held-grid">
-        <section className="panel">
-          <div className="row wrap between">
-            <h2 className="h3">Hexagon</h2>
-            <Seg
-              label="Vergleich"
-              value={view}
-              onChange={(v) => setView(v)}
-              options={[
-                { v: "zeit", label: "vor 8 Wochen" },
-                { v: "gi", label: "Gi / No-Gi" },
-              ]}
+      {isOpen(data, "hexagon") ? (
+        <div className="held-grid">
+          <section className="panel">
+            <div className="row wrap between">
+              <h2 className="h3">Hexagon</h2>
+              <Seg
+                label="Vergleich"
+                value={view}
+                onChange={(v) => setView(v)}
+                options={[
+                  { v: "zeit", label: "vor 8 Wochen" },
+                  { v: "gi", label: "Gi / No-Gi" },
+                ]}
+              />
+            </div>
+            {view === "gi" && !cmp ? (
+              <p className="muted small">Der Vergleich erscheint, sobald Gi und No-Gi in den letzten 8 Wochen je mindestens 20 Rolls haben.</p>
+            ) : null}
+            <Hexagon
+              series={
+                view === "gi" && cmp
+                  ? [
+                      { vals: SECTORS.map((s) => cmp.gi.attrs[s.id].val), cls: "gi", label: "Gi" },
+                      { vals: SECTORS.map((s) => cmp.nogi.attrs[s.id].val), cls: "nogi", label: "No-Gi" },
+                      { vals: now, cls: "now", label: "Gesamt" },
+                    ]
+                  : [
+                      { vals: prev, cls: "prev", label: "vor 8 Wochen" },
+                      { vals: now, cls: "now", label: "jetzt" },
+                    ]
+              }
+              labelIndex={view === "gi" && cmp ? 2 : 1}
             />
-          </div>
-          {view === "gi" && !cmp ? (
-            <p className="muted small">Der Vergleich erscheint, sobald Gi und No-Gi in den letzten 8 Wochen je mindestens 20 Rolls haben.</p>
-          ) : null}
-          <Hexagon
-            series={
-              view === "gi" && cmp
-                ? [
-                    { vals: SECTORS.map((s) => cmp.gi.attrs[s.id].val), cls: "gi", label: "Gi" },
-                    { vals: SECTORS.map((s) => cmp.nogi.attrs[s.id].val), cls: "nogi", label: "No-Gi" },
-                    { vals: now, cls: "now", label: "Gesamt" },
-                  ]
-                : [
-                    { vals: prev, cls: "prev", label: "vor 8 Wochen" },
-                    { vals: now, cls: "now", label: "jetzt" },
-                  ]
-            }
-            labelIndex={view === "gi" && cmp ? 2 : 1}
-          />
-          <div className="hex-key">
-            {view === "gi" && cmp ? (
-              <>
-                <span>
-                  <i className="k-gi" /> Gi
-                </span>
-                <span>
-                  <i className="k-nogi" /> No-Gi
-                </span>
-                <span>
-                  <i className="k-now" /> Gesamt
-                </span>
-              </>
-            ) : (
-              <>
-                <span>
-                  <i className="k-now" /> jetzt
-                </span>
-                <span>
-                  <i className="k-prev" /> vor 8 Wochen
-                </span>
-              </>
-            )}
-            <span>Ringe: Richtwerte pro Gürtel</span>
-          </div>
-          {claimed ? <p className="muted small">Enthält Selbsteinschätzungen vom Start. Sie zählen vorläufig, bis deine Rolls sie bestätigen.</p> : null}
-        </section>
+            <div className="hex-key">
+              {view === "gi" && cmp ? (
+                <>
+                  <span>
+                    <i className="k-gi" /> Gi
+                  </span>
+                  <span>
+                    <i className="k-nogi" /> No-Gi
+                  </span>
+                  <span>
+                    <i className="k-now" /> Gesamt
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    <i className="k-now" /> jetzt
+                  </span>
+                  <span>
+                    <i className="k-prev" /> vor 8 Wochen
+                  </span>
+                </>
+              )}
+              <span>Ringe: Richtwerte pro Gürtel</span>
+            </div>
+            {claimed ? <p className="muted small">Enthält Selbsteinschätzungen vom Start. Sie zählen vorläufig, bis deine Rolls sie bestätigen.</p> : null}
+          </section>
 
-        <section className="panel">
-          <h2 className="h3">Achsen</h2>
-          <div className="tbl">
-            <table className="attr">
-              <thead>
-                <tr>
-                  <th>Achse</th>
-                  <th>Baum</th>
-                  <th>Form</th>
-                  <th>Wert</th>
-                  <th>Δ 8 Wo.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {SECTORS.map((s, i) => {
-                  const a = st.attrs[s.id];
-                  const d = now[i] - prev[i];
-                  return (
-                    <tr key={s.id}>
-                      <td>
-                        {s.name}
-                        {a.claimed ? <sup title="enthält Selbsteinschätzung"> *</sup> : null}
-                      </td>
-                      <td>{nf0.format(a.baum)}</td>
-                      <td>{a.form === null ? "–" : nf0.format(a.form)}</td>
-                      <td>
-                        <b>{nf0.format(a.val)}</b>
-                      </td>
-                      <td className={d >= 0.5 ? "pos" : d <= -0.5 ? "neg" : ""}>{signed(d)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <p className="muted small">
-            Baum: Breite und Tiefe deiner Techniken im Sektor. Form: was du in den letzten 8 Wochen im Roll zeigst.{claimed ? " *: enthält Selbsteinschätzung." : ""}
-          </p>
-          <h2 className="h3">Power Level</h2>
-          <PowerChart
-            series={st.ruSeries}
-            today={st.asOf}
-            extra={cmp ? [{ series: cmp.gi.ruSeries, cls: "gi" }, { series: cmp.nogi.ruSeries, cls: "nogi" }] : undefined}
-          />
-          <p className="muted small">
-            Kommt aus einem Elo-Rating über alle Roll-Karten und Turnierkämpfe: 100 Elo-Punkte mehr verdoppeln es. Ein Weißgurt startet bei 1.000, ein Schwarzgurt bei rund 37.000. Es bleibt privat und ist kein Ranking.
-            {cmp ? " Die dünnen Linien zeigen Gi und No-Gi einzeln." : ""}
-          </p>
-        </section>
-      </div>
+          <section className="panel">
+            <h2 className="h3">Achsen</h2>
+            <div className="tbl">
+              <table className="attr">
+                <thead>
+                  <tr>
+                    <th>Achse</th>
+                    <th>Baum</th>
+                    <th>Form</th>
+                    <th>Wert</th>
+                    <th>Δ 8 Wo.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SECTORS.map((s, i) => {
+                    const a = st.attrs[s.id];
+                    const d = now[i] - prev[i];
+                    return (
+                      <tr key={s.id}>
+                        <td>
+                          {s.name}
+                          {a.claimed ? <sup title="enthält Selbsteinschätzung"> *</sup> : null}
+                        </td>
+                        <td>{nf0.format(a.baum)}</td>
+                        <td>{a.form === null ? "–" : nf0.format(a.form)}</td>
+                        <td>
+                          <b>{nf0.format(a.val)}</b>
+                        </td>
+                        <td className={d >= 0.5 ? "pos" : d <= -0.5 ? "neg" : ""}>{signed(d)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="muted small">
+              Baum: Breite und Tiefe deiner Techniken im Sektor. Form: was du in den letzten 8 Wochen im Roll zeigst.{claimed ? " *: enthält Selbsteinschätzung." : ""}
+            </p>
+            <h2 className="h3">Power Level</h2>
+            <PowerChart
+              series={st.ruSeries}
+              today={st.asOf}
+              extra={cmp ? [{ series: cmp.gi.ruSeries, cls: "gi" }, { series: cmp.nogi.ruSeries, cls: "nogi" }] : undefined}
+            />
+            <p className="muted small">
+              Kommt aus einem Elo-Rating über alle Roll-Karten und Turnierkämpfe: 100 Elo-Punkte mehr verdoppeln es. Ein Weißgurt startet bei 1.000, ein Schwarzgurt bei rund 37.000. Es bleibt privat und ist kein Ranking.
+              {cmp ? " Die dünnen Linien zeigen Gi und No-Gi einzeln." : ""}
+            </p>
+          </section>
+        </div>
+      ) : null}
 
-      <BodyPanel data={data} st={st} />
+      {st.body.total || data.profile?.sports?.length || isOpen(data, "hexagon") ? <BodyPanel data={data} st={st} /> : null}
 
       <section className="panel">
         <div className="row wrap between">
@@ -338,16 +346,26 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
           </span>
         </div>
         <ul className="seals">
-          {SEALS.map((s, i) => (
-            <li key={s.id} className={st.seals[i].got ? "got" : ""}>
-              <span className="seal-mark" aria-hidden="true">
-                <StarIcon size={18} strokeWidth={2.4} />
-              </span>
-              <b>{s.name}</b>
-              <small>{s.desc}</small>
-            </li>
-          ))}
+          {SEALS.map((s, i) => ({ s, i, got: st.seals[i].got }))
+            // Earned seals and the next four to go for; the rest on request.
+            .filter((x, _, all) => allSeals || x.got || all.filter((y) => !y.got).indexOf(x) < 4)
+            .map(({ s, i }) => (
+              <li key={s.id} className={st.seals[i].got ? "got" : ""}>
+                <span className="seal-stamp" aria-hidden="true">
+                  {s.name}
+                </span>
+                <span className="sr-only">
+                  {s.name}, {st.seals[i].got ? "errungen" : "noch offen"}:
+                </span>
+                <small>{s.desc}</small>
+              </li>
+            ))}
         </ul>
+        {SEALS.length - got > 4 ? (
+          <button type="button" className="linkish" aria-expanded={allSeals} onClick={() => setAllSeals((v) => !v)}>
+            {allSeals ? "Nur die nächsten zeigen" : `Alle Siegel zeigen (${SEALS.length - got - 4} weitere)`}
+          </button>
+        ) : null}
       </section>
 
       {st.tokui.length ? (
@@ -406,6 +424,53 @@ function BodyPanel({ data, st }: { data: ArcData; st: ArcState }) {
 }
 
 /* ── Aussehen ──────────────────────────────────────────────────────────── */
+
+/**
+ * The five progress systems side by side, each with the one question it
+ * answers (core/systems.ts) and where it stands now; each leads to its home.
+ */
+function Ways({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
+  const strongest = [...SECTORS].sort((a, b) => st.attrs[b.id].val - st.attrs[a.id].val)[0];
+  const miles = voyage(data, today).miles;
+  const gate: Partial<Record<SystemId, Feature>> = { power: "power", hexagon: "hexagon", sea: "sea" };
+  const value: Record<SystemId, { v: string; sub: string; go: () => void }> = {
+    level: { v: String(st.lvl), sub: `${rankOf(st.lvl)}, ${st.sessions} Trainings`, go: () => go("held", "ausruestung") },
+    power: { v: power(st.ru), sub: `${st.rolls} Rolls gewertet`, go: () => openScouter({ mode: "du" }) },
+    branch: { v: `${st.discovered}`, sub: `von ${TECHS.length} Techniken entdeckt`, go: () => go("karte") },
+    hexagon: { v: String(Math.round(st.attrs[strongest.id].val)), sub: `stärkste Achse: ${strongest.name}`, go: () => document.querySelector(".held-grid")?.scrollIntoView({ block: "start" }) },
+    sea: { v: nf0.format(miles), sub: "Seemeilen gesegelt", go: () => go("meer") },
+  };
+  return (
+    <section className="ways" aria-label="Deine fünf Wege">
+      <h2 className="ways-h">Fünf Wege, fünf Fragen</h2>
+      <ol className="ways-list">
+        {SYSTEMS.map((x) => {
+          const g = gate[x.id];
+          const closed = g && !isOpen(data, g) ? OPENING[g] : null;
+          return (
+            <li key={x.id}>
+              <button type="button" className={`way${closed ? " closed" : ""}`} onClick={value[x.id].go} disabled={!!closed} title={`${x.grows} ${x.falls}`}>
+                <span className="way-k" aria-hidden="true">
+                  {x.kanji}
+                </span>
+                <span className="way-n">{x.name}</span>
+                {closed ? (
+                  <small className="way-s">Öffnet mit dem {closed.after}. Training</small>
+                ) : (
+                  <>
+                    <b className="way-v">{value[x.id].v}</b>
+                    <small className="way-s">{value[x.id].sub}</small>
+                  </>
+                )}
+                <span className="way-q">{x.question}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
 
 function LookTab({ look, mode, avatar, heightCm }: { look: Look; mode: Attire; avatar: AvatarFn; heightCm?: number }) {
   return (
@@ -545,6 +610,15 @@ function GearTab({
           {slot === "talisman" ? (
             <p className="muted small">Talismane geben nur XP für Einsatz, nie Meisterung. Der Bonus wird beim Speichern eines Trainings festgeschrieben.</p>
           ) : null}
+          {def.accepts === "head" ? (
+            <p className="muted small">
+              Traditionelle Kopfbedeckungen: die deiner Länder trägst du von Anfang an, jedes weitere Land gibt dir seine, sobald du dort als Gast trainiert hast. Deine Stempel stehen im{" "}
+              <button type="button" className="linkish" onClick={() => go("held", "pass")}>
+                Mattenpass
+              </button>
+              .
+            </p>
+          ) : null}
           {def.accepts === "patch" && !p.countries?.length ? (
             <p className="muted small">
               Flaggen-Aufnäher bekommst du für jedes Land im{" "}
@@ -630,15 +704,21 @@ function CompTab({ data, st }: { data: ArcData; st: ArcState }) {
                     {w}-{l}
                   </span>
                 </div>
-                <div className="chips">
+                {/* The bouts as on a Japanese scoreboard: 勝 won, 負 lost, 分 drawn. */}
+                <ol className="bouts">
                   {x.matches.map((m, i) => (
-                    <span key={i} className={`chip res-${m.result}`}>
-                      {m.result === "win" ? "Sieg" : m.result === "loss" ? "Niederlage" : "Unentschieden"} durch {METHOD_NAME[m.method]}
-                      {m.tech && TECH[m.tech] ? ` (${TECH[m.tech].name})` : ""}
-                      {m.oppBelt ? <small>{BELT[m.oppBelt].name}</small> : null}
-                    </span>
+                    <li key={i}>
+                      <span className={`bout-k ${m.result}`} aria-hidden="true">
+                        {m.result === "win" ? "勝" : m.result === "loss" ? "負" : "分"}
+                      </span>
+                      <span>
+                        <b>{m.result === "win" ? "Sieg" : m.result === "loss" ? "Niederlage" : "Unentschieden"}</b> durch {METHOD_NAME[m.method]}
+                        {m.tech && TECH[m.tech] ? ` (${TECH[m.tech].name})` : ""}
+                        {m.oppBelt ? <small>, gegen {BELT[m.oppBelt].name}gurt</small> : null}
+                      </span>
+                    </li>
                   ))}
-                </div>
+                </ol>
                 <div className="row">
                   {confirm === x.id ? (
                     <>
@@ -691,7 +771,7 @@ function ProfileTab({ data, st }: { data: ArcData; st: ArcState }) {
       </section>
       <section className="panel form-panel">
         <h2 className="h3">Länder</h2>
-        <p className="muted small">Wo du herkommst, wo du lebst oder trainierst. Jedes Land wird ein Aufnäher für Gi und Rashguard.</p>
+        <p className="muted small">Wo du herkommst oder lebst. Jedes Land gibt dir einen Aufnäher für Gi und Rashguard und seine traditionelle Kopfbedeckung. Gyms im Ausland stempelst du im Mattenpass.</p>
         <CountryPicker value={p.countries ?? []} onChange={(countries) => updateProfile({ countries })} />
       </section>
       <section className="panel form-panel">

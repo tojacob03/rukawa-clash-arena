@@ -17,6 +17,8 @@ import { TECH } from "./techniques.ts";
 import { ROMAN, SEALS } from "./lore.ts";
 import { dayNum, isoOf } from "./model.ts";
 import { reachedIsles } from "./voyage.ts";
+import { hatOf } from "./headwear.ts";
+import { visitedCountries } from "./visits.ts";
 
 export type Source =
   | { t: "start" }
@@ -27,6 +29,8 @@ export type Source =
   | { t: "seal"; id: string }
   | { t: "arc"; n: number }
   | { t: "country"; code: string }
+  /** Training as a guest in a gym in that country (see visits.ts). */
+  | { t: "visit"; code: string }
   | { t: "tokui"; tech: string }
   /**
    * Reaching an island on the sea chart (`home:2` is the third island of any
@@ -77,6 +81,10 @@ export interface ItemArt {
   style?: string;
   emblem?: "logo" | "flame" | "crown" | "wave" | "star" | "flag" | "tokui" | "anchor" | "skull" | "compass";
   code?: string;
+  /** Stripes, top to bottom (headbands in flag colours, ribbons). */
+  cs?: string[];
+  /** A variant of the style, e.g. the feather on a hat (see headwear.ts). */
+  trim?: string;
 }
 
 export interface ItemDef {
@@ -146,7 +154,7 @@ export const ITEMS: ItemDef[] = [
   I("rg_rot_k", "Rashguard Rot, kurz", "top", "common", { t: "sessions", n: 3 }, "Rot mit schwarzen Seiten.", { c: "#b3261e", c2: "#1d1d26", pattern: "side", sleeve: "short" }),
   I("rg_split", "Rashguard Zweifarbig", "top", "rare", { t: "sessions", n: 8 }, "Halb Nacht, halb Gold.", { c: "#1d1d26", c2: "#f1bf57", pattern: "split" }),
   I("rg_ringel", "Rashguard Ringel", "top", "common", { t: "sessions", n: 15 }, "Matrosenstreifen für Leute, die bald in See stechen.", { c: "#f4f1ea", c2: "#1b2a55", pattern: "stripes", sleeve: "short" }),
-  I("rg_waben", "Rashguard Waben", "top", "rare", { t: "sessions", n: 25 }, "Sechsecke wie auf der Sternkarte.", { c: "#141c34", c2: "#5f90ea", pattern: "hex" }),
+  I("rg_waben", "Rashguard Waben", "top", "rare", { t: "sessions", n: 25 }, "Sechsecke wie das Hexagon deines Spiels.", { c: "#141c34", c2: "#5f90ea", pattern: "hex" }),
   I("rg_zickzack", "Rashguard Zickzack", "top", "rare", { t: "sessions", n: 40 }, "Pink auf Nacht. Laut und stolz.", { c: "#2a1b2e", c2: "#e46aa6", pattern: "chevron", sleeve: "short" }),
   I("rg_tarn", "Rashguard Tarnmuster", "top", "rare", { t: "rolls", n: 50 }, "Tarnt nicht, aber sieht nach Arbeit aus.", { c: "#3b4a2f", c2: "#7d8c56", pattern: "camo" }),
   I("rg_schuppen", "Rashguard Fischschuppen", "top", "epic", { t: "rolls", n: 300 }, "Glatt wie ein Fisch, schwer zu greifen.", { c: "#0e3b4a", c2: "#4fc3c9", pattern: "scales" }),
@@ -168,7 +176,7 @@ export const ITEMS: ItemDef[] = [
   I("rg_blitz", "Rashguard Blitz", "top", "rare", { t: "drop" }, "Für schnelle Pässe und schnellere Ausreden.", { c: "#23232e", c2: "#ffd24a", pattern: "bolt" }),
   I("rg_sakura", "Rashguard Kirschblüte", "top", "epic", { t: "drop" }, "Blütenblätter auf Nachtschwarz.", { c: "#2a1b2e", c2: "#f3a6c0", pattern: "petals" }),
   I("rg_tiger", "Rashguard Tigerstreifen", "top", "epic", { t: "level", n: 18 }, "Orange mit schwarzen Streifen.", { c: "#e08a2c", c2: "#1d1d26", pattern: "tiger" }),
-  I("rg_stern", "Rashguard Sternbild", "top", "epic", { t: "seal", id: "map50" }, "Deine Sternkarte zum Anziehen.", { c: "#101838", c2: "#f1bf57", pattern: "stars" }),
+  I("rg_stern", "Rashguard Blütenzweig", "top", "epic", { t: "seal", id: "map50" }, "Dein Zweig zum Anziehen: goldene Blüten auf Nachtblau.", { c: "#101838", c2: "#f1bf57", pattern: "petals" }),
   I("rg_phoenix", "Rashguard Phönix", "top", "legendary", { t: "level", n: 25 }, "Aus der Asche jedes verlorenen Rolls.", { c: "#b3261e", c2: "#ffcf5a", pattern: "flame" }),
   I("rg_drache", "Rashguard Drachenschuppe", "top", "legendary", { t: "drop" }, "Grüne Flammen. Seltener als ein sauberer Berimbolo.", { c: "#0f3d2e", c2: "#4fd18b", pattern: "flame" }),
 
@@ -239,7 +247,7 @@ export const ITEMS: ItemDef[] = [
 
   // Patches
   I("pa_waza", "Waza-Arc-Abzeichen", "patch", "common", { t: "start" }, "Das Zeichen der App.", { emblem: "logo" }),
-  I("pa_stern", "Erster Stern", "patch", "common", { t: "seal", id: "first" }, "Für das erste Training.", { emblem: "star" }),
+  I("pa_stern", "Erster Schritt", "patch", "common", { t: "seal", id: "first" }, "Für das erste Training.", { emblem: "star" }),
   I("pa_welle", "Arc-Welle", "patch", "rare", { t: "arc", n: 1 }, "Für den zweiten Arc.", { emblem: "wave" }),
   I("pa_flamme", "Flammen-Abzeichen", "patch", "rare", { t: "seal", id: "flame4" }, "Vier Wochen Flamme.", { emblem: "flame" }),
   I("pa_krone", "Boss-Krone", "patch", "epic", { t: "seal", id: "boss" }, "Einen Wochenboss besiegt.", { emblem: "crown" }),
@@ -250,19 +258,34 @@ export const ITEMS: ItemDef[] = [
   I("pa_finisher", "Finisher", "patch", "epic", { t: "comp", what: "subwin" }, "Ein Turnierkampf per Aufgabe gewonnen.", { emblem: "flame", c: "#1d1d26" }),
 ];
 
-/** Items that depend on the profile or on progress: flags and Tokui patches. */
-/** A flag or Tokui patch from its id alone ("flag:DE", "tokui:armbar"), e.g. on a friend's avatar. */
+/**
+ * Items that depend on the profile or on progress: flags, Tokui patches and
+ * the headwear of countries. From the id alone ("flag:DE", "tokui:armbar",
+ * "hat:MX"), e.g. on a friend's avatar.
+ */
 export function dynamicItem(id: string): ItemDef | undefined {
   const [kind, code = ""] = id.split(":");
   const has = (o: object) => Object.prototype.hasOwnProperty.call(o, code);
   if (kind === "flag" && has(COUNTRY)) return I(id, `Flagge ${COUNTRY[code].name}`, "patch", "common", { t: "country", code }, "Aus deinem Steckbrief.", { emblem: "flag", code });
   if (kind === "tokui" && has(TECH)) return I(id, `Tokui-Aufnäher: ${TECH[code].name}`, "patch", "legendary", { t: "tokui", tech: code }, "Für eine Technik auf Tokui-Waza-Stufe.", { emblem: "tokui", code });
+  if (kind === "hat") {
+    const h = hatOf(code);
+    if (h) return I(id, h.name, "head", "rare", { t: "country", code }, h.desc, { style: h.style, c: h.c, c2: h.c2, c3: h.c3, cs: h.cs, trim: h.trim, code });
+  }
   return undefined;
 }
 
 export function dynamicItems(data: ArcData, st: ArcState): ItemDef[] {
-  const ids = [...(data.profile?.countries ?? []).map((c) => `flag:${c}`), ...st.tokui.map((t) => `tokui:${t}`)];
-  return ids.map(dynamicItem).filter((x): x is ItemDef => !!x);
+  const own = data.profile?.countries ?? [];
+  const ids = [...own.map((c) => `flag:${c}`), ...st.tokui.map((t) => `tokui:${t}`), ...own.map((c) => `hat:${c}`)];
+  const out = ids.map(dynamicItem).filter((x): x is ItemDef => !!x);
+  // The headwear of every other country you trained in as a guest.
+  for (const code of visitedCountries(data, isoOf(st.asOf)).keys()) {
+    if (own.includes(code)) continue;
+    const x = dynamicItem(`hat:${code}`);
+    if (x) out.push({ ...x, src: { t: "visit", code } });
+  }
+  return out;
 }
 
 export const ITEM = Object.fromEntries(ITEMS.map((x) => [x.id, x])) as Record<string, ItemDef>;
@@ -290,6 +313,8 @@ export function unlockText(src: Source, sea: SeaId = DEFAULT_SEA): string {
       return `Arc ${ROMAN[src.n]} erreichen`;
     case "country":
       return "Land im Steckbrief";
+    case "visit":
+      return `Als Gast in einem Gym in ${COUNTRY[src.code]?.name ?? src.code} trainiert`;
     case "tokui":
       return "Tokui-Waza erreichen";
     case "rank": {
@@ -340,12 +365,14 @@ export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
   const sea = p?.homeSea ?? DEFAULT_SEA;
   const comps = (data.competitions ?? []).filter((c) => dayNum(c.date) <= st.asOf);
   const isles = reachedIsles(data, isoOf(st.asOf));
+  const visited = visitedCountries(data, isoOf(st.asOf));
   const reached = (id: string) => (id.startsWith("home:") ? [...isles].some((x) => /^(frost|morgen|abend|glut)\d$/.test(x) && x.endsWith(id.slice(5))) : isles.has(id));
   for (const x of [...ITEMS, ...dynamicItems(data, st)]) {
     const s = x.src;
     const ok =
       s.t === "start" ||
       s.t === "country" ||
+      s.t === "visit" ||
       s.t === "tokui" ||
       (s.t === "level" && st.lvl >= s.n) ||
       (s.t === "sessions" && st.sessions >= s.n) ||
@@ -359,7 +386,7 @@ export function inventory(data: ArcData, st: ArcState): Map<string, Owned> {
           : s.what === "subwin"
             ? comps.some((c) => c.matches.some((m) => m.result === "win" && m.method === "sub"))
             : comps.some((c) => c.place === s.n)));
-    if (ok) owned.set(x.id, { id: x.id, via: unlockText(s, sea) });
+    if (ok) owned.set(x.id, { id: x.id, via: unlockText(s, sea), date: s.t === "visit" ? visited.get(s.code) : undefined });
   }
 
   // Random drops, in order of the trainings. A drop can be a duplicate of an

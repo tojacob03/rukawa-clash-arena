@@ -22,7 +22,7 @@ export default function Einladung({ data, st, today, arg }: { data: ArcData; st:
   if (!inv)
     return (
       <div className="page invite-page">
-        <SecTitle kanji="招" eyebrow="Einladung" title="Dieser Link ist unvollständig" />
+        <SecTitle h1 kanji="招" eyebrow="Einladung" title="Dieser Link ist unvollständig" />
         <p className="lede">Frag nach einem neuen Link oder gib den Code direkt ein.</p>
         <button type="button" className="btn" onClick={() => go("meer", "crew")}>
           Zur Crew
@@ -33,7 +33,7 @@ export default function Einladung({ data, st, today, arg }: { data: ArcData; st:
   const next = inv.kind === "g" ? () => go("gym") : () => go("meer", "crew");
   return (
     <div className="page invite-page">
-      <SecTitle kanji="招" eyebrow="Einladung" title={t.title}>
+      <SecTitle h1 kanji="招" eyebrow="Einladung" title={t.title}>
         {t.lede}
       </SecTitle>
       <SocialGate data={data} st={st} today={today} back={{ route: "einladung", arg: arg ?? undefined }} intro={t.lede}>
