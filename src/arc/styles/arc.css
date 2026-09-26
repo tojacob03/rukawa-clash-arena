@@ -482,6 +482,8 @@ html.lenis, html.lenis body { height: auto; }
 .nav-item.on { color: var(--ink); }
 .nav-item.on .nk { color: var(--gold); }
 .nav-item.on::before { transform: scaleX(1); }
+/* Open friend requests: a small vermilion seal on the kanji, like a game's red dot. */
+.nav-badge { position: absolute; top: 9px; left: calc(50% + 8px); display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 3px; background: var(--shu); color: var(--on-shu); font-size: 10.5px; font-weight: 700; line-height: 1; }
 .nav-log { display: grid; justify-items: center; align-self: center; gap: 4px; height: var(--nav-h); padding: 0; border: 0; background: none; color: var(--ink); }
 /* The hanko: a vermilion seal, the character left in the paper colour, a thin frame cut inside. */
 .nav-log .stamp-btn {
@@ -1762,6 +1764,44 @@ button.item:hover { border-color: var(--ink-2); }
 .harbour .lede { color: var(--ink); }
 @media (max-width: 560px) { .harbour { grid-template-columns: minmax(0, 1fr); } .harbour-k { font-size: 64px; margin-bottom: 10px; } }
 .cw-open { color: var(--gold); font-family: var(--f-d); font-weight: 800; font-size: 22px; line-height: 1; }
+
+/* ── Freunde ─────────────────────────────────────────────────────────── */
+.freunde .tabs { margin-bottom: 4px; }
+.friends-home { display: grid; gap: 20px; }
+.friends-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.friends-bar .h3 { margin: 0; font-size: 24px; }
+.friend-requests { display: grid; gap: 10px; padding: 16px 0 4px; border-top: 2px solid var(--shu); }
+.friend-requests .h3 { margin: 0; }
+.friend-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink-3); }
+.friend { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; padding: 12px 4px; border: 0; border-bottom: 1px solid var(--ink-3); background: none; color: var(--ink); text-align: left; transition: background-color 0.2s; }
+.friend:hover { background: var(--ink-4); }
+.friend-main { display: grid; gap: 2px; min-width: 0; }
+.friend-main b { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.friend-main small { color: var(--ink-2); font-size: 13px; }
+.friend-side { display: flex; align-items: center; gap: 18px; }
+.friend-pl, .friend-week { display: grid; justify-items: end; font-family: var(--f-d); font-weight: 800; font-size: 19px; line-height: 1.1; font-variant-numeric: tabular-nums lining-nums; }
+.friend-pl { color: var(--gold); }
+.friend-pl small, .friend-week small { font-family: var(--f-b); font-weight: 500; font-size: 11px; color: var(--ink-2); }
+.friend-week.done { color: var(--asagi); }
+@media (max-width: 560px) { .friend { grid-template-columns: 44px minmax(0, 1fr); } .friend .peer-head { width: 44px !important; height: 44px !important; } .friend-side { grid-column: 2; gap: 14px; } .friend-pl, .friend-week { justify-items: start; font-size: 16px; } }
+.friends-empty { display: grid; gap: 10px; justify-items: start; padding: 18px 0; border-top: 1px solid var(--ink-3); }
+.friends-empty p { margin: 0; }
+.friend-pending { display: grid; gap: 8px; }
+.friend-pending .h3 { margin: 0; font-size: 17px; }
+.friends-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0; }
+.add-friend, .friend-card { display: grid; gap: 18px; padding: 20px; }
+.add-friend .h2, .friend-card .h2 { margin: 0; }
+.add-friend section { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--ink-3); }
+.add-friend section .h3 { margin: 0; }
+.add-friend section p { margin: 0; }
+.fc-body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+@media (max-width: 460px) { .fc-body { grid-template-columns: minmax(0, 1fr); justify-items: center; } }
+.fc-figure { display: grid; place-items: end center; padding: 8px 12px 0; border-bottom: 1px solid var(--gold-line); }
+.fc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin: 0; width: 100%; }
+.fc-stats div { display: grid; gap: 1px; }
+.fc-stats dt { font-size: 12.5px; color: var(--ink-2); }
+.fc-stats dd { margin: 0; font-family: var(--f-d); font-weight: 800; font-size: 18px; }
+.fc-acts { gap: 8px 12px; }
 
 /* ── Mattenpass ─────────────────────────────────────────────────────── */
 /* A passport page: one entry stamp per gym, in the ink of whichever desk stamped it. */

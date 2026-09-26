@@ -158,3 +158,12 @@ Die Knospen waren schon Knöpfe, aber jede einzelne ein Tab-Stopp: Wer den Zweig
 - **Mobile-Audit** der neuen Teile bei 320, 360 und 390 px (Heute mit Inhaltsverzeichnis, Seekarte vor Anker, Eintragen, Turnier, Kapitelende, Charakterbogen mit Mattenpass, Turnieren und Steckbrief, Codex, Plan, Profil): kein waagrechter Überlauf, keine Tippfläche unter 24 px (kleinste 26 px), nichts außerhalb des Bildes.
 - **Sammlung im Mattenpass:** „Ganze Sammlung zeigen“ öffnet alle 125 Kopfbedeckungen, gesammelte in Farbe auf Washi, offene als Bleistift-Umriss mit dem Land darunter. So sieht man, was es zu holen gibt, ohne dass die Ausrüstung mit 120 gesperrten Einträgen zuläuft.
 - **Onboarding:** Der Länder-Schritt sagt jetzt, dass jedes Land auch seine traditionelle Kopfbedeckung mitbringt.
+
+### Freunde in der Hauptnavigation (nach deiner Frage)
+
+*Befund:* Freunde hinzufügen lag unter Karte → Seekarte → Reiter Crew, unterhalb der Crew, als Codefeld „Code von jemandem eingeben“. Viel zu versteckt.
+
+- **友 Freunde** ist jetzt ein eigener Platz in der Hauptnavigation (statt 書 Codex; der Codex ist als dritter Umschalter unter 図 Karte: Zweig, Seekarte, Codex). Offene Anfragen stehen als rotes Siegel mit Zahl auf 友.
+- **Freunde-Seite** wie der Sozial-Reiter in Clash Royale: oben groß „Freund hinzufügen“ (Dialog mit Einladungslink teilen und Code eingeben), Anfragen an dich ganz oben mit Annehmen und Ablehnen, dann die Liste, sortiert nach Trainings dieser Woche, mit Power Level, Woche und Flamme. Antippen öffnet die Karte des Freundes (Figur, Gürtel, Level, Power Level, Woche, Flamme, Klasse, Kopfgeld, Scouter-Vergleich, Entfernen). Reiter Crew und Gym auf derselben Seite; alte Links auf die Crew der Seekarte führen dorthin.
+- Beim Öffnen der Seite werden Anfragen frisch geladen.
+- Geprüft: Social-E2E 46/46 (neu: Anfrage über den Dialog, Siegel auf 友, Freundeskarte), Konto-E2E 23/23, axe ohne Befund, Mobile-Audit ohne Befund, Build.

@@ -387,7 +387,7 @@ function SocialStrip({ today }: { today: string }) {
       <li key="req">
         <Users size={18} aria-hidden="true" />
         <p>{s.incoming.length === 1 ? `${s.incoming[0].name} möchte in deinen Freundeskreis.` : `${s.incoming.length} Anfragen für deinen Freundeskreis.`}</p>
-        <button type="button" className="linkish" onClick={() => go("meer", "crew")}>
+        <button type="button" className="linkish" onClick={() => go("freunde")}>
           Ansehen
         </button>
       </li>,
@@ -400,7 +400,7 @@ function SocialStrip({ today }: { today: string }) {
         <p>
           <b>{s.crew.name}</b>: {w.done} von {w.goal} Trainings diese Woche
         </p>
-        <button type="button" className="linkish" onClick={() => go("meer", "crew")}>
+        <button type="button" className="linkish" onClick={() => go("freunde", "crew")}>
           Zur Crew
         </button>
       </li>,

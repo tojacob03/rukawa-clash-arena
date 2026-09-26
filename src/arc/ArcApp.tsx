@@ -32,6 +32,8 @@ import { preloadMotion } from "./motion.ts";
 import InkVeil from "./components/InkVeil.tsx";
 import { isOpen } from "./core/unlocks.ts";
 import { jumpTop, startSmooth } from "./smooth.ts";
+import Freunde from "./pages/Freunde.tsx";
+import { useSocial } from "./cloud/social.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -40,6 +42,7 @@ const TITLES: Record<Route, string> = {
   meer: "Seekarte",
   codex: "Waza-Codex",
   held: "Charakter",
+  freunde: "Freunde",
   profil: "Profil",
   konto: "Konto",
   plan: "Wochenplan",
@@ -53,6 +56,8 @@ export default function ArcApp() {
   const today = useToday();
   const st = useArcState(data, today);
   const { route, arg } = useRoute();
+  // Friend requests show as a number on 友, like a game's social tab.
+  const social = useSocial();
   const [scan, setScan] = useState<ScoutRequest | null>(null);
   useEffect(() => {
     const open = (e: Event) => setScan((e as CustomEvent<ScoutRequest | undefined>).detail ?? { mode: "du" });
@@ -157,6 +162,8 @@ export default function ArcApp() {
       <Codex {...props} />
     ) : route === "held" ? (
       <Held {...props} arg={arg} />
+    ) : route === "freunde" ? (
+      <Freunde {...props} arg={arg} />
     ) : route === "profil" ? (
       <Profil {...props} />
     ) : route === "konto" ? (
@@ -244,14 +251,14 @@ export default function ArcApp() {
           <LogoMark />
         </span>
         <NavItem route="heute" current={route} kanji="今" label="Heute" />
-        <NavItem route="karte" current={route === "meer" ? "karte" : route} kanji="図" label="Karte" />
+        <NavItem route="karte" current={route === "meer" || route === "codex" ? "karte" : route} kanji="図" label="Karte" />
         <button type="button" className={`nav-log${route === "log" ? " on" : ""}`} aria-current={route === "log" ? "page" : undefined} onClick={() => go("log")}>
           <span className="stamp-btn" aria-hidden="true">
             記
           </span>
           <span className="nl">Eintragen</span>
         </button>
-        <NavItem route="codex" current={route} kanji="書" label="Codex" />
+        <NavItem route="freunde" current={route === "gym" || route === "einladung" ? "freunde" : route} kanji="友" label="Freunde" badge={social.incoming.length} />
         <NavItem route="held" current={route} kanji="武" label="Held" />
       </nav>
       <InkVeil route={route} />
@@ -268,7 +275,7 @@ function LogoMark() {
   );
 }
 
-function NavItem({ route, current, kanji, label }: { route: Route; current: Route; kanji: string; label: string }) {
+function NavItem({ route, current, kanji, label, badge }: { route: Route; current: Route; kanji: string; label: string; badge?: number }) {
   const on = route === current;
   return (
     <button type="button" className={`nav-item${on ? " on" : ""}`} aria-current={on ? "page" : undefined} onClick={() => go(route)}>
@@ -276,6 +283,12 @@ function NavItem({ route, current, kanji, label }: { route: Route; current: Rout
         {kanji}
       </span>
       <span className="nl">{label}</span>
+      {badge ? (
+        <span className="nav-badge">
+          {badge}
+          <span className="sr-only"> {badge === 1 ? "neue Anfrage" : "neue Anfragen"}</span>
+        </span>
+      ) : null}
     </button>
   );
 }

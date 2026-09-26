@@ -70,8 +70,6 @@ import ItemIcon from "../components/ItemIcon.tsx";
 import CrewFlag, { WavingFlag } from "../components/CrewFlag.tsx";
 import Ship from "../components/ShipArt.tsx";
 import { HeroKoma, Seg } from "../components/ui.tsx";
-import CrewView from "./Crew.tsx";
-import { cloudConfigured } from "../cloud/state.ts";
 import { useSocial } from "../cloud/social.ts";
 import { shipsOf } from "../socialCard.ts";
 import { crewNow, shipNow } from "../ship.ts";
@@ -79,7 +77,7 @@ import type { ShipNow } from "../ship.ts";
 import { gearItems } from "../core/social.ts";
 import { isOpen } from "../core/unlocks.ts";
 
-export function MapSwitch({ value }: { value: "karte" | "meer" }) {
+export function MapSwitch({ value }: { value: "karte" | "meer" | "codex" }) {
   return (
     <Seg
       label="Karte wählen"
@@ -88,12 +86,13 @@ export function MapSwitch({ value }: { value: "karte" | "meer" }) {
       options={[
         { v: "karte", label: "Zweig" },
         { v: "meer", label: "Seekarte" },
+        { v: "codex", label: "Codex" },
       ]}
     />
   );
 }
 
-type View = "karte" | "schiff" | "logbuch" | "crew";
+type View = "karte" | "schiff" | "logbuch";
 const VIEWS: { id: View; label: string; icon: ReactNode }[] = [
   {
     id: "karte",
@@ -110,10 +109,6 @@ const VIEWS: { id: View; label: string; icon: ReactNode }[] = [
     label: "Logbuch",
     icon: <BookOpen size={16} aria-hidden="true" />,
   },
-  // Crew and friends need the server.
-  ...(cloudConfigured
-    ? [{ id: "crew" as const, label: "Crew", icon: <Users size={16} aria-hidden="true" /> }]
-    : []),
 ];
 
 type SeaProps = {
@@ -123,8 +118,15 @@ type SeaProps = {
   arg: string | null;
 };
 
+function MovedToFriends() {
+  useEffect(() => go("freunde", "crew"), []);
+  return null;
+}
+
 /** Before the first training the ship is still in harbour: the chart opens with it. */
 export default function SeaPage(props: SeaProps) {
+  // The crew moved to the friends page (友); old links still get there.
+  if (props.arg === "crew") return <MovedToFriends />;
   if (isOpen(props.data, "sea")) return <OpenSea {...props} />;
   const harbour = route(props.data.profile?.homeSea ?? DEFAULT_SEA)[0];
   return (
@@ -152,9 +154,7 @@ export default function SeaPage(props: SeaProps) {
 function OpenSea({ data, st, today, arg }: SeaProps) {
   const p = data.profile!;
   const view: View =
-    arg === "schiff" || arg === "logbuch" || (arg === "crew" && cloudConfigured)
-      ? arg
-      : "karte";
+    arg === "schiff" || arg === "logbuch" ? arg : "karte";
   // The crew ship moves with the others' trainings: keep it fresh while the chart is open.
   const social = useSocial(true);
   const others = useMemo(
@@ -268,8 +268,6 @@ function OpenSea({ data, st, today, arg }: SeaProps) {
         <ShipView data={data} st={st} today={today} wx={wx} crew={crew?.name ?? null} />
       ) : view === "logbuch" ? (
         <LogView data={data} today={today} />
-      ) : view === "crew" ? (
-        <CrewView data={data} st={st} today={today} />
       ) : (
         <ChartView
           data={data}
