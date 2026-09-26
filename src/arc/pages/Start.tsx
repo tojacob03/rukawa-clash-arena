@@ -20,6 +20,7 @@ import { Belt, HeroKoma, Seg, Stepper } from "../components/ui.tsx";
 import { cloudConfigured, afterSignIn, useCloud } from "../cloud/state.ts";
 import { go } from "../store.ts";
 import { HEIGHT_CM } from "../core/body.ts";
+import KintsugiKanji from "../components/KintsugiKanji.tsx";
 
 type Step = "hello" | "steckbrief" | "rang" | "klasse" | "aussehen" | "technik" | "sichern";
 const STEPS: Step[] = ["steckbrief", "rang", "klasse", "aussehen", "technik"];
@@ -109,15 +110,21 @@ export default function Start({ today }: { today: string }) {
       <main className="start">
         <div className="cover">
           <div className="cover-art" aria-hidden="true">
-            <p className="cover-kanji">技</p>
-            {/* Kintsugi: the character broke and was mended with gold, the way a
-                technique gets better every time it fails on the mat. */}
-            <svg className="cover-seam" viewBox="0 0 400 600" preserveAspectRatio="none">
-              <path className="main" d="M252 0 L244 58 L262 104 L236 162 L258 214 L221 266 L247 318 L208 372 L231 430 L196 488 L214 546 L189 600" />
-              <path className="twig" d="M236 162 L206 186 L214 214 L188 236" />
-              <path className="twig" d="M221 266 L262 290 L286 282 L305 306" />
-              <path className="twig" d="M231 430 L266 452 L262 478" />
-            </svg>
+            <KintsugiKanji
+              fallback={
+                <>
+                  <p className="cover-kanji">技</p>
+                  {/* Kintsugi: the character broke and was mended with gold, the way a
+                      technique gets better every time it fails on the mat. */}
+                  <svg className="cover-seam" viewBox="0 0 400 600" preserveAspectRatio="none">
+                    <path className="main" d="M252 0 L244 58 L262 104 L236 162 L258 214 L221 266 L247 318 L208 372 L231 430 L196 488 L214 546 L189 600" />
+                    <path className="twig" d="M236 162 L206 186 L214 214 L188 236" />
+                    <path className="twig" d="M221 266 L262 290 L286 282 L305 306" />
+                    <path className="twig" d="M231 430 L266 452 L262 478" />
+                  </svg>
+                </>
+              }
+            />
             <p className="cover-cap">
               <b>技</b> waza, die Technik
             </p>

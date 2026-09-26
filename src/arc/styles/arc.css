@@ -597,6 +597,7 @@ html.lenis, html.lenis body { height: auto; }
 .cover-seam path { fill: none; stroke: #d9ad4c; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .cover-seam .main { stroke-width: 2.2; }
 .cover-seam .twig { stroke-width: 1.3; }
+.cover-art canvas.cover-3d { width: min(88%, 520px); }
 .cover-cap { position: absolute; left: 22px; bottom: 18px; margin: 0; display: flex; gap: 10px; align-items: baseline; color: var(--lk-2); font-size: 13px; }
 .cover-cap b { font-family: var(--f-d); font-weight: 800; color: var(--lk); font-size: 15px; }
 .cover-text { display: grid; align-content: center; gap: 24px; padding: 40px 22px 56px; max-width: 640px; }
