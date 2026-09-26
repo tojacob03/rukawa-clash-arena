@@ -92,6 +92,21 @@ export default function ArcApp() {
     else setTimeout(go, 1200);
   }, [hasFigure]);
 
+  // The tab and home-screen icon: your own head, again when it changes.
+  const iconKey = figure ? JSON.stringify([figure.look, figure.mode, Object.values(figure.gear).map((x) => x?.id), figure.belt]) : "";
+  useEffect(() => {
+    if (!iconKey) return;
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    if (nav.connection?.saveData) return;
+    const t = window.setTimeout(() => {
+      const f = figureRef.current;
+      if (!f) return;
+      const { b, lf } = figureFactors(f.look.height, f.heightCm, f.weightKg);
+      void import("./appIcon.ts").then((m) => m.setOwnIcon({ look: f.look, mode: f.mode, gear: f.gear, belt: f.belt, stripes: f.stripes, b, lf })).catch(() => undefined);
+    }, 2500);
+    return () => window.clearTimeout(t);
+  }, [iconKey]);
+
   // The header floats over the page until it scrolls, then it gets its own ground.
   useEffect(() => {
     const el = document.documentElement;

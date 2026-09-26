@@ -2144,7 +2144,7 @@ canvas.avatar.turns:focus-visible { outline: 2px solid var(--gold); outline-offs
 .peers { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--ink-3); }
 .peer { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 2px; border-bottom: 1px solid var(--ink-3); }
 .peer-head { display: grid; place-items: center; overflow: hidden; border: 1px solid var(--ink-3); border-radius: 50%; background: var(--paper-3); }
-.peer-head svg { display: block; width: 100%; height: 100%; }
+.peer-head svg, .peer-head canvas { display: block; width: 100%; height: 100%; }
 .peer-head.none { font-family: var(--f-d); font-weight: 800; font-size: 22px; color: var(--ink-2); }
 .peer-main { display: grid; gap: 2px; min-width: 0; }
 .peer-main p { margin: 0; }
