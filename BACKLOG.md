@@ -31,3 +31,7 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
 - [x] **Barrierefreiheit prüfen mit axe-core:** automatischer Test über die Hauptseiten in beiden Ausgaben, Befunde beheben (Kontrast, Namen, Landmarken, Überschriften-Reihenfolge)
 - [x] **Zweig per Tastatur:** Knospen mit Tab und Pfeiltasten erreichbar, Fokus sichtbar, Detailblatt mit Enter
 - [x] **Totes CSS und tote Importe aufräumen:** Klassen ohne Verwendung (Reste der Sternkarte und der alten Karten), ungenutzte Icons
+- [ ] **Mobile-Audit der neuen Teile:** Tippflächen und Überlauf bei 320, 360 und 390 px für Mattenpass, Inhaltsverzeichnis, Kapitelende, Steckbrief-Listen, Turnierkämpfe
+- [ ] **Sammlung im Mattenpass:** alle Kopfbedeckungen zeigen, die noch offenen als Bleistift-Umriss mit Land, damit man sieht, was es zu holen gibt
+- [ ] **Onboarding:** beim Länder-Schritt sagen, dass jedes Land auch seine Kopfbedeckung mitbringt
+
