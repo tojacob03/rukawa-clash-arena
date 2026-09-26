@@ -34,8 +34,19 @@ const WRIST = new THREE.Vector3(0.418, 0.578, 0.03);
 const HEAD_W = [1, 1.035, 1, 1.023, 0.965, 1.105];
 const HEAD_C = new THREE.Vector3(0, 1.45, 0);
 
-const ARM_PARTS = /^(arm|fist|gi_sleeve|ng_long|ng_short|x_tape)/;
+const ARM_PARTS = /^(arm|fist|gi_sleeve|ng_long|ng_short(?!s)|x_tape)/;
 const HEAD_PARTS = /^(head$|face$|ear|ring_|hair_|beard_|hw_)/;
+
+/** The part files a figure wears (tools/fighter/build.py, groups), besides the base. */
+export function partsFor(spec: Pick<Spec, "look" | "mode" | "gear">) {
+  const look = normalizeLook(spec.look);
+  const files = [spec.mode === "gi" ? "gi" : "nogi"];
+  if (look.hair !== 7) files.push(`hair_${String(look.hair).padStart(2, "0")}`);
+  if (look.beard >= 2) files.push(`beard_${look.beard}`);
+  if (spec.gear.head?.art.style) files.push(`hw_${spec.gear.head.art.style}`);
+  if (spec.gear.extra?.art.style) files.push("extras");
+  return files;
+}
 
 const smooth = (a: number, b: number, x: number) => {
   const k = Math.max(0, Math.min(1, (x - a) / (b - a)));
@@ -324,7 +335,6 @@ export class Figure {
     const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(x) ? x : 0));
     const b = spec.b * (1 + 0.07 * clamp(look.build, -2, 2));
     const muscle = clamp(look.muscle, 0, 3);
-    this.shape(Math.round(b * 100) / 100, muscle, spec.lf);
 
     const skin = skinOf(look);
     const hair = hairOf(look);
@@ -346,13 +356,10 @@ export class Figure {
     const stripes = Math.min(4, spec.stripes);
     const cauli = trait === "ear";
 
-    const files = [mode === "gi" ? "gi" : "nogi"];
-    if (look.hair !== 7) files.push(hairId);
-    if (look.beard >= 2) files.push(`beard_${look.beard}`);
-    if (hat) files.push(`hw_${hatStyle}`);
-    if (extra) files.push("extras");
-    await this.need(files);
+    await this.need(partsFor(spec));
     if (token !== this.dressing) return false;
+    // After loading: parts that just arrived take the same height and build.
+    this.shape(Math.round(b * 100) / 100, muscle, spec.lf);
 
     this.show((n) => {
       if (/^(head|face|torso|neck|arm[LR]|fist[LR]|leg[LR]|foot[LR])$/.test(n)) return true;
@@ -381,7 +388,7 @@ export class Figure {
         if (n === "ng_top" || n === "ng_collar") return true;
         if (n.startsWith("ng_long")) return sleeve === "long";
         if (n.startsWith("ng_short") && !n.startsWith("ng_shorts")) return sleeve === "short";
-        if (n === "ng_shorts" || n === "ng_waist") return shorts;
+        if (n === "ng_shorts") return shorts;
         if (n === "ng_spats") return spats;
         return false;
       }

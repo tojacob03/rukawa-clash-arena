@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Flame, Settings } from "lucide-react";
 import { APP_NAME, rankOf } from "./core/lore.ts";
 import { nf0, power } from "./format.ts";
@@ -23,6 +23,7 @@ import { CloudBadge, CloudDialogs } from "./components/CloudDialogs.tsx";
 import Scouter from "./components/Scouter.tsx";
 import Avatar from "./components/Avatar.tsx";
 import { useGear } from "./useGear.ts";
+import { figureFactors } from "./core/body.ts";
 import type { ScoutRequest } from "./scan.ts";
 import { normalizePlan, occurrences } from "./core/schedule.ts";
 import { buildPreview } from "./plan.ts";
@@ -69,6 +70,27 @@ export default function ArcApp() {
   useSocialPublish(data, st, today);
 
   useEffect(preloadMotion, []);
+
+  // Your own fighter, loaded while the page is idle, so the character stage
+  // and the scouter show it at once. Not on data saver.
+  const figure = data.profile ? { look: g.character.look, mode: g.character.mode, gear: g.gear, belt: data.profile.belt, stripes: data.profile.stripes, heightCm: data.profile.heightCm, weightKg: data.profile.weightKg } : null;
+  const figureRef = useRef(figure);
+  figureRef.current = figure;
+  const hasFigure = !!figure;
+  useEffect(() => {
+    if (!figureRef.current) return;
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    if (nav.connection?.saveData) return;
+    const go = () => {
+      const f = figureRef.current;
+      if (!f) return;
+      const { b, lf } = figureFactors(f.look.height, f.heightCm, f.weightKg);
+      void import("./fighter3d/renderer.ts").then((r) => r.preload({ look: f.look, mode: f.mode, gear: f.gear, belt: f.belt, stripes: f.stripes, b, lf })).catch(() => undefined);
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(go, { timeout: 3000 });
+    else setTimeout(go, 1200);
+  }, [hasFigure]);
 
   // The header floats over the page until it scrolls, then it gets its own ground.
   useEffect(() => {

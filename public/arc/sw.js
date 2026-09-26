@@ -1,13 +1,15 @@
 // Waza Arc service worker (scope /arc/).
 // - Offline start: the page is fetched fresh when online and served from the
 //   cache when not; built files under /assets/ never change their content,
-//   so they come from the cache first.
+//   so they come from the cache first. The 3D fighter's parts (/arc/fighter/)
+//   come from the cache at once and are refreshed in the background.
 // - Reminders: shows push messages and opens the right screen on tap.
 // Everything else (Supabase, the portfolio pages) passes through untouched.
 
 const SHELL = "arc-shell-v2";
 const ASSETS = "arc-assets-v1";
-const KEEP = [SHELL, ASSETS];
+const FIGHTER = "arc-fighter-v1";
+const KEEP = [SHELL, ASSETS, FIGHTER];
 const MAX_ASSETS = 120;
 const PAGE = "/arc/";
 const STATIC = ["/arc/", "/arc/manifest.webmanifest", "/arc/icon.svg", "/arc/icon-192.png", "/arc/icon-512.png"];
@@ -93,6 +95,23 @@ self.addEventListener("fetch", (event) => {
             return res;
           }),
       ),
+    );
+    return;
+  }
+
+  // Parts of the 3D fighter: stale while revalidate, they change only with a new model.
+  if (url.pathname.startsWith("/arc/fighter/") && url.pathname.endsWith(".glb")) {
+    event.respondWith(
+      caches.open(FIGHTER).then(async (c) => {
+        const hit = await c.match(req);
+        const fresh = fetch(req)
+          .then((res) => {
+            if (res.ok) void c.put(req, res.clone());
+            return res;
+          })
+          .catch(() => hit || Response.error());
+        return hit || fresh;
+      }),
     );
     return;
   }

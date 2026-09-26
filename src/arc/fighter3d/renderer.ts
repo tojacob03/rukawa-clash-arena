@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import { Figure } from "./figure.ts";
+import { Figure, partsFor } from "./figure.ts";
 import { dojo, shadowCatcher } from "./dojo.ts";
 import type { Spec } from "./figure.ts";
 
@@ -157,8 +157,9 @@ export function still(target: HTMLCanvasElement, spec: Spec, crop: Crop) {
 
 const reduce = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** A breathing figure. Returns controls to change it and to stop it. */
-export async function live(target: HTMLCanvasElement, crop: Crop) {
+/** A breathing figure. Returns controls to change it and to stop it;
+ * onFrame hears about the first frame. */
+export async function live(target: HTMLCanvasElement, crop: Crop, onFrame?: () => void) {
   const c = await context();
   const fig = await newFigure();
   let spec: Spec | null = null;
@@ -183,6 +184,10 @@ export async function live(target: HTMLCanvasElement, crop: Crop) {
     if (now - last > every || still) {
       last = now;
       shoot(c, fig, crop, target.width, target.height, target, sway);
+      if (onFrame) {
+        onFrame();
+        onFrame = undefined;
+      }
     }
     if (!still && visible && !document.hidden) raf = requestAnimationFrame(frame);
   };
@@ -216,7 +221,11 @@ export async function live(target: HTMLCanvasElement, crop: Crop) {
   };
 }
 
-/** Load the model and the renderer ahead of the first figure. */
-export function warm() {
-  return context().then(() => undefined);
+/** Get a figure ready before it is shown: the renderer, the parts it
+ * wears, its textures and shaders (one small render nobody sees). */
+export async function preload(spec: Spec) {
+  await Promise.all([context(), ...partsFor(spec).map(part)]);
+  const c = document.createElement("canvas");
+  c.width = c.height = 48;
+  await still(c, spec, "full");
 }

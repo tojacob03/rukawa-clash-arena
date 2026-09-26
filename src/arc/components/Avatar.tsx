@@ -5,7 +5,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Attire, Belt, Look, Slot } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
-import { bodyOf } from "../core/body.ts";
+import { figureFactors } from "../core/body.ts";
 import type { Body } from "../core/body.ts";
 import type { Spec } from "../fighter3d/figure.ts";
 import AvatarSvg from "./AvatarSvg.tsx";
@@ -30,8 +30,6 @@ export interface AvatarProps {
 
 const BOX = { full: [240, 320], head: [124, 136], face: [80, 64], stage: [320, 300] } as const;
 
-const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, Number.isFinite(x) ? x : 0));
-
 type Live = Awaited<ReturnType<typeof import("../fighter3d/renderer.ts").live>>;
 
 export default function Avatar(props: AvatarProps) {
@@ -39,6 +37,8 @@ export default function Avatar(props: AvatarProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const liveRef = useRef<Live | null>(null);
   const [failed, setFailed] = useState(false);
+  // Shown once the first frame is drawn: no empty box, no half-dressed figure.
+  const [ready, setReady] = useState(false);
   const [bw, bh] = BOX[crop];
   const w = size;
   const h = (size * bh) / bw;
@@ -46,10 +46,9 @@ export default function Avatar(props: AvatarProps) {
   const [px, setPx] = useState<[number, number]>([Math.round(w * dpr), Math.round(h * dpr)]);
   const animated = !still && (crop === "full" || crop === "stage");
 
-  const fig = body ?? bodyOf(heightCm, weightKg);
-  const lf = body || heightCm ? fig.h : 1 + 0.08 * clamp(look.height ?? 0, -2, 2);
-  const spec: Spec = { look, mode, gear, belt, stripes, b: fig.b, lf };
-  const key = JSON.stringify([look, mode, Object.entries(gear).map(([k, v]) => [k, v?.id]), belt, stripes, fig.b, lf]);
+  const { b, lf } = figureFactors(look.height, heightCm, weightKg, body);
+  const spec: Spec = { look, mode, gear, belt, stripes, b, lf };
+  const key = JSON.stringify([look, mode, Object.entries(gear).map(([k, v]) => [k, v?.id]), belt, stripes, b, lf]);
   const specRef = useRef(spec);
   specRef.current = spec;
 
@@ -72,6 +71,7 @@ export default function Avatar(props: AvatarProps) {
     let gone = false;
     import("../fighter3d/renderer.ts")
       .then((r) => (gone || !ref.current ? undefined : r.still(ref.current, specRef.current, crop)))
+      .then(() => !gone && setReady(true))
       .catch(() => !gone && setFailed(true));
     return () => {
       gone = true;
@@ -82,7 +82,7 @@ export default function Avatar(props: AvatarProps) {
     if (failed || !animated) return;
     let gone = false;
     import("../fighter3d/renderer.ts")
-      .then((r) => (ref.current ? r.live(ref.current, crop) : null))
+      .then((r) => (ref.current ? r.live(ref.current, crop, () => !gone && setReady(true)) : null))
       .then((l) => {
         if (!l) return;
         if (gone) return l.stop();
@@ -108,7 +108,7 @@ export default function Avatar(props: AvatarProps) {
   return (
     <canvas
       ref={ref}
-      className={`avatar${crop === "head" || crop === "face" ? " crop" : ""}`}
+      className={`avatar${crop === "head" || crop === "face" ? " crop" : ""}${ready ? " ready" : ""}`}
       width={px[0]}
       height={px[1]}
       style={{ ["--aw" as string]: `${w}px` }}

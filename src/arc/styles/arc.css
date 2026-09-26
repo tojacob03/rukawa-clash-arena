@@ -1720,7 +1720,9 @@ button.item:hover { border-color: var(--ink-2); }
 /* ── Avatar ───────────────────────────────────────────────────────────── */
 .avatar { display: block; flex: none; overflow: visible; }
 /* The 3D fighter's canvas: its pixel size follows the screen, its CSS width the size it was asked for. */
-canvas.avatar { width: var(--aw); height: auto; }
+canvas.avatar { width: var(--aw); height: auto; opacity: 0; transition: opacity 0.2s ease-out; }
+canvas.avatar.ready { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { canvas.avatar { transition: none; } }
 .avatar.crop { overflow: hidden; }
 
 /* ── Progressive disclosure ─────────────────────────────────────────── */

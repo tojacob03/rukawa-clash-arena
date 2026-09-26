@@ -178,3 +178,13 @@ Auftrag: „kannst du die darstellung des charakters extremst ausbessern? nimm b
 - **Auren in 3D:** blaue Flammen hinter und neben der Figur, goldene Funken aus einem Lichtring, Kirschblüten, Sternenstaub, Blitze, Gischt.
 - **Leistung:** Ein Renderer für alle Figuren einer Seite. 22 Frisur-Vorschauen brauchen im Software-Renderer (ohne GPU) 1,5 s. Mit Gi lädt eine Figur rund 0,5 MB (Grundmodell, Gi, Frisur).
 - Geprüft: Typecheck, Lint, 104 Unit-Tests, Build, Konto-E2E 23/23, Social-E2E 46/46, axe ohne Befund, Mobile-Audit ohne Überlauf, reduzierte Bewegung (Bühne steht still, sonst atmet sie), Fallback ohne WebGL (SVG-Figur).
+
+### 3D-Figur: Passform, Hände, Laden
+
+Rückmeldung: „es lädt mit leichter verzögerung, die kleidung sitzt nicht ganz und die hände sehen unnatürlich aus“.
+
+- **Kleidung:** Zwei Fehler im Browser-Renderer. Teile, die nachgeladen wurden (Gi, No-Gi, Frisur), bekamen Körperhöhe und Statur erst beim nächsten Umziehen; beim ersten Anzeigen war der Körper breiter als das Shirt und die Haut stach durch, vor allem an den Schultern. Und die Shorts wurden wie Ärmel behandelt (Name `ng_shorts` passte auf das Muster der kurzen Ärmel) und bei mehr Muskeln entlang der Armachsen auseinandergezogen. Beides behoben. Im Modell hängt der Rashguard jetzt lose über dem Bund der Shorts und schließt am Hals, der Rumpf darunter sitzt tiefer.
+- **Hände:** neu gebaut als geschlossene Faust, Handfläche zum Oberschenkel: Handrücken, vier eingerollte Finger (Knöchel unten, Mittelglieder an der Innenseite), der Daumen quer über den ersten beiden. Die Teile werden per Voxel-Remesh zu einer glatten Fläche verschmolzen.
+- **Laden:** Die eigene Figur wird geladen, sobald die App im Leerlauf ist (nicht im Datensparmodus), samt Texturen und Shadern. Die Figur erscheint erst, wenn ihr erstes Bild steht, mit kurzem Einblenden (ohne bei reduzierter Bewegung). Der Service Worker hält die Modellteile im Cache und frischt sie im Hintergrund auf. Gemessen ohne Grafikkarte: Held-Bühne nach dem Wechsel von Heute in 0,3 s statt 1,8 s.
+- Geprüft: Typecheck, Lint, 104 Unit-Tests, Build, Konto-E2E 23/23, Social-E2E 46/46, axe und Mobile-Audit ohne Befund, reduzierte Bewegung, Fallback ohne WebGL.
+

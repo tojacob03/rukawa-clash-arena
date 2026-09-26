@@ -12,7 +12,7 @@ import bmesh
 import bpy
 from mathutils import Vector
 
-from geo import apply_modifiers, bridge_rings, link, modifier, planar_uv, subdivide, superellipse, sweep
+from geo import apply_modifiers, bridge_rings, ellipsoid, link, modifier, planar_uv, subdivide, superellipse, sweep
 
 V = Vector
 
@@ -39,8 +39,8 @@ TORSO = [
     (0.88, 0.285, 0.178),
     (0.96, 0.29, 0.175),
     (1.02, 0.27, 0.16),
-    (1.07, 0.21, 0.13),
-    (1.105, 0.12, 0.1),
+    (1.07, 0.2, 0.125),
+    (1.1, 0.115, 0.095),
 ]
 
 
@@ -137,17 +137,30 @@ def body(m):
     return out
 
 
-def fist(name, c, s, mat):
-    """A closed hand: a rounded block, four curled fingers across the front
-    and the thumb over them."""
-    palm = sweep(name + "p", [c + V((0, 0.005, 0.055)), c + V((0, 0.0, 0.005)), c + V((0, -0.004, -0.04))], [(0.064, 0.066), (0.07, 0.074), (0.058, 0.062)], n=20, p=2.8, up=(1, 0, 0))
-    parts = [palm]
-    for i in range(4):
-        a = c + V((0, 0, 0.028 - i * 0.024))
-        fx = 0.058 - abs(i - 1.5) * 0.004
-        parts.append(sweep(f"{name}f{i}", [a + V((-fx * s * 0.2, -0.052, 0)), a + V((fx * s * 0.55, -0.058, 0))], 0.0165, n=10))
-    parts.append(sweep(name + "t", [c + V((-0.035 * s, -0.05, 0.045)), c + V((-0.02 * s, -0.074, 0.02)), c + V((0.012 * s, -0.078, 0.012))], [0.024, 0.022, 0.019], n=12))
-    return merge(name, parts, mat)
+def fist(name, c, s, mat, k=1.12):
+    """A closed hand hanging at the side, palm towards the thigh: the back of
+    the hand, four fingers rolled in (their knuckles below, their middle
+    joints along the palm side), the thumb lying across the first two. The
+    pieces are melted into one surface with a voxel remesh, then smoothed."""
+
+    def at(x, y, z):
+        return c + V((x * s, y, z)) * k
+
+    parts = [ellipsoid(name + "b", at(0.004, 0.004, 0.006), (0.046 * k, 0.06 * k, 0.056 * k), n=24, rings=16)]
+    for i, y in enumerate((-0.042, -0.014, 0.014, 0.041)):
+        z = -0.038 + abs(i - 1.5) * 0.003
+        r = (0.02 - (0.002 if i == 3 else 0)) * k
+        parts.append(sweep(f"{name}r{i}", [at(0.028, y, z), at(-0.03, y, z - 0.004)], r, n=12))
+        parts.append(sweep(f"{name}m{i}", [at(-0.036, y, -0.036), at(-0.041, y, -0.004)], r * 0.92, n=12))
+    parts.append(ellipsoid(name + "tb", at(-0.012, -0.045, 0.028), (0.026 * k, 0.028 * k, 0.032 * k), n=14, rings=10))
+    parts.append(sweep(name + "t", [at(-0.016, -0.058, 0.03), at(-0.03, -0.064, 0.006), at(-0.042, -0.058, -0.012)], [0.021 * k, 0.02 * k, 0.017 * k], n=12))
+    ob = merge(name, parts, mat)
+    modifier(ob, "REMESH", mode="VOXEL", voxel_size=0.003)
+    modifier(ob, "SMOOTH", factor=0.8, iterations=6)
+    modifier(ob, "DECIMATE", ratio=0.18)
+    apply_modifiers(ob)
+    ob.data.shade_smooth()
+    return ob
 
 
 def foot(name, ankle, s, mat):
@@ -259,17 +272,20 @@ def belt(m):
 
 # ── No-gi ─────────────────────────────────────────────────────────────────
 
-TOP_AIR = 0.012
+TOP_AIR = 0.014
 
 
 def nogi(m):
     out = {}
-    sec = [(0.5, 0.265, 0.175)] + [(z, rx + TOP_AIR, ry + TOP_AIR) for z, rx, ry in TORSO[1:-1]] + [(1.1, 0.13, 0.108)]
+    # The shirt hangs loose over the waistband of the shorts and closes on
+    # the neck, so neither the shorts nor the skin below show through.
+    sec = [(0.54, 0.29, 0.198), (0.6, 0.28, 0.19), (0.68, 0.272, 0.184)]
+    sec += [(z, rx + TOP_AIR, ry + TOP_AIR) for z, rx, ry in TORSO[3:-1]] + [(1.115, 0.118, 0.104)]
     top = loft("ng_top", sec, n=36, p=2.2, mat=m["top"])
     shell(top, 0.01)
     planar_uv(top)
     out["ng_top"] = top
-    ring = [V((math.cos(a) * 0.122, math.sin(a) * 0.104 + 0.004, 1.1)) for a in [math.tau * i / 36 for i in range(36)]]
+    ring = [V((math.cos(a) * 0.112, math.sin(a) * 0.1 + 0.004, 1.113)) for a in [math.tau * i / 36 for i in range(36)]]
     out["ng_collar"] = sweep("ng_collar", ring, (0.011, 0.012), n=10, closed=True, up=(0, 0, 1), mat=m["topdark"])
     for s, side in ((-1, "R"), (1, "L")):
         for kind, to in (("long", 0.97), ("short", 0.42)):
@@ -281,8 +297,8 @@ def nogi(m):
             out[f"ng_{kind}{side}"] = sl
             back = path[-1] + (path[-2] - path[-1]).normalized() * 0.02
             out[f"ng_{kind}cuff{side}"] = sweep(f"ng_{kind}cuff{side}", [back, path[-1]], r[-1] + 0.004, n=24, mat=m["topdark"], round_caps=(False, False))
-    # Shorts: the seat and two wide legs to mid thigh, with a waistband.
-    hip = [(0.44, 0.27, 0.185), (0.52, 0.272, 0.182), (0.6, 0.262, 0.172), (0.68, 0.258, 0.17)]
+    # Shorts: the seat and two wide legs to mid thigh; the waist stays under the shirt.
+    hip = [(0.44, 0.27, 0.185), (0.52, 0.268, 0.18), (0.58, 0.258, 0.172), (0.64, 0.25, 0.165)]
     parts = [loft("ng_seat", hip, n=32, p=2.2, closed_bottom=True)]
     for s in (-1, 1):
         pts = [mirror(HIP, s) + V((-0.015 * s, 0, 0.04))] + leg_path(s, 0.32)
@@ -291,9 +307,6 @@ def nogi(m):
     shell(shorts, 0.012)
     planar_uv(shorts)
     out["ng_shorts"] = shorts
-    band = loft("ng_waist", [(0.655, 0.268, 0.178), (0.70, 0.266, 0.177)], n=44, mat=m["bottomdark"])
-    shell(band, 0.01, 0)
-    out["ng_waist"] = band
     # Spats: tight to the ankle.
     parts = [loft("ng_spatsseat", [(0.46, 0.258, 0.172), (0.56, 0.255, 0.168), (0.66, 0.25, 0.166)], n=32, closed_bottom=True)]
     for s in (-1, 1):

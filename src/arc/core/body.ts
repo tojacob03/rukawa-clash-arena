@@ -24,3 +24,10 @@ export function bodyOf(heightCm?: number | null, weightKg?: number | null): Body
   else if (weightKg) b = clamp(0.86 + (weightKg - 58) / 110, 0.86, 1.25);
   return { h: round2(h), b: round2(b) };
 }
+
+/** Build (b) and leg length (lf) of the drawn figure: from a friend's card, else from height and weight, else the look's height slider. */
+export function figureFactors(lookHeight: number | undefined, heightCm?: number | null, weightKg?: number | null, body?: Body | null) {
+  const fig = body ?? bodyOf(heightCm, weightKg);
+  const slider = Number.isFinite(lookHeight) ? clamp(lookHeight ?? 0, -2, 2) : 0;
+  return { b: fig.b, lf: body || heightCm ? fig.h : 1 + 0.08 * slider };
+}
