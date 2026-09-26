@@ -82,12 +82,6 @@ export default function AvatarSvg({ look: raw, mode, gear, belt, stripes, weight
   return (
     <svg className={`avatar${head ? " crop" : still ? "" : " alive"}`} width={w} height={h} viewBox={viewBox} role="img" aria-label={label ?? "Dein Charakter"}>
       <defs>
-        {gear.aura ? (
-          <radialGradient id={`glow${uid}`} cx="50%" cy="52%" r="50%">
-            <stop offset="0" stopColor={gear.aura.art.c ?? "#5f90ea"} stopOpacity={0.55} />
-            <stop offset="1" stopColor={gear.aura.art.c ?? "#5f90ea"} stopOpacity="0" />
-          </radialGradient>
-        ) : null}
         {tips ? (
           <linearGradient id={`hg${uid}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor={hair} />
@@ -103,7 +97,7 @@ export default function AvatarSvg({ look: raw, mode, gear, belt, stripes, weight
         </clipPath>
       </defs>
 
-      {head || !gear.aura ? null : <Aura id={gear.aura.id} color={gear.aura.art.c} glow={`url(#glow${uid})`} />}
+      {head || !gear.aura ? null : <Aura id={gear.aura.id} color={gear.aura.art.c} />}
       {head ? null : <ellipse cx={CX} cy={304} rx={62 * b} ry={8} fill="#000" opacity={0.35} />}
 
       <g className="avatar-body">
@@ -204,7 +198,7 @@ const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, Numbe
 
 /* ── Aura ──────────────────────────────────────────────────────────────── */
 
-function Aura({ id, color, glow }: { id?: string; color?: string; glow: string }) {
+function Aura({ id, color }: { id?: string; color?: string }) {
   const c = color ?? "#5f90ea";
   let fx: ReactNode = null;
   if (id === "au_blau") {
@@ -263,12 +257,7 @@ function Aura({ id, color, glow }: { id?: string; color?: string; glow: string }
       </g>
     );
   }
-  return (
-    <g aria-hidden="true">
-      <ellipse cx={CX} cy={168} rx={118} ry={150} fill={glow} />
-      {fx}
-    </g>
-  );
+  return <g aria-hidden="true">{fx}</g>;
 }
 
 /* ── Head ──────────────────────────────────────────────────────────────── */

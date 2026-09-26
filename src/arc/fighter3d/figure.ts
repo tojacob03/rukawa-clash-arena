@@ -43,7 +43,8 @@ const smooth = (a: number, b: number, x: number) => {
 };
 
 function makeMaterial(name: string) {
-  const m = new THREE.MeshStandardMaterial({ name, roughness: 0.8, metalness: 0 });
+  // Vertex colours carry the ambient occlusion baked in Blender (tools/fighter/ao.py).
+  const m = new THREE.MeshStandardMaterial({ name, roughness: 0.8, metalness: 0, vertexColors: name !== "face" });
   switch (name) {
     case "face":
       m.transparent = true;

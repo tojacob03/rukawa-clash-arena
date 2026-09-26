@@ -10,7 +10,7 @@ function strawTexture() {
   c.width = 256;
   c.height = 512;
   const g = c.getContext("2d")!;
-  g.fillStyle = "#8f7f4c";
+  g.fillStyle = "#7b7250";
   g.fillRect(0, 0, 256, 512);
   for (let x = 0; x < 256; x += 2) {
     const k = Math.sin(x * 12.9898) * 43758.5453;
@@ -29,7 +29,7 @@ function strawTexture() {
 export function dojo() {
   const g = new THREE.Group();
   g.name = "dojo";
-  const straw = new THREE.MeshStandardMaterial({ map: strawTexture(), roughness: 0.92 });
+  const straw = new THREE.MeshStandardMaterial({ map: strawTexture(), roughness: 0.95 });
   const heri = new THREE.MeshStandardMaterial({ color: "#17120f", roughness: 0.75 });
   const W = 0.95;
   const L = 1.9;

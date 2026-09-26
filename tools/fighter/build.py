@@ -4,7 +4,7 @@ headwear style.
 
 Run with Blender's Python module (pip install bpy==5.0.1) and Node on the path
 (the files are compressed with gltf-transform via npx):
-    python tools/fighter/build.py [--preview out.png] [--no-export] [--no-pack]
+    python tools/fighter/build.py [--preview out.png] [--no-export] [--no-pack] [--no-ao]
 
 Every part is its own object; the app shows and colours them per look and gear
 (see src/arc/fighter3d). Materials are named after the colour slot the app
@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy  # noqa: E402
 from mathutils import Vector  # noqa: E402
 
+import ao  # noqa: E402
 import body  # noqa: E402
 import facial  # noqa: E402
 import hair  # noqa: E402
@@ -175,6 +176,8 @@ def export(path, objs):
         export_cameras=False,
         export_lights=False,
         export_extras=True,
+        export_vertex_color="ACTIVE",
+        export_all_vertex_colors=False,
     )
 
 
@@ -222,6 +225,8 @@ def export_all(folder, pack=True):
 if __name__ == "__main__":
     args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else sys.argv[1:]
     parts = build()
+    if "--no-ao" not in args:
+        ao.bake([o for o in bpy.context.scene.objects if o.type == "MESH"])
     if "--no-export" not in args:
         out = args[args.index("--out") + 1] if "--out" in args else os.path.join(ROOT, "public", "arc", "fighter")
         export_all(out, pack="--no-pack" not in args)

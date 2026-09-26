@@ -54,11 +54,11 @@ function context() {
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.localClippingEnabled = true;
     const scene = new THREE.Scene();
-    scene.add(new THREE.HemisphereLight(0xfff4e8, 0x3a2a20, 1.5));
-    const fill = new THREE.DirectionalLight(0xffeedd, 0.9);
+    scene.add(new THREE.HemisphereLight(0xf6f2ec, 0x2e241d, 1.45));
+    const fill = new THREE.DirectionalLight(0xf2f0ec, 0.85);
     fill.position.set(2.5, 1.2, 4);
     scene.add(fill);
-    const key = new THREE.DirectionalLight(0xfff0dc, 2.3);
+    const key = new THREE.DirectionalLight(0xfff4e6, 2.3);
     key.position.set(-2, 3, 5);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
@@ -83,7 +83,7 @@ function context() {
 /** Framing per crop: what the camera looks at, how much height fits the frame, how far the fighter turns. */
 const FRAME: Record<Crop, { y: number; h: number; yaw: number; tilt: number }> = {
   full: { y: 1.1, h: 2.36, yaw: -0.32, tilt: 0.1 },
-  stage: { y: 0.98, h: 2.55, yaw: -0.36, tilt: 0.3 },
+  stage: { y: 1.0, h: 2.5, yaw: -0.36, tilt: 0.22 },
   head: { y: 1.6, h: 1.2, yaw: -0.2, tilt: 0.06 },
   face: { y: 1.42, h: 0.5, yaw: -0.12, tilt: 0.04 },
 };
