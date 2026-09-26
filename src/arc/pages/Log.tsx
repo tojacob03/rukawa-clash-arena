@@ -27,6 +27,7 @@ import { plannedAttire } from "../plan.ts";
 import { cleanGuest, knownGyms } from "../core/visits.ts";
 import { isOpen } from "../core/unlocks.ts";
 import { COUNTRIES } from "../core/countries.ts";
+import SealStone from "../components/SealStone.tsx";
 
 interface Draft {
   format: Format;
@@ -358,9 +359,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
               ) : null}
             </span>
             <button type="submit" className="btn primary big seal-btn">
-              <span className="seal" aria-hidden="true">
-                記
-              </span>
+              <SealStone glyph="記" px={96} className="seal" />
               <span>Training speichern</span>
             </button>
           </div>

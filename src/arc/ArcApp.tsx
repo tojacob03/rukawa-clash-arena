@@ -35,6 +35,7 @@ import { isOpen } from "./core/unlocks.ts";
 import { jumpTop, startSmooth } from "./smooth.ts";
 import Freunde from "./pages/Freunde.tsx";
 import { useSocial } from "./cloud/social.ts";
+import SealStone from "./components/SealStone.tsx";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -290,9 +291,7 @@ export default function ArcApp() {
         <NavItem route="heute" current={route} kanji="今" label="Heute" />
         <NavItem route="karte" current={route === "meer" || route === "codex" ? "karte" : route} kanji="図" label="Karte" />
         <button type="button" className={`nav-log${route === "log" ? " on" : ""}`} aria-current={route === "log" ? "page" : undefined} onClick={() => go("log")}>
-          <span className="stamp-btn" aria-hidden="true">
-            記
-          </span>
+          <SealStone glyph="記" px={144} className="stamp-btn" />
           <span className="nl">Eintragen</span>
         </button>
         <NavItem route="freunde" current={route === "gym" || route === "einladung" ? "freunde" : route} kanji="友" label="Freunde" badge={social.incoming.length} />
