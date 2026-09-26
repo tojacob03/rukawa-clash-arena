@@ -1800,6 +1800,14 @@ button.item:hover { border-color: var(--ink-2); }
 /* Hats are drawn for skin and hair, so they sit on washi even in the lacquer edition. */
 .hat-ico { flex: none; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: #ece3d0; box-shadow: inset 0 0 0 1px rgba(27, 21, 18, 0.12); }
 @media (max-width: 560px) { .pass-k { left: -40px; width: 34px; font-size: 26px; } .gym-stamp { width: 118px; } .pass-stamps { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); } }
+.hat-collection { list-style: none; margin: 4px 0 0; padding: 0; width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 14px 8px; }
+.hat-collection li { display: grid; justify-items: center; gap: 5px; text-align: center; }
+.hat-collection small { font-size: 11.5px; line-height: 1.25; color: var(--ink-2); overflow-wrap: anywhere; }
+.hat-collection .hat-ico { width: 46px; height: 46px; }
+/* Not yet collected: drawn in pencil. */
+.hat-collection li:not(.got) .hat-ico { background: transparent; box-shadow: inset 0 0 0 1px var(--ink-3); }
+.hat-collection li:not(.got) .item-ico { filter: grayscale(1) contrast(0.7); opacity: 0.4; }
+.hat-collection li.got small { color: var(--ink); font-weight: 600; }
 .guest { display: grid; gap: 8px; }
 .guest .row { gap: 12px 16px; }
 

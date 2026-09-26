@@ -206,7 +206,7 @@ export default function Start({ today }: { today: string }) {
         <div className="field">
           <span className="fl">Land oder Länder</span>
           <CountryPicker value={countries} onChange={setCountries} />
-          <small className="muted">Jedes Land wird ein Aufnäher für Gi und Rashguard. Das erste kommt auf die Schulter.</small>
+          <small className="muted">Jedes Land wird ein Aufnäher für Gi und Rashguard und bringt seine traditionelle Kopfbedeckung mit. Das erste kommt auf die Schulter.</small>
         </div>
         <div className="field">
           <span className="fl">Weitere Sportarten (optional)</span>

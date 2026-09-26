@@ -140,3 +140,9 @@ Die Knospen waren schon Knöpfe, aber jede einzelne ein Tab-Stopp: Wer den Zweig
 - **CSS:** Regeln für Klassen ohne Verwendung entfernt (alte Karten-Kacheln der Bühne, Plan-Leiste, Scouter-Strahl und -Linien, `.tone`, `.koma`, `.lacquer-box`, `.map-box`, `.spread.wide-left`). Gefunden mit einem Abgleich aller Klassen im CSS gegen den Quelltext; dynamisch zusammengesetzte Klassen (`r-…`, `k-…`, `ink-…`, `log-…`, `pw-meter s…`, Lenis) bleiben.
 - **Code:** `core/layout.ts` (die radiale Anordnung der alten Sternkarte) gelöscht; die zwei Winkel-Helfer, die das Hexagon braucht, stehen jetzt im Diagramm selbst. Der Test für die Sternkarten-Positionen fiel mit weg, sein Gegenstück für den Zweig („Knospen halten Abstand“) gibt es in `branch.test.ts`. Ungenutzte Exporte `HAT_COUNTRIES` und `budOf` entfernt.
 - Geprüft: Typecheck, Lint, 104 Unit-Tests, Build, Hexagon und Power-Kurve im Bild.
+
+### Mobile-Audit, Sammlung, Onboarding
+
+- **Mobile-Audit** der neuen Teile bei 320, 360 und 390 px (Heute mit Inhaltsverzeichnis, Seekarte vor Anker, Eintragen, Turnier, Kapitelende, Charakterbogen mit Mattenpass, Turnieren und Steckbrief, Codex, Plan, Profil): kein waagrechter Überlauf, keine Tippfläche unter 24 px (kleinste 26 px), nichts außerhalb des Bildes.
+- **Sammlung im Mattenpass:** „Ganze Sammlung zeigen“ öffnet alle 125 Kopfbedeckungen, gesammelte in Farbe auf Washi, offene als Bleistift-Umriss mit dem Land darunter. So sieht man, was es zu holen gibt, ohne dass die Ausrüstung mit 120 gesperrten Einträgen zuläuft.
+- **Onboarding:** Der Länder-Schritt sagt jetzt, dass jedes Land auch seine traditionelle Kopfbedeckung mitbringt.

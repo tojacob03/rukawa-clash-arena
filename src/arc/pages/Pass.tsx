@@ -141,10 +141,41 @@ export default function PassTab({ data, st, belt }: { data: ArcData; st: ArcStat
                 ))}
               </ul>
             ) : null}
+            <Collection have={new Set(hats.map((h) => h.code))} belt={belt} />
           </div>
         </section>
       </div>
     </div>
+  );
+}
+
+/** Every country's headwear: the ones you have in colour, the rest drawn in pencil, to go and get. */
+function Collection({ have, belt }: { have: Set<string>; belt: Belt }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="linkish" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        {open ? "Sammlung schließen" : `Ganze Sammlung zeigen (${COUNTRIES.length - have.size} noch offen)`}
+      </button>
+      {open ? (
+        <ul className="hat-collection">
+          {COUNTRIES.map((c) => {
+            const item = dynamicItem(`hat:${c.code}`);
+            if (!item) return null;
+            const got = have.has(c.code);
+            return (
+              <li key={c.code} className={got ? "got" : ""} title={got ? item.name : `${item.name}: als Gast in einem Gym in ${c.name} trainieren`}>
+                <span className="hat-ico">
+                  <ItemIcon item={item} belt={belt} size={36} />
+                </span>
+                <small>{c.name}</small>
+                <span className="sr-only">{got ? `, ${item.name}, gesammelt` : `, ${item.name}, noch offen`}</span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </>
   );
 }
 
