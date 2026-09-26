@@ -69,7 +69,6 @@ import Avatar from "../components/Avatar.tsx";
 import ItemIcon from "../components/ItemIcon.tsx";
 import CrewFlag from "../components/CrewFlag.tsx";
 import Flag3D from "../components/Flag3D.tsx";
-import Ship from "../components/ShipArt.tsx";
 import { HeroKoma, Seg } from "../components/ui.tsx";
 import { useSocial } from "../cloud/social.ts";
 import { shipsOf } from "../socialCard.ts";
@@ -77,6 +76,7 @@ import { crewNow, shipNow } from "../ship.ts";
 import type { ShipNow } from "../ship.ts";
 import { gearItems } from "../core/social.ts";
 import { isOpen } from "../core/unlocks.ts";
+import { ShipOnWater } from "../components/Sea3D.tsx";
 
 export function MapSwitch({ value }: { value: "karte" | "meer" | "codex" }) {
   return (
@@ -883,7 +883,7 @@ function ShipView({
       <HeroKoma label="Dein Schiff" className="ship-koma">
         <div className="ship-hero">
           <div className="ship-pic">
-            <Ship
+            <ShipOnWater
               look={{
                 belt: p.belt,
                 sail: shipSail(data, st),

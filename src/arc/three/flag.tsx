@@ -18,8 +18,13 @@ export interface FlagArgs {
 const clothW = 1.5;
 const clothH = 1.0;
 
-function cloth() {
-  const uniforms = { uTime: { value: 0 }, uAmp: { value: 0.1 }, uWaves: { value: 1.15 }, uSpeed: { value: 3 }, uSag: { value: 0 } };
+/**
+ * Cloth that waves from its left edge (u = 0, the pole) to its free end: a
+ * plane of w × h with the drawing mapped on it. Returns the material and the
+ * wind to set (amplitude, waves along the cloth, speed, sag of the free end).
+ */
+export function cloth(w: number, h: number) {
+  const uniforms = { uTime: { value: 0 }, uAmp: { value: 0.1 * w }, uWaves: { value: 1.15 }, uSpeed: { value: 3 }, uSag: { value: 0 } };
   const mat = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, roughness: 0.82, alphaTest: 0.5, transparent: false });
   mat.normalMap = weaveNormal();
   mat.normalScale.set(0.25, 0.25);
@@ -38,8 +43,8 @@ float wPhase(vec2 st) { return st.x * uWaves * 6.28318 - uTime * uSpeed + (1.0 -
         "#include <beginnormal_vertex>",
         `float k = uv.x;
   float ph = wPhase(uv);
-  float dzdx = uAmp * (sin(ph) + k * cos(ph) * uWaves * 6.28318) / ${clothW.toFixed(2)};
-  float dzdy = uAmp * k * cos(ph) * 0.7 / ${clothH.toFixed(2)};
+  float dzdx = uAmp * (sin(ph) + k * cos(ph) * uWaves * 6.28318) / ${w.toFixed(3)};
+  float dzdy = uAmp * k * cos(ph) * 0.7 / ${h.toFixed(3)};
   vec3 objectNormal = normalize(vec3(-dzdx, dzdy, 1.0));
   #ifdef USE_TANGENT
     vec3 objectTangent = vec3( tangent.xyz );
@@ -53,8 +58,27 @@ float wPhase(vec2 st) { return st.x * uWaves * 6.28318 - uTime * uSpeed + (1.0 -
   transformed.y -= uSag * k * k;`,
       );
   };
-  mat.customProgramCacheKey = () => "flag-cloth";
-  return { mat, uniforms };
+  mat.customProgramCacheKey = () => `flag-cloth-${w.toFixed(3)}-${h.toFixed(3)}`;
+  const geo = new THREE.PlaneGeometry(w, h, 32, 16);
+  geo.translate(w / 2, -h / 2, 0);
+  return { mat, uniforms, geo };
+}
+
+/** Set the wind on a cloth: the same wind as the drawn flag; without it the cloth hangs. */
+export function setWind(u: ReturnType<typeof cloth>["uniforms"], wind: number, w: number) {
+  const k = Math.max(0, Math.min(1, wind));
+  u.uAmp.value = (k < 0.15 ? 0.027 : 0.053 + 0.113 * k) * w;
+  u.uSpeed.value = (Math.PI * 2) / (2 - k * 1.05);
+  u.uSag.value = (k < 0.15 ? 0.21 : 0.04 * (1 - k)) * w;
+}
+
+/** The crew flag drawn into a texture for the cloth. */
+export async function flagTexture(design?: Partial<FlagDesign> | null) {
+  const c = await svgCanvas(<CrewFlagArt design={design} />, "0 0 120 80", 768, 512);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
 }
 
 export async function mountFlag(canvas: HTMLCanvasElement, args: FlagArgs, ready: () => void) {
@@ -62,9 +86,7 @@ export async function mountFlag(canvas: HTMLCanvasElement, args: FlagArgs, ready
   stageLights(scene, { rim: 1.4 });
   scene.environment = environment();
   const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 30);
-  const { mat, uniforms } = cloth();
-  const geo = new THREE.PlaneGeometry(clothW, clothH, 48, 24);
-  geo.translate(clothW / 2, -clothH / 2, 0);
+  const { mat, uniforms, geo } = cloth(clothW, clothH);
   const sheet = new THREE.Mesh(geo, mat);
   sheet.position.set(0.03, 1.0, 0);
   sheet.castShadow = true;
@@ -90,15 +112,8 @@ export async function mountFlag(canvas: HTMLCanvasElement, args: FlagArgs, ready
   });
 
   async function set(next: FlagArgs) {
-    const w = Math.max(0, Math.min(1, next.wind));
-    // The same wind as the drawn flag: faster and higher waves with more of it; without, it hangs.
-    uniforms.uAmp.value = w < 0.15 ? 0.04 : 0.08 + 0.17 * w;
-    uniforms.uSpeed.value = (Math.PI * 2) / (2 - w * 1.05);
-    uniforms.uSag.value = w < 0.15 ? 0.32 : 0.06 * (1 - w);
-    const c = await svgCanvas(<CrewFlagArt design={next.design} />, "0 0 120 80", 768, 512);
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 4;
+    setWind(uniforms, next.wind, clothW);
+    const tex = await flagTexture(next.design);
     map?.dispose();
     map = tex;
     mat.map = tex;
