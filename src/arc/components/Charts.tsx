@@ -1,8 +1,12 @@
 import { SECTORS } from "../core/techniques.ts";
-import { polar, sectorAngle } from "../core/layout.ts";
+import type { SectorId } from "../core/types.ts";
 import { clamp, powerOf } from "../core/model.ts";
 import { nf0, shortDate } from "../format.ts";
 import { isoOf } from "../core/model.ts";
+
+/** The hexagon's axes: six sectors, 60 degrees apart, Guard at the top. */
+const sectorAngle = (id: SectorId) => -90 + 60 * SECTORS.findIndex((s) => s.id === id);
+const polar = (r: number, deg: number): [number, number] => [r * Math.cos((deg * Math.PI) / 180), r * Math.sin((deg * Math.PI) / 180)];
 
 /** Belt benchmarks drawn as rings. Placeholders until pilot data calibrates them. */
 const BENCH: [string, number][] = [

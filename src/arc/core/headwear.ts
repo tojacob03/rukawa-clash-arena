@@ -265,9 +265,6 @@ export function hatOf(code: string): Hat | null {
 /** Countries that have their own headwear, not a headband. */
 export const OWN_HAT = new Set(Object.keys(LIST));
 
-/** Every country, for tests and the passport. */
-export const HAT_COUNTRIES = COUNTRIES.map((c) => c.code);
-
 /** The part of the avatar's drawing a hat takes up, for item icons (a square around it). */
 export function hatBox(style?: string): string {
   switch (style) {

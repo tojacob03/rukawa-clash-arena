@@ -134,3 +134,9 @@ axe-core (WCAG 2.0/2.1 A und AA plus Best Practices) über 20 Seiten in beiden A
 ### Zweig per Tastatur
 
 Die Knospen waren schon Knöpfe, aber jede einzelne ein Tab-Stopp: Wer den Zweig mit der Tastatur verlassen wollte, musste bis zu 193-mal Tab drücken. Jetzt hat der Zweig einen einzigen Tab-Stopp (die gewählte Knospe oder die erste sichtbare), die Pfeiltasten gehen zur nächsten Knospe in der Richtung (entlang der Richtung gemessen, seitlicher Versatz zählt doppelt), Pos1 und Ende springen an den Anfang und das Ende des Zweigs, Enter oder Leertaste öffnen das Technikblatt. Knospen im Nebel werden übersprungen. Der Fokusring ist kräftiger, und ein Hinweis für Screenreader erklärt die Tasten. Die Kamera fährt mit, wenn die fokussierte Knospe außerhalb des Ausschnitts liegt. Geprüft per Browser-Test (1 Tab-Stopp von 193, Pfeile, Pos1/Ende, Enter öffnet, Tab verlässt den Zweig).
+
+### Aufgeräumt
+
+- **CSS:** Regeln für Klassen ohne Verwendung entfernt (alte Karten-Kacheln der Bühne, Plan-Leiste, Scouter-Strahl und -Linien, `.tone`, `.koma`, `.lacquer-box`, `.map-box`, `.spread.wide-left`). Gefunden mit einem Abgleich aller Klassen im CSS gegen den Quelltext; dynamisch zusammengesetzte Klassen (`r-…`, `k-…`, `ink-…`, `log-…`, `pw-meter s…`, Lenis) bleiben.
+- **Code:** `core/layout.ts` (die radiale Anordnung der alten Sternkarte) gelöscht; die zwei Winkel-Helfer, die das Hexagon braucht, stehen jetzt im Diagramm selbst. Der Test für die Sternkarten-Positionen fiel mit weg, sein Gegenstück für den Zweig („Knospen halten Abstand“) gibt es in `branch.test.ts`. Ungenutzte Exporte `HAT_COUNTRIES` und `budOf` entfernt.
+- Geprüft: Typecheck, Lint, 104 Unit-Tests, Build, Hexagon und Power-Kurve im Bild.

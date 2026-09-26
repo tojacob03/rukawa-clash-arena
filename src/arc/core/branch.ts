@@ -275,8 +275,6 @@ function relax(buds: Record<string, BudSpot>, strokes: Stroke[]) {
 export const TREE = grow();
 
 /** Where a technique grows: its bud. */
-export const budOf = (x: Technique) => TREE.buds[x.id];
-
 /**
  * The outline of a brush stroke along a centre line: pressed down at the
  * start, thinning towards the end, with the small unevenness of ink on paper.

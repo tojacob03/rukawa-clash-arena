@@ -2,7 +2,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { COMBOS, TECH, TECHS } from "./techniques.ts";
-import { POS } from "./layout.ts";
 import { STUCK } from "./lore.ts";
 import { buildDemo } from "./demo.ts";
 import { compute, dayNum, diff, pickCards, posterior, weekOf, xpParts } from "./model.ts";
@@ -20,16 +19,6 @@ test("library: ids are unique and every reference resolves", () => {
 
 test("library: prerequisites never point outward", () => {
   for (const x of TECHS) for (const p of x.pre) assert.ok(TECH[p].tier <= x.tier, `${x.id} (ring ${x.tier}) needs ${p} (ring ${TECH[p].tier})`);
-});
-
-test("layout: every technique has a distinct position", () => {
-  const pts = TECHS.map((x) => POS[x.id]);
-  assert.ok(pts.every(Boolean));
-  for (let i = 0; i < pts.length; i++)
-    for (let j = i + 1; j < pts.length; j++) {
-      const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
-      assert.ok(d > 24, `${TECHS[i].id} and ${TECHS[j].id} overlap (${d.toFixed(1)})`);
-    }
 });
 
 test("weekOf: Monday starts a new week", () => {
