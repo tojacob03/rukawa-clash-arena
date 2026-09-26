@@ -4,8 +4,11 @@
 
 import * as THREE from "three";
 
+let straw: THREE.CanvasTexture | null = null;
+
 /** Rush straw: fine strands along the mat, a woven line every few strands. */
-function strawTexture() {
+export function strawTexture() {
+  if (straw) return straw;
   const c = document.createElement("canvas");
   c.width = 256;
   c.height = 512;
@@ -23,6 +26,7 @@ function strawTexture() {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
+  straw = t;
   return t;
 }
 

@@ -7,6 +7,7 @@ import type { ItemDef } from "../core/items.ts";
 import { BELT } from "../format.ts";
 import { HAIR_COLORS, hairOf, normalizeLook, shade, skinOf } from "../avatarOptions.ts";
 import { drawFace, faceKey } from "./face.ts";
+import type { Mood } from "./face.ts";
 import { hairTexture, weaveNormal } from "./textures.tsx";
 import { bandTexture } from "./hats.ts";
 import { makeAura } from "./aura.ts";
@@ -23,6 +24,8 @@ export interface Spec {
   b: number;
   /** Leg length, 0.84 … 1.16. */
   lf: number;
+  /** A passing expression on the face (face.ts). */
+  mood?: Mood;
 }
 
 // Joints of the build script (tools/fighter/body.py) in three.js axes:
@@ -144,6 +147,8 @@ export class Figure {
   private faceWas = "";
   private shapeWas = "";
   private dressing = 0;
+  /** How far the head is raised by longer legs (lowered by shorter ones). */
+  lift = 0;
   /** Where the hat cuts the hair, in head coordinates, and the same plane in the world. */
   private clipLocal: THREE.Plane | null = null;
   private clipWorld = new THREE.Plane();
@@ -325,6 +330,7 @@ export class Figure {
       part.mesh.geometry.computeBoundingSphere();
     }
     this.head.position.set(HEAD_C.x, HEAD_C.y + lift, HEAD_C.z);
+    this.lift = lift;
   }
 
   /** Dress the figure. Resolves once every texture is in place. */
@@ -476,10 +482,11 @@ export class Figure {
       if (this.aura) this.root.add(this.aura.group);
     }
 
-    const fk = faceKey({ look, scar: trait === "scar" });
+    const face = { look, scar: trait === "scar", mood: spec.mood };
+    const fk = faceKey(face);
     if (fk !== this.faceWas) {
       this.faceWas = fk;
-      drawFace(this.faceCanvas, { look, scar: trait === "scar" });
+      drawFace(this.faceCanvas, face);
       this.faceTex.needsUpdate = true;
     }
 

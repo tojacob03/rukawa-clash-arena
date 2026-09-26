@@ -15,6 +15,7 @@ import { useGear } from "../useGear.ts";
 import { questTask, successLabel } from "../questText.ts";
 import { KindBadge, LvlStep, SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import ChapterEnd from "../components/ChapterEnd.tsx";
+import OwnAvatar from "../components/OwnAvatar.tsx";
 import type { SeaStep } from "../core/reward.ts";
 import { seaFor } from "../reward.ts";
 import { newlyOpen, stillClosed } from "../core/unlocks.ts";
@@ -142,6 +143,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
         sea={result.sea}
         opened={result.opened}
         closed={result.closed}
+        fighter={(mood) => <OwnAvatar data={data} st={result.after} crop="icon" size={150} still mood={mood} />}
         loot={result.loot}
         belt={belt}
         actions={

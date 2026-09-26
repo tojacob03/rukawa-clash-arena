@@ -23,6 +23,8 @@ import Hanko from "./Hanko.tsx";
 import { HeroKoma, LvlStep, SecTitle } from "./ui.tsx";
 import { motionReady } from "../motion.ts";
 import type { Timeline } from "../motion.ts";
+import type { Mood } from "../fighter3d/face.ts";
+import { moodOf } from "../chapterMood.ts";
 
 export interface ChapterRow {
   key: string;
@@ -55,6 +57,7 @@ export default function ChapterEnd({
   belt,
   actions,
   seal,
+  fighter,
 }: {
   kanji: string;
   title: string;
@@ -71,12 +74,17 @@ export default function ChapterEnd({
   actions: ReactNode;
   /** The dōjō stamp for the book: kind of session and its date. */
   seal?: { kind: string; date: string };
+  /** The fighter's head, with the face it makes (moodOf) once the XP land. */
+  fighter?: (mood: Mood | undefined) => ReactNode;
 }) {
   const [skip, setSkip] = useState(false);
   const [running, setRunning] = useState(true);
   const [staged, setStaged] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const tl = useRef<Timeline | null>(null);
+  const mood = moodOf(before, after, ways);
+  // The face stays as it was until the count lands, then it reacts.
+  const [face, setFace] = useState<Mood | undefined>(() => (motionReady() ? undefined : mood));
   const gained = after.xp - before.xp;
   const up = after.lvl > before.lvl;
   const pct = (st: ArcState) => (100 * (st.xp - st.lo)) / (st.hi - st.lo);
@@ -87,6 +95,7 @@ export default function ChapterEnd({
     const m = motionReady();
     const el = root.current;
     if (!m || !el) {
+      setFace(mood);
       const t = window.setTimeout(() => setRunning(false), 2400);
       return () => window.clearTimeout(t);
     }
@@ -132,6 +141,9 @@ export default function ChapterEnd({
       t.fromTo(el.querySelector(".chapter-lvl > div"), { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, beat + 0.2);
       land = beat + 0.75;
     }
+    // The fighter reacts on the beat the count lands: a small start, then the new face.
+    t.call(() => setFace(mood), [], land - 0.15);
+    if (mood) t.fromTo(q(".ch-face"), { y: 0 }, { y: mood === "tired" ? 3 : -5, duration: 0.14, yoyo: true, repeat: 1, ease: "power2.out" }, land - 0.1);
     // The stamp comes down on the beat the count lands, and the page gives under it.
     const seal = q(".ch-seal");
     if (seal.length) {
@@ -183,10 +195,13 @@ export default function ChapterEnd({
       <HeroKoma label="Erfahrung">
         <div className="chapter-xp">
           {seal ? <Hanko kind={seal.kind} date={seal.date} className="ch-seal" /> : null}
-          <p className="xp-gain ch-stamp">
-            +<span className="ch-num">{nf0.format(gained)}</span>
-            <small>XP</small>
-          </p>
+          <div className="ch-hero">
+            {fighter ? <div className="ch-face">{fighter(face)}</div> : null}
+            <p className="xp-gain ch-stamp">
+              +<span className="ch-num">{nf0.format(gained)}</span>
+              <small>XP</small>
+            </p>
+          </div>
           <div className="chapter-lvl">
             <span className="hex-badge big" aria-hidden="true">
               <b>{after.lvl}</b>
