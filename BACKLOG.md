@@ -18,7 +18,7 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
   - [x] Neue Funktion: besuchte Gyms eintragen, rückwirkend und ab jetzt laufend
 - [x] **Belohnungsmoment nach dem Loggen** prüfen und bauen
 - [x] **Progressive Disclosure** für neue Spieler einführen
-- [ ] **Typische AI-Card-Merkmale und Verläufe entfernen**, durch hochwertige Libraries ersetzen (nur solche, die auch eine Awwwards-Siegerseite verwenden würde)
+- [x] **Typische AI-Card-Merkmale und Verläufe entfernen**, durch hochwertige Libraries ersetzen (nur solche, die auch eine Awwwards-Siegerseite verwenden würde)
 
 ## Offen aus dem Gespräch
 

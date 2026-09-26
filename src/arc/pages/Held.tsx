@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Lock, Plus, ScanEye, Star as StarIcon, Trophy } from "lucide-react";
+import { Lock, Plus, ScanEye, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Look, Slot } from "../core/types.ts";
 import type { ItemDef, Owned } from "../core/items.ts";
 import { ITEMS, RARITY, SLOTS, dynamicItems, perkText, unlockText } from "../core/items.ts";
@@ -349,10 +349,12 @@ function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; to
             .filter((x, _, all) => allSeals || x.got || all.filter((y) => !y.got).indexOf(x) < 4)
             .map(({ s, i }) => (
               <li key={s.id} className={st.seals[i].got ? "got" : ""}>
-                <span className="seal-mark" aria-hidden="true">
-                  <StarIcon size={18} strokeWidth={2.4} />
+                <span className="seal-stamp" aria-hidden="true">
+                  {s.name}
                 </span>
-                <b>{s.name}</b>
+                <span className="sr-only">
+                  {s.name}, {st.seals[i].got ? "errungen" : "noch offen"}:
+                </span>
                 <small>{s.desc}</small>
               </li>
             ))}

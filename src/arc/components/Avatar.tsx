@@ -82,10 +82,12 @@ export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg,
   return (
     <svg className={`avatar${head ? " crop" : still ? "" : " alive"}`} width={w} height={h} viewBox={viewBox} role="img" aria-label={label ?? "Dein Charakter"}>
       <defs>
-        <radialGradient id={`glow${uid}`} cx="50%" cy="52%" r="50%">
-          <stop offset="0" stopColor={gear.aura?.art.c ?? "#5f90ea"} stopOpacity={gear.aura ? 0.55 : 0.18} />
-          <stop offset="1" stopColor={gear.aura?.art.c ?? "#5f90ea"} stopOpacity="0" />
-        </radialGradient>
+        {gear.aura ? (
+          <radialGradient id={`glow${uid}`} cx="50%" cy="52%" r="50%">
+            <stop offset="0" stopColor={gear.aura.art.c ?? "#5f90ea"} stopOpacity={0.55} />
+            <stop offset="1" stopColor={gear.aura.art.c ?? "#5f90ea"} stopOpacity="0" />
+          </radialGradient>
+        ) : null}
         {tips ? (
           <linearGradient id={`hg${uid}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor={hair} />
@@ -101,7 +103,7 @@ export default function Avatar({ look: raw, mode, gear, belt, stripes, weightKg,
         </clipPath>
       </defs>
 
-      {head ? null : <Aura id={gear.aura?.id} color={gear.aura?.art.c} glow={`url(#glow${uid})`} />}
+      {head || !gear.aura ? null : <Aura id={gear.aura.id} color={gear.aura.art.c} glow={`url(#glow${uid})`} />}
       {head ? null : <ellipse cx={CX} cy={304} rx={62 * b} ry={8} fill="#000" opacity={0.35} />}
 
       <g className="avatar-body">

@@ -49,7 +49,7 @@
   /* Lacquer: a dark panel with a faint grain along the wood. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .89 0 0 0 0 .82 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004 .19' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .36 0 0 0 0 .22 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E");
-  --lacquer: var(--wood), linear-gradient(180deg, #1b1512 0%, #130f0d 100%);
+  --lacquer: var(--wood), #171210;
   /* The kintsugi seam: a crack mended with gold, drawn once per hero panel. */
   --seam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='150' viewBox='0 0 260 150'%3E%3Cg fill='none' stroke='%23d4a94f' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M96 0 L101 11 L94 24 L108 37 L104 49 L123 60 L141 57 L150 71 L171 78 L176 95 L199 104 L214 101 L232 118 L260 124' stroke-width='1.6'/%3E%3Cpath d='M123 60 L119 73 L127 86 L122 99' stroke-width='1.1'/%3E%3Cpath d='M199 104 L203 118 L197 131' stroke-width='.9'/%3E%3C/g%3E%3C/svg%3E");
   --r: 3px;
@@ -92,7 +92,7 @@
   --asagi-soft: #d4e8e3;
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.02 .5' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .34 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E");
-  --lacquer: var(--wood), linear-gradient(180deg, #f8f3e9 0%, #f1e9da 100%);
+  --lacquer: var(--wood), #f5efe3;
   --seam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='150' viewBox='0 0 260 150'%3E%3Cg fill='none' stroke='%23a67a23' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M96 0 L101 11 L94 24 L108 37 L104 49 L123 60 L141 57 L150 71 L171 78 L176 95 L199 104 L214 101 L232 118 L260 124' stroke-width='1.6'/%3E%3Cpath d='M123 60 L119 73 L127 86 L122 99' stroke-width='1.1'/%3E%3Cpath d='M199 104 L203 118 L197 131' stroke-width='.9'/%3E%3C/g%3E%3C/svg%3E");
 }
 @media (prefers-color-scheme: light) {
@@ -126,7 +126,7 @@
     --asagi-soft: #d4e8e3;
     --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     --wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.02 .5' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .34 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E");
-    --lacquer: var(--wood), linear-gradient(180deg, #f8f3e9 0%, #f1e9da 100%);
+    --lacquer: var(--wood), #f5efe3;
     --seam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='150' viewBox='0 0 260 150'%3E%3Cg fill='none' stroke='%23a67a23' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M96 0 L101 11 L94 24 L108 37 L104 49 L123 60 L141 57 L150 71 L171 78 L176 95 L199 104 L214 101 L232 118 L260 124' stroke-width='1.6'/%3E%3Cpath d='M123 60 L119 73 L127 86 L122 99' stroke-width='1.1'/%3E%3Cpath d='M199 104 L203 118 L197 131' stroke-width='.9'/%3E%3C/g%3E%3C/svg%3E");
   }
 }
@@ -212,16 +212,25 @@ b, strong { font-weight: 650; }
 .spread { display: grid; gap: 26px; align-items: start; }
 @media (min-width: 960px) { .spread { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 34px; } .spread.wide-left { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); } }
 
+/* Lenis (smooth.ts) scrolls the page itself; the browser must not smooth on top of it. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
 /* ── Surfaces ─────────────────────────────────────────────────────────── */
-/* Panel: a lacquered tray. A hairline edge and nothing else. */
+/* Panel: a section of the page, not a box. A hairline above, the heading
+   on it, air below: the rhythm of a printed register instead of a grid of
+   cards. The hero is the one surface per screen. */
 .panel, .koma {
   display: grid;
   gap: 14px;
   align-content: start;
-  padding: 20px;
-  border: 1px solid var(--ink-3);
-  border-radius: var(--r);
-  background: var(--paper-3);
+  padding: 22px 0 6px;
+  border: 0;
+  border-top: 1px solid var(--ink-3);
+  border-radius: 0;
+  background: none;
 }
 /* Quiet section: a rule with a short gold start. */
 .plain-sec { position: relative; display: grid; gap: 14px; padding-top: 18px; border-top: 1px solid var(--ink-3); }
@@ -987,7 +996,7 @@ b, strong { font-weight: 650; }
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-columns: minmax(0, 1fr);
   height: max(440px, calc(100dvh - var(--hud-h) - var(--nav-h) - 170px - env(safe-area-inset-bottom, 0px)));
-  background: radial-gradient(ellipse 80% 70% at 50% 45%, #1d1713 0%, #0b0908 80%);
+  background: #120e0b;
   border-top: 1px solid rgba(212, 169, 79, 0.28);
   border-bottom: 1px solid rgba(212, 169, 79, 0.28);
   color: #ede3d1;
@@ -1294,18 +1303,22 @@ table.attr { width: 100%; border-collapse: collapse; font-size: 14.5px; }
 .kc-grid { stroke: var(--ink-3); stroke-dasharray: 1 5; }
 .kc-txt { fill: var(--ink-2); font-family: var(--f-b); font-weight: 500; font-size: 11px; }
 .kc-line { fill: none; stroke-width: 1.4; stroke-linejoin: round; }
+/* Under the curve: a flat wash of gold, like ink thinned with water, not a fade. */
+.kc-area { fill: var(--gold); fill-opacity: 0.1; }
 .kc-line.main { stroke: var(--gold); stroke-width: 2; }
 .kc-line.gi { stroke: var(--ai); }
 .kc-line.nogi { stroke: var(--asagi); }
 .kc-end { fill: var(--gold); stroke: var(--paper-3); stroke-width: 2; }
 .kc-val { fill: var(--ink); font-family: var(--f-d); font-weight: 800; font-size: 14px; }
-.seals { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 8px; }
-.seals li { position: relative; display: grid; gap: 2px; padding: 12px 12px 12px 62px; min-height: 72px; border: 1px dashed var(--ink-3); border-radius: var(--r); color: var(--ink-2); }
-.seals li.got { border-style: solid; color: var(--ink); background: var(--paper-3); }
-.seals b { font-size: 15px; font-weight: 600; }
-.seals small { font-size: 13px; }
-.seal-mark { position: absolute; left: 12px; top: 50%; display: grid; place-items: center; width: 38px; height: 38px; margin-top: -19px; border: 1px solid var(--ink-3); border-radius: 50%; color: var(--ink-3); transform: rotate(-10deg); }
-.seals li.got .seal-mark { border: 2px solid var(--beni); color: var(--beni); }
+/* Seals as stamps: earned ones pressed in vermilion, the next ones drawn in pencil. */
+.seals { list-style: none; margin: 0; padding: 4px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 24px 16px; }
+.seals li { display: grid; justify-items: center; align-content: start; gap: 8px; text-align: center; color: var(--ink-2); }
+.seals small { max-width: 22ch; font-size: 12.5px; line-height: 1.4; }
+.seal-stamp { display: grid; place-items: center; width: 96px; height: 96px; padding: 12px; border: 1.5px dashed var(--ink-2); border-radius: 50%; color: var(--ink-2); opacity: 0.55; font-family: var(--f-d); font-weight: 800; font-size: 13.5px; line-height: 1.15; transform: rotate(-7deg); }
+.seals li:nth-child(even) .seal-stamp { transform: rotate(5deg); }
+.seals li.got { color: var(--ink); }
+.seals li.got .seal-stamp { opacity: 1; border: 3px solid var(--beni); box-shadow: inset 0 0 0 2px transparent, inset 0 0 0 3.5px var(--beni); color: var(--beni); }
+:root[data-theme="papier"] .seals li.got .seal-stamp { mix-blend-mode: multiply; }
 .body-stats { display: grid; gap: 14px; }
 .body-row { display: grid; grid-template-columns: 26px minmax(0, 120px) minmax(0, 1fr) 40px; align-items: center; gap: 10px; font-weight: 500; }
 .body-row b { font-family: var(--f-d); font-weight: 800; text-align: right; }
@@ -1313,7 +1326,7 @@ table.attr { width: 100%; border-collapse: collapse; font-size: 14.5px; }
 
 .studio { display: grid; grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr); gap: 26px; align-items: start; }
 @media (max-width: 760px) { .studio { grid-template-columns: minmax(0, 1fr); } }
-.studio-stage { position: sticky; top: calc(var(--hud-h) + 20px); display: grid; justify-items: center; gap: 12px; padding: 20px 12px 16px; border: 1px solid var(--ink-3); border-radius: 4px; background-color: var(--paper-3); background-image: radial-gradient(ellipse 40% 7% at 50% 80%, var(--shade), transparent 72%); text-align: center; }
+.studio-stage { position: sticky; top: calc(var(--hud-h) + 20px); display: grid; justify-items: center; gap: 12px; padding: 20px 12px 16px; border: 0; border-top: 1px solid var(--gold-line); border-radius: 0; background-color: transparent; background-image: radial-gradient(ellipse 40% 7% at 50% 80%, var(--shade), transparent 72%); text-align: center; }
 .start .studio-stage { top: 12px; }
 @media (max-width: 760px) { .studio-stage { position: relative; top: 0; } .studio-stage .avatar { width: 200px; height: auto; } }
 .look-editor { display: grid; gap: 18px; }
@@ -1341,39 +1354,43 @@ table.attr { width: 100%; border-collapse: collapse; font-size: 14.5px; }
 .slider input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--gold); }
 
 .gear-side { display: grid; gap: 22px; min-width: 0; }
-.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 6px; }
-.slots .slot { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 56px; padding: 6px 10px 6px 6px; border: 1px solid var(--ink-3); border-radius: var(--r); background: transparent; text-align: left; color: var(--ink); transition: border-color 0.2s; }
-.slots .slot:hover { border-color: var(--ink-2); }
-.slots .slot.on { border-color: var(--gold-line); box-shadow: inset 2px 0 0 var(--gold); }
-.slot-ico { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 2px; background: var(--ink-4); }
-.slot-empty { width: 20px; height: 20px; border: 1px dashed var(--ink-3); }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 0 22px; }
+.slots .slot { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 60px; padding: 8px 4px; border: 0; border-bottom: 1px solid var(--ink-3); border-radius: 0; background: transparent; text-align: left; color: var(--ink); }
+.slots .slot:hover .slot-ico { box-shadow: inset 0 0 0 1.5px var(--gold-line); }
+.slots .slot.on { border-bottom-color: var(--gold); }
+.slots .slot.on .slot-txt b { color: var(--gold); }
+.slots .slot.on .slot-ico { box-shadow: inset 0 0 0 2px var(--gold); }
+.slot-ico { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; background: #ece3d0; box-shadow: inset 0 0 0 1px rgba(27, 21, 18, 0.14); }
+.slot-empty { width: 18px; height: 18px; border: 1px dashed rgba(27, 21, 18, 0.35); border-radius: 50%; }
 .slot-txt { display: grid; min-width: 0; }
 .slot-txt small { font-size: 12px; color: var(--ink-2); }
 .slot-txt b { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.slot .badge-new { position: absolute; top: -7px; right: -5px; }
+.slot .badge-new { position: absolute; top: 2px; left: 22px; }
 
 /* Item cards: collectible cards with a rarity edge, not glowing tiles. */
 .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(156px, 100%), 1fr)); gap: 10px; }
+/* Items as specimens in a catalogue: the piece on a washi disc, its name
+   and rarity below. No card; the disc carries selection and rarity. */
 .item {
   position: relative;
   display: grid;
   justify-items: center;
   align-content: start;
   gap: 4px;
-  padding: 18px 10px 12px;
-  border: 1px solid var(--ink-3);
-  border-radius: 4px;
-  background: var(--paper-3);
+  padding: 10px 6px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
   color: var(--ink);
   text-align: center;
-  transition: border-color 0.2s;
 }
-.item::before { content: ""; position: absolute; inset: 0 0 auto; height: 2px; background: var(--rc); border-radius: 4px 4px 0 0; }
-.item.r-legendary { border-color: var(--gold-line); }
-.item.r-legendary::after { content: ""; position: absolute; top: 0; right: 0; width: 120px; height: 70px; background: var(--seam) no-repeat right top / 208px 120px; opacity: 0.55; pointer-events: none; }
+.item > .item-ico, .item > .lock { box-sizing: border-box; width: 76px; height: 76px; margin-bottom: 8px; padding: 10px; border-radius: 50%; background: #ece3d0; box-shadow: inset 0 0 0 1px rgba(27, 21, 18, 0.14); transition: box-shadow 0.2s; }
+button.item:hover > .item-ico { box-shadow: inset 0 0 0 1.5px var(--gold-line); }
+.item.r-legendary > .item-ico { box-shadow: inset 0 0 0 1.5px var(--gold), inset 0 0 0 4px #ece3d0, inset 0 0 0 5px var(--gold-line); }
+.item.on > .item-ico { box-shadow: inset 0 0 0 2.5px var(--gold); }
 button.item:hover { border-color: var(--ink-2); }
-.item.on { outline: 2px solid var(--gold); outline-offset: 2px; }
-.item .worn { position: absolute; top: 12px; left: 8px; padding: 1px 6px; border: 1px solid var(--gold-line); border-radius: 2px; color: var(--gold-ink); font-size: 11px; font-weight: 600; }
+.item.on b { color: var(--gold); }
+.item .worn { order: 9; color: var(--gold); font-size: 11.5px; font-weight: 600; }
 .item b { font-size: 14px; font-weight: 600; line-height: 1.25; }
 .item small { display: block; }
 .item .rar { font-size: 12px; font-weight: 500; color: var(--ink-2); }
@@ -1381,10 +1398,9 @@ button.item:hover { border-color: var(--ink-2); }
 .item .perk { font-size: 12.5px; font-weight: 600; color: var(--asagi); }
 .item .desc { font-size: 12.5px; color: var(--ink-2); }
 .item .via { font-size: 12px; color: var(--ink-2); }
-.item .badge-new { position: absolute; top: 12px; right: 8px; }
-.item.locked { border-style: dashed; background: transparent; color: var(--ink-2); }
-.item.locked::before { opacity: 0.35; }
-.item .lock { display: grid; place-items: center; width: 52px; height: 52px; border: 1px dashed var(--ink-3); border-radius: 50%; }
+.item .badge-new { position: absolute; top: 8px; left: calc(50% + 22px); }
+.item.locked { color: var(--ink-2); }
+.item .lock { display: grid; place-items: center; background: none; box-shadow: none; border: 1px dashed var(--ink-3); color: var(--ink-3); }
 .loot { display: grid; gap: 8px; }
 .loot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .loot li.item { display: flex; align-items: center; gap: 12px; padding: 14px 12px 10px; text-align: left; justify-items: start; }

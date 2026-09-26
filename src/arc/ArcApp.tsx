@@ -31,6 +31,7 @@ import { useSocialPublish } from "./socialCard.ts";
 import { preloadMotion } from "./motion.ts";
 import InkVeil from "./components/InkVeil.tsx";
 import { isOpen } from "./core/unlocks.ts";
+import { jumpTop, startSmooth } from "./smooth.ts";
 
 const TITLES: Record<Route, string> = {
   heute: "Heute",
@@ -80,8 +81,11 @@ export default function ArcApp() {
   // A new page (or the first one after the start screen) opens at its top.
   const entered = !!data.profile;
   useEffect(() => {
-    window.scrollTo({ top: 0 });
+    jumpTop();
   }, [route, entered]);
+
+  // Smooth scrolling with a mouse or trackpad (smooth.ts).
+  useEffect(() => startSmooth(), []);
 
   // Reminders from the server name the quest: keep a short preview of the next week in the plan.
   useEffect(() => {

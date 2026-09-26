@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { useBrush } from "../useBrush.ts";
 import { Crosshair, Hammer, Repeat, Shield } from "lucide-react";
 import type { Belt as BeltId, QuestKind } from "../core/types.ts";
 import { LEVELS, QUEST } from "../core/lore.ts";
@@ -86,8 +88,10 @@ export function Stepper({
 }
 
 export function SecTitle({ kanji, eyebrow, title, children }: { kanji: string; eyebrow: string; title: ReactNode; children?: ReactNode }) {
+  const ref = useRef<HTMLElement>(null);
+  useBrush(ref);
   return (
-    <header className="sec-title">
+    <header className="sec-title" ref={ref}>
       <span className="wm" aria-hidden="true">
         {kanji}
       </span>

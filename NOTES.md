@@ -75,7 +75,7 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - *Warum so:* Nach dem Eintragen soll man in drei Sekunden sehen, was es gebracht hat, und zwar in denselben fünf Wegen wie überall in der App. Keine Konfetti, keine Karten: Die Bewegung (Knospe öffnet sich, Schiff segelt) kommt aus der Welt der App.
 - Geprüft: 102 Unit-Tests (neu: Seemeilen und Ankunft pro Eintrag), Lint, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung: 0 Animationen, keine GSAP-Anfrage.
 
-### Progressive Disclosure für neue Spieler
+### Progressive Disclosure für neue Spieler (`03bad71`)
 
 *Befund:* Ein neuer Spieler sah am ersten Tag ein Power Level von 1.000 ohne einen einzigen Roll, einen Wochenboss „Ruhe im Dōjō“, im Charakterbogen Hexagon und Achsentabelle voller Nullen, Körperwerte, 17 gesperrte Siegel und „Laut Daten: Wandler“ ohne Daten.
 
@@ -88,3 +88,14 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - *Warum so:* Jedes System erklärt sich am besten in dem Moment, in dem es zum ersten Mal einen echten Wert hat. Das Inhaltsverzeichnis macht das Warten zur Vorfreude statt zum Versteckspiel und passt zum Heft.
 - Nebenbei: Kopfbedeckungen der eigenen Länder gelten beim Anlegen des Profils als gesehen (wie die Flaggen), damit Ausrüstung nicht sofort „Neu“ ruft.
 - Geprüft: 105 Unit-Tests (neu: Reihenfolge, einmaliges Öffnen, Turniere zählen, Demo), Lint, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung ohne Animation, Bildschirmfotos für 0, 1 und 2 Einträge bei 1280 und 390 px.
+
+### AI-Card-Merkmale und Verläufe entfernt, hochwertige Bibliotheken
+
+*Bestandsaufnahme:* 43 umrandete Kästen mit Hintergrund (`.panel`), Item-Karten mit farbigem Oberrand und Nahtbild, Siegel als gestrichelte Kacheln mit Stern-Icon, Ausrüstungsplätze als Kachelraster, ein Kasten um die Figur; dazu ein blaues Leuchten hinter jeder Figur, ein Verlauf unter der Power-Kurve, ein Lack-Verlauf und eine Vignette im Seekartenraum.
+
+- **Abschnitte statt Kästen:** `.panel` ist jetzt ein Abschnitt mit Haarlinie oben, Überschrift darauf und Luft darunter, wie ein gedrucktes Register. Wirkt auf einen Schlag an allen 43 Stellen (Charakterbogen, Seekarte, Konto, Crew, Gym, Formulare). Die Heldenfläche (Lack mit Goldnaht) bleibt die eine Fläche pro Seite.
+- **Items als Exponate:** jedes Stück auf einer Washi-Scheibe, Name und Seltenheit darunter, ohne Karte. Ausgerüstet: Goldring um die Scheibe und goldener Name; legendär: doppelter Goldring; gesperrt: leere, gestrichelte Scheibe. Die Ausrüstungsplätze sind eine Liste mit Scheibe, Platz und Stück, getrennt durch Haarlinien.
+- **Siegel als Stempel:** errungene als zinnoberroter Doppelring mit dem Namen (wie der Hanko im Heft), offene mit Bleistift vorgezeichnet.
+- **Verläufe:** Leuchten hinter der Figur nur noch mit ausgerüsteter Aura (die ist ein Item und darf leuchten), Power-Kurve mit flacher Goldlasur statt Verlauf, Lack und Seekartenraum als flache Farbe. Geblieben sind nur Verläufe, die etwas darstellen: Nebel auf der Seekarte, Rollen der Washi-Rolle, gefärbte Haarspitzen, Schatten unter Figuren.
+- **Bibliotheken** (beide Standard auf Awwwards-Seiten, beide schon im Projekt): **GSAP SplitText** schreibt Abschnittstitel: das Kanji am Rand wird von oben nach unten gezogen (seine Schreibrichtung), dann steigen die Zeilen des Titels aus ihrer Grundlinie. Einmal pro Titel, wenn er ins Bild kommt, danach wird die Aufteilung zurückgenommen (Text bleibt normal auswählbar und umbrechbar). **Lenis** für weiches Scrollen mit Maus und Trackpad; Touch bleibt nativ, Zweig, Seekarte und Dialoge scrollen selbst. Beide werden erst nachgeladen und bei reduzierter Bewegung gar nicht (geprüft: keine GSAP-Anfrage, kein Lenis).
+- Geprüft: Typecheck, Lint, 105 Unit-Tests, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung, Scrolltest (weich mit Maus, kein Seitenscroll über dem Zweig, Seitenwechsel springt nach oben), Bildschirmfotos in Urushi und Washi bei 1280 und 390 px.
