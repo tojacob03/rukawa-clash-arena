@@ -168,3 +168,24 @@ test("voyage: from Kap Kuro through the gate into the next lap", () => {
   const gate = shipPos(r, stepIndex(ROUTE_LEN), 0);
   assert.ok(legs[0].some((p) => p.x === gate.x && p.y === gate.y));
 });
+
+test("the chapter end sees the miles one training sailed and the islands it reached", async () => {
+  const { seaStep } = await import("./reward.ts");
+  const { emptySave } = await import("./records.ts");
+  const prof = { name: "T", belt: "weiss" as const, stripes: 0, startBelt: "weiss" as const, weeklyGoal: 2, createdAt: "2026-01-01" };
+  const ses = (id: string, date: string) => ({ id, date, format: "class" as const, attire: "gi" as const, taught: null, rolls: [], quest: null, worked: null, stuck: null, createdAt: 1 });
+  const before = { ...emptySave(), profile: prof, sessions: [ses("a", "2026-03-01")] };
+  const after = { ...before, sessions: [...before.sessions, ses("c", "2026-03-05")] };
+  const s = seaStep(before, after, "2026-03-05");
+  assert.ok(s.gained >= 10, `${s.gained}`);
+  assert.equal(s.arrived.length, 0);
+  assert.ok(s.after > s.before);
+  assert.ok(s.left > 0);
+  // Enough trainings to cross the first leg (30 miles): the arrival is reported and the ship starts the next leg.
+  const many = { ...before, sessions: [ses("a", "2026-03-01"), ses("b", "2026-03-02")] };
+  const more = { ...many, sessions: [...many.sessions, ses("c", "2026-03-03")] };
+  const t = seaStep(many, more, "2026-03-03");
+  assert.equal(t.arrived.length, 1);
+  assert.equal(t.before, 0);
+  assert.equal(t.from.id, t.arrived[0].id);
+});

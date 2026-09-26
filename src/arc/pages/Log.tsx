@@ -15,7 +15,9 @@ import { useGear } from "../useGear.ts";
 import { questTask, successLabel } from "../questText.ts";
 import { KindBadge, LvlStep, SecTitle, Seg, Stepper } from "../components/ui.tsx";
 import ChapterEnd from "../components/ChapterEnd.tsx";
-import { trainingRows } from "../chapterRows.tsx";
+import type { SeaStep } from "../core/reward.ts";
+import { seaFor } from "../reward.ts";
+import { trainingWays } from "../chapterRows.tsx";
 import { LogSwitch } from "./Turnier.tsx";
 import { openScouter } from "../scan.ts";
 import { plannedAttire } from "../plan.ts";
@@ -94,7 +96,7 @@ function withBonus(s: Session, talisman: ItemDef | undefined): Session {
 
 export default function Log({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   const [draft, setDraft] = useState<Draft>(() => initialDraft(data, st, today));
-  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[]; after: ArcState; before: ArcState } | null>(null);
+  const [result, setResult] = useState<{ s: Session; D: Diff; loot: ItemDef[]; after: ArcState; before: ArcState; sea: SeaStep } | null>(null);
   const { gear, owned } = useGear(data, st);
   const belt = data.profile?.belt ?? "weiss";
   const talisman = gear.talisman;
@@ -122,7 +124,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
       .map((id) => itemById(id, next, after))
       .filter((x): x is ItemDef => !!x);
     saveSession(s);
-    setResult({ s, D, loot, after, before: st });
+    setResult({ s, D, loot, after, before: st, sea: seaFor(data, next, today, s.date, "session") });
     window.scrollTo({ top: 0 });
   };
 
@@ -134,14 +136,15 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
         title="Training eingetragen"
         before={result.before}
         after={result.after}
-        rows={trainingRows(result.D, result.after)}
+        ways={trainingWays(result.D, result.after)}
+        sea={result.sea}
         loot={result.loot}
         belt={belt}
         actions={
           <>
             <button type="button" className="btn primary" onClick={() => go("karte", result.D.levels[0]?.id ?? result.D.mastery[0]?.id)}>
               <MapIcon size={18} aria-hidden="true" />
-              <span>Auf der Sternkarte ansehen</span>
+              <span>Auf dem Zweig ansehen</span>
             </button>
             {result.loot.length ? (
               <button type="button" className="btn" onClick={() => go("held", "ausruestung")}>

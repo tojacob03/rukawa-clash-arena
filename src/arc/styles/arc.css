@@ -917,14 +917,38 @@ b, strong { font-weight: 650; }
 .chapter-xp .xp-gain { font-size: clamp(64px, 12vw, 116px); }
 .chapter .xpbar { height: 8px; }
 .chapter-lvl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.chapter-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--ink-3); }
-.chapter-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 13px 2px; border-bottom: 1px solid var(--ink-3); font-size: 15px; font-weight: 500; }
-.chapter-list li svg { flex: none; }
+/* The page after the XP: one line per way, in the order of the five systems, its kanji in the margin. */
+.ways-page { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink-3); }
+.cw { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 18px; padding: 18px 0 20px; border-bottom: 1px solid var(--ink-3); }
+.cw-k { padding-top: 2px; text-align: center; color: var(--gold); font-family: var(--f-d); font-weight: 800; font-size: 34px; line-height: 1; }
+.cw-b { min-width: 0; }
+.cw-h { margin: 0 0 10px; font-family: var(--f-d); font-weight: 800; font-size: 19px; line-height: 1.2; }
+.cw-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 560px; }
+.cw-rows li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 15px; font-weight: 500; }
+.cw-ico { flex: none; display: inline-grid; place-items: center; width: 28px; height: 28px; }
+.cw-t { flex: 1 1 200px; min-width: 0; }
+.cw-d { margin-left: auto; color: var(--gold); font-family: var(--f-d); font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums lining-nums; }
+.cw-d.down { color: var(--ink-2); }
+.cw-quiet { margin: 0; max-width: 60ch; color: var(--ink-2); font-size: 14.5px; }
+.sea-leg { display: grid; gap: 8px; }
+.sea-leg > p { margin: 0; font-size: 15px; }
+.sea-gain { color: var(--asagi); font-family: var(--f-d); font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums lining-nums; }
+.leg { display: block; width: 100%; max-width: 520px; height: auto; overflow: visible; }
+.leg-course { stroke: var(--ink-3); stroke-width: 2; stroke-dasharray: 3 5; }
+.leg-wake { stroke: var(--asagi); stroke-width: 2.4; stroke-linecap: round; }
+.leg-isle { fill: var(--paper); stroke: var(--ink-2); stroke-width: 1.6; }
+.leg-isle.ahead { stroke: var(--gold); stroke-width: 2; }
+.leg-hull { fill: #7a5232; stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.leg-sail { fill: var(--paper-3); stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; }
+.leg-names { display: flex; justify-content: space-between; gap: 12px; max-width: 520px; margin: 0; color: var(--ink-2); font-size: 13px; }
+.leg-names span:last-child { text-align: right; color: var(--ink); font-weight: 600; }
+@media (max-width: 560px) { .cw { grid-template-columns: 38px minmax(0, 1fr); gap: 0 12px; } .cw-k { font-size: 26px; } }
 .chapter-loot { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr)); gap: 12px; }
 @media (prefers-reduced-motion: no-preference) {
   .chapter:not(.skip):not(.staged) .ch-stamp { animation: ch-stamp 0.5s var(--ease) both; }
   .chapter:not(.skip):not(.staged) .ch-fill { animation: ch-fill 1s 0.35s cubic-bezier(0.3, 0.7, 0.2, 1) both; }
-  .chapter:not(.skip):not(.staged) .ch-in { animation: ch-in 0.4s calc(1.1s + var(--i, 0) * 0.1s) var(--ease) both; }
+  .chapter:not(.skip):not(.staged) .cw { animation: ch-in 0.4s calc(1.1s + var(--i, 0) * 0.25s) var(--ease) both; }
+  .chapter:not(.skip):not(.staged) .ch-in { animation: ch-in 0.4s calc(1.2s + var(--i, 0) * 0.25s) var(--ease) both; }
   .chapter:not(.skip):not(.staged) .ch-flip { animation: ch-flip 0.55s calc(1.3s + var(--i, 0) * 0.14s) cubic-bezier(0.3, 0.7, 0.2, 1) both; }
 }
 @keyframes ch-stamp { from { transform: translateY(10px); opacity: 0; } }

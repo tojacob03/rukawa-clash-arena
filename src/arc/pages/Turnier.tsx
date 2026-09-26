@@ -14,7 +14,9 @@ import { go, uid } from "../store.ts";
 import { useGear } from "../useGear.ts";
 import { openScouter } from "../scan.ts";
 import ChapterEnd from "../components/ChapterEnd.tsx";
-import { compRows } from "../chapterRows.tsx";
+import type { SeaStep } from "../core/reward.ts";
+import { seaFor } from "../reward.ts";
+import { compWays } from "../chapterRows.tsx";
 import { LvlStep, SecTitle, Seg } from "../components/ui.tsx";
 import { METHODS, ORGS, PLACE_NAME, RESULTS, SUBS, WEIGHTS } from "../compText.ts";
 
@@ -46,7 +48,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
   const own = data.profile?.belt ?? "weiss";
   const lastAttire = [...data.sessions].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.attire ?? "gi";
   const [draft, setDraft] = useState<Draft>({ name: "", date: today, org: "", attire: lastAttire, weight: "", place: 0, matches: [{ result: "win", method: "points", oppBelt: own }] });
-  const [result, setResult] = useState<{ c: Competition; D: Diff; loot: ItemDef[]; before: State; after: State } | null>(null);
+  const [result, setResult] = useState<{ c: Competition; D: Diff; loot: ItemDef[]; before: State; after: State; sea: SeaStep } | null>(null);
   const [customW, setCustomW] = useState("");
   const knownW = [...WEIGHTS, ...(data.profile?.weightClasses ?? []).filter((w) => !WEIGHTS.includes(w))];
   const { owned } = useGear(data, st);
@@ -73,7 +75,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
       .filter((x): x is ItemDef => !!x);
     saveCompetition(c);
     if (c.weight && !WEIGHTS.includes(c.weight)) rememberWeightClass(c.weight);
-    setResult({ c, D, loot, before, after });
+    setResult({ c, D, loot, before, after, sea: seaFor(data, next, asOf, c.date, "comp") });
     window.scrollTo({ top: 0 });
   };
 
@@ -85,7 +87,8 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
         title="Turnier eingetragen"
         before={result.before}
         after={result.after}
-        rows={compRows(result.c, result.D, result.after)}
+        ways={compWays(result.c, result.D, result.after)}
+        sea={result.sea}
         loot={result.loot}
         belt={own}
         actions={

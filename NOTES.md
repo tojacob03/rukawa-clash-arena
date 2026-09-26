@@ -53,7 +53,7 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - „Woche 5 von 8“ brach bei 320 px um → kürzere Striche, kein Umbruch.
 - Icons in Tabs (Seekarte: Karte, Schiff, Logbuch, Crew) wurden auf schmalen Bildschirmen zu Punkten zusammengedrückt → Icons in Bedienelementen schrumpfen nicht mehr.
 
-### Traditionelle Kopfbedeckungen und Mattenpass
+### Traditionelle Kopfbedeckungen und Mattenpass (`b15bc17`)
 
 - **Eine Kopfbedeckung pro Land:** 92 der 125 Länder haben eine eigene (Sombrero, Papacha, Nón lá, Tarbusch, Chullo, Gat, Mongkol, Vinok, Lička kapa …), gezeichnet in 36 Formen im Stil des Avatars (`components/Headwear.tsx`). Die übrigen 33 bekommen ein Stirnband in den Farben ihrer Flagge und sagen das auch so („Stirnband Niederlande“). *Standardentscheidungen:* Nur Volks- und Arbeitstracht, keine religiösen Kopfbedeckungen. Wo mehrere Kandidaten gingen, habe ich den bekanntesten genommen, der auf der Figur lesbar bleibt. Alle Kopfbedeckungen sind „Selten“.
 - **Eigene Länder sofort:** Jedes Land im Steckbrief gibt neben dem Flaggen-Aufnäher seine Kopfbedeckung.
@@ -62,3 +62,14 @@ Audit-Skript über alle 19 Seiten bei 320, 360 und 390 px (waagrechter Überlauf
 - *Warum so:* Der Pass passt zum Hanko-Stempel im Trainingsheft und macht Reisen sichtbar, ohne ein weiteres Fortschrittssystem einzuführen: Er schaltet nur Ausrüstung frei, zählt keine XP.
 - Die Demo hat zwei Stempel (Lissabon nachgetragen, Amsterdam als Gasttraining).
 - Geprüft: Typecheck, Lint, 101 Unit-Tests (neu: Zuordnung für alle Länder, Freischaltung, Stempel, Sync, kaputte Einträge), Konto-E2E 23/23, Social-E2E 44/44, Build, kein waagrechter Überlauf bei 390 px.
+
+### Belohnungsmoment nach dem Loggen
+
+*Befund:* Das Kapitelende zeigte XP, Level und Stempel gut, danach aber eine flache Liste mit Icons in beliebiger Reihenfolge. Die Seereise fehlte ganz, obwohl jedes Training Seemeilen bringt.
+
+- **Neu aufgebaut als Seite im Heft, in der Reihenfolge der Wege:** 稽 Einsatz (Wochenziel, Flamme, beim Turnier die Bilanz), 技 Können (Knospen, die aufgegangen sind, öffnen sich auf der Seite noch einmal; Meisterung), 測 Stärke (Power Level mit Veränderung, der Hexagon-Sektor, der sich am meisten bewegt hat, bei Nebensport Kraft und Ausdauer), 海 Reise (Seemeilen zählen hoch, das Schiff segelt sein Stück der Etappe zwischen zwei Inseln, mit „Angekommen auf …“ bei einer neuen Insel), 章 Siegel. Danach die Beute wie bisher.
+- Jeder Weg hat eine ruhige Zeile, wenn sich nichts bewegt hat („Ohne Rolls misst der Scouter heute nichts.“), damit die Reihenfolge immer gleich bleibt und man lernt, wo was steht.
+- Trainings an Bord eines Crew-Schiffs sagen, dass die Meilen dorthin gingen, statt das eigene Schiff zu bewegen.
+- Der Knopf heißt jetzt „Auf dem Zweig ansehen“ statt „Auf der Sternkarte ansehen“.
+- *Warum so:* Nach dem Eintragen soll man in drei Sekunden sehen, was es gebracht hat, und zwar in denselben fünf Wegen wie überall in der App. Keine Konfetti, keine Karten: Die Bewegung (Knospe öffnet sich, Schiff segelt) kommt aus der Welt der App.
+- Geprüft: 102 Unit-Tests (neu: Seemeilen und Ankunft pro Eintrag), Lint, Build, Konto-E2E 23/23, Social-E2E 44/44, reduzierte Bewegung: 0 Animationen, keine GSAP-Anfrage.

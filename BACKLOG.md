@@ -16,7 +16,7 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
   - [x] Jeder bekommt die seines Landes bzw. seiner Länder direkt
   - [x] Weitere als Items freischalten, indem man Gyms in den Ländern besucht
   - [x] Neue Funktion: besuchte Gyms eintragen, rückwirkend und ab jetzt laufend
-- [ ] **Belohnungsmoment nach dem Loggen** prüfen und bauen
+- [x] **Belohnungsmoment nach dem Loggen** prüfen und bauen
 - [ ] **Progressive Disclosure** für neue Spieler einführen
 - [ ] **Typische AI-Card-Merkmale und Verläufe entfernen**, durch hochwertige Libraries ersetzen (nur solche, die auch eine Awwwards-Siegerseite verwenden würde)
 
