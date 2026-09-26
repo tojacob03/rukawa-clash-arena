@@ -27,4 +27,7 @@ Wird von oben nach unten abgearbeitet. Nach jedem Punkt: Commit, hier abhaken, i
 
 ## Eigene Ergänzungen
 
-_(kommen dazu, wenn die Liste oben leer ist: UI-Konsistenz, Code-Qualität, Tests, Barrierefreiheit)_
+- [ ] **UI-Konsistenz nach dem Umbau der Kästen:** alle Seiten in beiden Ausgaben bei 390 und 1280 px durchsehen (Crew, Gym, Konto, Plan, Turniere, Steckbrief, Scouter, Dialoge) und Stellen richten, die auf den alten Kasten angewiesen waren
+- [ ] **Barrierefreiheit prüfen mit axe-core:** automatischer Test über die Hauptseiten in beiden Ausgaben, Befunde beheben (Kontrast, Namen, Landmarken, Überschriften-Reihenfolge)
+- [ ] **Zweig per Tastatur:** Knospen mit Tab und Pfeiltasten erreichbar, Fokus sichtbar, Detailblatt mit Enter
+- [ ] **Totes CSS und tote Importe aufräumen:** Klassen ohne Verwendung (Reste der Sternkarte und der alten Karten), ungenutzte Icons
