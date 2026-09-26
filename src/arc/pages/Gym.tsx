@@ -3,7 +3,7 @@
 // Joining needs the gym's code, so nobody can look into a gym from outside.
 
 import { useEffect, useState } from "react";
-import { Building2, CalendarClock, LogOut, MapPin, Plus, Search } from "lucide-react";
+import { CalendarClock, LogOut, MapPin, Plus, Search } from "lucide-react";
 import type { ArcData, ArcState } from "../core/types.ts";
 import { cleanCode, gymDay, readGymHits } from "../core/social.ts";
 import type { GymHit } from "../core/social.ts";
@@ -16,6 +16,7 @@ import { CodeBox, PeerRow, SocialGate } from "../components/Social.tsx";
 import { useAct } from "../useAct.tsx";
 import { HeroKoma, SecTitle } from "../components/ui.tsx";
 import { SocialTabs } from "./Freunde.tsx";
+import GymDoor from "../components/GymDoor.tsx";
 
 export default function Gym({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   return (
@@ -52,7 +53,7 @@ function GymHome({ s, today }: { s: SocialView; today: string }) {
     <>
       <HeroKoma label={`Gym ${gym.name}`} className="gym-koma">
         <div className="gym-hero">
-          <Building2 size={40} aria-hidden="true" />
+          <GymDoor name={gym.name} />
           <div>
             <h2 className="crew-name">{gym.name}</h2>
             <p className="muted">
