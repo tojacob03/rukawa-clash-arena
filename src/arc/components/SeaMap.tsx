@@ -4,18 +4,19 @@
 // covers another label, an island or a ship. The controls live in a bar
 // below the chart instead of on top of it.
 
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { LocateFixed, Maximize2, Minus, Plus } from "lucide-react";
 import type { Belt, FlagDesign, SeaId } from "../core/types.ts";
 import type { Island } from "../core/sea.ts";
 import { ISLAND, ISLANDS, LOOP_START, ROUTE_LEN, SEAS, nextIndex, SERPENT, WORLD, courseLength, route, serpentWidth, shipPos, smoothPath, voyageLegs } from "../core/sea.ts";
 import { placeLabels } from "../core/labels.ts";
-import type { LabelReq, PlacedLabel, Rect, Spot } from "../core/labels.ts";
+import type { LabelReq, PlacedLabel, Rect, Segment, Spot } from "../core/labels.ts";
 import type { WeatherKind } from "../core/voyage.ts";
 import { DockArt, ShipArt } from "./ShipArt.tsx";
 import { SerpentArt } from "./SeaSerpent.tsx";
-import ShipSprite from "./ShipSprite.tsx";
+import ShipSprite, { CrewSprite } from "./ShipSprite.tsx";
+import type { Spec } from "../fighter3d/figure.ts";
 import MapSprite from "./MapSprite.tsx";
 import { loadMotion, reducedMotion } from "../motion.ts";
 import type { Timeline } from "../motion.ts";
@@ -45,6 +46,8 @@ export interface MapMarks {
   hull: number;
   sails: number;
   barnacles: number;
+  /** Who stands on deck when you come close: the captain (or you) first. */
+  crew?: Spec[];
 }
 
 export interface OtherShip {
@@ -143,8 +146,10 @@ const MistBanks = memo(function MistBanks({ r, current, lap, layer }: { r: Islan
 const isleR = (is: Island) => (is.kind === "kap" ? 13 : is.kind ? 11 : 9 + 3 * hash(is.id));
 
 type Box = { x: number; y: number; w: number };
-const MIN_W = 220;
+const MIN_W = 80;
 const PAD = 60;
+/** The ship's height on the chart when close (its sprite at the smallest scale), from the waterline up. */
+const SHIP_H = 0.34 * 174;
 const REDUCED = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const clampN = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
@@ -164,6 +169,27 @@ function routePath(r: Island[], from: number, to: number) {
 /** Your route so far; after a lap round the world, all of it, closed at the gate. */
 const trailPath = (r: Island[], current: number, lap: number) =>
   lap ? `${routePath(r, 0, ROUTE_LEN - 1)} L${r[LOOP_START].x} ${r[LOOP_START].y}` : current > 0 ? routePath(r, 0, current) : null;
+
+/** The legs of a route as straight segments, split where it crosses the ridge at the east edge. */
+function routeSegs(r: Island[], from: number, to: number): Segment[] {
+  const out: Segment[] = [];
+  for (let i = from + 1; i <= to; i++) {
+    const a = r[i - 1];
+    const b = r[i];
+    if (a.id === "c9" && b.id === "c10") {
+      out.push([a.x, a.y, W - 8, CY], [8, CY, b.x, b.y]);
+    } else out.push([a.x, a.y, b.x, b.y]);
+  }
+  return out;
+}
+
+/** Every line drawn between islands: the home lanes of all four seas and the great current. */
+const LANE_SEGS: Segment[] = SEAS.flatMap((s) => {
+  const pts = [0, 1, 2, 3, 4].map((i) => ISLANDS.find((x) => x.id === `${s.id}${i}`)!);
+  const segs: Segment[] = pts.slice(1).map((p, i) => [pts[i].x, pts[i].y, p.x, p.y]);
+  segs.push([pts[4].x, pts[4].y, RX, CY]);
+  return segs;
+});
 
 /** Where a sea's name may stand: along the outer edge of its quarter first, then the inner one. */
 function seaSpots(id: SeaId, fs: number): Spot[] {
@@ -216,7 +242,6 @@ export default function SeaMap({
   voyage = null,
   onVoyage,
   note,
-  overlay = false,
 }: {
   marks: MapMarks;
   selected: string | null;
@@ -227,7 +252,6 @@ export default function SeaMap({
   /** A line under the chart, such as the miles since your last look. */
   note?: ReactNode;
   /** A card floats over the right side of the chart on wide screens: keep what you look at clear of it. */
-  overlay?: boolean;
 }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -259,19 +283,10 @@ export default function SeaMap({
   const start = sailing ? { x: legs[0][0].x, y: legs[0][0].y, left: legs[0][1].x < legs[0][0].x } : pos;
 
   const maxW = () => Math.max(W, H / ar.current);
-  /** Map units hidden under the floating card, at view width w. */
-  const covered = useCallback(
-    (w: number) => {
-      if (!overlay || typeof window === "undefined" || !window.matchMedia?.("(min-width: 1000px)").matches) return 0;
-      const px = boxRef.current?.getBoundingClientRect().width ?? 1000;
-      return (346 / px) * w;
-    },
-    [overlay],
-  );
   const fit = (v: Box): Box => {
     const w = clampN(v.w, MIN_W, maxW());
     const h = w * ar.current;
-    const x = w >= W ? (W - w) / 2 : clampN(v.x, -PAD, W - w + PAD + covered(w));
+    const x = w >= W ? (W - w) / 2 : clampN(v.x, -PAD, W - w + PAD);
     const y = h >= H ? (H - h) / 2 : clampN(v.y, -PAD, H - h + PAD);
     return { x, y, w };
   };
@@ -286,7 +301,7 @@ export default function SeaMap({
     const h = v.w * ar.current;
     svg.setAttribute("viewBox", `${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${h.toFixed(1)}`);
     const ppu = (rect.width || 800) / v.w;
-    const fs = clampN(12.5 / ppu, 6, 40);
+    const fs = clampN(12.5 / ppu, 2.4, 40);
     // Parallax: the far mist lags behind the chart, the near mist runs ahead of it.
     const dx = v.x + v.w / 2 - W / 2;
     const dy = v.y + h / 2 - H / 2;
@@ -303,7 +318,7 @@ export default function SeaMap({
     // Relayout labels only when the zoom changed noticeably. Within one step
     // the text grows by up to 12 %; place it for the largest size of the step.
     const step = Math.round(Math.log2(ppu) * 3);
-    const stepFs = clampN(12.5 / Math.pow(2, (step - 0.5) / 3), 6, 40);
+    const stepFs = clampN(12.5 / Math.pow(2, (step - 0.5) / 3), 2.4, 40);
     setView((cur) => (cur.step === step ? cur : { step, fs: stepFs, ppu: Math.pow(2, step / 3) }));
     // ... and keep them inside the view once it comes to rest.
     window.clearTimeout(settleT.current);
@@ -351,13 +366,15 @@ export default function SeaMap({
   );
 
   const centerOn = useCallback(
-    (x: number, y: number, w = vb.current.w) => animateTo({ x: x - w / 2 + covered(w) / 2, y: y - (w * ar.current) / 2, w }),
-    [animateTo, covered],
+    (x: number, y: number, w = vb.current.w) => animateTo({ x: x - w / 2, y: y - (w * ar.current) / 2, w }),
+    [animateTo],
   );
+  // Close to your ship: it fills about half the height of the view, the crew on deck can be seen.
   const toShip = useCallback(() => {
     const rect = boxRef.current?.getBoundingClientRect();
-    const w = clampN((rect?.width ?? 800) / 1.3, MIN_W, maxW());
-    centerOn(pos.x, pos.y, w);
+    const a = rect && rect.width ? rect.height / rect.width : ar.current;
+    const w = clampN(SHIP_H / 0.5 / a, MIN_W, maxW());
+    centerOn(pos.x, pos.y - SHIP_H * 0.42, w);
   }, [centerOn, pos.x, pos.y]);
   const toWorld = useCallback(() => animateTo({ x: 0, y: 0, w: maxW() }), [animateTo]);
 
@@ -366,7 +383,7 @@ export default function SeaMap({
     const rect = boxRef.current?.getBoundingClientRect();
     if (rect && rect.width) ar.current = rect.height / rect.width;
     const w = clampN((rect?.width ?? 800) / 1.3, MIN_W, maxW());
-    vb.current = fit({ x: pos.x - w / 2 + covered(w) / 2, y: pos.y - (w * ar.current) / 2, w });
+    vb.current = fit({ x: pos.x - w / 2, y: pos.y - (w * ar.current) / 2, w });
     apply();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -743,9 +760,18 @@ export default function SeaMap({
     // Inside the part you can see, and inside the world (not in the margin around it).
     const world = { x0: 4, y0: 4, x1: W - 4, y1: H - 4 };
     const area = seen ? { x0: Math.max(seen.x0, world.x0), y0: Math.max(seen.y0, world.y0), x1: Math.min(seen.x1, world.x1), y1: Math.min(seen.y1, world.y1) } : world;
-    return placeLabels(reqs, fs, obstacles, area);
+    // Names rather stand beside the route than on it.
+    const lines = [...LANE_SEGS, ...routeSegs(r, 5, ROUTE_LEN - 1)];
+    return placeLabels(reqs, fs, obstacles, area, lines);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view.fs, view.ppu, marks.current, marks.sea, marks.boss, selected, others, fleet, pos.x, pos.y, isleBoxes, boss, seen, shipScale]);
+
+  // Where a name still has to sit on a line, the line breaks under it, as on a printed chart.
+  const knockId = `sea-knock-${useId().replace(/:/g, "")}`;
+  const knock = useMemo(() => {
+    const m = view.fs * 0.3;
+    return Object.values(labels).map((l) => ({ x: l.box.x0 - m, y: l.box.y0 - m, w: l.box.x1 - l.box.x0 + 2 * m, h: l.box.y1 - l.box.y0 + 2 * m, id: l.id }));
+  }, [labels, view.fs]);
 
   const hitR = Math.max(24, view.fs * 1.9);
   const text = (l: PlacedLabel | undefined, cls: string, body: string, onClick?: () => void) =>
@@ -760,19 +786,27 @@ export default function SeaMap({
       <div className="sea-view" ref={boxRef} tabIndex={0} role="group" aria-label="Seekarte. Ziehen verschiebt, Mausrad oder zwei Finger zoomen. Mit Pfeiltasten verschieben, Plus und Minus zoomen, S zeigt dein Schiff, 0 die ganze Welt." onKeyDown={onKey}>
         <svg ref={svgRef} className="sea-map" viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Seekarte deiner Reise">
           <SeaBackground sea={marks.sea} />
+          <mask id={knockId} maskUnits="userSpaceOnUse" x={-W} y={-H} width={W * 3} height={H * 3}>
+            <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#fff" />
+            {knock.map((k) => (
+              <rect key={k.id} x={k.x} y={k.y} width={k.w} height={k.h} rx={view.fs * 0.4} fill="#000" />
+            ))}
+          </mask>
 
-          {/* Home sea routes */}
-          {SEAS.map((s) => {
-            const pts = [0, 1, 2, 3, 4].map((i) => ISLANDS.find((x) => x.id === `${s.id}${i}`)!);
-            const d = `M${pts.map((p) => `${p.x} ${p.y}`).join(" L")} L${RX} ${CY}`;
-            return <path key={s.id} d={d} className="sea-lane" opacity={s.id === marks.sea ? 0.5 : 0.16} />;
-          })}
-          {/* Great current route */}
-          <path d={routePath(r, 5, 24)} className="sea-lane" opacity={0.4} />
-
-          {/* Your journey so far, and the leg ahead */}
-          {trailPath(r, marks.current, marks.lap) ? <path d={trailPath(r, marks.current, marks.lap)!} className="sea-trail" /> : null}
-          <path d={`M${r[marks.current].x} ${r[marks.current].y} L${next.x} ${next.y}`} className="sea-next" />
+          <g mask={`url(#${knockId})`}>
+            {/* Home sea routes */}
+            {SEAS.map((s) => {
+              const pts = [0, 1, 2, 3, 4].map((i) => ISLANDS.find((x) => x.id === `${s.id}${i}`)!);
+              const d = `M${pts.map((p) => `${p.x} ${p.y}`).join(" L")} L${RX} ${CY}`;
+              return <path key={s.id} d={d} className="sea-lane" opacity={s.id === marks.sea ? 0.5 : 0.16} />;
+            })}
+            {/* Great current route */}
+            <path d={routePath(r, 5, 24)} className="sea-lane" opacity={0.4} />
+  
+            {/* Your journey so far, and the leg ahead */}
+            {trailPath(r, marks.current, marks.lap) ? <path d={trailPath(r, marks.current, marks.lap)!} className="sea-trail" /> : null}
+            <path d={`M${r[marks.current].x} ${r[marks.current].y} L${next.x} ${next.y}`} className="sea-next" />
+          </g>
 
           {/* Islands */}
           {ISLANDS.map((is) => {
@@ -871,7 +905,7 @@ export default function SeaMap({
           {/* Ship, on its way to the next island */}
           <g ref={shipRef} transform={`translate(${start.x} ${start.y})`}>
             <g ref={flipRef} transform={start.left ? "scale(-1 1)" : "scale(1 1)"}>
-              <ShipMark marks={marks} scale={shipScale} />
+              <ShipMark marks={marks} scale={shipScale} ppu={view.ppu} />
             </g>
           </g>
 
@@ -1176,9 +1210,19 @@ function IslandGlyph({ is }: { is: Island }) {
 const WIND = { tailwind: 1, breeze: 0.66, light: 0.4, calm: 0.1, dock: 0 } as const;
 
 /** Your ship at the origin, bow to the right; the chart moves and turns it. */
-function ShipMark({ marks, scale }: { marks: MapMarks; scale: number }) {
+/** Sharper pictures of the ship as you come closer: the sizes it is drawn in, in pixels. */
+const SHIP_PX = [320, 720, 1024];
+const NO_CREW: Spec[] = [];
+
+function ShipMark({ marks, scale, ppu }: { marks: MapMarks; scale: number; ppu: number }) {
   const gusts = { tailwind: 3, breeze: 2, light: 1, calm: 0, dock: 0 }[marks.weather];
   const k = scale / 0.34;
+  const dpr = typeof window === "undefined" ? 1 : Math.min(3, window.devicePixelRatio || 1);
+  const need = scale * 200 * ppu * dpr;
+  const px = SHIP_PX.find((p) => p >= need * 0.9) ?? SHIP_PX[SHIP_PX.length - 1];
+  // The crew shows once the ship is big enough to tell people apart.
+  const close = ppu >= 1.9;
+  const look = { belt: marks.belt, sail: marks.shipColor, flag: marks.flag, hull: marks.hull, sails: marks.sails, barnacles: marks.barnacles };
   return (
     <g className={`ship w-${marks.weather}`} aria-hidden="true">
       {/* Gusts from astern, as many and as fast as your training rhythm */}
@@ -1203,9 +1247,10 @@ function ShipMark({ marks, scale }: { marks: MapMarks; scale: number }) {
       <g transform={`scale(${scale}) translate(-100 -128)`}>
         {marks.weather === "dock" ? <DockArt belt={marks.belt} /> : null}
         <g className="ship-roll">
-          <ShipSprite look={{ belt: marks.belt, sail: marks.shipColor, flag: marks.flag, hull: marks.hull, sails: marks.sails, barnacles: marks.barnacles }} wind={WIND[marks.weather]} frames={6}>
+          <ShipSprite look={look} wind={WIND[marks.weather]} px={px} frames={6}>
             <ShipArt belt={marks.belt} sail={marks.shipColor} flag={marks.flag} hull={marks.hull} sails={marks.sails} barnacles={marks.barnacles} />
           </ShipSprite>
+          {close ? <CrewSprite look={look} crew={marks.crew ?? NO_CREW} px={px} /> : null}
         </g>
       </g>
     </g>

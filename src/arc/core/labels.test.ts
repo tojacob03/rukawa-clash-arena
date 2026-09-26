@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { labelWidth, placeLabels, spotBox } from "./labels.ts";
+import { crosses, labelWidth, placeLabels, spotBox } from "./labels.ts";
 import type { PlacedLabel } from "./labels.ts";
 
 const box = (p: PlacedLabel, text: string, fs: number) => {
@@ -87,4 +87,21 @@ test("labels: a forced label without room takes the spot it covers least", () =>
   ];
   const out = placeLabels([{ id: "a", text: "Nebelwald von Hakenstein", x: 100, y: 100, prio: 1, force: true }], 12, obstacles);
   assert.equal(out.a.anchor, "end", JSON.stringify(out.a));
+});
+
+test("labels: a spot that no route line runs through wins", () => {
+  // A leg running straight down through the spot below the island.
+  const leg: [number, number, number, number] = [100, 100, 100, 200];
+  const out = placeLabels([{ id: "a", text: "Wirbelinsel", x: 100, y: 100, prio: 1 }], 12, [], undefined, [leg]);
+  assert.ok(!crosses(out.a.box, leg), JSON.stringify(out.a));
+  // Without the line it keeps its place below.
+  assert.equal(placeLabels([{ id: "a", text: "Wirbelinsel", x: 100, y: 100, prio: 1 }], 12).a.anchor, "middle");
+});
+
+test("labels: crossing test for segments and boxes", () => {
+  const b = { x0: 0, y0: 0, x1: 10, y1: 10 };
+  assert.ok(crosses(b, [-5, 5, 15, 5]));
+  assert.ok(crosses(b, [2, 2, 3, 3]));
+  assert.ok(!crosses(b, [-5, -5, -1, 20]));
+  assert.ok(!crosses(b, [11, 0, 20, 10]));
 });

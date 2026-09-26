@@ -139,6 +139,42 @@ function spar(len: number, r: number, mat: THREE.Material) {
   return new THREE.Mesh(new THREE.CylinderGeometry(r * 0.8, r, len, 10), mat);
 }
 
+/** Where people stand on deck, in ship units. */
+export interface DeckSpot {
+  x: number;
+  y: number;
+  z: number;
+  /** Which way they face (radians about y; 0 looks to starboard, towards the chart's viewer). */
+  turn: number;
+}
+
+/**
+ * Up to `n` places on the deck of a ship class, the first at the helm near
+ * the stern, the others spread evenly to the bow: clear of the masts, in two
+ * staggered rows on the starboard side, the side the chart looks at. Small
+ * ships have room for fewer.
+ */
+export function deckSpots(belt: Belt, n: number): DeckSpot[] {
+  const r = RIGS[belt] ?? RIGS.weiss;
+  const pace = 15;
+  const from = -r.len / 2 + 14;
+  const to = r.len / 2 - (r.jib ? 22 : 18);
+  const m = Math.max(0, Math.min(n, Math.floor((to - from) / pace) + 1));
+  const halfBeam = (x: number) => {
+    const t = (x + r.len / 2) / r.len;
+    return (r.beam / 2) * (t < 0.4 ? 0.72 + 0.28 * Math.sin((t / 0.4) * (Math.PI / 2)) : Math.pow(Math.cos(((t - 0.4) / 0.6) * (Math.PI / 2)), 0.75));
+  };
+  return Array.from({ length: m }, (_, i) => {
+    let x = m === 1 ? from : from + (i * (to - from)) / (m - 1);
+    // Step aside from a mast, towards the stern unless that is the helm's place.
+    for (const mast of r.masts) if (Math.abs(mast.x - x) < 7) x = mast.x + (i === 0 || x > mast.x ? 7 : -7);
+    const near = i % 2 === 0;
+    // At the helm half towards the bow; the others look out, a few forwards.
+    const turn = i === 0 ? 0.55 : [-0.35, 0.4, -0.1, 0.8, -0.5][i % 5];
+    return { x, y: r.free - 2, z: halfBeam(x) * (near ? 0.42 : 0.12), turn };
+  });
+}
+
 export interface ShipModel {
   group: THREE.Group;
   /** Moves the flag to the moment t (seconds). */
@@ -163,6 +199,7 @@ export async function buildShip(look: ShipLook, wind: number): Promise<ShipModel
   const { g: hullGeo, top, width } = hullGeometry(r);
   const hull = new THREE.Mesh(hullGeo, wood);
   hull.material.side = THREE.DoubleSide;
+  hull.userData.hull = true;
   group.add(hull);
   // The deck, just under the rail.
   const deckPts: THREE.Vector2[] = [];
@@ -178,6 +215,7 @@ export async function buildShip(look: ShipLook, wind: number): Promise<ShipModel
   deck.rotation.x = Math.PI / 2;
   deck.position.y = r.free - 2;
   deck.userData.noInk = true;
+  deck.userData.hull = true;
   group.add(deck);
   if (r.flagship) {
     // A gold rail along the sheer on both sides.
@@ -189,10 +227,12 @@ export async function buildShip(look: ShipLook, wind: number): Promise<ShipModel
       }
       const rail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.9, 6), gold);
       rail.userData.noInk = true;
+      rail.userData.hull = true;
       group.add(rail);
     }
     const lantern = new THREE.Mesh(new THREE.BoxGeometry(5, 8, 5), gold);
     lantern.position.set(-r.len / 2 - 1, top(0) + 6, 0);
+    lantern.userData.hull = true;
     group.add(lantern);
   }
   if (r.ports) {
@@ -203,6 +243,7 @@ export async function buildShip(look: ShipLook, wind: number): Promise<ShipModel
         const p = new THREE.Mesh(new THREE.BoxGeometry(6, 5, 1.2), port);
         p.position.set(-r.len / 2 + t * r.len, r.free * 0.55, s * (r.beam / 2) * width(t) * 0.99);
         p.userData.noInk = true;
+        p.userData.hull = true;
         group.add(p);
       }
     }
@@ -330,7 +371,7 @@ export const SPRITE = { x: 0, y: -46, w: 200, h: 196 };
 
 let spriteRig: { scene: THREE.Scene; camera: THREE.OrthographicCamera } | null = null;
 
-function spriteScene() {
+export function spriteScene() {
   if (!spriteRig) {
     const scene = new THREE.Scene();
     scene.add(new THREE.HemisphereLight(0xfff6ea, 0x3a2c20, 2.0));
