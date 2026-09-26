@@ -1,7 +1,9 @@
-// Small drawings for the inventory: one simple shape per item type, coloured
-// like the item itself.
+// Small pictures for the inventory. Clothes and hats are photographed from
+// the 3D model (fighter3d/itemShot.ts); everything else, and every item
+// while its picture is on the way or without WebGL, is a simple drawing
+// coloured like the item itself.
 
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 import type { ReactNode } from "react";
 import type { Belt } from "../core/types.ts";
 import type { ItemDef } from "../core/items.ts";
@@ -13,8 +15,36 @@ import { hatBox } from "../core/headwear.ts";
 
 const OL = "#1c1526";
 
+const MODELLED = new Set(["gi", "top", "bottom", "head"]);
+/** Pictures already taken, so a list shows them at once when it comes back. */
+const shots = new Map<string, string>();
+
 export default function ItemIcon({ item, belt, size = 48 }: { item: ItemDef; belt: Belt; size?: number }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
+  // Two sizes of picture, sharp on a phone screen.
+  const px = size <= 40 ? 96 : 160;
+  const key = `${item.id}|${JSON.stringify(item.art)}|${belt}|${px}`;
+  const modelled = MODELLED.has(item.slot) && !(item.slot === "head" && !item.art.style);
+  const [shot, setShot] = useState(() => shots.get(key) ?? null);
+  useEffect(() => {
+    if (!modelled) return;
+    const hit = shots.get(key);
+    if (hit) return setShot(hit);
+    let gone = false;
+    import("../fighter3d/itemShot.ts")
+      .then((m) => m.itemPicture(item, belt, px))
+      .then((url) => {
+        shots.set(key, url);
+        if (!gone) setShot(url);
+      })
+      .catch(() => undefined);
+    return () => {
+      gone = true;
+    };
+    // The key stands for the item, the belt and the size.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, modelled]);
+  if (modelled && shot) return <img className="item-ico shot" src={shot} width={size} height={size} alt="" aria-hidden="true" draggable={false} />;
   return (
     <svg className="item-ico" width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
       {art(item, belt, uid)}

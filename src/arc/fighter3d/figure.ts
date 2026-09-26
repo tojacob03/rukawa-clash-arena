@@ -290,6 +290,11 @@ export class Figure {
     for (const [name, p] of this.parts) p.mesh.visible = test(name);
   }
 
+  /** Of what is shown, keep only the parts that pass the test (an item on its own). */
+  only(test: (name: string) => boolean) {
+    for (const [name, p] of this.parts) p.mesh.visible &&= test(name);
+  }
+
   /** Stretch legs, widen the body, thicken the arms. Head parts only move. */
   private shape(b: number, muscle: number, lf: number) {
     const key = `${b}|${muscle}|${lf}`;
