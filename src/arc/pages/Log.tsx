@@ -113,7 +113,6 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
     return { s, D: diff(st, B) };
   }, [draft, data, st, today, talisman]);
 
-  const eta = 6 + 4 * draft.rolls.length + (draft.quest ? 5 : 0) + (draft.taught ? 2 : 0) + (draft.worked || draft.stuck ? 6 : 0);
   const cards = pickCards(st.offers, { attire: draft.attire });
   const questOptions = [...new Map([...(draft.quest ? [draft.quest] : []), ...cards].map((q) => [q.node, q])).values()];
 
@@ -191,7 +190,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
         >
           <fieldset className="step">
             <legend>
-              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Check-in <small>1 Tipp</small>
+              <b aria-hidden="true">一</b> <span className="sr-only">1.</span> Check-in
             </legend>
             <div className="row wrap">
               <Seg label="Trainingsart" value={draft.format} onChange={(v) => set({ format: v })} options={[{ v: "class", label: "Kurs" }, { v: "open", label: "Open Mat" }]} />
@@ -206,7 +205,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <fieldset className="step">
             <legend>
-              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Roll-Karten <small>≈ 4 s pro Roll</small>
+              <b aria-hidden="true">二</b> <span className="sr-only">2.</span> Roll-Karten
             </legend>
             <p className="note-line">Gürtel und Größe des Partners, Subs in beide Richtungen, wer den Roll kontrolliert hat.</p>
             <div className="rolls">
@@ -349,7 +348,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
           <div className="savebar">
             <span className="eta">
-              <b>etwa {eta} Sekunden</b>
+              <b>+{nf0.format(preview.D.xp)} XP</b>
               {talisman?.perk ? (
                 <small>
                   Talisman {talisman.name}, {perkText(talisman.perk)}

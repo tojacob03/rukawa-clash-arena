@@ -127,7 +127,7 @@ export default function Start({ today }: { today: string }) {
               Waza <span className="gold">Arc</span>
             </h1>
             <p className="start-sub">
-              Dein BJJ-Training als RPG. Nach dem Training trägst du in einer halben Minute ein, was passiert ist. Im Training zählst du nur eine Sache mit, deine
+              Dein BJJ-Training als RPG. Nach dem Training trägst du kurz ein, was passiert ist. Im Training zählst du nur eine Sache mit, deine
               Tagesquest. Daraus entstehen ein Zweig mit {TECHS.length} Techniken, ein Charakter mit Ausrüstung, eine Seekarte deiner Reise und dein Power Level.
             </p>
             <div className="start-actions">
