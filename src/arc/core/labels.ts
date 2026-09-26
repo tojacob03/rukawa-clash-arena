@@ -34,7 +34,12 @@ export interface PlacedLabel {
   y: number;
   anchor: "start" | "middle" | "end";
   vertical?: boolean;
+  /** The box the text covers, in map units. */
+  box: Rect;
 }
+
+/** A line on the map (a route leg) that text should rather not sit on. */
+export type Segment = [x0: number, y0: number, x1: number, y1: number];
 
 export interface Rect {
   x0: number;
@@ -83,15 +88,42 @@ function around(r: LabelReq, fs: number): Spot[] {
   return [...(r.above ? [above, below] : [below, above]), right, left, ...(r.above ? [diagonal[2], diagonal[3], diagonal[0], diagonal[1]] : diagonal)];
 }
 
+/** Whether a line segment passes through a box (Liang–Barsky clipping). */
+export function crosses(b: Rect, [x0, y0, x1, y1]: Segment) {
+  let t0 = 0;
+  let t1 = 1;
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const edges: [number, number][] = [
+    [-dx, x0 - b.x0],
+    [dx, b.x1 - x0],
+    [-dy, y0 - b.y0],
+    [dy, b.y1 - y0],
+  ];
+  for (const [p, q] of edges) {
+    if (p === 0) {
+      if (q < 0) return false;
+      continue;
+    }
+    const t = q / p;
+    if (p < 0) t0 = Math.max(t0, t);
+    else t1 = Math.min(t1, t);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+
 const area = (a: Rect, b: Rect) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
 
 /**
  * Places labels in map units. `fs` is the font size in map units (it grows
  * when zoomed out, so the text stays the same size on screen). With `view`,
  * labels that would be cut off at its edges look for another spot; if there
- * is none they are left out (forced ones stay).
+ * is none they are left out (forced ones stay). A spot that no line in
+ * `lines` runs through wins over one that is only free of boxes; the map
+ * breaks the lines under the text where that cannot be helped.
  */
-export function placeLabels(reqs: LabelReq[], fs: number, obstacles: Rect[] = [], view?: Rect): Record<string, PlacedLabel> {
+export function placeLabels(reqs: LabelReq[], fs: number, obstacles: Rect[] = [], view?: Rect, lines: Segment[] = []): Record<string, PlacedLabel> {
   const out: Record<string, PlacedLabel> = {};
   const taken: Rect[] = [];
   for (const r of [...reqs].sort((a, b) => b.prio - a.prio)) {
@@ -101,9 +133,11 @@ export function placeLabels(reqs: LabelReq[], fs: number, obstacles: Rect[] = []
     // A forced label with no free spot takes the one it covers least of.
     const cost = (t: { box: Rect }) =>
       taken.reduce((a, b) => a + area(t.box, b), 0) + obstacles.reduce((a, b) => a + (b.owner === r.id ? 0 : area(t.box, b)), 0) + (view && !inside(t.box, view) ? 1e6 : 0);
-    const pick = tries.find((t) => free(t) && (!view || inside(t.box, view))) ?? (r.force ? [...tries].sort((a, b) => cost(a) - cost(b))[0] : null);
+    const clear = (t: { box: Rect }) => !lines.some((l) => crosses(t.box, l));
+    const ok = (t: { box: Rect }) => free(t) && (!view || inside(t.box, view));
+    const pick = tries.find((t) => ok(t) && clear(t)) ?? tries.find(ok) ?? (r.force ? [...tries].sort((a, b) => cost(a) - cost(b))[0] : null);
     if (!pick) continue;
-    out[r.id] = { id: r.id, ...pick.s };
+    out[r.id] = { id: r.id, ...pick.s, box: pick.box };
     taken.push(pick.box);
   }
   return out;

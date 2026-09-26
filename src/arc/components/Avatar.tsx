@@ -36,7 +36,7 @@ export interface AvatarProps {
   interactive?: boolean;
 }
 
-const BOX: Record<Crop, readonly [number, number]> = { full: [240, 320], head: [124, 136], face: [80, 64], stage: [320, 300], icon: [1, 1], belt: [320, 200] };
+const BOX: Record<Crop, readonly [number, number]> = { full: [240, 320], head: [124, 136], face: [80, 64], stage: [320, 300], icon: [1, 1], belt: [320, 200], bust: [10, 9] };
 
 const STEP = Math.PI / 12;
 
@@ -120,9 +120,9 @@ export default function Avatar(props: AvatarProps) {
     liveRef.current?.close(close);
   }, [turn, close, ready]);
 
-  if (failed) return <AvatarSvg {...props} crop={crop === "stage" || crop === "belt" ? "full" : crop === "icon" ? "head" : crop} />;
+  if (failed) return <AvatarSvg {...props} crop={crop === "stage" || crop === "belt" ? "full" : crop === "icon" || crop === "bust" ? "head" : crop} />;
 
-  const cls = `avatar${crop === "head" || crop === "face" || crop === "icon" ? " crop" : ""}${ready ? " ready" : ""}${turning ? " turns" : ""}`;
+  const cls = `avatar${crop === "head" || crop === "face" || crop === "icon" || crop === "bust" ? " crop" : ""}${ready ? " ready" : ""}${turning ? " turns" : ""}`;
   const style = { ["--aw" as string]: `${w}px` };
   if (!turning)
     return <canvas ref={ref} className={cls} width={px[0]} height={px[1]} style={style} role="img" aria-label={label ?? "Dein Charakter"} />;

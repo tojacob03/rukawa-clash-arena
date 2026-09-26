@@ -9,7 +9,7 @@ import { dojo, shadowCatcher } from "./dojo.ts";
 import type { Spec } from "./figure.ts";
 import { dispose, enqueue, frame, glb, loop, shoot, stageLights, still as stillPicture } from "../three/engine.ts";
 
-export type Crop = "full" | "head" | "face" | "stage" | "icon" | "belt";
+export type Crop = "full" | "head" | "face" | "stage" | "icon" | "belt" | "bust";
 
 /** One file per part group (tools/fighter/build.py): base, gi, nogi, extras, beard_N, hair_NN, hw_<style>. */
 export const part = (name: string) => glb(`/arc/fighter/${name}.glb`);
@@ -58,10 +58,12 @@ const FRAME: Record<Crop, Shot> = {
   face: { y: 1.34, h: 0.56, yaw: -0.12, tilt: 0.04 },
   icon: { y: 1.5, h: 1.14, yaw: -0.26, tilt: 0.05 },
   belt: { y: 0.46, h: 0.62, yaw: -0.08, tilt: 0.16 },
+  // Head and shoulders, as on a wanted poster.
+  bust: { y: 1.4, h: 1.42, yaw: -0.16, tilt: 0.05 },
 };
 
 /** Crops around the head follow it when the legs are longer or shorter. */
-const RIDES = new Set<Crop>(["head", "face", "icon", "belt"]);
+const RIDES = new Set<Crop>(["head", "face", "icon", "belt", "bust"]);
 
 /** The stage close on the face (a1): what the camera sees after a tap on the head. */
 const CLOSE: Shot = { y: 1.47, h: 1.3, yaw: -0.14, tilt: 0.05 };

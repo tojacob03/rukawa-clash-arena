@@ -3,9 +3,8 @@
 
 import { useMemo } from "react";
 import type { Peer } from "../core/social.ts";
-import { gearItems } from "../core/social.ts";
-import { figureFactors } from "../core/body.ts";
 import type { Spec } from "../fighter3d/figure.ts";
+import { cardSpec } from "../fighter3d/specs.ts";
 import type { Mount } from "./Scene3D.tsx";
 import Scene3D from "./Scene3D.tsx";
 
@@ -13,15 +12,7 @@ const load = () => import("../fighter3d/group.ts").then((m) => m.mountCrew as un
 
 export default function CrewPhoto({ members, name }: { members: Peer[]; name: string }) {
   const shown = useMemo(() => [...members].filter((m) => m.card).sort((a, b) => Number(!!b.captain) - Number(!!a.captain)).slice(0, 12), [members]);
-  const specs = useMemo<Spec[]>(
-    () =>
-      shown.map((m) => {
-        const c = m.card!;
-        const { b, lf } = figureFactors(c.look.height, undefined, undefined, c.body);
-        return { look: c.look, mode: c.mode, gear: gearItems(c.gear), belt: c.belt, stripes: c.stripes, b, lf };
-      }),
-    [shown],
-  );
+  const specs = useMemo<Spec[]>(() => shown.map((m) => cardSpec(m.card!)), [shown]);
   if (!specs.length) return null;
   const two = specs.length > 6;
   const key = JSON.stringify(shown.map((m) => [m.id, m.updated]));

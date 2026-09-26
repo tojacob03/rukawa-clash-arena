@@ -75,6 +75,9 @@ import { shipsOf } from "../socialCard.ts";
 import { crewNow, shipNow } from "../ship.ts";
 import type { ShipNow } from "../ship.ts";
 import { gearItems } from "../core/social.ts";
+import { figureFactors } from "../core/body.ts";
+import type { Spec } from "../fighter3d/figure.ts";
+import { cardSpec } from "../fighter3d/specs.ts";
 import { isOpen } from "../core/unlocks.ts";
 import { ShipOnWater } from "../components/Sea3D.tsx";
 
@@ -180,6 +183,18 @@ function OpenSea({ data, st, today, arg }: SeaProps) {
       ),
     [data, st, today, crew],
   );
+  // Who stands on deck: on your own ship you, on the crew ship everyone who
+  // shares a card, the captain at the helm.
+  const mine = useMemo<Spec>(() => {
+    const { b, lf } = figureFactors(g.character.look.height, p.heightCm, p.weightKg);
+    return { look: g.character.look, mode: g.character.mode, gear: g.gear, belt: p.belt, stripes: p.stripes, b, lf };
+  }, [g.character.look, g.character.mode, g.gear, p.belt, p.stripes, p.heightCm, p.weightKg]);
+  const meId = social.me?.id ?? null;
+  const deck = useMemo<Spec[]>(() => {
+    if (!crew) return [mine];
+    const aboard = [...crew.members].sort((a, b) => Number(!!b.captain) - Number(!!a.captain));
+    return aboard.flatMap((m) => (m.id === meId ? [mine] : m.card ? [cardSpec(m.card)] : []));
+  }, [crew, mine, meId]);
   const sea = ship.sea;
   const r = route(sea);
   const pos = ship.pos;
@@ -277,7 +292,8 @@ function OpenSea({ data, st, today, arg }: SeaProps) {
           arg={arg}
           expl={expl}
           ship={ship}
-          meId={social.me?.id ?? null}
+          meId={meId}
+          deck={deck}
           wx={wx}
           others={others}
           voyage={leg}
@@ -292,8 +308,8 @@ function OpenSea({ data, st, today, arg }: SeaProps) {
               stripes={p.stripes}
               weightKg={p.weightKg}
               heightCm={p.heightCm}
-              size={150}
-              crop="head"
+              size={240}
+              crop="bust"
             />
           }
         />
@@ -363,6 +379,7 @@ function ChartView({
   expl,
   ship,
   meId,
+  deck,
   wx,
   avatar,
   others = [],
@@ -377,6 +394,7 @@ function ChartView({
   expl: Explored[];
   ship: ShipNow;
   meId: string | null;
+  deck: Spec[];
   wx: Weather;
   avatar: ReactNode;
   others?: OtherShip[];
@@ -462,6 +480,7 @@ function ChartView({
                 hull: st.body.kraft,
                 sails: st.body.ausdauer,
                 barnacles: rustCount(st),
+                crew: deck,
               }}
               selected={selected}
               onSelect={(id) => go("meer", id)}
@@ -469,7 +488,6 @@ function ChartView({
               voyage={voyage}
               onVoyage={onVoyage}
               note={note}
-              overlay
             />
             <div className="sea-callout" aria-live="polite">
               <p>
@@ -805,8 +823,8 @@ function CrewPosters({
                       belt={c.belt}
                       stripes={c.stripes}
                       body={c.body}
-                      size={150}
-                      crop="head"
+                      size={240}
+                      crop="bust"
                       label={`${m.name}s Charakter`}
                     />
                   ) : null
