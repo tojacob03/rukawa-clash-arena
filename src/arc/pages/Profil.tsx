@@ -28,7 +28,7 @@ export default function Profil({ data, st, today }: { data: ArcData; st: ArcStat
 
   return (
     <div className="page profil">
-      <SecTitle kanji="道" eyebrow="Profil" title="Dein Weg" />
+      <SecTitle h1 kanji="道" eyebrow="Profil" title="Dein Weg" />
       {data.demo ? (
         <section className="panel demo-note">
           <p>

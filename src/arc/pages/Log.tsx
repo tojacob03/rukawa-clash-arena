@@ -177,7 +177,7 @@ export default function Log({ data, st, today }: { data: ArcData; st: ArcState; 
 
   return (
     <div className="page log">
-      <SecTitle kanji="記録" eyebrow="Nach dem Training" title="Training eintragen">
+      <SecTitle h1 kanji="記録" eyebrow="Nach dem Training" title="Training eintragen">
         Standardwerte sind vorausgefüllt, du tippst nur, was abweicht. Die Vorschau zeigt live, was das Training bewegt.
       </SecTitle>
       <LogSwitch value="training" />

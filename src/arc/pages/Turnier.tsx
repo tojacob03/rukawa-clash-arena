@@ -123,7 +123,7 @@ export default function Turnier({ data, st, today }: { data: ArcData; st: ArcSta
 
   return (
     <div className="page log">
-      <SecTitle kanji="試合" eyebrow="Wettkampf" title="Turnier eintragen">
+      <SecTitle h1 kanji="試合" eyebrow="Wettkampf" title="Turnier eintragen">
         Ein Turnier zählt doppelt: jeder Kampf bewegt dein Power Level stärker als ein Roll, Aufgabe-Siege gelten als harter Beleg für die Technik.
       </SecTitle>
       <LogSwitch value="turnier" />

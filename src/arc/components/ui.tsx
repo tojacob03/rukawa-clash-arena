@@ -87,7 +87,8 @@ export function Stepper({
   );
 }
 
-export function SecTitle({ kanji, eyebrow, title, children }: { kanji: string; eyebrow: string; title: ReactNode; children?: ReactNode }) {
+/** A section title with its kanji in the margin; `h1` when it is the title of the page. */
+export function SecTitle({ kanji, eyebrow, title, children, h1 }: { kanji: string; eyebrow: string; title: ReactNode; children?: ReactNode; h1?: boolean }) {
   const ref = useRef<HTMLElement>(null);
   useBrush(ref);
   return (
@@ -97,7 +98,7 @@ export function SecTitle({ kanji, eyebrow, title, children }: { kanji: string; e
       </span>
       <div className="sec-text">
         <p className="eyebrow">{eyebrow}</p>
-        <h2>{title}</h2>
+        {h1 ? <h1>{title}</h1> : <h2>{title}</h2>}
         {children ? <p className="lede">{children}</p> : null}
       </div>
     </header>
@@ -145,7 +146,7 @@ export function HeroKoma({ children, className, ai, label }: { children: ReactNo
 /** Two badges for a change of level, instead of an arrow. */
 export function LvlStep({ from, to, label }: { from: number; to: number; label: string }) {
   return (
-    <span className="lvl-step" aria-label={`${label} ${to}, vorher ${from}`}>
+    <span className="lvl-step" role="img" aria-label={`${label} ${to}, vorher ${from}`}>
       <span aria-hidden="true">{from}</span>
       <span aria-hidden="true">{to}</span>
     </span>

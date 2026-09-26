@@ -177,7 +177,8 @@ export default function ArcApp() {
         Zum Inhalt
       </button>
       {/* Experience runs along the top edge of the screen as a gold seam. */}
-      <div className="xp-seam" role="progressbar" aria-label={`XP bis Level ${st.lvl + 1}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(xpPct)}>
+      {/* The same XP stand in the header as text; the seam is its picture. */}
+      <div className="xp-seam" aria-hidden="true">
         <i style={{ width: `${xpPct.toFixed(1)}%` }} />
       </div>
       <header className="hud">

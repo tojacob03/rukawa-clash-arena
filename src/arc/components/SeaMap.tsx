@@ -756,7 +756,7 @@ export default function SeaMap({
   return (
     <div className="sea-chart">
       <div className="sea-view" ref={boxRef} tabIndex={0} role="group" aria-label="Seekarte. Ziehen verschiebt, Mausrad oder zwei Finger zoomen. Mit Pfeiltasten verschieben, Plus und Minus zoomen, S zeigt dein Schiff, 0 die ganze Welt." onKeyDown={onKey}>
-        <svg ref={svgRef} className="sea-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Seekarte deiner Reise">
+        <svg ref={svgRef} className="sea-map" viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Seekarte deiner Reise">
           <SeaBackground sea={marks.sea} />
 
           {/* Home sea routes */}

@@ -47,14 +47,14 @@ export default function Plan({ data }: { data: ArcData }) {
 
   return (
     <div className="page plan-page">
-      <SecTitle kanji="週" eyebrow="Wochenplan" title="Wann trainierst du?">
+      <SecTitle h1 kanji="週" eyebrow="Wochenplan" title="Wann trainierst du?">
         Trag ein, wann du normalerweise trainierst, auch Judo, Ringen oder Kraft. Vor jedem Training erinnert dich Waza Arc an deine Quest, und dein Kalender kennt die Zeiten auch.
       </SecTitle>
 
       <section className="week" aria-label="Deine Woche">
         {byDay.map((slots, d) => (
           <div key={d} className={`week-day${slots.length ? "" : " free"}`}>
-            <h3>
+            <h2 className="wd-h">
               <span className="wd-k" aria-hidden="true">
                 {"月火水木金土日"[d]}
               </span>
@@ -62,7 +62,7 @@ export default function Plan({ data }: { data: ArcData }) {
                 {DAY_SHORT[d]}
               </span>
               <span className="wd-long">{DAY_NAMES[d]}</span>
-            </h3>
+            </h2>
             {slots.length ? (
               <ul>
                 {slots.map((s) => (

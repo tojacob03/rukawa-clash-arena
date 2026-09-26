@@ -179,7 +179,7 @@ export default function ChapterEnd({
 
   return (
     <div ref={root} className={`page chapter${skip ? " skip" : ""}${staged ? " staged" : ""}`}>
-      <SecTitle kanji={kanji} eyebrow="Kapitelende" title={title} />
+      <SecTitle h1 kanji={kanji} eyebrow="Kapitelende" title={title} />
       <HeroKoma label="Erfahrung">
         <div className="chapter-xp">
           {seal ? <Hanko kind={seal.kind} date={seal.date} className="ch-seal" /> : null}

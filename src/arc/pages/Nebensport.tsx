@@ -119,7 +119,7 @@ export default function Nebensport({ data, st, today }: { data: ArcData; st: Arc
 
   return (
     <div className="page log">
-      <SecTitle kanji="鍛" eyebrow="Neben der Matte" title="Nebensport eintragen">
+      <SecTitle h1 kanji="鍛" eyebrow="Neben der Matte" title="Nebensport eintragen">
         Kraft, Ausdauer, Ringen und Co. zählen nicht fürs BJJ-Wochenziel. Sie bringen XP und bauen deine Körperwerte auf. Takedowns aus Ringen, Judo und Sambo zählen für
         deine Stand-Techniken, mit drei Vierteln des Gewichts eines BJJ-Rolls.
       </SecTitle>

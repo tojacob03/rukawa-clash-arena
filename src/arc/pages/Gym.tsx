@@ -19,7 +19,7 @@ import { HeroKoma, SecTitle } from "../components/ui.tsx";
 export default function Gym({ data, st, today }: { data: ArcData; st: ArcState; today: string }) {
   return (
     <div className="page gym-page">
-      <SecTitle kanji="道" eyebrow="Gym" title="Dein Gym">
+      <SecTitle h1 kanji="道" eyebrow="Gym" title="Dein Gym">
         Sieh, wer aus deinem Gym auch mit Waza Arc trainiert und wer heute auf der Matte steht. Das ist unabhängig von deiner Crew.
       </SecTitle>
       <SocialGate data={data} st={st} today={today} back={{ route: "gym" }} intro="Tritt deinem Gym bei und sieh, wer von dort heute trainiert.">

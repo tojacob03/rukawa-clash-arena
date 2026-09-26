@@ -65,6 +65,7 @@ export default function Held({ data, st, today, arg }: Props) {
 
   return (
     <div className="page held">
+      {tab !== "uebersicht" ? <h1 className="sr-only">{`${p.name}: ${TABS.find((t) => t.id === tab)?.label}`}</h1> : null}
       <nav className="tabs" aria-label="Charakter">
         {TABS.map((t) => (
           <button key={t.id} type="button" className={tab === t.id ? "on" : ""} aria-current={tab === t.id ? "page" : undefined} onClick={() => go("held", t.id === "uebersicht" ? undefined : t.id)}>

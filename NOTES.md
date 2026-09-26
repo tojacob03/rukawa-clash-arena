@@ -8,6 +8,7 @@ _(Rückfragen, Ablehnungen und Entscheidungen, die du bestätigen oder ändern s
 
 - **Kopfbedeckungen, Auswahl je Land:** Die Zuordnung steht in `src/arc/core/headwear.ts`, eine Zeile pro Land. Bitte einmal durchsehen, vor allem Länder mit mehreren Kandidaten (Deutschland: Trachtenhut mit Gamsbart statt Bollenhut, Vereinigtes Königreich: Melone, England: Schiebermütze, Brasilien: Chapéu de couro, Indien: Pagri aus Rajasthan). Religiöse Kopfbedeckungen habe ich bewusst ausgelassen.
 - **Progressive Disclosure, Schwellen:** Seekarte öffnet mit dem 1. Eintrag, Power Level und Scouter mit dem 2., Wochenboss mit dem 3., Hexagon mit dem 4. (`src/arc/core/unlocks.ts`, eine Zeile je Schwelle). Wer heute schon 1 bis 3 Einträge hat, sieht einzelne Teile kurz wieder zu, bis die Schwelle erreicht ist. Falls dich das stört: ein Stichtag, vor dem angelegte Profile alles offen haben, ist eine Zeile.
+- **E2E-Tests ins Repo holen?** Die Browser-Tests (Konto 23 Fälle, Social 44, reduzierte Bewegung, Seekarten-Überlappung, jetzt auch axe-core) liegen bisher als Skripte außerhalb des Repos. Sie ins Repo zu holen hieße, Playwright und axe-core als devDependencies aufzunehmen (package-lock und bun.lockb ändern sich). Das habe ich nicht ohne dich entschieden.
 - **Gym-Besuche liegen im Hauptdatensatz** (`visits` im Root-Record), nicht als eigene Record-Art. Grund: Der Server erlaubt nur die Arten root, session, comp, cross und promo, eine neue Art bräuchte eine Migration auf der Produktionsdatenbank. Für ein paar Dutzend Einträge reicht der Root-Record. Wenn du eine eigene Art willst: Migration freigeben, dann ziehe ich sie um.
 
 ## Protokoll
@@ -117,3 +118,15 @@ Durchgesehen: Eintragen (Training, Turnier, Nebensport), Seekarte (Schiff, Logbu
 - **Turnier eintragen:** Vorschau und Speicherleiste nannten verschiedene XP (300 und 200), weil die Leiste nur Antreten, Kämpfe und Platzierung zählte. Beide zeigen jetzt dieselbe Summe.
 - **Vorschau-Zeilen** hatten „+“ und „−“ in kleinen Kästchen; jetzt als Zeichen ohne Rahmen.
 - Nebenbei: Das Prüfskript für die Seekarte meldete Überlappungen zwischen Linien innerhalb von Icons (Fehlalarm); es schaut jetzt nur noch auf Text. Ergebnis: keine Überlappung.
+
+### Barrierefreiheit mit axe-core
+
+axe-core (WCAG 2.0/2.1 A und AA plus Best Practices) über 20 Seiten in beiden Ausgaben bei 1280 px, dazu Scouter, Codex-Dialog, Zweig, Heute und Kapitelende bei 390 px. Gefunden und behoben:
+
+- **Seiten ohne h1** (Eintragen, Turnier, Nebensport, Codex, Profil, Konto, Plan, Gym, Einladung, Kapitelende, die Reiter im Charakterbogen): Der Seitentitel ist jetzt die h1 (`SecTitle h1`), im Charakterbogen gibt es je Reiter eine unsichtbare h1 („Name: Ausrüstung“).
+- **Überschriftenfolge im Wochenplan:** Wochentage waren h3 direkt unter der h1; jetzt h2.
+- **`aria-label` auf einem Span ohne Rolle** (Stufenwechsel „19 → 20“): jetzt `role="img"`, damit das Label gelesen wird.
+- **Seekarte:** Das SVG hatte `role="img"`, enthielt aber bedienbare Inseln; jetzt `role="group"`, damit die Inseln erreichbar bleiben.
+- **XP-Naht oben** lag außerhalb jeder Landmarke; sie ist ein Bild desselben Standes, der im Kopf als Text steht, und ist jetzt für Screenreader ausgeblendet.
+- **Kontrast:** Die Quest-Art im zinnoberroten Knopf „Als heutige Quest nehmen“ war Rot auf Rot (1,5 : 1); jetzt in der Schriftfarbe des Knopfes.
+- Ergebnis: keine Verstöße mehr. Farbkontrast hat axe sonst überall bestanden.

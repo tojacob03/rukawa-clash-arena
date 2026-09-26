@@ -67,7 +67,7 @@ export default function Codex({ data, st, today }: { data: ArcData; st: ArcState
 
   return (
     <div className="page codex">
-      <SecTitle kanji="書" eyebrow="Waza-Codex" title={`${TECHS.length} Techniken`}>
+      <SecTitle h1 kanji="書" eyebrow="Waza-Codex" title={`${TECHS.length} Techniken`}>
         Alle Techniken deines Zweigs zum Nachschlagen. Gesucht wird auch in anderen Namen, z. B. „Scarf Hold“ oder „Juji-gatame“.
       </SecTitle>
       <div className="codex-book">
