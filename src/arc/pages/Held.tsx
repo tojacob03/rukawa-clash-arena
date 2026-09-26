@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { Lock, Plus, ScanEye, Trophy } from "lucide-react";
 import type { ArcData, ArcState, Attire, Look, Slot } from "../core/types.ts";
@@ -100,7 +100,8 @@ type View = "zeit" | "gi";
 function Overview({ data, st, today, avatar }: { data: ArcData; st: ArcState; today: string; avatar: AvatarFn }) {
   const [view, setView] = useState<View>("zeit");
   const [allSeals, setAllSeals] = useState(false);
-  const back = compute(data, isoMinus(today, 56));
+  // Eight weeks back, for the hexagon's second outline; the whole model once per change of data, not per render.
+  const back = useMemo(() => compute(data, isoMinus(today, 56)), [data, today]);
   const cmp = useCompare(data, today);
   const p = data.profile!;
   const now = SECTORS.map((s) => st.attrs[s.id].val);
