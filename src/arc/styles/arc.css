@@ -1668,6 +1668,7 @@ button.item.locked:hover .lock { border-color: var(--ink-2); color: var(--ink-2)
 .crew-photo { margin: 0; display: grid; gap: 6px; }
 .crew-photo canvas.scene3d { width: 100%; }
 .crew-photo figcaption { text-align: center; }
+.trophy-shelf.scene3d { width: 100%; margin: 6px 0 2px; }
 /* 3D scenes fade in with their first frame. */
 canvas.scene3d { display: block; width: var(--aw); max-width: 100%; height: auto; opacity: 0; transition: opacity 0.2s ease-out; }
 canvas.scene3d.ready { opacity: 1; }
