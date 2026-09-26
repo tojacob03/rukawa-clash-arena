@@ -350,6 +350,91 @@ export type Database = {
           table_name: string
         }[]
       }
+      arc_crew_create: {
+        Args: { p_flag: Json; p_name: string }
+        Returns: string
+      }
+      arc_crew_edit: {
+        Args: { p_flag: Json; p_name: string }
+        Returns: undefined
+      }
+      arc_crew_join: { Args: { p_code: string }; Returns: string }
+      arc_crew_kick: { Args: { p_user: string }; Returns: undefined }
+      arc_crew_leave: { Args: never; Returns: undefined }
+      arc_cron_check: { Args: { p_secret: string }; Returns: boolean }
+      arc_delete_account: { Args: never; Returns: undefined }
+      arc_friend_add: { Args: { p_code: string }; Returns: string }
+      arc_friend_answer: {
+        Args: { p_accept: boolean; p_user: string }
+        Returns: undefined
+      }
+      arc_friend_remove: { Args: { p_user: string }; Returns: undefined }
+      arc_gym_create: {
+        Args: { p_city: string; p_name: string }
+        Returns: string
+      }
+      arc_gym_find: { Args: { p_query: string }; Returns: Json }
+      arc_gym_join: { Args: { p_code: string }; Returns: string }
+      arc_gym_leave: { Args: never; Returns: undefined }
+      arc_gym_visible: { Args: { p_visible: boolean }; Returns: undefined }
+      arc_pull: {
+        Args: { p_limit?: number; p_since?: number }
+        Returns: {
+          data: Json
+          deleted: boolean
+          id: string
+          kind: string
+          rev: number
+        }[]
+      }
+      arc_push: { Args: { p_rows: Json }; Returns: number }
+      arc_push_result: {
+        Args: { p_endpoint: string; p_gone: boolean; p_ok: boolean }
+        Returns: undefined
+      }
+      arc_push_subscribe: {
+        Args: { p_auth: string; p_endpoint: string; p_p256dh: string }
+        Returns: undefined
+      }
+      arc_push_unsubscribe: { Args: { p_endpoint: string }; Returns: undefined }
+      arc_reminder_claim: {
+        Args: {
+          p_channel: string
+          p_day: string
+          p_slot: string
+          p_user: string
+        }
+        Returns: boolean
+      }
+      arc_reminder_config: { Args: never; Returns: Json }
+      arc_reminder_targets: {
+        Args: { p_user?: string }
+        Returns: {
+          email: string
+          pauses: Json
+          plan: Json
+          subs: Json
+          user_id: string
+        }[]
+      }
+      arc_set_email_ready: { Args: { p_ready: boolean }; Returns: undefined }
+      arc_social_disable: { Args: never; Returns: undefined }
+      arc_social_publish: {
+        Args: {
+          p_card: Json
+          p_create?: boolean
+          p_name: string
+          p_share_times?: boolean
+          p_slots?: Json
+        }
+        Returns: string
+      }
+      arc_social_state: { Args: never; Returns: Json }
+      arc_vapid_init: {
+        Args: { p_private: string; p_public: string }
+        Returns: Json
+      }
+      arc_vapid_keys: { Args: never; Returns: Json }
       audit_table_security: {
         Args: never
         Returns: {
