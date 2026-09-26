@@ -1845,6 +1845,16 @@ canvas.avatar.turns:focus-visible { outline: 2px solid var(--gold); outline-offs
 .pass-stamps { list-style: none; margin: 0; padding: 22px 0 26px; display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 26px 18px; }
 .pass-stamps li { position: relative; display: grid; gap: 8px; justify-items: center; text-align: center; min-width: 0; }
 .gym-stamp { display: block; width: 132px; height: auto; mix-blend-mode: multiply; }
+/* A new stamp: the stone comes down over it (three/stamp.ts), the print shows when it touches. */
+.pass-stamps li.unprinted .gym-stamp { opacity: 0; }
+.stamp-press { position: absolute; transform: translate(-50%, -50%); pointer-events: none; z-index: 2; }
+/* The hat collection on its turning stand. */
+.hat-stand { margin: 4px 0 14px; display: grid; justify-items: center; gap: 6px; }
+.hat-stand canvas.scene3d { width: 100%; max-width: 360px; aspect-ratio: 5 / 4; touch-action: pan-y; cursor: grab; }
+.hat-stand canvas.scene3d:active { cursor: grabbing; }
+.hs-nav { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; max-width: 360px; }
+.hat-stand figcaption { display: grid; justify-items: center; text-align: center; }
+.hat-stand figcaption small { color: var(--ink-2); font-size: 12.5px; }
 .gs-ink { fill: none; stroke: currentColor; }
 .gs-ink text { fill: currentColor; stroke: none; }
 .gym-stamp.ink-beni { color: #b3321d; }
